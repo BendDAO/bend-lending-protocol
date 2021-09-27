@@ -16,3 +16,10 @@ coverage
 .coverage_cache
 .coverage_contracts
 
+
+node_modules
+.env
+
+#Hardhat files
+cache
+artifacts
