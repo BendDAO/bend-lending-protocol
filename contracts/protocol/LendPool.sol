@@ -7,4 +7,4 @@ import "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import "./LendPoolStorage.sol";
 
-contract NFTLoan is ILendPool, LendPoolStorage {}
+abstract contract NFTLoan is ILendPool, LendPoolStorage {}
