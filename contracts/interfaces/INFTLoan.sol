@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-interface INFTLoan {
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+interface INFTLoan is IERC721 {
     /**
      * @dev Emitted on mint()
      * @param user The address initiating the deposit

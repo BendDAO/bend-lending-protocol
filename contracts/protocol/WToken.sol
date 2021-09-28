@@ -2,5 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/IWToken.sol";
+import "../interfaces/IIncentivesController.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract WToken is IWToken {}
+abstract contract WToken is IWToken, ERC20 {}
