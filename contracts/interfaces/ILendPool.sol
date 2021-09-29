@@ -100,6 +100,25 @@ interface ILendPool {
     event Unpaused();
 
     /**
+     * @dev Emitted when the state of a reserve is updated. NOTE: This event is actually declared
+     * in the ReserveLogic library and emitted in the updateInterestRates() function. Since the function is internal,
+     * the event will actually be fired by the LendingPool contract. The event is therefore replicated here so it
+     * gets added to the LendingPool ABI
+     * @param reserve The address of the underlying asset of the reserve
+     * @param liquidityRate The new liquidity rate
+     * @param variableBorrowRate The new variable borrow rate
+     * @param liquidityIndex The new liquidity index
+     * @param variableBorrowIndex The new variable borrow index
+     **/
+    event ReserveDataUpdated(
+        address indexed reserve,
+        uint256 liquidityRate,
+        uint256 variableBorrowRate,
+        uint256 liquidityIndex,
+        uint256 variableBorrowIndex
+    );
+
+    /**
      * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying aTokens.
      * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
      * @param asset The address of the underlying asset to deposit
