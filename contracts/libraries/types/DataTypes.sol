@@ -19,6 +19,8 @@ library DataTypes {
         address aTokenAddress;
         //address of the interest rate strategy
         address interestRateAddress;
+        // scaled total borrow amount. Expressed in ray
+        uint256 scaledTotalBorrowAmount;
         //the id of the reserve. Represents the position in the list of the active reserves
         uint8 id;
     }
