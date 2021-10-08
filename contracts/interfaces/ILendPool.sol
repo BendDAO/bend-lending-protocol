@@ -229,18 +229,36 @@ interface ILendPool {
         view
         returns (DataTypes.ReserveData memory);
 
+    /**
+     * @dev Validates and finalizes an aToken transfer
+     * - Only callable by the overlying aToken of the `asset`
+     * @param asset The address of the underlying asset of the aToken
+     * @param from The user from which the aTokens are transferred
+     * @param to The user receiving the aTokens
+     * @param amount The amount being transferred/withdrawn
+     * @param balanceFromBefore The aToken balance of the `from` user before the transfer
+     * @param balanceToBefore The aToken balance of the `to` user before the transfer
+     */
     function finalizeTransfer(
         address asset,
         address from,
         address to,
         uint256 amount,
-        uint256 balanceFromAfter,
+        uint256 balanceFromBefore,
         uint256 balanceToBefore
     ) external;
 
     function getReservesList() external view returns (address[] memory);
 
+    /**
+     * @dev Set the _pause state of a reserve
+     * - Only callable by the LendingPoolConfigurator contract
+     * @param val `true` to pause the reserve, `false` to un-pause it
+     */
     function setPause(bool val) external;
 
+    /**
+     * @dev Returns if the LendingPool is paused
+     */
     function paused() external view returns (bool);
 }
