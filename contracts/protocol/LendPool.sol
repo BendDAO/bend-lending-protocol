@@ -210,8 +210,10 @@ contract LendPool is ILendPool, LendPoolStorage {
 
         reserve.updateState();
 
+        uint256 scaledAmount = 0;
+
         if (isUpdate) {
-            INFTLoan(nftLoanAddr).updateLoan(
+            scaledAmount = INFTLoan(nftLoanAddr).updateLoan(
                 user,
                 loanId,
                 0,
@@ -219,12 +221,17 @@ contract LendPool is ILendPool, LendPoolStorage {
                 reserve.variableBorrowIndex
             );
         } else {
-            INFTLoan(nftLoanAddr).burnLoan(
+            scaledAmount = INFTLoan(nftLoanAddr).burnLoan(
                 user,
                 loanId,
                 reserve.variableBorrowIndex
             );
         }
+        require(
+            reserve.scaledTotalBorrowAmount >= scaledAmount,
+            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
+        );
+        reserve.scaledTotalBorrowAmount -= scaledAmount;
 
         address aToken = reserve.aTokenAddress;
         reserve.updateInterestRates(asset, aToken, paybackAmount, 0);
@@ -242,6 +249,16 @@ contract LendPool is ILendPool, LendPoolStorage {
         return paybackAmount;
     }
 
+    struct LiquidationCallLocalVars {
+        address asset;
+        address borrower;
+        address nftContract;
+        uint256 nftTokenId;
+        uint256 liquidateAmount;
+        uint256 paybackAmount;
+        uint256 remainAmount;
+    }
+
     /**
      * @dev Function to liquidate a non-healthy position collateral-wise
      * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
@@ -249,52 +266,78 @@ contract LendPool is ILendPool, LendPoolStorage {
      * @param loanId The loan ID of the NFT loans
      **/
     function liquidate(uint256 loanId) external override whenNotPaused {
+        LiquidationCallLocalVars memory vars;
+
         address nftLoanAddr = _addressesProvider.getNFTLoan();
-        address asset = INFTLoan(nftLoanAddr).getLoanReserve(loanId);
-        address borrower = IERC721(nftLoanAddr).ownerOf(loanId);
+        vars.asset = INFTLoan(nftLoanAddr).getLoanReserve(loanId);
+        vars.borrower = IERC721(nftLoanAddr).ownerOf(loanId);
 
-        DataTypes.ReserveData storage reserve = _reserves[asset];
+        DataTypes.ReserveData storage reserve = _reserves[vars.asset];
 
-        (address nftContract, uint256 nftTokenId) = INFTLoan(nftLoanAddr)
+        (vars.nftContract, vars.nftTokenId) = INFTLoan(nftLoanAddr)
             .getLoanCollateral(loanId);
-        uint256 paybackAmount = INFTLoan(nftLoanAddr).getLoanAmount(loanId);
+        vars.paybackAmount = INFTLoan(nftLoanAddr).getLoanAmount(loanId);
 
         address nftOracle = _addressesProvider.getNFTOracle();
         uint256 nftPrice = INFTOracleGetter(nftOracle).getAssetPrice(
-            nftContract
+            vars.nftContract
         );
         uint256 thresholdPrice = nftPrice.percentMul(80e4);
         require(
-            paybackAmount <= thresholdPrice,
+            vars.paybackAmount <= thresholdPrice,
             Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE
         );
 
-        uint256 liquidateAmount = nftPrice.percentMul(95e4);
+        vars.liquidateAmount = nftPrice.percentMul(95e4);
         require(
-            liquidateAmount >= paybackAmount,
+            vars.liquidateAmount >= vars.paybackAmount,
             Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE
         );
 
-        uint256 remainAmount = 0;
-        if (liquidateAmount > paybackAmount) {
-            remainAmount = liquidateAmount - paybackAmount;
+        vars.remainAmount = 0;
+        if (vars.liquidateAmount > vars.paybackAmount) {
+            vars.remainAmount = vars.liquidateAmount - vars.paybackAmount;
         }
 
-        INFTLoan(nftLoanAddr).burnLoan(
+        reserve.updateState();
+
+        uint256 scaledAmount = INFTLoan(nftLoanAddr).burnLoan(
             msg.sender,
             loanId,
             reserve.variableBorrowIndex
         );
+        require(
+            reserve.scaledTotalBorrowAmount >= scaledAmount,
+            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
+        );
+        reserve.scaledTotalBorrowAmount -= scaledAmount;
 
-        IERC20(asset).safeTransferFrom(msg.sender, asset, paybackAmount);
-        IERC20(asset).safeTransferFrom(msg.sender, borrower, remainAmount);
+        reserve.updateInterestRates(
+            vars.asset,
+            reserve.aTokenAddress,
+            vars.paybackAmount,
+            0
+        );
+
+        IERC20(vars.asset).safeTransferFrom(
+            msg.sender,
+            vars.asset,
+            vars.paybackAmount
+        );
+        if (vars.remainAmount > 0) {
+            IERC20(vars.asset).safeTransferFrom(
+                msg.sender,
+                vars.borrower,
+                vars.remainAmount
+            );
+        }
 
         emit Liquidate(
             loanId,
-            borrower,
-            asset,
-            paybackAmount,
-            remainAmount,
+            vars.borrower,
+            vars.asset,
+            vars.paybackAmount,
+            vars.remainAmount,
             msg.sender
         );
     }
@@ -410,24 +453,34 @@ contract LendPool is ILendPool, LendPoolStorage {
         bool releaseUnderlying;
     }
 
-    function _executeBorrow(ExecuteBorrowParams memory vars) internal {
-        DataTypes.ReserveData storage reserve = _reserves[vars.asset];
+    struct ExecuteBorrowLocalVars {
+        uint256 assetPrice;
+        uint256 nftPrice;
+        uint256 thresholdPrice;
+        bool isFirstBorrowing;
+        uint256 newLoanId;
+        uint256 scaledAmount;
+    }
+
+    function _executeBorrow(ExecuteBorrowParams memory params) internal {
+        DataTypes.ReserveData storage reserve = _reserves[params.asset];
         DataTypes.UserConfigurationMap storage userConfig = _usersConfig[
-            vars.user
+            params.user
         ];
+        ExecuteBorrowLocalVars memory vars;
 
         address oracle = _addressesProvider.getPriceOracle();
-        uint256 assetPrice = IPriceOracleGetter(oracle).getAssetPrice(
-            vars.asset
+        vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(
+            params.asset
         );
-        uint256 amountInETH = (assetPrice * vars.amount) /
+        uint256 amountInETH = (vars.assetPrice * params.amount) /
             10**reserve.configuration.getDecimals();
 
         ValidationLogic.validateBorrow(
-            vars.asset,
+            params.asset,
             reserve,
-            vars.user,
-            vars.amount,
+            params.user,
+            params.amount,
             amountInETH,
             _reserves,
             userConfig,
@@ -436,61 +489,73 @@ contract LendPool is ILendPool, LendPoolStorage {
             oracle
         );
 
+        address nftOracle = _addressesProvider.getNFTOracle();
+        vars.nftPrice = INFTOracleGetter(nftOracle).getAssetPrice(
+            params.collateralAsset
+        );
+        vars.thresholdPrice = vars.nftPrice.percentMul(50e4);
+        require(params.amount <= vars.thresholdPrice, Errors.VL_INVALID_AMOUNT);
+
         reserve.updateState();
 
         address nftLoanAddr = _addressesProvider.getNFTLoan();
 
-        bool isFirstBorrowing = false;
-        if (INFTLoan(nftLoanAddr).balanceOf(vars.user) == 0) {
-            isFirstBorrowing = true;
+        vars.isFirstBorrowing = false;
+        if (INFTLoan(nftLoanAddr).balanceOf(params.user) == 0) {
+            vars.isFirstBorrowing = true;
         }
 
-        if (vars.loanId == 0) {
-            uint256 loanId = INFTLoan(nftLoanAddr).mintLoan(
-                vars.user,
-                vars.collateralAsset,
-                vars.tokenId,
-                vars.asset,
-                vars.amount,
-                reserve.variableBorrowIndex
-            );
+        vars.newLoanId = 0;
+        vars.scaledAmount = 0;
 
-            if (isFirstBorrowing) {
+        if (params.loanId == 0) {
+            (vars.newLoanId, vars.scaledAmount) = INFTLoan(nftLoanAddr)
+                .mintLoan(
+                    params.user,
+                    params.collateralAsset,
+                    params.tokenId,
+                    params.asset,
+                    params.amount,
+                    reserve.variableBorrowIndex
+                );
+
+            if (vars.isFirstBorrowing) {
                 userConfig.setBorrowing(reserve.id, true);
             }
         } else {
-            INFTLoan(nftLoanAddr).updateLoan(
-                vars.user,
-                vars.loanId,
-                vars.amount,
+            vars.scaledAmount = INFTLoan(nftLoanAddr).updateLoan(
+                params.user,
+                params.loanId,
+                params.amount,
                 0,
                 reserve.variableBorrowIndex
             );
         }
+        reserve.scaledTotalBorrowAmount += vars.scaledAmount;
 
         reserve.updateInterestRates(
-            vars.asset,
-            vars.aTokenAddress,
+            params.asset,
+            params.aTokenAddress,
             0,
-            vars.releaseUnderlying ? vars.amount : 0
+            params.releaseUnderlying ? params.amount : 0
         );
 
-        if (vars.releaseUnderlying) {
-            IWToken(vars.aTokenAddress).transferUnderlyingTo(
-                vars.user,
-                vars.amount
+        if (params.releaseUnderlying) {
+            IWToken(params.aTokenAddress).transferUnderlyingTo(
+                params.user,
+                params.amount
             );
         }
 
         emit Borrow(
-            vars.asset,
-            vars.user,
-            vars.amount,
-            vars.collateralAsset,
-            vars.tokenId,
-            vars.loanId,
+            params.asset,
+            params.user,
+            params.amount,
+            params.collateralAsset,
+            params.tokenId,
+            params.loanId,
             reserve.currentVariableBorrowRate,
-            vars.referralCode
+            params.referralCode
         );
     }
 }
