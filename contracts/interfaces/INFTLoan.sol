@@ -74,4 +74,18 @@ interface INFTLoan is IERC721 {
         external
         view
         returns (DataTypes.LoanData calldata loanData);
+
+    function getLoanReserve(uint256 loanId) external view returns (address);
+
+    function getLoanScaledAmount(uint256 loanId)
+        external
+        view
+        returns (uint256);
+
+    function getLoanAmount(uint256 loanId) external view returns (uint256);
+
+    function getLoanCollateral(uint256 loanId)
+        external
+        view
+        returns (address, uint256);
 }

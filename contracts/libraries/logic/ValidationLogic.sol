@@ -91,4 +91,78 @@ library ValidationLogic {
             Errors.VL_TRANSFER_NOT_ALLOWED
         );
     }
+
+    struct ValidateBorrowLocalVars {
+        uint256 currentLtv;
+        uint256 currentLiquidationThreshold;
+        uint256 amountOfCollateralNeededETH;
+        uint256 userCollateralBalanceETH;
+        uint256 userBorrowBalanceETH;
+        uint256 availableLiquidity;
+        uint256 healthFactor;
+        bool isActive;
+        bool isFrozen;
+        bool borrowingEnabled;
+        bool stableRateBorrowingEnabled;
+    }
+
+    /**
+     * @dev Validates a borrow action
+     * @param asset The address of the asset to borrow
+     * @param reserve The reserve state from which the user is borrowing
+     * @param userAddress The address of the user
+     * @param amount The amount to be borrowed
+     * @param amountInETH The amount to be borrowed, in ETH
+     * @param reservesData The state of all the reserves
+     * @param userConfig The state of the user for the specific reserve
+     * @param reserves The addresses of all the active reserves
+     * @param oracle The price oracle
+     */
+    function validateBorrow(
+        address asset,
+        DataTypes.ReserveData storage reserve,
+        address userAddress,
+        uint256 amount,
+        uint256 amountInETH,
+        mapping(address => DataTypes.ReserveData) storage reservesData,
+        DataTypes.UserConfigurationMap storage userConfig,
+        mapping(uint256 => address) storage reserves,
+        uint256 reservesCount,
+        address oracle
+    ) external view {
+        ValidateBorrowLocalVars memory vars;
+
+        (
+            vars.isActive,
+            vars.isFrozen,
+            vars.borrowingEnabled,
+            vars.stableRateBorrowingEnabled
+        ) = reserve.configuration.getFlags();
+
+        require(vars.isActive, Errors.VL_NO_ACTIVE_RESERVE);
+        require(!vars.isFrozen, Errors.VL_RESERVE_FROZEN);
+        require(amount != 0, Errors.VL_INVALID_AMOUNT);
+
+        require(vars.borrowingEnabled, Errors.VL_BORROWING_NOT_ENABLED);
+    }
+
+    /**
+     * @dev Validates a repay action
+     * @param reserve The reserve state from which the user is repaying
+     * @param amountSent The amount sent for the repayment. Can be an actual value or uint(-1)
+     * @param variableDebt The borrow balance of the user
+     */
+    function validateRepay(
+        DataTypes.ReserveData storage reserve,
+        uint256 amountSent,
+        uint256 variableDebt
+    ) external view {
+        bool isActive = reserve.configuration.getActive();
+
+        require(isActive, Errors.VL_NO_ACTIVE_RESERVE);
+
+        require(amountSent > 0, Errors.VL_INVALID_AMOUNT);
+
+        require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
+    }
 }

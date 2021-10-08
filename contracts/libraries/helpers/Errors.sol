@@ -106,6 +106,8 @@ library Errors {
     string public constant LP_NOT_CONTRACT = "78";
     string public constant SDT_STABLE_DEBT_OVERFLOW = "79";
     string public constant SDT_BURN_EXCEEDS_BALANCE = "80";
+    string public constant LP_PRICE_TOO_LOW_TO_LIQUIDATE = "81";
+    string public constant LP_PRICE_TOO_HIGH_TO_LIQUIDATE = "82";
 
     enum CollateralManagerErrors {
         NO_ERROR,

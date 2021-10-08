@@ -57,4 +57,8 @@ interface ILendPoolAddressesProvider {
     function getNFTOracle() external view returns (address);
 
     function setNFTOracle(address nftOracle) external;
+
+    function getNFTLoan() external view returns (address);
+
+    function setNFTLoan(address nftLoan) external;
 }
