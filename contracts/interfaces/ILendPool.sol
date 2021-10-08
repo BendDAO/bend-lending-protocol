@@ -40,29 +40,30 @@ interface ILendPool {
      * @param amount The amount borrowed out
      * @param collateralAsset The address of the underlying asset used as collateral
      * @param tokenId The token id of the underlying asset used as collateral
+     * @param loanId The loan ID of the NFT loans
      * @param referral The referral code used
      **/
     event Borrow(
         address indexed reserve,
-        address user,
+        address indexed user,
         uint256 amount,
         address collateralAsset,
         uint256 tokenId,
+        uint256 loanId,
+        uint256 borrowRate,
         uint16 indexed referral
     );
 
     /**
      * @dev Emitted on repay()
-     * @param collateralAsset The address of the underlying asset used as collateral
-     * @param tokenId The token ID of the underlying asset used as collateral
+     * @param loanId The loan ID of the NFT loans
      * @param reserve The address of the underlying asset of the reserve
      * @param user The beneficiary of the repayment, getting his debt reduced
      * @param repayer The address of the user initiating the repay(), providing the funds
      * @param amount The amount repaid
      **/
     event Repay(
-        address indexed collateralAsset,
-        uint256 tokenId,
+        uint256 indexed loanId,
         address indexed reserve,
         address indexed user,
         address repayer,
@@ -73,21 +74,19 @@ interface ILendPool {
      * @dev Emitted when a borrower is liquidated. This event is emitted by the LendingPool via
      * LendingPoolCollateral manager using a DELEGATECALL
      * This allows to have the events in the generated ABI for LendingPool.
-     * @param collateralAsset The address of the underlying asset used as collateral
-     * @param tokenId The token ID of the underlying asset used as collateral
+     * @param loanId The loan ID of the NFT loans
      * @param user The address of the borrower getting liquidated
      * @param reserve The address of the underlying asset of the reserve
      * @param repayAmount The amount of WToken repaid by the liquidator
-     * @param returnToBorrowerAmount The amount of WToken received by the borrower
+     * @param borrowerAmount The amount of WToken received by the borrower
      * @param liquidator The address of the liquidator
      **/
     event Liquidate(
-        address indexed collateralAsset,
-        uint256 tokenId,
+        uint256 indexed loanId,
         address indexed user,
         address indexed reserve,
         uint256 repayAmount,
-        uint256 returnToBorrowerAmount,
+        uint256 borrowerAmount,
         address liquidator
     );
 
@@ -160,6 +159,7 @@ interface ILendPool {
      * @param amount The amount to be borrowed
      * @param collateralAsset The address of the underlying asset used as collateral
      * @param tokenId The token ID of the underlying asset used as collateral
+     * @param loanId The loan ID of the NFT loans
      * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
      *   0 if the action is executed directly by the user, without any middle-man
      **/
@@ -168,36 +168,26 @@ interface ILendPool {
         uint256 amount,
         address collateralAsset,
         uint256 tokenId,
+        uint256 loanId,
         uint16 referralCode
     ) external;
 
     /**
      * @notice Repays a borrowed `amount` on a specific reserve, burning the equivalent loan owned
      * - E.g. User repays 100 USDC, burning loan and receives collateral asset
-     * @param collateralAsset The address of the underlying asset used as collateral
-     * @param tokenId The token ID of the underlying asset used as collateral
+     * @param loanId The loan ID of the NFT loans
      * @param amount The amount to repay
      * @return The final amount repaid
      **/
-    function repay(
-        address collateralAsset,
-        uint256 tokenId,
-        uint256 amount
-    ) external returns (uint256);
+    function repay(uint256 loanId, uint256 amount) external returns (uint256);
 
     /**
      * @dev Function to liquidate a non-healthy position collateral-wise
      * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
      *   the collateral asset
-     * @param collateralAsset The address of the underlying asset used as collateral
-     * @param tokenId The token ID of the underlying borrowed asset
-     * @param user The address of the borrower getting liquidated
+     * @param loanId The loan ID of the NFT loans
      **/
-    function liquidate(
-        address collateralAsset,
-        uint256 tokenId,
-        address user
-    ) external;
+    function liquidate(uint256 loanId) external;
 
     /**
      * @dev Returns the normalized income normalized income of the reserve

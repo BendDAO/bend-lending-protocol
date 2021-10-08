@@ -167,6 +167,52 @@ contract NFTLoan is INFTLoan, ERC721 {
         return _loans[loanId];
     }
 
+    function getLoanReserve(uint256 loanId)
+        external
+        view
+        override
+        returns (address)
+    {
+        return _loans[loanId].assetAddress;
+    }
+
+    function getLoanAmount(uint256 loanId)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        uint256 scaledAmount = _loans[loanId].scaledAmount;
+        if (scaledAmount == 0) {
+            return 0;
+        }
+
+        return
+            scaledAmount.rayMul(
+                _pool.getReserveNormalizedVariableDebt(
+                    _loans[loanId].assetAddress
+                )
+            );
+    }
+
+    function getLoanScaledAmount(uint256 loanId)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return _loans[loanId].scaledAmount;
+    }
+
+    function getLoanCollateral(uint256 loanId)
+        external
+        view
+        override
+        returns (address, uint256)
+    {
+        return (_loans[loanId].nftTokenAddress, _loans[loanId].nftTokenId);
+    }
+
     function _getLendPool() internal view returns (ILendPool) {
         return _pool;
     }
