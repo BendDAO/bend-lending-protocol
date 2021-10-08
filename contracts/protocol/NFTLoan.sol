@@ -51,10 +51,10 @@ contract NFTLoan is INFTLoan, ERC721 {
         address assetAddress,
         uint256 amount,
         uint256 borrowIndex
-    ) external override onlyLendPool returns (uint256 loanId) {
+    ) external override onlyLendPool returns (uint256, uint256) {
         uint256 amountScaled = amount.rayDiv(borrowIndex);
 
-        loanId = _loanIdTracker.current();
+        uint256 loanId = _loanIdTracker.current();
         _loanIdTracker.increment();
 
         // Receive Collateral Tokens
@@ -83,6 +83,8 @@ contract NFTLoan is INFTLoan, ERC721 {
             amount,
             borrowIndex
         );
+
+        return (loanId, amountScaled);
     }
 
     /**
@@ -96,7 +98,7 @@ contract NFTLoan is INFTLoan, ERC721 {
         address user,
         uint256 loanId,
         uint256 borrowIndex
-    ) external override onlyLendPool {
+    ) external override onlyLendPool returns (uint256) {
         require(_exists(loanId), "NFTLoan: nonexist loan");
 
         DataTypes.LoanData memory loan = _loans[loanId];
@@ -119,6 +121,8 @@ contract NFTLoan is INFTLoan, ERC721 {
             loan.assetAddress,
             loan.scaledAmount
         );
+
+        return loan.scaledAmount;
     }
 
     function updateLoan(
@@ -127,19 +131,21 @@ contract NFTLoan is INFTLoan, ERC721 {
         uint256 amountAdded,
         uint256 amountTaken,
         uint256 borrowIndex
-    ) external override onlyLendPool {
+    ) external override onlyLendPool returns (uint256) {
         require(_exists(loanId), "NFTLoan: nonexist loan");
 
         DataTypes.LoanData memory loan = _loans[loanId];
 
+        uint256 amountScaled = 0;
+
         if (amountAdded > 0) {
-            uint256 amountScaled = amountAdded.rayDiv(borrowIndex);
+            amountScaled = amountAdded.rayDiv(borrowIndex);
             require(amountScaled != 0, "NFTLoan: invalid added amount");
             loan.scaledAmount += amountScaled;
         }
 
         if (amountTaken > 0) {
-            uint256 amountScaled = amountTaken.rayDiv(borrowIndex);
+            amountScaled = amountTaken.rayDiv(borrowIndex);
             require(amountScaled != 0, "NFTLoan: invalid taken amount");
             require(
                 loan.scaledAmount >= amountScaled,
@@ -156,6 +162,8 @@ contract NFTLoan is INFTLoan, ERC721 {
             amountTaken,
             borrowIndex
         );
+
+        return amountScaled;
     }
 
     function getLoan(uint256 loanId)
