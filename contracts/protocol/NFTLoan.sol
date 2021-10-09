@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import "../interfaces/INFTLoan.sol";
-import "../interfaces/ILendPool.sol";
-import "../libraries/helpers/Errors.sol";
-import "../libraries/types/DataTypes.sol";
+import {INFTLoan} from "../interfaces/INFTLoan.sol";
+import {ILendPool} from "../interfaces/ILendPool.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
 
 contract NFTLoan is INFTLoan, ERC721 {
     using WadRayMath for uint256;
@@ -18,6 +19,8 @@ contract NFTLoan is INFTLoan, ERC721 {
 
     Counters.Counter private _loanIdTracker;
     mapping(uint256 => DataTypes.LoanData) private _loans;
+    // scaled total borrow amount. Expressed in ray
+    uint256 scaledTotalAmount;
 
     /**
      * @dev Only lending pool can call functions marked by this modifier
@@ -51,7 +54,7 @@ contract NFTLoan is INFTLoan, ERC721 {
         address assetAddress,
         uint256 amount,
         uint256 borrowIndex
-    ) external override onlyLendPool returns (uint256, uint256) {
+    ) external override onlyLendPool returns (uint256) {
         uint256 amountScaled = amount.rayDiv(borrowIndex);
 
         uint256 loanId = _loanIdTracker.current();
@@ -75,6 +78,8 @@ contract NFTLoan is INFTLoan, ERC721 {
 
         _mint(user, loanId);
 
+        scaledTotalAmount += _loans[loanId].scaledAmount;
+
         emit MintLoan(
             user,
             nftTokenAddress,
@@ -84,7 +89,7 @@ contract NFTLoan is INFTLoan, ERC721 {
             borrowIndex
         );
 
-        return (loanId, amountScaled);
+        return (loanId);
     }
 
     /**
@@ -98,7 +103,7 @@ contract NFTLoan is INFTLoan, ERC721 {
         address user,
         uint256 loanId,
         uint256 borrowIndex
-    ) external override onlyLendPool returns (uint256) {
+    ) external override onlyLendPool {
         require(_exists(loanId), "NFTLoan: nonexist loan");
 
         DataTypes.LoanData memory loan = _loans[loanId];
@@ -111,6 +116,12 @@ contract NFTLoan is INFTLoan, ERC721 {
 
         _burn(loanId);
 
+        require(
+            scaledTotalAmount >= loan.scaledAmount,
+            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
+        );
+        scaledTotalAmount -= loan.scaledAmount;
+
         delete _loans[loanId];
 
         emit BurnLoan(
@@ -121,8 +132,6 @@ contract NFTLoan is INFTLoan, ERC721 {
             loan.assetAddress,
             loan.scaledAmount
         );
-
-        return loan.scaledAmount;
     }
 
     function updateLoan(
@@ -131,7 +140,7 @@ contract NFTLoan is INFTLoan, ERC721 {
         uint256 amountAdded,
         uint256 amountTaken,
         uint256 borrowIndex
-    ) external override onlyLendPool returns (uint256) {
+    ) external override onlyLendPool {
         require(_exists(loanId), "NFTLoan: nonexist loan");
 
         DataTypes.LoanData memory loan = _loans[loanId];
@@ -141,17 +150,27 @@ contract NFTLoan is INFTLoan, ERC721 {
         if (amountAdded > 0) {
             amountScaled = amountAdded.rayDiv(borrowIndex);
             require(amountScaled != 0, "NFTLoan: invalid added amount");
+
             loan.scaledAmount += amountScaled;
+
+            scaledTotalAmount += loan.scaledAmount;
         }
 
         if (amountTaken > 0) {
             amountScaled = amountTaken.rayDiv(borrowIndex);
             require(amountScaled != 0, "NFTLoan: invalid taken amount");
+
             require(
                 loan.scaledAmount >= amountScaled,
                 "NFTLoan: taken amount exceeds"
             );
             loan.scaledAmount -= amountScaled;
+
+            require(
+                scaledTotalAmount >= loan.scaledAmount,
+                Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
+            );
+            scaledTotalAmount -= loan.scaledAmount;
         }
 
         emit UpdateLoan(
@@ -162,8 +181,6 @@ contract NFTLoan is INFTLoan, ERC721 {
             amountTaken,
             borrowIndex
         );
-
-        return amountScaled;
     }
 
     function getLoan(uint256 loanId)
@@ -219,6 +236,10 @@ contract NFTLoan is INFTLoan, ERC721 {
         returns (address, uint256)
     {
         return (_loans[loanId].nftTokenAddress, _loans[loanId].nftTokenId);
+    }
+
+    function getScaledTotalAmount() external view override returns (uint256) {
+        return scaledTotalAmount;
     }
 
     function _getLendPool() internal view returns (ILendPool) {

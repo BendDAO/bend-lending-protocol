@@ -6,6 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IWToken} from "../../interfaces/IWToken.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
+import {INFTLoan} from "../../interfaces/INFTLoan.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {MathUtils} from "../math/MathUtils.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
@@ -105,7 +106,8 @@ library ReserveLogic {
      * @param reserve the reserve object
      **/
     function updateState(DataTypes.ReserveData storage reserve) internal {
-        uint256 scaledVariableDebt = reserve.scaledTotalBorrowAmount;
+        uint256 scaledVariableDebt = INFTLoan(reserve.nftLoanAddress)
+            .getScaledTotalAmount();
         uint256 previousVariableBorrowIndex = reserve.variableBorrowIndex;
         uint256 previousLiquidityIndex = reserve.liquidityIndex;
         uint40 lastUpdatedTimestamp = reserve.lastUpdateTimestamp;
@@ -205,9 +207,9 @@ library ReserveLogic {
         //calculates the total variable debt locally using the scaled total supply instead
         //of totalSupply(), as it's noticeably cheaper. Also, the index has been
         //updated by the previous updateState() call
-        vars.totalVariableDebt = reserve.scaledTotalBorrowAmount.rayMul(
-            reserve.variableBorrowIndex
-        );
+        vars.totalVariableDebt = INFTLoan(reserve.nftLoanAddress)
+            .getScaledTotalAmount()
+            .rayMul(reserve.variableBorrowIndex);
 
         (vars.newLiquidityRate, vars.newVariableRate) = IInterestRate(
             reserve.interestRateAddress
