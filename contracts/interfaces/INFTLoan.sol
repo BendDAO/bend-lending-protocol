@@ -54,13 +54,13 @@ interface INFTLoan is IERC721 {
         address assetAddress,
         uint256 amount,
         uint256 borrowIndex
-    ) external returns (uint256, uint256);
+    ) external returns (uint256);
 
     function burnLoan(
         address user,
         uint256 loanId,
         uint256 borrowIndex
-    ) external returns (uint256);
+    ) external;
 
     function updateLoan(
         address user,
@@ -68,7 +68,7 @@ interface INFTLoan is IERC721 {
         uint256 amountAdded,
         uint256 amountTaken,
         uint256 borrowIndex
-    ) external returns (uint256);
+    ) external;
 
     function getLoan(uint256 loanId)
         external
@@ -88,4 +88,6 @@ interface INFTLoan is IERC721 {
         external
         view
         returns (address, uint256);
+
+    function getScaledTotalAmount() external view returns (uint256);
 }

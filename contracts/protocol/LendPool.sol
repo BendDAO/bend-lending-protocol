@@ -210,10 +210,8 @@ contract LendPool is ILendPool, LendPoolStorage {
 
         reserve.updateState();
 
-        uint256 scaledAmount = 0;
-
         if (isUpdate) {
-            scaledAmount = INFTLoan(nftLoanAddr).updateLoan(
+            INFTLoan(nftLoanAddr).updateLoan(
                 user,
                 loanId,
                 0,
@@ -221,17 +219,12 @@ contract LendPool is ILendPool, LendPoolStorage {
                 reserve.variableBorrowIndex
             );
         } else {
-            scaledAmount = INFTLoan(nftLoanAddr).burnLoan(
+            INFTLoan(nftLoanAddr).burnLoan(
                 user,
                 loanId,
                 reserve.variableBorrowIndex
             );
         }
-        require(
-            reserve.scaledTotalBorrowAmount >= scaledAmount,
-            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
-        );
-        reserve.scaledTotalBorrowAmount -= scaledAmount;
 
         address aToken = reserve.aTokenAddress;
         reserve.updateInterestRates(asset, aToken, paybackAmount, 0);
@@ -301,16 +294,11 @@ contract LendPool is ILendPool, LendPoolStorage {
 
         reserve.updateState();
 
-        uint256 scaledAmount = INFTLoan(nftLoanAddr).burnLoan(
+        INFTLoan(nftLoanAddr).burnLoan(
             msg.sender,
             loanId,
             reserve.variableBorrowIndex
         );
-        require(
-            reserve.scaledTotalBorrowAmount >= scaledAmount,
-            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
-        );
-        reserve.scaledTotalBorrowAmount -= scaledAmount;
 
         reserve.updateInterestRates(
             vars.asset,
@@ -459,7 +447,6 @@ contract LendPool is ILendPool, LendPoolStorage {
         uint256 thresholdPrice;
         bool isFirstBorrowing;
         uint256 newLoanId;
-        uint256 scaledAmount;
     }
 
     function _executeBorrow(ExecuteBorrowParams memory params) internal {
@@ -506,24 +493,22 @@ contract LendPool is ILendPool, LendPoolStorage {
         }
 
         vars.newLoanId = 0;
-        vars.scaledAmount = 0;
 
         if (params.loanId == 0) {
-            (vars.newLoanId, vars.scaledAmount) = INFTLoan(nftLoanAddr)
-                .mintLoan(
-                    params.user,
-                    params.collateralAsset,
-                    params.tokenId,
-                    params.asset,
-                    params.amount,
-                    reserve.variableBorrowIndex
-                );
+            (vars.newLoanId) = INFTLoan(nftLoanAddr).mintLoan(
+                params.user,
+                params.collateralAsset,
+                params.tokenId,
+                params.asset,
+                params.amount,
+                reserve.variableBorrowIndex
+            );
 
             if (vars.isFirstBorrowing) {
                 userConfig.setBorrowing(reserve.id, true);
             }
         } else {
-            vars.scaledAmount = INFTLoan(nftLoanAddr).updateLoan(
+            INFTLoan(nftLoanAddr).updateLoan(
                 params.user,
                 params.loanId,
                 params.amount,
@@ -531,7 +516,6 @@ contract LendPool is ILendPool, LendPoolStorage {
                 reserve.variableBorrowIndex
             );
         }
-        reserve.scaledTotalBorrowAmount += vars.scaledAmount;
 
         reserve.updateInterestRates(
             params.asset,

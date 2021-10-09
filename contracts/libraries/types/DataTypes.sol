@@ -19,8 +19,8 @@ library DataTypes {
         address aTokenAddress;
         //address of the interest rate strategy
         address interestRateAddress;
-        // scaled total borrow amount. Expressed in ray
-        uint256 scaledTotalBorrowAmount;
+        //address of the nft loan
+        address nftLoanAddress;
         //the id of the reserve. Represents the position in the list of the active reserves
         uint8 id;
     }
@@ -44,10 +44,15 @@ library DataTypes {
     }
 
     struct LoanData {
+        //the id of the nft loan, ERC721 Token ID also.
         uint256 loanId;
+        //address of nft contract
         address nftTokenAddress;
+        //the id of nft token
         uint256 nftTokenId;
+        //address of reserve asset token
         address assetAddress;
+        //scaled borrow amount. Expressed in ray
         uint256 scaledAmount;
     }
 }
