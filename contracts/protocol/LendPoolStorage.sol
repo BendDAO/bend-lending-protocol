@@ -12,11 +12,16 @@ contract LendPoolStorage {
 
     mapping(address => DataTypes.ReserveData) internal _reserves;
     mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
+    mapping(address => DataTypes.NftData) internal _nfts;
 
     mapping(uint256 => address) internal _reservesList;
     uint256 internal _reservesCount;
 
+    mapping(uint256 => address) internal _nftsList;
+    uint256 internal _nftsCount;
+
     bool internal _paused;
 
     uint256 internal _maxNumberOfReserves;
+    uint256 internal _maxNumberOfNfts;
 }

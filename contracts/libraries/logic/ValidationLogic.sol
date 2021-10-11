@@ -11,6 +11,7 @@ import {WadRayMath} from "../math/WadRayMath.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {UserConfiguration} from "../configuration/UserConfiguration.sol";
+import {NftConfiguration} from "../configuration/NftConfiguration.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
@@ -28,6 +29,7 @@ library ValidationLogic {
     using SafeERC20 for IERC20;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using UserConfiguration for DataTypes.UserConfigurationMap;
+    using NftConfiguration for DataTypes.NftConfigurationMap;
 
     /**
      * @dev Validates a deposit action
@@ -104,33 +106,26 @@ library ValidationLogic {
         bool isFrozen;
         bool borrowingEnabled;
         bool stableRateBorrowingEnabled;
+        bool nftIsActive;
+        bool nftIsFrozen;
     }
 
     /**
      * @dev Validates a borrow action
      * @param asset The address of the asset to borrow
-     * @param reserve The reserve state from which the user is borrowing
-     * @param userAddress The address of the user
      * @param amount The amount to be borrowed
-     * @param amountInETH The amount to be borrowed, in ETH
-     * @param reservesData The state of all the reserves
-     * @param userConfig The state of the user for the specific reserve
-     * @param reserves The addresses of all the active reserves
-     * @param oracle The price oracle
+     * @param reserve The reserve state from which the user is borrowing
+     * @param nftData The state of the user for the specific nft
      */
     function validateBorrow(
         address asset,
-        DataTypes.ReserveData storage reserve,
-        address userAddress,
         uint256 amount,
-        uint256 amountInETH,
-        mapping(address => DataTypes.ReserveData) storage reservesData,
-        DataTypes.UserConfigurationMap storage userConfig,
-        mapping(uint256 => address) storage reserves,
-        uint256 reservesCount,
-        address oracle
+        DataTypes.ReserveData storage reserve,
+        DataTypes.NftData storage nftData
     ) external view {
         ValidateBorrowLocalVars memory vars;
+
+        require(amount != 0, Errors.VL_INVALID_AMOUNT);
 
         (
             vars.isActive,
@@ -138,12 +133,13 @@ library ValidationLogic {
             vars.borrowingEnabled,
             vars.stableRateBorrowingEnabled
         ) = reserve.configuration.getFlags();
-
         require(vars.isActive, Errors.VL_NO_ACTIVE_RESERVE);
         require(!vars.isFrozen, Errors.VL_RESERVE_FROZEN);
-        require(amount != 0, Errors.VL_INVALID_AMOUNT);
-
         require(vars.borrowingEnabled, Errors.VL_BORROWING_NOT_ENABLED);
+
+        (vars.nftIsActive, vars.nftIsFrozen) = nftData.configuration.getFlags();
+        require(vars.nftIsActive, Errors.VL_NO_ACTIVE_NFT);
+        require(!vars.nftIsFrozen, Errors.VL_NFT_FROZEN);
     }
 
     /**
@@ -164,5 +160,43 @@ library ValidationLogic {
         require(amountSent > 0, Errors.VL_INVALID_AMOUNT);
 
         require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
+    }
+
+    /**
+     * @dev Validates the liquidation action
+     * @param principalReserve The reserve data of the principal
+     * @param nftData The NFT configuration
+     * @param paybackAmount Total variable debt balance of the user
+     **/
+    function validateLiquidate(
+        DataTypes.ReserveData storage principalReserve,
+        DataTypes.NftData storage nftData,
+        uint256 paybackAmount
+    ) internal view returns (uint256, string memory) {
+        if (!principalReserve.configuration.getActive()) {
+            return (
+                uint256(Errors.CollateralManagerErrors.NO_ACTIVE_RESERVE),
+                Errors.VL_NO_ACTIVE_RESERVE
+            );
+        }
+
+        if (!nftData.configuration.getActive()) {
+            return (
+                uint256(Errors.CollateralManagerErrors.NO_ACTIVE_NFT),
+                Errors.VL_NO_ACTIVE_NFT
+            );
+        }
+
+        if (paybackAmount == 0) {
+            return (
+                uint256(Errors.CollateralManagerErrors.CURRRENCY_NOT_BORROWED),
+                Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
+            );
+        }
+
+        return (
+            uint256(Errors.CollateralManagerErrors.NO_ERROR),
+            Errors.LPCM_NO_ERRORS
+        );
     }
 }

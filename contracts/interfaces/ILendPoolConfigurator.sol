@@ -18,6 +18,12 @@ interface ILendPoolConfigurator {
         bytes params;
     }
 
+    struct InitNftInput {
+        address underlyingAsset;
+        address nftLoanAddress;
+        bytes params;
+    }
+
     struct UpdateWTokenInput {
         address asset;
         address treasury;
@@ -53,20 +59,6 @@ interface ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     event BorrowingDisabledOnReserve(address indexed asset);
-
-    /**
-     * @dev Emitted when the collateralization risk parameters for the specified asset are updated.
-     * @param asset The address of the underlying asset of the reserve
-     * @param ltv The loan to value of the asset when used as collateral
-     * @param liquidationThreshold The threshold at which loans using this asset as collateral will be considered undercollateralized
-     * @param liquidationBonus The bonus liquidators receive to liquidate this asset
-     **/
-    event CollateralConfigurationChanged(
-        address indexed asset,
-        uint256 ltv,
-        uint256 liquidationThreshold,
-        uint256 liquidationBonus
-    );
 
     /**
      * @dev Emitted when a reserve is activated
@@ -112,6 +104,51 @@ interface ILendPoolConfigurator {
      * @param strategy The new address of the interest strategy contract
      **/
     event ReserveInterestRateChanged(address indexed asset, address strategy);
+
+    /**
+     * @dev Emitted when a nft is initialized.
+     * @param asset The address of the underlying asset of the nft
+     * @param nftLoanToken The address of the associated nft loan token
+     **/
+    event NftInitialized(address indexed asset, address nftLoanToken);
+
+    /**
+     * @dev Emitted when the collateralization risk parameters for the specified NFT are updated.
+     * @param asset The address of the underlying asset of the NFT
+     * @param ltv The loan to value of the asset when used as NFT
+     * @param liquidationThreshold The threshold at which loans using this asset as NFT will be considered undercollateralized
+     * @param liquidationBonus The bonus liquidators receive to liquidate this asset
+     **/
+    event NftConfigurationChanged(
+        address indexed asset,
+        uint256 ltv,
+        uint256 liquidationThreshold,
+        uint256 liquidationBonus
+    );
+
+    /**
+     * @dev Emitted when a NFT is activated
+     * @param asset The address of the underlying asset of the NFT
+     **/
+    event NftActivated(address indexed asset);
+
+    /**
+     * @dev Emitted when a NFT is deactivated
+     * @param asset The address of the underlying asset of the NFT
+     **/
+    event NftDeactivated(address indexed asset);
+
+    /**
+     * @dev Emitted when a NFT is frozen
+     * @param asset The address of the underlying asset of the NFT
+     **/
+    event NftFrozen(address indexed asset);
+
+    /**
+     * @dev Emitted when a NFT is unfrozen
+     * @param asset The address of the underlying asset of the NFT
+     **/
+    event NftUnfrozen(address indexed asset);
 
     /**
      * @dev Emitted when an aToken implementation is upgraded
