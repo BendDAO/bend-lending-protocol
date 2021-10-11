@@ -16,10 +16,12 @@ import {UserConfiguration} from "../libraries/configuration/UserConfiguration.so
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {LendPoolStorage} from "./LendPoolStorage.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /**
  * @title LendPool contract
@@ -36,7 +38,7 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
  *   LendPoolAddressesProvider
  * @author NFTLend
  **/
-contract LendPool is ILendPool, LendPoolStorage {
+contract LendPool is Initializable, ILendPool, LendPoolStorage {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
     using SafeERC20 for IERC20;
@@ -49,8 +51,35 @@ contract LendPool is ILendPool, LendPoolStorage {
         _;
     }
 
+    modifier onlyLendPoolConfigurator() {
+        _onlyLendPoolConfigurator();
+        _;
+    }
+
     function _whenNotPaused() internal view {
         require(!_paused, Errors.LP_IS_PAUSED);
+    }
+
+    function _onlyLendPoolConfigurator() internal view {
+        require(
+            _addressesProvider.getLendPoolConfigurator() == msg.sender,
+            Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR
+        );
+    }
+
+    /**
+     * @dev Function is invoked by the proxy contract when the LendPool contract is added to the
+     * LendPoolAddressesProvider of the market.
+     * - Caching the address of the LendPoolAddressesProvider in order to reduce gas consumption
+     *   on subsequent operations
+     * @param provider The address of the LendPoolAddressesProvider
+     **/
+    function initialize(ILendPoolAddressesProvider provider)
+        public
+        initializer
+    {
+        _addressesProvider = provider;
+        _maxNumberOfReserves = 128;
     }
 
     /**
@@ -331,6 +360,34 @@ contract LendPool is ILendPool, LendPoolStorage {
     }
 
     /**
+     * @dev Returns the configuration of the reserve
+     * @param asset The address of the underlying asset of the reserve
+     * @return The configuration of the reserve
+     **/
+    function getConfiguration(address asset)
+        external
+        view
+        override
+        returns (DataTypes.ReserveConfigurationMap memory)
+    {
+        return _reserves[asset].configuration;
+    }
+
+    /**
+     * @dev Returns the configuration of the user across all the reserves
+     * @param user The user address
+     * @return The configuration of the user
+     **/
+    function getUserConfiguration(address user)
+        external
+        view
+        override
+        returns (DataTypes.UserConfigurationMap memory)
+    {
+        return _usersConfig[user];
+    }
+
+    /**
      * @dev Returns the normalized income normalized income of the reserve
      * @param asset The address of the underlying asset of the reserve
      * @return The reserve's normalized income
@@ -413,7 +470,7 @@ contract LendPool is ILendPool, LendPoolStorage {
      * - Only callable by the LendingPoolConfigurator contract
      * @param val `true` to pause the reserve, `false` to un-pause it
      */
-    function setPause(bool val) external override {
+    function setPause(bool val) external override onlyLendPoolConfigurator {
         _paused = val;
         if (_paused) {
             emit Paused();
@@ -427,6 +484,77 @@ contract LendPool is ILendPool, LendPoolStorage {
      */
     function paused() external view override returns (bool) {
         return _paused;
+    }
+
+    /**
+     * @dev Initializes a reserve, activating it, assigning an aToken and nft loan and an
+     * interest rate strategy
+     * - Only callable by the LendingPoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     * @param aTokenAddress The address of the aToken that will be assigned to the reserve
+     * @param nftLoanAddress The address of the NFTLoan that will be assigned to the reserve
+     * @param interestRateAddress The address of the interest rate strategy contract
+     **/
+    function initReserve(
+        address asset,
+        address aTokenAddress,
+        address nftLoanAddress,
+        address interestRateAddress
+    ) external override onlyLendPoolConfigurator {
+        require(Address.isContract(asset), Errors.LP_NOT_CONTRACT);
+        _reserves[asset].init(
+            aTokenAddress,
+            nftLoanAddress,
+            interestRateAddress
+        );
+        _addReserveToList(asset);
+    }
+
+    /**
+     * @dev Updates the address of the interest rate strategy contract
+     * - Only callable by the LendingPoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     * @param rateAddress The address of the interest rate strategy contract
+     **/
+    function setReserveInterestRateAddress(address asset, address rateAddress)
+        external
+        override
+        onlyLendPoolConfigurator
+    {
+        _reserves[asset].interestRateAddress = rateAddress;
+    }
+
+    /**
+     * @dev Sets the configuration bitmap of the reserve as a whole
+     * - Only callable by the LendingPoolConfigurator contract
+     * @param asset The address of the underlying asset of the reserve
+     * @param configuration The new configuration bitmap
+     **/
+    function setConfiguration(address asset, uint256 configuration)
+        external
+        override
+        onlyLendPoolConfigurator
+    {
+        _reserves[asset].configuration.data = configuration;
+    }
+
+    function _addReserveToList(address asset) internal {
+        uint256 reservesCount = _reservesCount;
+
+        require(
+            reservesCount < _maxNumberOfReserves,
+            Errors.LP_NO_MORE_RESERVES_ALLOWED
+        );
+
+        bool reserveAlreadyAdded = _reserves[asset].id != 0 ||
+            _reservesList[0] == asset;
+
+        if (!reserveAlreadyAdded) {
+            _reserves[asset].id = uint8(reservesCount);
+            _reservesList[reservesCount] = asset;
+
+            _reservesCount = reservesCount + 1;
+        }
     }
 
     struct ExecuteBorrowParams {
