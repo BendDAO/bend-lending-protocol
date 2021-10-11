@@ -38,8 +38,8 @@ interface ILendPool {
      * @param user The address of the user initiating the borrow(), receiving the funds on borrow() or just
      * initiator of the transaction on flashLoan()
      * @param amount The amount borrowed out
-     * @param collateralAsset The address of the underlying asset used as collateral
-     * @param tokenId The token id of the underlying asset used as collateral
+     * @param nftAsset The address of the underlying NFT used as collateral
+     * @param nftTokenId The token id of the underlying NFT used as collateral
      * @param loanId The loan ID of the NFT loans
      * @param referral The referral code used
      **/
@@ -47,8 +47,8 @@ interface ILendPool {
         address indexed reserve,
         address indexed user,
         uint256 amount,
-        address collateralAsset,
-        uint256 tokenId,
+        address nftAsset,
+        uint256 nftTokenId,
         uint256 loanId,
         uint256 borrowRate,
         uint16 indexed referral
@@ -157,8 +157,8 @@ interface ILendPool {
      *   and lock collateral asset in contract
      * @param asset The address of the underlying asset to borrow
      * @param amount The amount to be borrowed
-     * @param collateralAsset The address of the underlying asset used as collateral
-     * @param tokenId The token ID of the underlying asset used as collateral
+     * @param nftAsset The address of the underlying NFT used as collateral
+     * @param nftTokenId The token ID of the underlying NFT used as collateral
      * @param loanId The loan ID of the NFT loans
      * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
      *   0 if the action is executed directly by the user, without any middle-man
@@ -166,8 +166,8 @@ interface ILendPool {
     function borrow(
         address asset,
         uint256 amount,
-        address collateralAsset,
-        uint256 tokenId,
+        address nftAsset,
+        uint256 nftTokenId,
         uint256 loanId,
         uint16 referralCode
     ) external;
@@ -208,7 +208,7 @@ interface ILendPool {
         uint256 balanceToBefore
     ) external;
 
-    function getConfiguration(address asset)
+    function getReserveConfiguration(address asset)
         external
         view
         returns (DataTypes.ReserveConfigurationMap memory);
@@ -217,6 +217,11 @@ interface ILendPool {
         external
         view
         returns (DataTypes.UserConfigurationMap memory);
+
+    function getNftConfiguration(address asset)
+        external
+        view
+        returns (DataTypes.NftConfigurationMap memory);
 
     /**
      * @dev Returns the normalized income normalized income of the reserve
@@ -250,6 +255,13 @@ interface ILendPool {
 
     function getReservesList() external view returns (address[] memory);
 
+    function getNftData(address asset)
+        external
+        view
+        returns (DataTypes.NftData memory);
+
+    function getNftsList() external view returns (address[] memory);
+
     /**
      * @dev Set the _pause state of a reserve
      * - Only callable by the LendingPoolConfigurator contract
@@ -269,8 +281,15 @@ interface ILendPool {
         address interestRateAddress
     ) external;
 
+    function initNft(address asset, address nftLoanAddress) external;
+
     function setReserveInterestRateAddress(address asset, address rateAddress)
         external;
 
-    function setConfiguration(address reserve, uint256 configuration) external;
+    function setNftLoanAddress(address asset, address loanAddress) external;
+
+    function setReserveConfiguration(address asset, uint256 configuration)
+        external;
+
+    function setNftConfiguration(address asset, uint256 configuration) external;
 }

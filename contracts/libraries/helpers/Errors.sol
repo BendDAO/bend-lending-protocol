@@ -109,6 +109,9 @@ library Errors {
     string public constant LP_PRICE_TOO_LOW_TO_LIQUIDATE = "81";
     string public constant LP_PRICE_TOO_HIGH_TO_LIQUIDATE = "82";
     string public constant LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT = "83";
+    string public constant VL_NO_ACTIVE_NFT = "84";
+    string public constant VL_NFT_FROZEN = "85";
+    string public constant LP_NO_MORE_NFTS_ALLOWED = "86";
 
     enum CollateralManagerErrors {
         NO_ERROR,
@@ -120,6 +123,7 @@ library Errors {
         NO_ACTIVE_RESERVE,
         HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD,
         INVALID_EQUAL_ASSETS_TO_SWAP,
-        FROZEN_RESERVE
+        FROZEN_RESERVE,
+        NO_ACTIVE_NFT
     }
 }

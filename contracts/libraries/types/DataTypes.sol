@@ -25,6 +25,15 @@ library DataTypes {
         uint8 id;
     }
 
+    struct NftData {
+        //stores the nft configuration
+        NftConfigurationMap configuration;
+        //address of the nft loan
+        address nftLoanAddress;
+        //the id of the nft. Represents the position in the list of the active nfts
+        uint8 id;
+    }
+
     struct ReserveConfigurationMap {
         //bit 0-15: LTV
         //bit 16-31: Liq. threshold
@@ -40,6 +49,15 @@ library DataTypes {
     }
 
     struct UserConfigurationMap {
+        uint256 data;
+    }
+
+    struct NftConfigurationMap {
+        //bit 0-15: LTV
+        //bit 16-31: Liq. threshold
+        //bit 32-47: Liq. bonus
+        //bit 56: NFT is active
+        //bit 57: NFT is frozen
         uint256 data;
     }
 
