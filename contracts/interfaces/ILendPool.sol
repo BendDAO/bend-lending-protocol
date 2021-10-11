@@ -190,6 +190,35 @@ interface ILendPool {
     function liquidate(uint256 loanId) external;
 
     /**
+     * @dev Validates and finalizes an aToken transfer
+     * - Only callable by the overlying aToken of the `asset`
+     * @param asset The address of the underlying asset of the aToken
+     * @param from The user from which the aTokens are transferred
+     * @param to The user receiving the aTokens
+     * @param amount The amount being transferred/withdrawn
+     * @param balanceFromBefore The aToken balance of the `from` user before the transfer
+     * @param balanceToBefore The aToken balance of the `to` user before the transfer
+     */
+    function finalizeTransfer(
+        address asset,
+        address from,
+        address to,
+        uint256 amount,
+        uint256 balanceFromBefore,
+        uint256 balanceToBefore
+    ) external;
+
+    function getConfiguration(address asset)
+        external
+        view
+        returns (DataTypes.ReserveConfigurationMap memory);
+
+    function getUserConfiguration(address user)
+        external
+        view
+        returns (DataTypes.UserConfigurationMap memory);
+
+    /**
      * @dev Returns the normalized income normalized income of the reserve
      * @param asset The address of the underlying asset of the reserve
      * @return The reserve's normalized income
@@ -219,25 +248,6 @@ interface ILendPool {
         view
         returns (DataTypes.ReserveData memory);
 
-    /**
-     * @dev Validates and finalizes an aToken transfer
-     * - Only callable by the overlying aToken of the `asset`
-     * @param asset The address of the underlying asset of the aToken
-     * @param from The user from which the aTokens are transferred
-     * @param to The user receiving the aTokens
-     * @param amount The amount being transferred/withdrawn
-     * @param balanceFromBefore The aToken balance of the `from` user before the transfer
-     * @param balanceToBefore The aToken balance of the `to` user before the transfer
-     */
-    function finalizeTransfer(
-        address asset,
-        address from,
-        address to,
-        uint256 amount,
-        uint256 balanceFromBefore,
-        uint256 balanceToBefore
-    ) external;
-
     function getReservesList() external view returns (address[] memory);
 
     /**
@@ -251,4 +261,16 @@ interface ILendPool {
      * @dev Returns if the LendingPool is paused
      */
     function paused() external view returns (bool);
+
+    function initReserve(
+        address asset,
+        address aTokenAddress,
+        address nftLoanAddress,
+        address interestRateAddress
+    ) external;
+
+    function setReserveInterestRateAddress(address asset, address rateAddress)
+        external;
+
+    function setConfiguration(address reserve, uint256 configuration) external;
 }

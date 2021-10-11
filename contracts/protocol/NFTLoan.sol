@@ -10,8 +10,9 @@ import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract NFTLoan is INFTLoan, ERC721 {
+contract NFTLoan is Initializable, INFTLoan, ERC721 {
     using WadRayMath for uint256;
     using Counters for Counters.Counter;
 
@@ -36,7 +37,7 @@ contract NFTLoan is INFTLoan, ERC721 {
     constructor() ERC721("NFTLoan", "NFTL") {}
 
     // called once by the factory at time of deployment
-    function initialize(address _lendPool) external {
+    function initialize(address _lendPool) external initializer {
         _pool = ILendPool(_lendPool);
     }
 

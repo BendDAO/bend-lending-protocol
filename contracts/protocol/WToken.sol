@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IWToken} from "../interfaces/IWToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -15,7 +16,7 @@ import {Errors} from "../libraries/helpers/Errors.sol";
  * @dev Implementation of the interest bearing token for the NFTLend protocol
  * @author NFTLend
  */
-contract WToken is IWToken, ERC20 {
+contract WToken is Initializable, IWToken, ERC20 {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -47,10 +48,10 @@ contract WToken is IWToken, ERC20 {
     }
 
     /**
-     * @dev Initializes the aToken
-     * @param pool The address of the lending pool where this aToken will be used
-     * @param treasury The address of the Aave treasury, receiving the fees on this aToken
-     * @param underlyingAsset The address of the underlying asset of this aToken (E.g. WETH for aWETH)
+     * @dev Initializes the wToken
+     * @param pool The address of the lending pool where this wToken will be used
+     * @param treasury The address of the Aave treasury, receiving the fees on this wToken
+     * @param underlyingAsset The address of the underlying asset of this wToken (E.g. WETH for wWETH)
      * @param incentivesController The smart contract managing potential incentives distribution
      */
     function initialize(
@@ -59,18 +60,19 @@ contract WToken is IWToken, ERC20 {
         address underlyingAsset,
         IIncentivesController incentivesController,
         bytes calldata params
-    ) external {
-        uint256 chainId;
-
-        //solium-disable-next-line
-        assembly {
-            chainId := chainid()
-        }
-
+    ) external override initializer {
         _pool = pool;
         _treasury = treasury;
         _underlyingAsset = underlyingAsset;
         _incentivesController = incentivesController;
+
+        emit Initialized(
+            underlyingAsset,
+            address(pool),
+            treasury,
+            address(incentivesController),
+            params
+        );
     }
 
     /**

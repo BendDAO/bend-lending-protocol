@@ -1,10 +1,42 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import "./IIncentivesController.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ILendPool} from "./ILendPool.sol";
+import {IIncentivesController} from "./IIncentivesController.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IWToken is IERC20 {
+    /**
+     * @dev Emitted when an wToken is initialized
+     * @param underlyingAsset The address of the underlying asset
+     * @param pool The address of the associated lending pool
+     * @param treasury The address of the treasury
+     * @param incentivesController The address of the incentives controller for this wToken
+     * @param params A set of encoded parameters for additional initialization
+     **/
+    event Initialized(
+        address indexed underlyingAsset,
+        address indexed pool,
+        address treasury,
+        address incentivesController,
+        bytes params
+    );
+
+    /**
+     * @dev Initializes the wToken
+     * @param pool The address of the lending pool where this wToken will be used
+     * @param treasury The address of the Aave treasury, receiving the fees on this wToken
+     * @param underlyingAsset The address of the underlying asset of this wToken (E.g. WETH for wWETH)
+     * @param incentivesController The smart contract managing potential incentives distribution
+     */
+    function initialize(
+        ILendPool pool,
+        address treasury,
+        address underlyingAsset,
+        IIncentivesController incentivesController,
+        bytes calldata params
+    ) external;
+
     /**
      * @dev Emitted after the mint action
      * @param from The address performing the mint

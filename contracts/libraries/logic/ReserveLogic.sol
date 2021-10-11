@@ -164,11 +164,13 @@ library ReserveLogic {
      * @dev Initializes a reserve
      * @param reserve The reserve object
      * @param aTokenAddress The address of the overlying atoken contract
+     * @param nftLoanAddress The address of the nft loan contract
      * @param interestRateAddress The address of the interest rate strategy contract
      **/
     function init(
         DataTypes.ReserveData storage reserve,
         address aTokenAddress,
+        address nftLoanAddress,
         address interestRateAddress
     ) external {
         require(
@@ -179,6 +181,7 @@ library ReserveLogic {
         reserve.liquidityIndex = uint128(WadRayMath.ray());
         reserve.variableBorrowIndex = uint128(WadRayMath.ray());
         reserve.aTokenAddress = aTokenAddress;
+        reserve.nftLoanAddress = nftLoanAddress;
         reserve.interestRateAddress = interestRateAddress;
     }
 
