@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
@@ -23,7 +22,6 @@ import {IInterestRate} from "../../interfaces/IInterestRate.sol";
  */
 library ValidationLogic {
     using ReserveLogic for DataTypes.ReserveData;
-    using SafeMath for uint256;
     using WadRayMath for uint256;
     using PercentageMath for uint256;
     using SafeERC20 for IERC20;
@@ -120,8 +118,13 @@ library ValidationLogic {
     function validateBorrow(
         address asset,
         uint256 amount,
+        uint256 amountInETH,
         DataTypes.ReserveData storage reserve,
-        DataTypes.NftData storage nftData
+        DataTypes.NftData storage nftData,
+        address loanAddress,
+        uint256 loanId,
+        address reserveOracle,
+        address nftOracle
     ) external view {
         ValidateBorrowLocalVars memory vars;
 
@@ -140,6 +143,43 @@ library ValidationLogic {
         (vars.nftIsActive, vars.nftIsFrozen) = nftData.configuration.getFlags();
         require(vars.nftIsActive, Errors.VL_NO_ACTIVE_NFT);
         require(!vars.nftIsFrozen, Errors.VL_NFT_FROZEN);
+
+        (
+            vars.userCollateralBalanceETH,
+            vars.userBorrowBalanceETH,
+            vars.currentLtv,
+            vars.currentLiquidationThreshold,
+            vars.healthFactor
+        ) = GenericLogic.calculateNftLoanData(
+            asset,
+            reserve,
+            nftData,
+            loanAddress,
+            loanId,
+            reserveOracle,
+            nftOracle
+        );
+
+        require(
+            vars.userCollateralBalanceETH > 0,
+            Errors.VL_COLLATERAL_BALANCE_IS_0
+        );
+
+        require(
+            vars.healthFactor >
+                GenericLogic.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+            Errors.VL_HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
+        );
+
+        //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
+        //LTV is calculated in percentage
+        vars.amountOfCollateralNeededETH = (vars.userBorrowBalanceETH +
+            (amountInETH)).percentDiv(vars.currentLtv);
+
+        require(
+            vars.amountOfCollateralNeededETH <= vars.userCollateralBalanceETH,
+            Errors.VL_COLLATERAL_CANNOT_COVER_NEW_BORROW
+        );
     }
 
     /**

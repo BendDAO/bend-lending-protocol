@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../interfaces/IInterestRate.sol";
 
-import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import {IInterestRate} from "../interfaces/IInterestRate.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {PercentageMath} from "../libraries/math/PercentageMath.sol";
@@ -18,7 +17,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  **/
 contract InterestRate is IInterestRate {
     using WadRayMath for uint256;
-    using SafeMath for uint256;
     using PercentageMath for uint256;
 
     /**
@@ -51,7 +49,7 @@ contract InterestRate is IInterestRate {
         uint256 variableRateSlope2
     ) public {
         OPTIMAL_UTILIZATION_RATE = optimalUtilizationRate;
-        EXCESS_UTILIZATION_RATE = WadRayMath.ray().sub(optimalUtilizationRate);
+        EXCESS_UTILIZATION_RATE = WadRayMath.ray() - (optimalUtilizationRate);
         _baseVariableBorrowRate = baseVariableBorrowRate;
         _variableRateSlope1 = variableRateSlope1;
         _variableRateSlope2 = variableRateSlope2;
@@ -76,9 +74,9 @@ contract InterestRate is IInterestRate {
         returns (uint256)
     {
         return
-            _baseVariableBorrowRate.add(_variableRateSlope1).add(
-                _variableRateSlope2
-            );
+            _baseVariableBorrowRate +
+            (_variableRateSlope1) +
+            (_variableRateSlope2);
     }
 
     /**
@@ -100,9 +98,10 @@ contract InterestRate is IInterestRate {
     ) external view override returns (uint256, uint256) {
         uint256 availableLiquidity = IERC20(reserve).balanceOf(aToken);
         //avoid stack too deep
-        availableLiquidity = availableLiquidity.add(liquidityAdded).sub(
-            liquidityTaken
-        );
+        availableLiquidity =
+            availableLiquidity +
+            (liquidityAdded) -
+            (liquidityTaken);
 
         return
             calculateInterestRates(
@@ -144,30 +143,31 @@ contract InterestRate is IInterestRate {
 
         vars.utilizationRate = vars.totalDebt == 0
             ? 0
-            : vars.totalDebt.rayDiv(availableLiquidity.add(vars.totalDebt));
+            : vars.totalDebt.rayDiv(availableLiquidity + (vars.totalDebt));
 
         if (vars.utilizationRate > OPTIMAL_UTILIZATION_RATE) {
-            uint256 excessUtilizationRateRatio = vars
-                .utilizationRate
-                .sub(OPTIMAL_UTILIZATION_RATE)
-                .rayDiv(EXCESS_UTILIZATION_RATE);
+            uint256 excessUtilizationRateRatio = (vars.utilizationRate -
+                (OPTIMAL_UTILIZATION_RATE)).rayDiv(EXCESS_UTILIZATION_RATE);
 
-            vars.currentVariableBorrowRate = _baseVariableBorrowRate
-                .add(_variableRateSlope1)
-                .add(_variableRateSlope2.rayMul(excessUtilizationRateRatio));
+            vars.currentVariableBorrowRate =
+                _baseVariableBorrowRate +
+                (_variableRateSlope1) +
+                (_variableRateSlope2.rayMul(excessUtilizationRateRatio));
         } else {
-            vars.currentVariableBorrowRate = _baseVariableBorrowRate.add(
-                vars.utilizationRate.rayMul(_variableRateSlope1).rayDiv(
-                    OPTIMAL_UTILIZATION_RATE
-                )
-            );
+            vars.currentVariableBorrowRate =
+                _baseVariableBorrowRate +
+                (
+                    vars.utilizationRate.rayMul(_variableRateSlope1).rayDiv(
+                        OPTIMAL_UTILIZATION_RATE
+                    )
+                );
         }
 
         vars.currentLiquidityRate = _getOverallBorrowRate(
             totalVariableDebt,
             vars.currentVariableBorrowRate
         ).rayMul(vars.utilizationRate).percentMul(
-                PercentageMath.PERCENTAGE_FACTOR.sub(reserveFactor)
+                PercentageMath.PERCENTAGE_FACTOR - (reserveFactor)
             );
 
         return (vars.currentLiquidityRate, vars.currentVariableBorrowRate);
