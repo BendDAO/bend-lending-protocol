@@ -90,13 +90,13 @@ contract InterestRate is IInterestRate {
      **/
     function calculateInterestRates(
         address reserve,
-        address aToken,
+        address bToken,
         uint256 liquidityAdded,
         uint256 liquidityTaken,
         uint256 totalVariableDebt,
         uint256 reserveFactor
     ) external view override returns (uint256, uint256) {
-        uint256 availableLiquidity = IERC20(reserve).balanceOf(aToken);
+        uint256 availableLiquidity = IERC20(reserve).balanceOf(bToken);
         //avoid stack too deep
         availableLiquidity =
             availableLiquidity +
@@ -124,7 +124,7 @@ contract InterestRate is IInterestRate {
      * NOTE This function is kept for compatibility with the previous DefaultInterestRateStrategy interface.
      * New protocol implementation uses the new calculateInterestRates() interface
      * @param reserve The address of the reserve
-     * @param availableLiquidity The liquidity available in the corresponding aToken
+     * @param availableLiquidity The liquidity available in the corresponding bToken
      * @param totalVariableDebt The total borrowed from the reserve at a variable rate
      * @param reserveFactor The reserve portion of the interest that goes to the treasury of the market
      * @return The liquidity rate and the variable borrow rate

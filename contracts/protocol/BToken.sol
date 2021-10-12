@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ILendPool} from "../interfaces/ILendPool.sol";
-import {IWToken} from "../interfaces/IWToken.sol";
+import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -12,11 +12,11 @@ import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 
 /**
- * @title NFTLend ERC20 WToken
+ * @title NFTLend ERC20 BToken
  * @dev Implementation of the interest bearing token for the NFTLend protocol
  * @author NFTLend
  */
-contract WToken is Initializable, IWToken, ERC20 {
+contract BToken is Initializable, IBToken, ERC20 {
     using WadRayMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -48,10 +48,10 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev Initializes the wToken
-     * @param pool The address of the lending pool where this wToken will be used
-     * @param treasury The address of the Aave treasury, receiving the fees on this wToken
-     * @param underlyingAsset The address of the underlying asset of this wToken (E.g. WETH for wWETH)
+     * @dev Initializes the bToken
+     * @param pool The address of the lending pool where this bToken will be used
+     * @param treasury The address of the Aave treasury, receiving the fees on this bToken
+     * @param underlyingAsset The address of the underlying asset of this bToken (E.g. WETH for wWETH)
      * @param incentivesController The smart contract managing potential incentives distribution
      */
     function initialize(
@@ -76,9 +76,9 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev Burns aTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
+     * @dev Burns bTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
      * - Only callable by the LendingPool, as extra state updates there need to be managed
-     * @param user The owner of the aTokens, getting them burned
+     * @param user The owner of the bTokens, getting them burned
      * @param receiverOfUnderlying The address that will receive the underlying
      * @param amount The amount being burned
      * @param index The new liquidity index of the reserve
@@ -111,7 +111,7 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev Mints `amount` aTokens to `user`
+     * @dev Mints `amount` bTokens to `user`
      * - Only callable by the LendingPool, as extra state updates there need to be managed
      * @param user The address receiving the minted tokens
      * @param amount The amount of tokens getting minted
@@ -145,7 +145,7 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev Mints aTokens to the reserve treasury
+     * @dev Mints bTokens to the reserve treasury
      * - Only callable by the LendingPool
      * @param amount The amount of tokens getting minted
      * @param index The new liquidity index of the reserve
@@ -213,7 +213,7 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev calculates the total supply of the specific aToken
+     * @dev calculates the total supply of the specific bToken
      * since the balance of every single user increases over time, the total supply
      * does that too.
      * @return the current total supply
@@ -245,21 +245,21 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev Returns the address of the Aave treasury, receiving the fees on this aToken
+     * @dev Returns the address of the Aave treasury, receiving the fees on this bToken
      **/
     function RESERVE_TREASURY_ADDRESS() public view returns (address) {
         return _treasury;
     }
 
     /**
-     * @dev Returns the address of the underlying asset of this aToken (E.g. WETH for aWETH)
+     * @dev Returns the address of the underlying asset of this bToken (E.g. WETH for aWETH)
      **/
     function UNDERLYING_ASSET_ADDRESS() public view override returns (address) {
         return _underlyingAsset;
     }
 
     /**
-     * @dev Returns the address of the lending pool where this aToken is used
+     * @dev Returns the address of the lending pool where this bToken is used
      **/
     function POOL() public view returns (ILendPool) {
         return _pool;
@@ -291,7 +291,7 @@ contract WToken is Initializable, IWToken, ERC20 {
     /**
      * @dev Transfers the underlying asset to `target`. Used by the LendingPool to transfer
      * assets in borrow(), withdraw() and flashLoan()
-     * @param target The recipient of the aTokens
+     * @param target The recipient of the bTokens
      * @param amount The amount getting transferred
      * @return The amount transferred
      **/
@@ -306,7 +306,7 @@ contract WToken is Initializable, IWToken, ERC20 {
     }
 
     /**
-     * @dev Invoked to execute actions on the aToken side after a repayment.
+     * @dev Invoked to execute actions on the bToken side after a repayment.
      * @param user The user executing the repayment
      * @param amount The amount getting repaid
      **/
@@ -317,7 +317,7 @@ contract WToken is Initializable, IWToken, ERC20 {
     {}
 
     /**
-     * @dev Transfers the aTokens between two users. Validates the transfer
+     * @dev Transfers the bTokens between two users. Validates the transfer
      * (ie checks for valid HF after the transfer) if required
      * @param from The source address
      * @param to The destination address

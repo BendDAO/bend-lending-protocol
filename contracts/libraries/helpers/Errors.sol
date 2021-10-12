@@ -8,8 +8,8 @@ pragma solidity ^0.8.0;
  * @dev Error messages prefix glossary:
  *  - VL = ValidationLogic
  *  - MATH = Math libraries
- *  - CT = Common errors between tokens (AToken, VariableDebtToken and StableDebtToken)
- *  - AT = AToken
+ *  - CT = Common errors between tokens (BToken, VariableDebtToken and StableDebtToken)
+ *  - AT = BToken
  *  - SDT = StableDebtToken
  *  - VDT = VariableDebtToken
  *  - LP = LendingPool
@@ -59,7 +59,7 @@ library Errors {
     string public constant CT_TRANSFER_AMOUNT_NOT_GT_0 = "31"; // 'Transferred amount needs to be greater than zero'
     string public constant RL_RESERVE_ALREADY_INITIALIZED = "32"; // 'Reserve has already been initialized'
     string public constant LPC_RESERVE_LIQUIDITY_NOT_0 = "34"; // 'The liquidity of the reserve needs to be 0'
-    string public constant LPC_INVALID_ATOKEN_POOL_ADDRESS = "35"; // 'The liquidity of the reserve needs to be 0'
+    string public constant LPC_INVALID_BTOKEN_POOL_ADDRESS = "35"; // 'The liquidity of the reserve needs to be 0'
     string public constant LPC_INVALID_STABLE_DEBT_TOKEN_POOL_ADDRESS = "36"; // 'The liquidity of the reserve needs to be 0'
     string public constant LPC_INVALID_VARIABLE_DEBT_TOKEN_POOL_ADDRESS = "37"; // 'The liquidity of the reserve needs to be 0'
     string public constant LPC_INVALID_STABLE_DEBT_TOKEN_UNDERLYING_ADDRESS =
@@ -90,7 +90,7 @@ library Errors {
     string public constant LP_FAILED_COLLATERAL_SWAP = "60";
     string public constant LP_INVALID_EQUAL_ASSETS_TO_SWAP = "61";
     string public constant LP_REENTRANCY_NOT_ALLOWED = "62";
-    string public constant LP_CALLER_MUST_BE_AN_ATOKEN = "63";
+    string public constant LP_CALLER_MUST_BE_AN_BTOKEN = "63";
     string public constant LP_IS_PAUSED = "64"; // 'Pool is paused'
     string public constant LP_NO_MORE_RESERVES_ALLOWED = "65";
     string public constant LP_INVALID_FLASH_LOAN_EXECUTOR_RETURN = "66";
