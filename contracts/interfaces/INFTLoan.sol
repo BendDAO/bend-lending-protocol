@@ -77,17 +77,38 @@ interface INFTLoan is IERC721 {
 
     function getLoanReserve(uint256 loanId) external view returns (address);
 
-    function getLoanScaledAmount(uint256 loanId)
+    function getLoanReserveBorrowScaledAmount(uint256 loanId)
         external
         view
         returns (uint256);
 
-    function getLoanAmount(uint256 loanId) external view returns (uint256);
+    function getLoanReserveBorrowAmount(uint256 loanId)
+        external
+        view
+        returns (uint256);
 
     function getLoanCollateral(uint256 loanId)
         external
         view
         returns (address, uint256);
 
-    function getScaledTotalAmount() external view returns (uint256);
+    function getTotalReserveBorrowScaledAmount()
+        external
+        view
+        returns (uint256);
+
+    function getUserReserveBorrowScaledAmount(address user, address reserve)
+        external
+        view
+        returns (uint256);
+
+    function getUserReserveBorrowAmount(address user, address reserve)
+        external
+        view
+        returns (uint256);
+
+    function getUserNftCollateralAmount(address user, address nftContract)
+        external
+        view
+        returns (uint256);
 }

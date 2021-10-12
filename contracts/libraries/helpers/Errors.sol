@@ -112,6 +112,8 @@ library Errors {
     string public constant VL_NO_ACTIVE_NFT = "84";
     string public constant VL_NFT_FROZEN = "85";
     string public constant LP_NO_MORE_NFTS_ALLOWED = "86";
+    string public constant LP_INVALIED_USER_SCALED_AMOUNT = "87";
+    string public constant LP_INVALIED_USER_NFT_AMOUNT = "88";
 
     enum CollateralManagerErrors {
         NO_ERROR,

@@ -51,8 +51,8 @@ library GenericLogic {
         address oracle
     ) external view returns (bool) {
         if (
-            !userConfig.isBorrowingAny() ||
-            !userConfig.isUsingAsCollateral(reservesData[asset].id)
+            !userConfig.isReserveBorrowingAny() ||
+            !userConfig.isUsingReserveAsCollateral(reservesData[asset].id)
         ) {
             return true;
         }
@@ -123,9 +123,8 @@ library GenericLogic {
         vars.reserveUnitPrice = IPriceOracleGetter(reserveOracle).getAssetPrice(
             reserveAddress
         );
-        vars.compoundedBorrowBalance = INFTLoan(loanAddress).getLoanAmount(
-            loanId
-        );
+        vars.compoundedBorrowBalance = INFTLoan(loanAddress)
+            .getLoanReserveBorrowAmount(loanId);
         vars.totalDebtInETH =
             (vars.reserveUnitPrice * vars.compoundedBorrowBalance) /
             vars.tokenUnit;

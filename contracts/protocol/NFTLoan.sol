@@ -21,7 +21,12 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
     Counters.Counter private _loanIdTracker;
     mapping(uint256 => DataTypes.LoanData) private _loans;
     // scaled total borrow amount. Expressed in ray
-    uint256 scaledTotalAmount;
+    uint256 totalReserveBorrowScaledAmount;
+    // scaled total borrow amount. Expressed in ray
+    mapping(address => mapping(address => uint256))
+        private _userReserveBorrowScaledAmounts;
+    mapping(address => mapping(address => uint256))
+        private _userNftCollateralAmounts;
 
     /**
      * @dev Only lending pool can call functions marked by this modifier
@@ -50,9 +55,9 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
      **/
     function mintLoan(
         address user,
-        address nftTokenAddress,
+        address nftContract,
         uint256 nftTokenId,
-        address assetAddress,
+        address reserveAsset,
         uint256 amount,
         uint256 borrowIndex
     ) external override onlyLendPool returns (uint256) {
@@ -62,7 +67,7 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         _loanIdTracker.increment();
 
         // Receive Collateral Tokens
-        IERC721(nftTokenAddress).transferFrom(
+        IERC721(nftContract).transferFrom(
             msg.sender,
             address(this),
             nftTokenId
@@ -71,21 +76,26 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         // Save Info
         _loans[loanId] = DataTypes.LoanData({
             loanId: loanId,
-            nftTokenAddress: nftTokenAddress,
+            nftContract: nftContract,
             nftTokenId: nftTokenId,
-            assetAddress: assetAddress,
+            reserveAsset: reserveAsset,
             scaledAmount: amountScaled
         });
 
         _mint(user, loanId);
 
-        scaledTotalAmount += _loans[loanId].scaledAmount;
+        totalReserveBorrowScaledAmount += _loans[loanId].scaledAmount;
+
+        _userReserveBorrowScaledAmounts[user][reserveAsset] += _loans[loanId]
+            .scaledAmount;
+
+        _userNftCollateralAmounts[user][nftContract] += 1;
 
         emit MintLoan(
             user,
-            nftTokenAddress,
+            nftContract,
             nftTokenId,
-            assetAddress,
+            reserveAsset,
             amount,
             borrowIndex
         );
@@ -109,7 +119,7 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
 
         DataTypes.LoanData memory loan = _loans[loanId];
 
-        IERC721(loan.nftTokenAddress).transferFrom(
+        IERC721(loan.nftContract).transferFrom(
             address(this),
             msg.sender,
             loan.nftTokenId
@@ -118,19 +128,33 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         _burn(loanId);
 
         require(
-            scaledTotalAmount >= loan.scaledAmount,
+            totalReserveBorrowScaledAmount >= loan.scaledAmount,
             Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
         );
-        scaledTotalAmount -= loan.scaledAmount;
+        totalReserveBorrowScaledAmount -= loan.scaledAmount;
+
+        require(
+            _userReserveBorrowScaledAmounts[user][loan.reserveAsset] >=
+                loan.scaledAmount,
+            Errors.LP_INVALIED_USER_SCALED_AMOUNT
+        );
+        _userReserveBorrowScaledAmounts[user][loan.reserveAsset] -= loan
+            .scaledAmount;
+
+        require(
+            _userNftCollateralAmounts[user][loan.nftContract] >= 1,
+            Errors.LP_INVALIED_USER_NFT_AMOUNT
+        );
+        _userNftCollateralAmounts[user][loan.nftContract] -= 1;
 
         delete _loans[loanId];
 
         emit BurnLoan(
             user,
             loanId,
-            loan.nftTokenAddress,
+            loan.nftContract,
             loan.nftTokenId,
-            loan.assetAddress,
+            loan.reserveAsset,
             loan.scaledAmount
         );
     }
@@ -154,7 +178,9 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
 
             loan.scaledAmount += amountScaled;
 
-            scaledTotalAmount += loan.scaledAmount;
+            totalReserveBorrowScaledAmount += loan.scaledAmount;
+            _userReserveBorrowScaledAmounts[user][loan.reserveAsset] += loan
+                .scaledAmount;
         }
 
         if (amountTaken > 0) {
@@ -168,16 +194,24 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
             loan.scaledAmount -= amountScaled;
 
             require(
-                scaledTotalAmount >= loan.scaledAmount,
+                totalReserveBorrowScaledAmount >= loan.scaledAmount,
                 Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
             );
-            scaledTotalAmount -= loan.scaledAmount;
+            totalReserveBorrowScaledAmount -= loan.scaledAmount;
+
+            require(
+                _userReserveBorrowScaledAmounts[user][loan.reserveAsset] >=
+                    loan.scaledAmount,
+                Errors.LP_INVALIED_USER_SCALED_AMOUNT
+            );
+            _userReserveBorrowScaledAmounts[user][loan.reserveAsset] -= loan
+                .scaledAmount;
         }
 
         emit UpdateLoan(
             user,
             loanId,
-            loan.assetAddress,
+            loan.reserveAsset,
             amountAdded,
             amountTaken,
             borrowIndex
@@ -199,10 +233,10 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         override
         returns (address)
     {
-        return _loans[loanId].assetAddress;
+        return _loans[loanId].reserveAsset;
     }
 
-    function getLoanAmount(uint256 loanId)
+    function getLoanReserveBorrowAmount(uint256 loanId)
         external
         view
         override
@@ -216,12 +250,12 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         return
             scaledAmount.rayMul(
                 _pool.getReserveNormalizedVariableDebt(
-                    _loans[loanId].assetAddress
+                    _loans[loanId].reserveAsset
                 )
             );
     }
 
-    function getLoanScaledAmount(uint256 loanId)
+    function getLoanReserveBorrowScaledAmount(uint256 loanId)
         external
         view
         override
@@ -236,11 +270,51 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         override
         returns (address, uint256)
     {
-        return (_loans[loanId].nftTokenAddress, _loans[loanId].nftTokenId);
+        return (_loans[loanId].nftContract, _loans[loanId].nftTokenId);
     }
 
-    function getScaledTotalAmount() external view override returns (uint256) {
-        return scaledTotalAmount;
+    function getTotalReserveBorrowScaledAmount()
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return totalReserveBorrowScaledAmount;
+    }
+
+    function getUserReserveBorrowScaledAmount(address user, address reserve)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return _userReserveBorrowScaledAmounts[user][reserve];
+    }
+
+    function getUserReserveBorrowAmount(address user, address reserve)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        uint256 scaledAmount = _userReserveBorrowScaledAmounts[user][reserve];
+        if (scaledAmount == 0) {
+            return 0;
+        }
+
+        return
+            scaledAmount.rayMul(
+                _pool.getReserveNormalizedVariableDebt(reserve)
+            );
+    }
+
+    function getUserNftCollateralAmount(address user, address nftContract)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return _userNftCollateralAmounts[user][nftContract];
     }
 
     function _getLendPool() internal view returns (ILendPool) {

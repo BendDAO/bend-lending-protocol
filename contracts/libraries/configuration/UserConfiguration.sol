@@ -13,20 +13,23 @@ library UserConfiguration {
     uint256 internal constant BORROWING_MASK =
         0x5555555555555555555555555555555555555555555555555555555555555555;
 
+    uint256 internal constant PLEDGING_MASK =
+        0x5555555555555555555555555555555555555555555555555555555555555555;
+
     /**
      * @dev Sets if the user is borrowing the reserve identified by reserveIndex
      * @param self The configuration object
      * @param reserveIndex The index of the reserve in the bitmap
      * @param borrowing True if the user is borrowing the reserve, false otherwise
      **/
-    function setBorrowing(
+    function setReserveBorrowing(
         DataTypes.UserConfigurationMap storage self,
         uint256 reserveIndex,
         bool borrowing
     ) internal {
         require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
-        self.data =
-            (self.data & ~(1 << (reserveIndex * 2))) |
+        self.reserveData =
+            (self.reserveData & ~(1 << (reserveIndex * 2))) |
             (uint256(borrowing ? 1 : 0) << (reserveIndex * 2));
     }
 
@@ -36,14 +39,14 @@ library UserConfiguration {
      * @param reserveIndex The index of the reserve in the bitmap
      * @param usingAsCollateral True if the user is usin the reserve as collateral, false otherwise
      **/
-    function setUsingAsCollateral(
+    function setUsingReserveAsCollateral(
         DataTypes.UserConfigurationMap storage self,
         uint256 reserveIndex,
         bool usingAsCollateral
     ) internal {
         require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
-        self.data =
-            (self.data & ~(1 << (reserveIndex * 2 + 1))) |
+        self.reserveData =
+            (self.reserveData & ~(1 << (reserveIndex * 2 + 1))) |
             (uint256(usingAsCollateral ? 1 : 0) << (reserveIndex * 2 + 1));
     }
 
@@ -53,12 +56,12 @@ library UserConfiguration {
      * @param reserveIndex The index of the reserve in the bitmap
      * @return True if the user has been using a reserve for borrowing or as collateral, false otherwise
      **/
-    function isUsingAsCollateralOrBorrowing(
+    function isUsingReserveAsCollateralOrBorrowing(
         DataTypes.UserConfigurationMap memory self,
         uint256 reserveIndex
     ) internal pure returns (bool) {
         require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
-        return (self.data >> (reserveIndex * 2)) & 3 != 0;
+        return (self.reserveData >> (reserveIndex * 2)) & 3 != 0;
     }
 
     /**
@@ -67,12 +70,12 @@ library UserConfiguration {
      * @param reserveIndex The index of the reserve in the bitmap
      * @return True if the user has been using a reserve for borrowing, false otherwise
      **/
-    function isBorrowing(
+    function isReserveBorrowing(
         DataTypes.UserConfigurationMap memory self,
         uint256 reserveIndex
     ) internal pure returns (bool) {
         require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
-        return (self.data >> (reserveIndex * 2)) & 1 != 0;
+        return (self.reserveData >> (reserveIndex * 2)) & 1 != 0;
     }
 
     /**
@@ -81,12 +84,12 @@ library UserConfiguration {
      * @param reserveIndex The index of the reserve in the bitmap
      * @return True if the user has been using a reserve as collateral, false otherwise
      **/
-    function isUsingAsCollateral(
+    function isUsingReserveAsCollateral(
         DataTypes.UserConfigurationMap memory self,
         uint256 reserveIndex
     ) internal pure returns (bool) {
         require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
-        return (self.data >> (reserveIndex * 2 + 1)) & 1 != 0;
+        return (self.reserveData >> (reserveIndex * 2 + 1)) & 1 != 0;
     }
 
     /**
@@ -94,12 +97,12 @@ library UserConfiguration {
      * @param self The configuration object
      * @return True if the user has been borrowing any reserve, false otherwise
      **/
-    function isBorrowingAny(DataTypes.UserConfigurationMap memory self)
+    function isReserveBorrowingAny(DataTypes.UserConfigurationMap memory self)
         internal
         pure
         returns (bool)
     {
-        return self.data & BORROWING_MASK != 0;
+        return self.reserveData & BORROWING_MASK != 0;
     }
 
     /**
@@ -107,11 +110,68 @@ library UserConfiguration {
      * @param self The configuration object
      * @return True if the user has been borrowing any reserve, false otherwise
      **/
+    function isReserveEmpty(DataTypes.UserConfigurationMap memory self)
+        internal
+        pure
+        returns (bool)
+    {
+        return self.reserveData == 0;
+    }
+
+    /**
+     * @dev Sets if the user is using as collateral the nft identified by nftIndex
+     * @param self The configuration object
+     * @param nftIndex The index of the nft in the bitmap
+     * @param usingAsCollateral True if the user is usin the nft as collateral, false otherwise
+     **/
+    function setUsingNftAsCollateral(
+        DataTypes.UserConfigurationMap storage self,
+        uint256 nftIndex,
+        bool usingAsCollateral
+    ) internal {
+        require(nftIndex < 128, Errors.UL_INVALID_INDEX);
+        self.nftData =
+            (self.nftData & ~(1 << (nftIndex * 2 + 1))) |
+            (uint256(usingAsCollateral ? 1 : 0) << (nftIndex * 2 + 1));
+    }
+
+    /**
+     * @dev Used to validate if a user has been using the nft as collateral
+     * @param self The configuration object
+     * @param nftIndex The index of the nft in the bitmap
+     * @return True if the user has been using a nft as collateral, false otherwise
+     **/
+    function isUsingNftAsCollateral(
+        DataTypes.UserConfigurationMap memory self,
+        uint256 nftIndex
+    ) internal pure returns (bool) {
+        require(nftIndex < 128, Errors.UL_INVALID_INDEX);
+        return (self.nftData >> (nftIndex * 2 + 1)) & 1 != 0;
+    }
+
+    /**
+     * @dev Used to validate if a user has not been using any nft
+     * @param self The configuration object
+     * @return True if the user has been borrowing any nft, false otherwise
+     **/
+    function isNftEmpty(DataTypes.UserConfigurationMap memory self)
+        internal
+        pure
+        returns (bool)
+    {
+        return self.nftData == 0;
+    }
+
+    /**
+     * @dev Used to validate if a user has not been using any reserve and nft
+     * @param self The configuration object
+     * @return True if the user has been borrowing any reserve and nft, false otherwise
+     **/
     function isEmpty(DataTypes.UserConfigurationMap memory self)
         internal
         pure
         returns (bool)
     {
-        return self.data == 0;
+        return self.reserveData == 0 && self.nftData == 0;
     }
 }
