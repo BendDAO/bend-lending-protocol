@@ -220,6 +220,8 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     function deactivateReserve(address asset) external onlyPoolAdmin {
+        _checkReserveNoLiquidity(asset);
+
         DataTypes.ReserveConfigurationMap memory currentConfig = pool
             .getReserveConfiguration(asset);
 
@@ -448,7 +450,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         */
     }
 
-    function _checkNoLiquidity(address asset) internal view {
+    function _checkReserveNoLiquidity(address asset) internal view {
         DataTypes.ReserveData memory reserveData = pool.getReserveData(asset);
 
         uint256 availableLiquidity = IERC20(asset).balanceOf(

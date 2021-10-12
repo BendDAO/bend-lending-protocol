@@ -708,6 +708,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         // Convert asset amount to ETH
         address oracle = _addressesProvider.getPriceOracle();
+        address nftOracle = _addressesProvider.getNFTOracle();
+
         vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(
             params.asset
         );
@@ -718,12 +720,16 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         ValidationLogic.validateBorrow(
             params.asset,
             params.amount,
+            vars.amountInETH,
             reserve,
-            nftData
+            nftData,
+            _addressesProvider.getNFTLoan(),
+            params.loanId,
+            oracle,
+            nftOracle
         );
 
         // NFT Price in ETH
-        address nftOracle = _addressesProvider.getNFTOracle();
         vars.nftPrice = INFTOracleGetter(nftOracle).getAssetPrice(
             params.nftAsset
         );
