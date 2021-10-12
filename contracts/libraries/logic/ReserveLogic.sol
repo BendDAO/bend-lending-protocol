@@ -105,7 +105,7 @@ library ReserveLogic {
      **/
     function updateState(DataTypes.ReserveData storage reserve) internal {
         uint256 scaledVariableDebt = INFTLoan(reserve.nftLoanAddress)
-            .getScaledTotalAmount();
+            .getTotalReserveBorrowScaledAmount();
         uint256 previousVariableBorrowIndex = reserve.variableBorrowIndex;
         uint256 previousLiquidityIndex = reserve.liquidityIndex;
         uint40 lastUpdatedTimestamp = reserve.lastUpdateTimestamp;
@@ -209,7 +209,7 @@ library ReserveLogic {
         //of totalSupply(), as it's noticeably cheaper. Also, the index has been
         //updated by the previous updateState() call
         vars.totalVariableDebt = INFTLoan(reserve.nftLoanAddress)
-            .getScaledTotalAmount()
+            .getTotalReserveBorrowScaledAmount()
             .rayMul(reserve.variableBorrowIndex);
 
         (vars.newLiquidityRate, vars.newVariableRate) = IInterestRate(

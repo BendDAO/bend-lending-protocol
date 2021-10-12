@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
+import {ILendPoolAddressesProvider} from "./ILendPoolAddressesProvider.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 interface ILendPool {
@@ -273,6 +274,11 @@ interface ILendPool {
      * @dev Returns if the LendingPool is paused
      */
     function paused() external view returns (bool);
+
+    function getAddressesProvider()
+        external
+        view
+        returns (ILendPoolAddressesProvider);
 
     function initReserve(
         address asset,

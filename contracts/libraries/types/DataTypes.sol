@@ -49,7 +49,8 @@ library DataTypes {
     }
 
     struct UserConfigurationMap {
-        uint256 data;
+        uint256 reserveData;
+        uint256 nftData;
     }
 
     struct NftConfigurationMap {
@@ -65,11 +66,11 @@ library DataTypes {
         //the id of the nft loan, ERC721 Token ID also.
         uint256 loanId;
         //address of nft contract
-        address nftTokenAddress;
+        address nftContract;
         //the id of nft token
         uint256 nftTokenId;
         //address of reserve asset token
-        address assetAddress;
+        address reserveAsset;
         //scaled borrow amount. Expressed in ray
         uint256 scaledAmount;
     }
