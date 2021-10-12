@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {INFTLoan} from "../../interfaces/INFTLoan.sol";
-import {IPriceOracleGetter} from "../../interfaces/IPriceOracleGetter.sol";
+import {IReserveOracleGetter} from "../../interfaces/IReserveOracleGetter.sol";
 import {INFTOracleGetter} from "../../interfaces/INFTOracleGetter.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
 import {PercentageMath} from "../math/PercentageMath.sol";
@@ -120,7 +120,7 @@ library GenericLogic {
             .getParams();
 
         vars.tokenUnit = 10**vars.decimals;
-        vars.reserveUnitPrice = IPriceOracleGetter(reserveOracle).getAssetPrice(
+        vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(
             reserveAddress
         );
         vars.compoundedBorrowBalance = INFTLoan(loanAddress)
