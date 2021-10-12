@@ -152,7 +152,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
             _usersConfig[msg.sender],
             _reservesList,
             _reservesCount,
-            _addressesProvider.getPriceOracle()
+            _addressesProvider.getReserveOracle()
         );
 
         reserve.updateState();
@@ -233,7 +233,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     {
         RepayLocalVars memory vars;
 
-        address nftLoanAddr = _addressesProvider.getNFTLoan();
+        address nftLoanAddr = _addressesProvider.getNftLoan();
 
         vars.user = msg.sender;
         vars.asset = INFTLoan(nftLoanAddr).getLoanReserve(loanId);
@@ -345,7 +345,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     function liquidate(uint256 loanId) external override whenNotPaused {
         LiquidationCallLocalVars memory vars;
 
-        address nftLoanAddr = _addressesProvider.getNFTLoan();
+        address nftLoanAddr = _addressesProvider.getNftLoan();
         vars.asset = INFTLoan(nftLoanAddr).getLoanReserve(loanId);
         vars.borrower = IERC721(nftLoanAddr).ownerOf(loanId);
 
@@ -368,7 +368,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
             vars.paybackAmount
         );
 
-        address nftOracle = _addressesProvider.getNFTOracle();
+        address nftOracle = _addressesProvider.getNftOracle();
         uint256 nftPrice = INFTOracleGetter(nftOracle).getAssetPrice(
             vars.nftContract
         );
@@ -802,8 +802,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         ExecuteBorrowLocalVars memory vars;
 
         // Convert asset amount to ETH
-        address reserveOracle = _addressesProvider.getPriceOracle();
-        address nftOracle = _addressesProvider.getNFTOracle();
+        address reserveOracle = _addressesProvider.getReserveOracle();
+        address nftOracle = _addressesProvider.getNftOracle();
+        address nftLoanAddr = _addressesProvider.getNftLoan();
 
         vars.reservePrice = IReserveOracleGetter(reserveOracle).getAssetPrice(
             params.asset
@@ -818,15 +819,13 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
             vars.amountInETH,
             reserve,
             nftData,
-            _addressesProvider.getNFTLoan(),
+            nftLoanAddr,
             params.loanId,
             reserveOracle,
             nftOracle
         );
 
         reserve.updateState();
-
-        address nftLoanAddr = _addressesProvider.getNFTLoan();
 
         vars.isFirstBorrowing = false;
         if (

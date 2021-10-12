@@ -120,9 +120,8 @@ library GenericLogic {
             .getParams();
 
         vars.tokenUnit = 10**vars.decimals;
-        vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(
-            reserveAddress
-        );
+        vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle)
+            .getAssetPrice(reserveAddress);
         vars.compoundedBorrowBalance = INFTLoan(loanAddress)
             .getLoanReserveBorrowAmount(loanId);
         vars.totalDebtInETH =
