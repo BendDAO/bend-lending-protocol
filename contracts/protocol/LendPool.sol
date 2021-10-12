@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {IWToken} from "../interfaces/IWToken.sol";
 import {INFTLoan} from "../interfaces/INFTLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
-import {IPriceOracleGetter} from "../interfaces/IPriceOracleGetter.sol";
+import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
 import {INFTOracleGetter} from "../interfaces/INFTOracleGetter.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
@@ -111,11 +111,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         IERC20(asset).safeTransferFrom(msg.sender, aToken, amount);
 
-        bool isFirstDeposit = IWToken(aToken).mint(
-            msg.sender,
-            amount,
-            reserve.liquidityIndex
-        );
+        IWToken(aToken).mint(msg.sender, amount, reserve.liquidityIndex);
 
         emit Deposit(asset, msg.sender, amount, referralCode);
     }
@@ -182,7 +178,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
      *   and lock collateral asset in contract
      * @param asset The address of the underlying asset to borrow
      * @param amount The amount to be borrowed
-     * @param nftAsset The address of the underlying nft used as collateral
+     * @param nftContract The address of the underlying nft used as collateral
      * @param nftTokenId The token ID of the underlying nft used as collateral
      * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
      *   0 if the action is executed directly by the user, without any middle-man
@@ -190,7 +186,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     function borrow(
         address asset,
         uint256 amount,
-        address nftAsset,
+        address nftContract,
         uint256 nftTokenId,
         uint256 loanId,
         uint16 referralCode
@@ -203,7 +199,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
                 msg.sender,
                 amount,
                 reserve.aTokenAddress,
-                nftAsset,
+                nftContract,
                 nftTokenId,
                 loanId,
                 referralCode,
@@ -777,7 +773,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         address user;
         uint256 amount;
         address aTokenAddress;
-        address nftAsset;
+        address nftContract;
         uint256 nftTokenId;
         uint256 loanId;
         uint16 referralCode;
@@ -789,7 +785,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         uint256 liquidationThreshold;
         uint256 liquidationBonus;
         uint256 amountInETH;
-        uint256 assetPrice;
+        uint256 reservePrice;
         uint256 nftPrice;
         uint256 thresholdPrice;
         bool isFirstBorrowing;
@@ -802,18 +798,18 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         DataTypes.UserConfigurationMap storage userConfig = _usersConfig[
             params.user
         ];
-        DataTypes.NftData storage nftData = _nfts[params.nftAsset];
+        DataTypes.NftData storage nftData = _nfts[params.nftContract];
         ExecuteBorrowLocalVars memory vars;
 
         // Convert asset amount to ETH
-        address oracle = _addressesProvider.getPriceOracle();
+        address reserveOracle = _addressesProvider.getPriceOracle();
         address nftOracle = _addressesProvider.getNFTOracle();
 
-        vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(
+        vars.reservePrice = IReserveOracleGetter(reserveOracle).getAssetPrice(
             params.asset
         );
         vars.amountInETH =
-            (vars.assetPrice * params.amount) /
+            (vars.reservePrice * params.amount) /
             10**reserve.configuration.getDecimals();
 
         ValidationLogic.validateBorrow(
@@ -824,7 +820,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
             nftData,
             _addressesProvider.getNFTLoan(),
             params.loanId,
-            oracle,
+            reserveOracle,
             nftOracle
         );
 
@@ -846,7 +842,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         if (
             INFTLoan(nftLoanAddr).getUserNftCollateralAmount(
                 params.user,
-                params.nftAsset
+                params.nftContract
             ) == 0
         ) {
             vars.isFirstPledging = true;
@@ -855,7 +851,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         if (params.loanId == 0) {
             (vars.newLoanId) = INFTLoan(nftLoanAddr).mintLoan(
                 params.user,
-                params.nftAsset,
+                params.nftContract,
                 params.nftTokenId,
                 params.asset,
                 params.amount,
@@ -897,7 +893,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
             params.asset,
             params.user,
             params.amount,
-            params.nftAsset,
+            params.nftContract,
             params.nftTokenId,
             params.loanId == 0 ? vars.newLoanId : params.loanId,
             reserve.currentVariableBorrowRate,

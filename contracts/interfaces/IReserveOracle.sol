@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 /************
-@title IPriceOracle interface
-@notice Interface for WToken price oracle.*/
-interface IPriceOracle {
+@title IReserveOracle interface
+@notice Interface for Reserve price oracle.*/
+interface IReserveOracle {
     /***********
     @dev returns the asset price in ETH
      */
