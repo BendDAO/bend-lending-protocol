@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IWToken} from "../interfaces/IWToken.sol";
+import {IBToken} from "../interfaces/IBToken.sol";
 import {INFTLoan} from "../interfaces/INFTLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
@@ -88,7 +88,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     }
 
     /**
-     * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying aTokens.
+     * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying bTokens.
      * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
      * @param asset The address of the underlying asset to deposit
      * @param amount The amount to be deposited
@@ -104,24 +104,24 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         ValidationLogic.validateDeposit(reserve, amount);
 
-        address aToken = reserve.aTokenAddress;
+        address bToken = reserve.bTokenAddress;
 
         reserve.updateState();
-        reserve.updateInterestRates(asset, aToken, amount, 0);
+        reserve.updateInterestRates(asset, bToken, amount, 0);
 
-        IERC20(asset).safeTransferFrom(msg.sender, aToken, amount);
+        IERC20(asset).safeTransferFrom(msg.sender, bToken, amount);
 
-        IWToken(aToken).mint(msg.sender, amount, reserve.liquidityIndex);
+        IBToken(bToken).mint(msg.sender, amount, reserve.liquidityIndex);
 
         emit Deposit(asset, msg.sender, amount, referralCode);
     }
 
     /**
-     * @dev Withdraws an `amount` of underlying asset from the reserve, burning the equivalent aTokens owned
+     * @dev Withdraws an `amount` of underlying asset from the reserve, burning the equivalent bTokens owned
      * E.g. User has 100 aUSDC, calls withdraw() and receives 100 USDC, burning the 100 aUSDC
      * @param asset The address of the underlying asset to withdraw
      * @param amount The underlying amount to be withdrawn
-     *   - Send the value type(uint256).max in order to withdraw the whole aToken balance
+     *   - Send the value type(uint256).max in order to withdraw the whole bToken balance
      * @param to Address that will receive the underlying, same as msg.sender if the user
      *   wants to receive it on his own wallet, or a different address if the beneficiary is a
      *   different wallet
@@ -134,9 +134,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     ) external override whenNotPaused returns (uint256) {
         DataTypes.ReserveData storage reserve = _reserves[asset];
 
-        address aToken = reserve.aTokenAddress;
+        address bToken = reserve.bTokenAddress;
 
-        uint256 userBalance = IWToken(aToken).balanceOf(msg.sender);
+        uint256 userBalance = IBToken(bToken).balanceOf(msg.sender);
 
         uint256 amountToWithdraw = amount;
 
@@ -157,9 +157,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         reserve.updateState();
 
-        reserve.updateInterestRates(asset, aToken, 0, amountToWithdraw);
+        reserve.updateInterestRates(asset, bToken, 0, amountToWithdraw);
 
-        IWToken(aToken).burn(
+        IBToken(bToken).burn(
             msg.sender,
             to,
             amountToWithdraw,
@@ -198,7 +198,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
                 asset,
                 msg.sender,
                 amount,
-                reserve.aTokenAddress,
+                reserve.bTokenAddress,
                 nftContract,
                 nftTokenId,
                 loanId,
@@ -276,7 +276,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         reserve.updateInterestRates(
             vars.asset,
-            reserve.aTokenAddress,
+            reserve.bTokenAddress,
             vars.paybackAmount,
             0
         );
@@ -301,11 +301,11 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         IERC20(vars.asset).safeTransferFrom(
             msg.sender,
-            reserve.aTokenAddress,
+            reserve.bTokenAddress,
             vars.paybackAmount
         );
 
-        IWToken(reserve.aTokenAddress).handleRepayment(
+        IBToken(reserve.bTokenAddress).handleRepayment(
             msg.sender,
             vars.paybackAmount
         );
@@ -402,7 +402,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         reserve.updateInterestRates(
             vars.asset,
-            reserve.aTokenAddress,
+            reserve.bTokenAddress,
             vars.paybackAmount,
             0
         );
@@ -550,14 +550,14 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     }
 
     /**
-     * @dev Validates and finalizes an aToken transfer
-     * - Only callable by the overlying aToken of the `asset`
-     * @param asset The address of the underlying asset of the aToken
-     * @param from The user from which the aTokens are transferred
-     * @param to The user receiving the aTokens
+     * @dev Validates and finalizes an bToken transfer
+     * - Only callable by the overlying bToken of the `asset`
+     * @param asset The address of the underlying asset of the bToken
+     * @param from The user from which the bToken are transferred
+     * @param to The user receiving the bTokens
      * @param amount The amount being transferred/withdrawn
-     * @param balanceFromBefore The aToken balance of the `from` user before the transfer
-     * @param balanceToBefore The aToken balance of the `to` user before the transfer
+     * @param balanceFromBefore The bToken balance of the `from` user before the transfer
+     * @param balanceToBefore The bToken balance of the `to` user before the transfer
      */
     function finalizeTransfer(
         address asset,
@@ -645,23 +645,23 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
     }
 
     /**
-     * @dev Initializes a reserve, activating it, assigning an aToken and nft loan and an
+     * @dev Initializes a reserve, activating it, assigning an bToken and nft loan and an
      * interest rate strategy
      * - Only callable by the LendingPoolConfigurator contract
      * @param asset The address of the underlying asset of the reserve
-     * @param aTokenAddress The address of the aToken that will be assigned to the reserve
+     * @param bTokenAddress The address of the bToken that will be assigned to the reserve
      * @param nftLoanAddress The address of the NFTLoan that will be assigned to the reserve
      * @param interestRateAddress The address of the interest rate strategy contract
      **/
     function initReserve(
         address asset,
-        address aTokenAddress,
+        address bTokenAddress,
         address nftLoanAddress,
         address interestRateAddress
     ) external override onlyLendPoolConfigurator {
         require(Address.isContract(asset), Errors.LP_NOT_CONTRACT);
         _reserves[asset].init(
-            aTokenAddress,
+            bTokenAddress,
             nftLoanAddress,
             interestRateAddress
         );
@@ -772,7 +772,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
         address asset;
         address user;
         uint256 amount;
-        address aTokenAddress;
+        address bTokenAddress;
         address nftContract;
         uint256 nftTokenId;
         uint256 loanId;
@@ -876,13 +876,13 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage {
 
         reserve.updateInterestRates(
             params.asset,
-            params.aTokenAddress,
+            params.bTokenAddress,
             0,
             params.releaseUnderlying ? params.amount : 0
         );
 
         if (params.releaseUnderlying) {
-            IWToken(params.aTokenAddress).transferUnderlyingTo(
+            IBToken(params.bTokenAddress).transferUnderlyingTo(
                 params.user,
                 params.amount
             );

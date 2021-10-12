@@ -22,7 +22,7 @@ interface ILendPool {
     /**
      * @dev Emitted on withdraw()
      * @param reserve The address of the underlyng asset being withdrawn
-     * @param user The address initiating the withdrawal, owner of aTokens
+     * @param user The address initiating the withdrawal, owner of bTokens
      * @param to Address that will receive the underlying
      * @param amount The amount to be withdrawn
      **/
@@ -78,8 +78,8 @@ interface ILendPool {
      * @param loanId The loan ID of the NFT loans
      * @param user The address of the borrower getting liquidated
      * @param reserve The address of the underlying asset of the reserve
-     * @param repayAmount The amount of WToken repaid by the liquidator
-     * @param borrowerAmount The amount of WToken received by the borrower
+     * @param repayAmount The amount of bToken repaid by the liquidator
+     * @param borrowerAmount The amount of bToken received by the borrower
      * @param liquidator The address of the liquidator
      **/
     event Liquidate(
@@ -121,7 +121,7 @@ interface ILendPool {
     );
 
     /**
-     * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying aTokens.
+     * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying bTokens.
      * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
      * @param asset The address of the underlying asset to deposit
      * @param amount The amount to be deposited
@@ -135,11 +135,11 @@ interface ILendPool {
     ) external;
 
     /**
-     * @dev Withdraws an `amount` of underlying asset from the reserve, burning the equivalent aTokens owned
+     * @dev Withdraws an `amount` of underlying asset from the reserve, burning the equivalent bTokens owned
      * E.g. User has 100 aUSDC, calls withdraw() and receives 100 USDC, burning the 100 aUSDC
      * @param asset The address of the underlying asset to withdraw
      * @param amount The underlying amount to be withdrawn
-     *   - Send the value type(uint256).max in order to withdraw the whole aToken balance
+     *   - Send the value type(uint256).max in order to withdraw the whole bToken balance
      * @param to Address that will receive the underlying, same as msg.sender if the user
      *   wants to receive it on his own wallet, or a different address if the beneficiary is a
      *   different wallet
@@ -191,14 +191,14 @@ interface ILendPool {
     function liquidate(uint256 loanId) external;
 
     /**
-     * @dev Validates and finalizes an aToken transfer
-     * - Only callable by the overlying aToken of the `asset`
-     * @param asset The address of the underlying asset of the aToken
-     * @param from The user from which the aTokens are transferred
-     * @param to The user receiving the aTokens
+     * @dev Validates and finalizes an bToken transfer
+     * - Only callable by the overlying bToken of the `asset`
+     * @param asset The address of the underlying asset of the bToken
+     * @param from The user from which the bTokens are transferred
+     * @param to The user receiving the bTokens
      * @param amount The amount being transferred/withdrawn
-     * @param balanceFromBefore The aToken balance of the `from` user before the transfer
-     * @param balanceToBefore The aToken balance of the `to` user before the transfer
+     * @param balanceFromBefore The bToken balance of the `from` user before the transfer
+     * @param balanceToBefore The bToken balance of the `to` user before the transfer
      */
     function finalizeTransfer(
         address asset,
@@ -282,7 +282,7 @@ interface ILendPool {
 
     function initReserve(
         address asset,
-        address aTokenAddress,
+        address bTokenAddress,
         address nftLoanAddress,
         address interestRateAddress
     ) external;

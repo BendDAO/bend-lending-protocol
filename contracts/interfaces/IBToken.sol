@@ -5,13 +5,13 @@ import {ILendPool} from "./ILendPool.sol";
 import {IIncentivesController} from "./IIncentivesController.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IWToken is IERC20 {
+interface IBToken is IERC20 {
     /**
-     * @dev Emitted when an wToken is initialized
+     * @dev Emitted when an bToken is initialized
      * @param underlyingAsset The address of the underlying asset
      * @param pool The address of the associated lending pool
      * @param treasury The address of the treasury
-     * @param incentivesController The address of the incentives controller for this wToken
+     * @param incentivesController The address of the incentives controller for this bToken
      * @param params A set of encoded parameters for additional initialization
      **/
     event Initialized(
@@ -23,10 +23,10 @@ interface IWToken is IERC20 {
     );
 
     /**
-     * @dev Initializes the wToken
-     * @param pool The address of the lending pool where this wToken will be used
-     * @param treasury The address of the Aave treasury, receiving the fees on this wToken
-     * @param underlyingAsset The address of the underlying asset of this wToken (E.g. WETH for wWETH)
+     * @dev Initializes the bToken
+     * @param pool The address of the lending pool where this bToken will be used
+     * @param treasury The address of the Aave treasury, receiving the fees on this bToken
+     * @param underlyingAsset The address of the underlying asset of this bToken (E.g. WETH for wWETH)
      * @param incentivesController The smart contract managing potential incentives distribution
      */
     function initialize(
@@ -46,7 +46,7 @@ interface IWToken is IERC20 {
     event Mint(address indexed from, uint256 value, uint256 index);
 
     /**
-     * @dev Mints `amount` aTokens to `user`
+     * @dev Mints `amount` bTokens to `user`
      * @param user The address receiving the minted tokens
      * @param amount The amount of tokens getting minted
      * @param index The new liquidity index of the reserve
@@ -59,8 +59,8 @@ interface IWToken is IERC20 {
     ) external returns (bool);
 
     /**
-     * @dev Emitted after aTokens are burned
-     * @param from The owner of the aTokens, getting them burned
+     * @dev Emitted after bTokens are burned
+     * @param from The owner of the bTokens, getting them burned
      * @param target The address that will receive the underlying
      * @param value The amount being burned
      * @param index The new liquidity index of the reserve
@@ -87,8 +87,8 @@ interface IWToken is IERC20 {
     );
 
     /**
-     * @dev Burns aTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
-     * @param user The owner of the aTokens, getting them burned
+     * @dev Burns bTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
+     * @param user The owner of the bTokens, getting them burned
      * @param receiverOfUnderlying The address that will receive the underlying
      * @param amount The amount being burned
      * @param index The new liquidity index of the reserve
@@ -101,7 +101,7 @@ interface IWToken is IERC20 {
     ) external;
 
     /**
-     * @dev Mints aTokens to the reserve treasury
+     * @dev Mints bTokens to the reserve treasury
      * @param amount The amount of tokens getting minted
      * @param index The new liquidity index of the reserve
      */
@@ -119,7 +119,7 @@ interface IWToken is IERC20 {
         returns (uint256);
 
     /**
-     * @dev Invoked to execute actions on the aToken side after a repayment.
+     * @dev Invoked to execute actions on the bToken side after a repayment.
      * @param user The user executing the repayment
      * @param amount The amount getting repaid
      **/
@@ -134,7 +134,7 @@ interface IWToken is IERC20 {
         returns (IIncentivesController);
 
     /**
-     * @dev Returns the address of the underlying asset of this aToken (E.g. WETH for aWETH)
+     * @dev Returns the address of the underlying asset of this bToken (E.g. WETH for aWETH)
      **/
     function UNDERLYING_ASSET_ADDRESS() external view returns (address);
 }

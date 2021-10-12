@@ -13,7 +13,7 @@ import {Errors} from "../libraries/helpers/Errors.sol";
 import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {INFTLoan} from "../interfaces/INFTLoan.sol";
-import {IWToken} from "../interfaces/IWToken.sol";
+import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 
@@ -71,10 +71,10 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     function _initReserve(ILendPool pool, InitReserveInput calldata input)
         internal
     {
-        address aTokenProxyAddress = _initTokenWithProxy(
-            input.wTokenImpl,
+        address bTokenProxyAddress = _initTokenWithProxy(
+            input.bTokenImpl,
             abi.encodeWithSelector(
-                IWToken.initialize.selector,
+                IBToken.initialize.selector,
                 pool,
                 input.treasury,
                 input.underlyingAsset,
@@ -85,7 +85,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
         pool.initReserve(
             input.underlyingAsset,
-            aTokenProxyAddress,
+            bTokenProxyAddress,
             input.nftLoanAddress,
             input.interestRateAddress
         );
@@ -102,7 +102,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
         emit ReserveInitialized(
             input.underlyingAsset,
-            aTokenProxyAddress,
+            bTokenProxyAddress,
             input.nftLoanAddress,
             input.interestRateAddress
         );
@@ -133,9 +133,9 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
 
     /**
-     * @dev Updates the aToken implementation for the reserve
+     * @dev Updates the bToken implementation for the reserve
      **/
-    function updateWToken(UpdateWTokenInput calldata input)
+    function updateBToken(UpdateBTokenInput calldata input)
         external
         onlyPoolAdmin
     {
@@ -150,7 +150,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
             .getParamsMemory();
 
         bytes memory encodedCall = abi.encodeWithSelector(
-            IWToken.initialize.selector,
+            IBToken.initialize.selector,
             cachedPool,
             input.treasury,
             input.asset,
@@ -159,14 +159,14 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         );
 
         _upgradeTokenImplementation(
-            reserveData.aTokenAddress,
+            reserveData.bTokenAddress,
             input.implementation,
             encodedCall
         );
 
-        emit WTokenUpgraded(
+        emit BTokenUpgraded(
             input.asset,
-            reserveData.aTokenAddress,
+            reserveData.bTokenAddress,
             input.implementation
         );
     }
@@ -413,7 +413,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
 
     /**
-     * @dev pauses or unpauses all the actions of the protocol, including aToken transfers
+     * @dev pauses or unpauses all the actions of the protocol, including bToken transfers
      * @param val true if protocol needs to be paused, false otherwise
      **/
     function setPoolPause(bool val) external onlyEmergencyAdmin {
@@ -454,7 +454,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         DataTypes.ReserveData memory reserveData = pool.getReserveData(asset);
 
         uint256 availableLiquidity = IERC20(asset).balanceOf(
-            reserveData.aTokenAddress
+            reserveData.bTokenAddress
         );
 
         require(

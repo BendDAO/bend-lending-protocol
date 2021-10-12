@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 interface ILendPoolConfigurator {
     struct InitReserveInput {
-        address wTokenImpl;
+        address bTokenImpl;
         address nftLoanImpl;
         uint8 underlyingAssetDecimals;
         address interestRateAddress;
@@ -13,8 +13,8 @@ interface ILendPoolConfigurator {
         address incentivesController;
         address nftLoanAddress;
         string underlyingAssetName;
-        string wTokenName;
-        string wTokenSymbol;
+        string bTokenName;
+        string bTokenSymbol;
         bytes params;
     }
 
@@ -24,7 +24,7 @@ interface ILendPoolConfigurator {
         bytes params;
     }
 
-    struct UpdateWTokenInput {
+    struct UpdateBTokenInput {
         address asset;
         address treasury;
         address incentivesController;
@@ -37,13 +37,13 @@ interface ILendPoolConfigurator {
     /**
      * @dev Emitted when a reserve is initialized.
      * @param asset The address of the underlying asset of the reserve
-     * @param wToken The address of the associated aToken contract
+     * @param bToken The address of the associated bToken contract
      * @param nftLoanToken The address of the associated nft loan token
      * @param interestRateAddress The address of the interest rate strategy for the reserve
      **/
     event ReserveInitialized(
         address indexed asset,
-        address indexed wToken,
+        address indexed bToken,
         address nftLoanToken,
         address interestRateAddress
     );
@@ -151,12 +151,12 @@ interface ILendPoolConfigurator {
     event NftUnfrozen(address indexed asset);
 
     /**
-     * @dev Emitted when an aToken implementation is upgraded
+     * @dev Emitted when an bToken implementation is upgraded
      * @param asset The address of the underlying asset of the reserve
-     * @param proxy The aToken proxy address
-     * @param implementation The new aToken implementation
+     * @param proxy The bToken proxy address
+     * @param implementation The new bToken implementation
      **/
-    event WTokenUpgraded(
+    event BTokenUpgraded(
         address indexed asset,
         address indexed proxy,
         address indexed implementation

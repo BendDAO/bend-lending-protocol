@@ -16,7 +16,7 @@ library DataTypes {
         uint128 currentVariableBorrowRate;
         uint40 lastUpdateTimestamp;
         //tokens addresses
-        address aTokenAddress;
+        address bTokenAddress;
         //address of the interest rate strategy
         address interestRateAddress;
         //address of the nft loan
