@@ -2,20 +2,21 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-//import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
-import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
-import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
-import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {ILendPool} from "../interfaces/ILendPool.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Errors} from "../libraries/helpers/Errors.sol";
-import {PercentageMath} from "../libraries/math/PercentageMath.sol";
-import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {INFTLoan} from "../interfaces/INFTLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILendPool} from "../interfaces/ILendPool.sol";
+import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
+import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
+import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
+import {PercentageMath} from "../libraries/math/PercentageMath.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
+
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * @title LendPoolConfigurator contract
@@ -28,12 +29,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using NftConfiguration for DataTypes.NftConfigurationMap;
 
-    ILendPoolAddressesProvider internal addressesProvider;
-    ILendPool internal pool;
+    ILendPoolAddressesProvider internal _addressesProvider;
+    ILendPool internal _pool;
 
     modifier onlyPoolAdmin() {
         require(
-            addressesProvider.getPoolAdmin() == msg.sender,
+            _addressesProvider.getPoolAdmin() == msg.sender,
             Errors.CALLER_NOT_POOL_ADMIN
         );
         _;
@@ -41,7 +42,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     modifier onlyEmergencyAdmin() {
         require(
-            addressesProvider.getEmergencyAdmin() == msg.sender,
+            _addressesProvider.getEmergencyAdmin() == msg.sender,
             Errors.LPC_CALLER_NOT_EMERGENCY_ADMIN
         );
         _;
@@ -51,8 +52,8 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         public
         initializer
     {
-        addressesProvider = provider;
-        pool = ILendPool(addressesProvider.getLendPool());
+        _addressesProvider = provider;
+        _pool = ILendPool(_addressesProvider.getLendPool());
     }
 
     /**
@@ -62,35 +63,38 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         external
         onlyPoolAdmin
     {
-        ILendPool cachedPool = pool;
+        ILendPool cachedPool = _pool;
         for (uint256 i = 0; i < input.length; i++) {
             _initReserve(cachedPool, input[i]);
         }
     }
 
-    function _initReserve(ILendPool pool, InitReserveInput calldata input)
+    function _initReserve(ILendPool pool_, InitReserveInput calldata input)
         internal
     {
         address bTokenProxyAddress = _initTokenWithProxy(
             input.bTokenImpl,
             abi.encodeWithSelector(
                 IBToken.initialize.selector,
-                pool,
+                pool_,
                 input.treasury,
                 input.underlyingAsset,
                 IIncentivesController(input.incentivesController),
+                input.underlyingAssetDecimals,
+                input.bTokenName,
+                input.bTokenSymbol,
                 input.params
             )
         );
 
-        pool.initReserve(
+        pool_.initReserve(
             input.underlyingAsset,
             bTokenProxyAddress,
             input.nftLoanAddress,
             input.interestRateAddress
         );
 
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = pool_
             .getReserveConfiguration(input.underlyingAsset);
 
         currentConfig.setDecimals(input.underlyingAssetDecimals);
@@ -98,7 +102,10 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         currentConfig.setActive(true);
         currentConfig.setFrozen(false);
 
-        pool.setReserveConfiguration(input.underlyingAsset, currentConfig.data);
+        pool_.setReserveConfiguration(
+            input.underlyingAsset,
+            currentConfig.data
+        );
 
         emit ReserveInitialized(
             input.underlyingAsset,
@@ -112,22 +119,22 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         external
         onlyPoolAdmin
     {
-        ILendPool cachedPool = pool;
+        ILendPool cachedPool = _pool;
         for (uint256 i = 0; i < input.length; i++) {
             _initNft(cachedPool, input[i]);
         }
     }
 
-    function _initNft(ILendPool pool, InitNftInput calldata input) internal {
-        pool.initNft(input.underlyingAsset, input.nftLoanAddress);
+    function _initNft(ILendPool pool_, InitNftInput calldata input) internal {
+        pool_.initNft(input.underlyingAsset, input.nftLoanAddress);
 
-        DataTypes.NftConfigurationMap memory currentConfig = pool
+        DataTypes.NftConfigurationMap memory currentConfig = pool_
             .getNftConfiguration(input.underlyingAsset);
 
         currentConfig.setActive(true);
         currentConfig.setFrozen(false);
 
-        pool.setNftConfiguration(input.underlyingAsset, currentConfig.data);
+        pool_.setNftConfiguration(input.underlyingAsset, currentConfig.data);
 
         emit NftInitialized(input.underlyingAsset, input.nftLoanAddress);
     }
@@ -139,7 +146,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         external
         onlyPoolAdmin
     {
-        ILendPool cachedPool = pool;
+        ILendPool cachedPool = _pool;
 
         DataTypes.ReserveData memory reserveData = cachedPool.getReserveData(
             input.asset
@@ -155,6 +162,9 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
             input.treasury,
             input.asset,
             input.incentivesController,
+            decimals,
+            input.name,
+            input.symbol,
             input.params
         );
 
@@ -176,12 +186,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     function enableBorrowingOnReserve(address asset) external onlyPoolAdmin {
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setBorrowingEnabled(true);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
 
         emit BorrowingEnabledOnReserve(asset);
     }
@@ -191,12 +201,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     function disableBorrowingOnReserve(address asset) external onlyPoolAdmin {
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setBorrowingEnabled(false);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
         emit BorrowingDisabledOnReserve(asset);
     }
 
@@ -205,12 +215,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     function activateReserve(address asset) external onlyPoolAdmin {
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setActive(true);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
 
         emit ReserveActivated(asset);
     }
@@ -222,12 +232,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     function deactivateReserve(address asset) external onlyPoolAdmin {
         _checkReserveNoLiquidity(asset);
 
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setActive(false);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
 
         emit ReserveDeactivated(asset);
     }
@@ -238,12 +248,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     function freezeReserve(address asset) external onlyPoolAdmin {
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setFrozen(true);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
 
         emit ReserveFrozen(asset);
     }
@@ -253,12 +263,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the reserve
      **/
     function unfreezeReserve(address asset) external onlyPoolAdmin {
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setFrozen(false);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
 
         emit ReserveUnfrozen(asset);
     }
@@ -272,12 +282,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         external
         onlyPoolAdmin
     {
-        DataTypes.ReserveConfigurationMap memory currentConfig = pool
+        DataTypes.ReserveConfigurationMap memory currentConfig = _pool
             .getReserveConfiguration(asset);
 
         currentConfig.setReserveFactor(reserveFactor);
 
-        pool.setReserveConfiguration(asset, currentConfig.data);
+        _pool.setReserveConfiguration(asset, currentConfig.data);
 
         emit ReserveFactorChanged(asset, reserveFactor);
     }
@@ -291,7 +301,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         external
         onlyPoolAdmin
     {
-        pool.setReserveInterestRateAddress(asset, rateAddress);
+        _pool.setReserveInterestRateAddress(asset, rateAddress);
         emit ReserveInterestRateChanged(asset, rateAddress);
     }
 
@@ -310,7 +320,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         uint256 liquidationThreshold,
         uint256 liquidationBonus
     ) external onlyPoolAdmin {
-        DataTypes.NftConfigurationMap memory currentConfig = pool
+        DataTypes.NftConfigurationMap memory currentConfig = _pool
             .getNftConfiguration(asset);
 
         //validation of the parameters: the LTV can
@@ -341,7 +351,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         currentConfig.setLiquidationThreshold(liquidationThreshold);
         currentConfig.setLiquidationBonus(liquidationBonus);
 
-        pool.setNftConfiguration(asset, currentConfig.data);
+        _pool.setNftConfiguration(asset, currentConfig.data);
 
         emit NftConfigurationChanged(
             asset,
@@ -356,12 +366,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the NFT
      **/
     function activateNft(address asset) external onlyPoolAdmin {
-        DataTypes.NftConfigurationMap memory currentConfig = pool
+        DataTypes.NftConfigurationMap memory currentConfig = _pool
             .getNftConfiguration(asset);
 
         currentConfig.setActive(true);
 
-        pool.setNftConfiguration(asset, currentConfig.data);
+        _pool.setNftConfiguration(asset, currentConfig.data);
 
         emit NftActivated(asset);
     }
@@ -371,12 +381,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the NFT
      **/
     function deactivateNft(address asset) external onlyPoolAdmin {
-        DataTypes.NftConfigurationMap memory currentConfig = pool
+        DataTypes.NftConfigurationMap memory currentConfig = _pool
             .getNftConfiguration(asset);
 
         currentConfig.setActive(false);
 
-        pool.setNftConfiguration(asset, currentConfig.data);
+        _pool.setNftConfiguration(asset, currentConfig.data);
 
         emit NftDeactivated(asset);
     }
@@ -387,12 +397,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the NFT
      **/
     function freezeNft(address asset) external onlyPoolAdmin {
-        DataTypes.NftConfigurationMap memory currentConfig = pool
+        DataTypes.NftConfigurationMap memory currentConfig = _pool
             .getNftConfiguration(asset);
 
         currentConfig.setFrozen(true);
 
-        pool.setNftConfiguration(asset, currentConfig.data);
+        _pool.setNftConfiguration(asset, currentConfig.data);
 
         emit NftFrozen(asset);
     }
@@ -402,12 +412,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param asset The address of the underlying asset of the NFT
      **/
     function unfreezeNft(address asset) external onlyPoolAdmin {
-        DataTypes.NftConfigurationMap memory currentConfig = pool
+        DataTypes.NftConfigurationMap memory currentConfig = _pool
             .getNftConfiguration(asset);
 
         currentConfig.setFrozen(false);
 
-        pool.setNftConfiguration(asset, currentConfig.data);
+        _pool.setNftConfiguration(asset, currentConfig.data);
 
         emit NftUnfrozen(asset);
     }
@@ -417,21 +427,18 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
      * @param val true if protocol needs to be paused, false otherwise
      **/
     function setPoolPause(bool val) external onlyEmergencyAdmin {
-        pool.setPause(val);
+        _pool.setPause(val);
     }
 
     function _initTokenWithProxy(
         address implementation,
         bytes memory initParams
     ) internal returns (address) {
-        /*
         InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(
                 address(this)
             );
 
         proxy.initialize(implementation, initParams);
-        */
-        address proxy;
 
         return address(proxy);
     }
@@ -441,19 +448,17 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         address implementation,
         bytes memory initParams
     ) internal {
-        /*
         InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(
                 payable(proxyAddress)
             );
 
         proxy.upgradeToAndCall(implementation, initParams);
-        */
     }
 
     function _checkReserveNoLiquidity(address asset) internal view {
-        DataTypes.ReserveData memory reserveData = pool.getReserveData(asset);
+        DataTypes.ReserveData memory reserveData = _pool.getReserveData(asset);
 
-        uint256 availableLiquidity = IERC20(asset).balanceOf(
+        uint256 availableLiquidity = IERC20Upgradeable(asset).balanceOf(
             reserveData.bTokenAddress
         );
 

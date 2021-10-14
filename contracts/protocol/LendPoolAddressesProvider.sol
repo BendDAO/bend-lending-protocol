@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-
 // Prettier ignore to prevent buidler flatter bug
 // prettier-ignore
-//import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
-
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
+
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /**
  * @title LendingPoolAddressesProvider contract
@@ -16,7 +15,10 @@ import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvid
  * - Owned by the NFTLend Governance
  * @author NFTLend
  **/
-contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
+contract LendPoolAddressesProvider is
+    OwnableUpgradeable,
+    ILendPoolAddressesProvider
+{
     string private _marketId;
     mapping(bytes32 => address) private _addresses;
 
@@ -24,13 +26,11 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     bytes32 private constant LEND_POOL_CONFIGURATOR = "LEND_POOL_CONFIGURATOR";
     bytes32 private constant POOL_ADMIN = "POOL_ADMIN";
     bytes32 private constant EMERGENCY_ADMIN = "EMERGENCY_ADMIN";
-    bytes32 private constant LEND_POOL_COLLATERAL_MANAGER =
-        "COLLATERAL_MANAGER";
     bytes32 private constant RESERVE_ORACLE = "RESERVE_ORACLE";
     bytes32 private constant NFT_ORACLE = "NFT_ORACLE";
     bytes32 private constant NFT_LOAN = "NFT_LOAN";
 
-    constructor(string memory marketId) public {
+    constructor(string memory marketId) {
         _setMarketId(marketId);
     }
 
@@ -137,35 +137,6 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     }
 
     /**
-     * @dev Returns the address of the LendoolCollateralManager. Since the manager is used
-     * through delegateCall within the LendingPool contract, the proxy contract pattern does not work properly hence
-     * the addresses are changed directly
-     * @return The address of the LendoolCollateralManager
-     **/
-
-    function getLendPoolCollateralManager()
-        external
-        view
-        override
-        returns (address)
-    {
-        return getAddress(LEND_POOL_COLLATERAL_MANAGER);
-    }
-
-    /**
-     * @dev Updates the address of the LendPoolCollateralManager
-     * @param manager The new LendPoolCollateralManager address
-     **/
-    function setLendPoolCollateralManager(address manager)
-        external
-        override
-        onlyOwner
-    {
-        _addresses[LEND_POOL_COLLATERAL_MANAGER] = manager;
-        emit LendPoolCollateralManagerUpdated(manager);
-    }
-
-    /**
      * @dev The functions below are getters/setters of addresses that are outside the context
      * of the protocol hence the upgradable proxy pattern is not used
      **/
@@ -233,22 +204,26 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
      * @param newAddress The address of the new implementation
      **/
     function _updateImpl(bytes32 id, address newAddress) internal {
-        /*
-    address payable proxyAddress = payable(_addresses[id]);
+        address payable proxyAddress = payable(_addresses[id]);
 
-    InitializableImmutableAdminUpgradeabilityProxy proxy =
-      InitializableImmutableAdminUpgradeabilityProxy(proxyAddress);
-    bytes memory params = abi.encodeWithSignature('initialize(address)', address(this));
+        InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(
+                proxyAddress
+            );
+        bytes memory params = abi.encodeWithSignature(
+            "initialize(address)",
+            address(this)
+        );
 
-    if (proxyAddress == address(0)) {
-      proxy = new InitializableImmutableAdminUpgradeabilityProxy(address(this));
-      proxy.initialize(newAddress, params);
-      _addresses[id] = address(proxy);
-      emit ProxyCreated(id, address(proxy));
-    } else {
-      proxy.upgradeToAndCall(newAddress, params);
-    }
-    */
+        if (proxyAddress == address(0)) {
+            proxy = new InitializableImmutableAdminUpgradeabilityProxy(
+                address(this)
+            );
+            proxy.initialize(newAddress, params);
+            _addresses[id] = address(proxy);
+            emit ProxyCreated(id, address(proxy));
+        } else {
+            proxy.upgradeToAndCall(newAddress, params);
+        }
     }
 
     function _setMarketId(string memory marketId) internal {

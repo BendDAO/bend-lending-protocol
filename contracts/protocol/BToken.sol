@@ -4,21 +4,22 @@ pragma solidity ^0.8.0;
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
+
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 /**
  * @title NFTLend ERC20 BToken
  * @dev Implementation of the interest bearing token for the NFTLend protocol
  * @author NFTLend
  */
-contract BToken is Initializable, IBToken, ERC20 {
+contract BToken is Initializable, IBToken, ERC20Upgradeable {
     using WadRayMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     uint8 private _decimals;
 
@@ -33,14 +34,6 @@ contract BToken is Initializable, IBToken, ERC20 {
             Errors.CT_CALLER_MUST_BE_LENDING_POOL
         );
         _;
-    }
-
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        uint8 decimals_
-    ) ERC20(name_, symbol_) {
-        _decimals = decimals_;
     }
 
     function decimals() public view virtual override returns (uint8) {
@@ -59,8 +52,14 @@ contract BToken is Initializable, IBToken, ERC20 {
         address treasury,
         address underlyingAsset,
         IIncentivesController incentivesController,
+        uint8 bTokenDecimals,
+        string calldata bTokenName,
+        string calldata bTokenSymbol,
         bytes calldata params
     ) external override initializer {
+        __ERC20_init(bTokenName, bTokenSymbol);
+        _decimals = bTokenDecimals;
+
         _pool = pool;
         _treasury = treasury;
         _underlyingAsset = underlyingAsset;
@@ -104,7 +103,10 @@ contract BToken is Initializable, IBToken, ERC20 {
             );
         }
 
-        IERC20(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
+        IERC20Upgradeable(_underlyingAsset).safeTransfer(
+            receiverOfUnderlying,
+            amount
+        );
 
         emit Transfer(user, address(0), amount);
         emit Burn(user, receiverOfUnderlying, amount, index);
@@ -179,7 +181,7 @@ contract BToken is Initializable, IBToken, ERC20 {
     function balanceOf(address user)
         public
         view
-        override(IERC20, ERC20)
+        override(IERC20Upgradeable, ERC20Upgradeable)
         returns (uint256)
     {
         return
@@ -221,7 +223,7 @@ contract BToken is Initializable, IBToken, ERC20 {
     function totalSupply()
         public
         view
-        override(IERC20, ERC20)
+        override(IERC20Upgradeable, ERC20Upgradeable)
         returns (uint256)
     {
         uint256 currentSupplyScaled = super.totalSupply();
@@ -301,7 +303,7 @@ contract BToken is Initializable, IBToken, ERC20 {
         onlyLendPool
         returns (uint256)
     {
-        IERC20(_underlyingAsset).safeTransfer(target, amount);
+        IERC20Upgradeable(_underlyingAsset).safeTransfer(target, amount);
         return amount;
     }
 

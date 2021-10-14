@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import "../interfaces/IInterestRate.sol";
-
 import {IInterestRate} from "../interfaces/IInterestRate.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {PercentageMath} from "../libraries/math/PercentageMath.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /**
  * @title InterestRate contract
@@ -96,7 +95,9 @@ contract InterestRate is IInterestRate {
         uint256 totalVariableDebt,
         uint256 reserveFactor
     ) external view override returns (uint256, uint256) {
-        uint256 availableLiquidity = IERC20(reserve).balanceOf(bToken);
+        uint256 availableLiquidity = IERC20Upgradeable(reserve).balanceOf(
+            bToken
+        );
         //avoid stack too deep
         availableLiquidity =
             availableLiquidity +

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 library DataTypes {
-    // refer to the whitepaper, section 1.1 basic concepts for a formal description of these properties.
     struct ReserveData {
         //stores the reserve configuration
         ReserveConfigurationMap configuration;
