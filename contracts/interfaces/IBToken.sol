@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import {ILendPool} from "./ILendPool.sol";
 import {IIncentivesController} from "./IIncentivesController.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IBToken is IERC20 {
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+
+interface IBToken is IERC20Upgradeable {
     /**
      * @dev Emitted when an bToken is initialized
      * @param underlyingAsset The address of the underlying asset
@@ -34,6 +35,9 @@ interface IBToken is IERC20 {
         address treasury,
         address underlyingAsset,
         IIncentivesController incentivesController,
+        uint8 bTokenDecimals,
+        string calldata bTokenName,
+        string calldata bTokenSymbol,
         bytes calldata params
     ) external;
 

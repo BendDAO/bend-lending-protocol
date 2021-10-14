@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import "../libraries/types/DataTypes.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
-interface INFTLoan is IERC721 {
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
+interface INFTLoan is IERC721Upgradeable {
     /**
      * @dev Emitted on mintLoan()
      * @param user The address initiating the deposit

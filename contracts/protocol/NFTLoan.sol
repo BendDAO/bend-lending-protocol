@@ -7,18 +7,19 @@ import {Errors} from "../libraries/helpers/Errors.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {Counters} from "@openzeppelin/contracts/utils/Counters.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract NFTLoan is Initializable, INFTLoan, ERC721 {
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
+contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
     using WadRayMath for uint256;
-    using Counters for Counters.Counter;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
 
     ILendPool private _pool;
 
-    Counters.Counter private _loanIdTracker;
+    CountersUpgradeable.Counter private _loanIdTracker;
     mapping(uint256 => DataTypes.LoanData) private _loans;
     // scaled total borrow amount. Expressed in ray
     uint256 totalReserveBorrowScaledAmount;
@@ -39,10 +40,10 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         _;
     }
 
-    constructor() ERC721("NFTLoan", "NFTL") {}
-
     // called once by the factory at time of deployment
     function initialize(address _lendPool) external initializer {
+        __ERC721_init("NFTLoan", "NFTL");
+
         _pool = ILendPool(_lendPool);
     }
 
@@ -67,7 +68,7 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
         _loanIdTracker.increment();
 
         // Receive Collateral Tokens
-        IERC721(nftContract).transferFrom(
+        IERC721Upgradeable(nftContract).transferFrom(
             msg.sender,
             address(this),
             nftTokenId
@@ -119,7 +120,7 @@ contract NFTLoan is Initializable, INFTLoan, ERC721 {
 
         DataTypes.LoanData memory loan = _loans[loanId];
 
-        IERC721(loan.nftContract).transferFrom(
+        IERC721Upgradeable(loan.nftContract).transferFrom(
             address(this),
             msg.sender,
             loan.nftTokenId

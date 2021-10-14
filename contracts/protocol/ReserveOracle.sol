@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
 import {IChainlinkAggregator} from "../interfaces/IChainlinkAggregator.sol";
@@ -13,7 +13,7 @@ import {IChainlinkAggregator} from "../interfaces/IChainlinkAggregator.sol";
 /// - If the returned price by a Chainlink aggregator is <= 0, the call is forwarded to a fallbackOracle
 /// - Owned by the NFTLend governance system, allowed to add sources for assets, replace them
 ///   and change the fallbackOracle
-contract ReserveOracle is Ownable, IReserveOracleGetter {
+contract ReserveOracle is OwnableUpgradeable, IReserveOracleGetter {
     event WethSet(address indexed weth);
     event AssetSourceUpdated(address indexed asset, address indexed source);
     event FallbackOracleUpdated(address indexed fallbackOracle);

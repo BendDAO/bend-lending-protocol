@@ -14,7 +14,6 @@ interface ILendPoolAddressesProvider {
     event ConfigurationAdminUpdated(address indexed newAddress);
     event EmergencyAdminUpdated(address indexed newAddress);
     event LendPoolConfiguratorUpdated(address indexed newAddress);
-    event LendPoolCollateralManagerUpdated(address indexed newAddress);
     event ReserveOracleUpdated(address indexed newAddress);
     event NftOracleUpdated(address indexed newAddress);
     event NftLoanUpdated(address indexed newAddress);
@@ -38,10 +37,6 @@ interface ILendPoolAddressesProvider {
     function getLendPoolConfigurator() external view returns (address);
 
     function setLendPoolConfiguratorImpl(address configurator) external;
-
-    function getLendPoolCollateralManager() external view returns (address);
-
-    function setLendPoolCollateralManager(address manager) external;
 
     function getPoolAdmin() external view returns (address);
 

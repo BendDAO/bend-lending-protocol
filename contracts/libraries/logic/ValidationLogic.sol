@@ -2,8 +2,6 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReserveLogic} from "./ReserveLogic.sol";
 import {GenericLogic} from "./GenericLogic.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
@@ -15,6 +13,10 @@ import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
 
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
 /**
  * @title ValidationLogic library
  * @author NFTLend
@@ -24,7 +26,7 @@ library ValidationLogic {
     using ReserveLogic for DataTypes.ReserveData;
     using WadRayMath for uint256;
     using PercentageMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using UserConfiguration for DataTypes.UserConfigurationMap;
     using NftConfiguration for DataTypes.NftConfigurationMap;
@@ -116,6 +118,7 @@ library ValidationLogic {
      * @param nftData The state of the user for the specific nft
      */
     function validateBorrow(
+        address user,
         address asset,
         uint256 amount,
         uint256 amountInETH,
@@ -129,6 +132,13 @@ library ValidationLogic {
         ValidateBorrowLocalVars memory vars;
 
         require(amount != 0, Errors.VL_INVALID_AMOUNT);
+
+        if (loanId != 0) {
+            require(
+                user == IERC721Upgradeable(loanAddress).ownerOf(loanId),
+                Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
+            );
+        }
 
         (
             vars.isActive,
@@ -189,9 +199,12 @@ library ValidationLogic {
      * @param variableDebt The borrow balance of the user
      */
     function validateRepay(
+        address user,
+        address loanAddress,
         DataTypes.ReserveData storage reserve,
         uint256 amountSent,
-        uint256 variableDebt
+        uint256 variableDebt,
+        uint256 loanId
     ) external view {
         bool isActive = reserve.configuration.getActive();
 
@@ -200,6 +213,11 @@ library ValidationLogic {
         require(amountSent > 0, Errors.VL_INVALID_AMOUNT);
 
         require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
+
+        require(
+            user == IERC721Upgradeable(loanAddress).ownerOf(loanId),
+            Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
+        );
     }
 
     /**

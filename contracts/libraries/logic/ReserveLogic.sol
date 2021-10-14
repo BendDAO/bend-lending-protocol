@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IBToken} from "../../interfaces/IBToken.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
 import {INFTLoan} from "../../interfaces/INFTLoan.sol";
@@ -13,6 +11,9 @@ import {PercentageMath} from "../math/PercentageMath.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+
 /**
  * @title ReserveLogic library
  * @author NFTLend
@@ -21,7 +22,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 library ReserveLogic {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     /**
      * @dev Emitted when the state of a reserve is updated
