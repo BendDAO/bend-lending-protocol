@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {INFTOracle} from "../interfaces/INFTOracle.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
 
-contract NFTOracle is INFTOracle, Initializable, Ownable, BlockContext {
+contract NFTOracle is
+    INFTOracle,
+    Initializable,
+    OwnableUpgradeable,
+    BlockContext
+{
     modifier onlyAdmin() {
         require(_msgSender() == priceFeedAdmin, "!admin");
         _;

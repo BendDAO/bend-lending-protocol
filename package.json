@@ -22,11 +22,7 @@
     "solidity-coverage": "^0.7.17"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "@openzeppelin/contracts": "^4.3.2",
+    "@openzeppelin/contracts-upgradeable": "^4.3.2",
     "@openzeppelin/test-helpers": "^0.5.15"
-=======
-    "@openzeppelin/contracts-upgradeable": "^4.3.2"
->>>>>>> 2b47598 (add InitializableImmutableAdminUpgradeabilityProxy contract)
   }
 }
