@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {INFTLoan} from "../interfaces/INFTLoan.sol";
+import {IBNFT} from "../interfaces/IBNFT.sol";
+import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
-import {Errors} from "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 
-import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
-contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
+contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     using WadRayMath for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
@@ -21,8 +21,9 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
 
     CountersUpgradeable.Counter private _loanIdTracker;
     mapping(uint256 => DataTypes.LoanData) private _loans;
+
     // scaled total borrow amount. Expressed in ray
-    uint256 totalReserveBorrowScaledAmount;
+    mapping(address => uint256) _reserveBorrowScaledAmount;
     // scaled total borrow amount. Expressed in ray
     mapping(address => mapping(address => uint256))
         private _userReserveBorrowScaledAmounts;
@@ -42,22 +43,22 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
 
     // called once by the factory at time of deployment
     function initialize(address _lendPool) external initializer {
-        __ERC721_init("NFTLoan", "NFTL");
+        __Context_init();
 
         _pool = ILendPool(_lendPool);
+
+        // Avoid having loanId = 0
+        _loanIdTracker.increment();
     }
 
     /**
-     * @dev Mints loan to the `user` address
-     * -  Only callable by the LendingPool
-     * @param user The address receiving the loan
-     * @param amount The amount of debt being minted
-     * @param borrowIndex The variable borrow index of the reserve
-     **/
-    function mintLoan(
+     * @inheritdoc ILendPoolLoan
+     */
+    function createLoan(
         address user,
         address nftContract,
         uint256 nftTokenId,
+        address bNftAddress,
         address reserveAsset,
         uint256 amount,
         uint256 borrowIndex
@@ -69,30 +70,31 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
 
         // Receive Collateral Tokens
         IERC721Upgradeable(nftContract).transferFrom(
-            msg.sender,
+            _msgSender(),
             address(this),
             nftTokenId
         );
 
+        IBNFT(bNftAddress).mint(nftTokenId);
+
         // Save Info
         _loans[loanId] = DataTypes.LoanData({
             loanId: loanId,
+            state: DataTypes.LoanState.Active,
             nftContract: nftContract,
             nftTokenId: nftTokenId,
             reserveAsset: reserveAsset,
             scaledAmount: amountScaled
         });
 
-        _mint(user, loanId);
-
-        totalReserveBorrowScaledAmount += _loans[loanId].scaledAmount;
+        _reserveBorrowScaledAmount[reserveAsset] += _loans[loanId].scaledAmount;
 
         _userReserveBorrowScaledAmounts[user][reserveAsset] += _loans[loanId]
             .scaledAmount;
 
         _userNftCollateralAmounts[user][nftContract] += 1;
 
-        emit MintLoan(
+        emit LoanCreated(
             user,
             nftContract,
             nftTokenId,
@@ -105,61 +107,8 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
     }
 
     /**
-     * @dev Burns user variable debt
-     * - Only callable by the LendingPool
-     * @param user The user whose debt is getting burned
-     * @param loanId The id of loan
-     * @param borrowIndex The variable debt index of the reserve
-     **/
-    function burnLoan(
-        address user,
-        uint256 loanId,
-        uint256 borrowIndex
-    ) external override onlyLendPool {
-        require(_exists(loanId), "NFTLoan: nonexist loan");
-
-        DataTypes.LoanData memory loan = _loans[loanId];
-
-        IERC721Upgradeable(loan.nftContract).transferFrom(
-            address(this),
-            msg.sender,
-            loan.nftTokenId
-        );
-
-        _burn(loanId);
-
-        require(
-            totalReserveBorrowScaledAmount >= loan.scaledAmount,
-            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
-        );
-        totalReserveBorrowScaledAmount -= loan.scaledAmount;
-
-        require(
-            _userReserveBorrowScaledAmounts[user][loan.reserveAsset] >=
-                loan.scaledAmount,
-            Errors.LP_INVALIED_USER_SCALED_AMOUNT
-        );
-        _userReserveBorrowScaledAmounts[user][loan.reserveAsset] -= loan
-            .scaledAmount;
-
-        require(
-            _userNftCollateralAmounts[user][loan.nftContract] >= 1,
-            Errors.LP_INVALIED_USER_NFT_AMOUNT
-        );
-        _userNftCollateralAmounts[user][loan.nftContract] -= 1;
-
-        delete _loans[loanId];
-
-        emit BurnLoan(
-            user,
-            loanId,
-            loan.nftContract,
-            loan.nftTokenId,
-            loan.reserveAsset,
-            loan.scaledAmount
-        );
-    }
-
+     * @inheritdoc ILendPoolLoan
+     */
     function updateLoan(
         address user,
         uint256 loanId,
@@ -167,38 +116,42 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
         uint256 amountTaken,
         uint256 borrowIndex
     ) external override onlyLendPool {
-        require(_exists(loanId), "NFTLoan: nonexist loan");
-
         DataTypes.LoanData memory loan = _loans[loanId];
+        // Ensure valid loan state
+        require(
+            loan.state == DataTypes.LoanState.Active,
+            "LendPoolLoan:Invalid loan state"
+        );
 
         uint256 amountScaled = 0;
 
         if (amountAdded > 0) {
             amountScaled = amountAdded.rayDiv(borrowIndex);
-            require(amountScaled != 0, "NFTLoan: invalid added amount");
+            require(amountScaled != 0, "LendPoolLoan: invalid added amount");
 
             loan.scaledAmount += amountScaled;
 
-            totalReserveBorrowScaledAmount += loan.scaledAmount;
+            _reserveBorrowScaledAmount[loan.reserveAsset] += loan.scaledAmount;
             _userReserveBorrowScaledAmounts[user][loan.reserveAsset] += loan
                 .scaledAmount;
         }
 
         if (amountTaken > 0) {
             amountScaled = amountTaken.rayDiv(borrowIndex);
-            require(amountScaled != 0, "NFTLoan: invalid taken amount");
+            require(amountScaled != 0, "LendPoolLoan: invalid taken amount");
 
             require(
                 loan.scaledAmount >= amountScaled,
-                "NFTLoan: taken amount exceeds"
+                "LendPoolLoan: taken amount exceeds"
             );
             loan.scaledAmount -= amountScaled;
 
             require(
-                totalReserveBorrowScaledAmount >= loan.scaledAmount,
+                _reserveBorrowScaledAmount[loan.reserveAsset] >=
+                    loan.scaledAmount,
                 Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
             );
-            totalReserveBorrowScaledAmount -= loan.scaledAmount;
+            _reserveBorrowScaledAmount[loan.reserveAsset] -= loan.scaledAmount;
 
             require(
                 _userReserveBorrowScaledAmounts[user][loan.reserveAsset] >=
@@ -209,7 +162,7 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
                 .scaledAmount;
         }
 
-        emit UpdateLoan(
+        emit LoanUpdated(
             user,
             loanId,
             loan.reserveAsset,
@@ -217,6 +170,28 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
             amountTaken,
             borrowIndex
         );
+    }
+
+    /**
+     * @inheritdoc ILendPoolLoan
+     */
+    function repayLoan(
+        address user,
+        uint256 loanId,
+        address bNftAddress
+    ) external override onlyLendPool {
+        _terminateLoan(user, loanId, bNftAddress, true);
+    }
+
+    /**
+     * @inheritdoc ILendPoolLoan
+     */
+    function liquidateLoan(
+        address user,
+        uint256 loanId,
+        address bNftAddress
+    ) external override onlyLendPool {
+        _terminateLoan(user, loanId, bNftAddress, false);
     }
 
     function getLoan(uint256 loanId)
@@ -274,13 +249,13 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
         return (_loans[loanId].nftContract, _loans[loanId].nftTokenId);
     }
 
-    function getTotalReserveBorrowScaledAmount()
+    function getReserveBorrowScaledAmount(address reserve)
         external
         view
         override
         returns (uint256)
     {
-        return totalReserveBorrowScaledAmount;
+        return _reserveBorrowScaledAmount[reserve];
     }
 
     function getUserReserveBorrowScaledAmount(address user, address reserve)
@@ -320,5 +295,77 @@ contract NFTLoan is Initializable, INFTLoan, ERC721Upgradeable {
 
     function _getLendPool() internal view returns (ILendPool) {
         return _pool;
+    }
+
+    function _terminateLoan(
+        address user,
+        uint256 loanId,
+        address bNftAddress,
+        bool isRepay
+    ) internal {
+        DataTypes.LoanData memory loan = _loans[loanId];
+        // Ensure valid loan state
+        require(
+            loan.state == DataTypes.LoanState.Active,
+            "LendPoolLoan:Invalid loan state"
+        );
+
+        // state changes and cleanup
+        // NOTE: these must be performed before assets are released to prevent reentrance
+        if (isRepay) {
+            _loans[loanId].state = DataTypes.LoanState.Repaid;
+        } else {
+            _loans[loanId].state = DataTypes.LoanState.Defaulted;
+        }
+
+        // Ensure scaled amount is valid
+        require(
+            _reserveBorrowScaledAmount[loan.reserveAsset] >= loan.scaledAmount,
+            Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
+        );
+        _reserveBorrowScaledAmount[loan.reserveAsset] -= loan.scaledAmount;
+
+        require(
+            _userReserveBorrowScaledAmounts[user][loan.reserveAsset] >=
+                loan.scaledAmount,
+            Errors.LP_INVALIED_USER_SCALED_AMOUNT
+        );
+        _userReserveBorrowScaledAmounts[user][loan.reserveAsset] -= loan
+            .scaledAmount;
+
+        require(
+            _userNftCollateralAmounts[user][loan.nftContract] >= 1,
+            Errors.LP_INVALIED_USER_NFT_AMOUNT
+        );
+        _userNftCollateralAmounts[user][loan.nftContract] -= 1;
+
+        // collateral redistribution
+        IBNFT(bNftAddress).burn(loan.nftTokenId);
+
+        IERC721Upgradeable(loan.nftContract).transferFrom(
+            address(this),
+            _msgSender(),
+            loan.nftTokenId
+        );
+
+        if (isRepay) {
+            emit LoanRepaid(
+                user,
+                loanId,
+                loan.nftContract,
+                loan.nftTokenId,
+                loan.reserveAsset,
+                loan.scaledAmount
+            );
+        } else {
+            emit LoanLiquidated(
+                user,
+                loanId,
+                loan.nftContract,
+                loan.nftTokenId,
+                loan.reserveAsset,
+                loan.scaledAmount
+            );
+        }
     }
 }

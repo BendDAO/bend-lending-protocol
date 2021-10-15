@@ -3,15 +3,16 @@ pragma solidity ^0.8.0;
 
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-
-interface INFTLoan is IERC721Upgradeable {
+interface ILendPoolLoan {
     /**
-     * @dev Emitted on mintLoan()
-     * @param user The address initiating the deposit
-     * @param amount The amount minted
-     **/
-    event MintLoan(
+     * @dev Emitted on initialization to share location of dependent notes
+     */
+    event Initialized();
+
+    /**
+     * @dev Emitted when a loan is created
+     */
+    event LoanCreated(
         address indexed user,
         address nftTokenAddress,
         uint256 nftTokenId,
@@ -21,11 +22,21 @@ interface INFTLoan is IERC721Upgradeable {
     );
 
     /**
-     * @dev Emitted on burnLoan()
-     * @param user The address initiating the burn
-     * @param amount The amount burned
-     **/
-    event BurnLoan(
+     * @dev Emitted when a loan is updated
+     */
+    event LoanUpdated(
+        address indexed user,
+        uint256 indexed loanId,
+        address assetAddress,
+        uint256 amountAdded,
+        uint256 amountTaken,
+        uint256 borrowIndex
+    );
+
+    /**
+     * @dev Emitted when a loan is repaid by the borrower
+     */
+    event LoanRepaid(
         address indexed user,
         uint256 indexed loanId,
         address nftTokenAddress,
@@ -35,40 +46,70 @@ interface INFTLoan is IERC721Upgradeable {
     );
 
     /**
-     * @dev Emitted on updateLoan()
-     * @param user The address initiating the burn
-     * @param amountAdded The amount added
-     **/
-    event UpdateLoan(
+     * @dev Emitted when a loan is liquidate by the liquidator
+     */
+    event LoanLiquidated(
         address indexed user,
         uint256 indexed loanId,
-        address assetAddress,
-        uint256 amountAdded,
-        uint256 amountTaken,
-        uint256 borrowIndex
-    );
-
-    function mintLoan(
-        address user,
         address nftTokenAddress,
         uint256 nftTokenId,
         address assetAddress,
+        uint256 amount
+    );
+
+    /**
+     * @dev Create store a loan object with some params
+     */
+    function createLoan(
+        address user,
+        address nftTokenAddress,
+        uint256 nftTokenId,
+        address bNftAddress,
+        address reserveAsset,
         uint256 amount,
         uint256 borrowIndex
     ) external returns (uint256);
 
-    function burnLoan(
-        address user,
-        uint256 loanId,
-        uint256 borrowIndex
-    ) external;
-
+    /**
+     * @dev Update the given loan with some params
+     *
+     * Requirements:
+     *  - The caller must be a holder of the loan
+     *  - The loan must be in state Active
+     */
     function updateLoan(
         address user,
         uint256 loanId,
         uint256 amountAdded,
         uint256 amountTaken,
         uint256 borrowIndex
+    ) external;
+
+    /**
+     * @dev Repay the given loan
+     *
+     * Requirements:
+     *  - The caller must be a holder of the loan
+     *  - The caller must send in principal + interest
+     *  - The loan must be in state Active
+     */
+    function repayLoan(
+        address user,
+        uint256 loanId,
+        address bNftAddress
+    ) external;
+
+    /**
+     * @dev Liquidate the given loan
+     *
+     * Requirements:
+     *  - The caller must send in principal + interest
+     *  - The loan must be in state Active
+     */
+    function liquidateLoan(
+        address user,
+        uint256 loanId,
+        address bNftAddress
     ) external;
 
     function getLoan(uint256 loanId)
@@ -93,7 +134,7 @@ interface INFTLoan is IERC721Upgradeable {
         view
         returns (address, uint256);
 
-    function getTotalReserveBorrowScaledAmount()
+    function getReserveBorrowScaledAmount(address reserve)
         external
         view
         returns (uint256);

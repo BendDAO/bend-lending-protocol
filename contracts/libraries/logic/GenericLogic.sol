@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {INFTLoan} from "../../interfaces/INFTLoan.sol";
+import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 import {IReserveOracleGetter} from "../../interfaces/IReserveOracleGetter.sol";
 import {INFTOracleGetter} from "../../interfaces/INFTOracleGetter.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
@@ -50,6 +50,12 @@ library GenericLogic {
         uint256 reservesCount,
         address oracle
     ) external view returns (bool) {
+        user;
+        amount;
+        reserves;
+        reservesCount;
+        oracle;
+
         if (
             !userConfig.isReserveBorrowingAny() ||
             !userConfig.isUsingReserveAsCollateral(reservesData[asset].id)
@@ -60,7 +66,7 @@ library GenericLogic {
         return true;
     }
 
-    struct CalculateNftLoanDataVars {
+    struct CalculateLoanDataVars {
         uint256 reserveUnitPrice;
         uint256 tokenUnit;
         uint256 compoundedBorrowBalance;
@@ -87,7 +93,7 @@ library GenericLogic {
      * @param nftOracle The price oracle address of nft
      * @return The total collateral and total debt of the loan in ETH, the ltv, liquidation threshold and the HF
      **/
-    function calculateNftLoanData(
+    function calculateLoanData(
         address reserveAddress,
         DataTypes.ReserveData storage reserveData,
         DataTypes.NftData storage nftData,
@@ -106,9 +112,9 @@ library GenericLogic {
             uint256
         )
     {
-        CalculateNftLoanDataVars memory vars;
+        CalculateLoanDataVars memory vars;
 
-        (vars.nftContract, vars.nftTokenId) = INFTLoan(loanAddress)
+        (vars.nftContract, vars.nftTokenId) = ILendPoolLoan(loanAddress)
             .getLoanCollateral(loanId);
 
         (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData
@@ -122,7 +128,7 @@ library GenericLogic {
         vars.tokenUnit = 10**vars.decimals;
         vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle)
             .getAssetPrice(reserveAddress);
-        vars.compoundedBorrowBalance = INFTLoan(loanAddress)
+        vars.compoundedBorrowBalance = ILendPoolLoan(loanAddress)
             .getLoanReserveBorrowAmount(loanId);
         vars.totalDebtInETH =
             (vars.reserveUnitPrice * vars.compoundedBorrowBalance) /
