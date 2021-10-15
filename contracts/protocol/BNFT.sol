@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IBNFT} from "../interfaces/IBNFT.sol";
 
+import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
@@ -37,6 +38,10 @@ contract BNFT is IBNFT, ERC721Upgradeable {
      **/
     function mint(uint256 tokenId) external override {
         require(
+            AddressUpgradeable.isContract(_msgSender()),
+            "BNFT: callers is not contract"
+        );
+        require(
             IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) ==
                 _msgSender(),
             "BNFT: callers is not owner"
@@ -60,6 +65,10 @@ contract BNFT is IBNFT, ERC721Upgradeable {
      * @param tokenId token id of the underlying asset of NFT
      **/
     function burn(uint256 tokenId) external override {
+        require(
+            AddressUpgradeable.isContract(_msgSender()),
+            "BNFT: callers is not contract"
+        );
         require(_exists(tokenId), "BNFT: nonexist token");
         require(ownerOf(tokenId) == _msgSender(), "BNFT: callers is not owner");
 
