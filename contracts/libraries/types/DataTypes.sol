@@ -19,7 +19,7 @@ library DataTypes {
         //address of the interest rate strategy
         address interestRateAddress;
         //address of the nft loan
-        address nftLoanAddress;
+        address loanAddress;
         //the id of the reserve. Represents the position in the list of the active reserves
         uint8 id;
     }
@@ -27,8 +27,8 @@ library DataTypes {
     struct NftData {
         //stores the nft configuration
         NftConfigurationMap configuration;
-        //address of the nft loan
-        address nftLoanAddress;
+        //address of the bNFT contract
+        address bNftAddress;
         //the id of the nft. Represents the position in the list of the active nfts
         uint8 id;
     }
@@ -61,9 +61,30 @@ library DataTypes {
         uint256 data;
     }
 
+    /**
+     * @dev Enum describing the current state of a loan
+     * State change flow:
+     *  Created -> Active -> Repaid
+     *                    -> Defaulted
+     */
+    enum LoanState {
+        // We need a default that is not 'Created' - this is the zero value
+        DUMMY_DO_NOT_USE,
+        // The loan data is stored, but not initiated yet.
+        Created,
+        // The loan has been initialized, funds have been delivered to the borrower and the collateral is held.
+        Active,
+        // The loan has been repaid, and the collateral has been returned to the borrower. This is a terminal state.
+        Repaid,
+        // The loan was delinquent and collateral claimed by the liquidator. This is a terminal state.
+        Defaulted
+    }
+
     struct LoanData {
-        //the id of the nft loan, ERC721 Token ID also.
+        //the id of the nft loan
         uint256 loanId;
+        //the current state of the loan
+        LoanState state;
         //address of nft contract
         address nftContract;
         //the id of nft token

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IBToken} from "../../interfaces/IBToken.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
-import {INFTLoan} from "../../interfaces/INFTLoan.sol";
+import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {MathUtils} from "../math/MathUtils.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
@@ -104,9 +104,12 @@ library ReserveLogic {
      * @dev Updates the liquidity cumulative index and the variable borrow index.
      * @param reserve the reserve object
      **/
-    function updateState(DataTypes.ReserveData storage reserve) internal {
-        uint256 scaledVariableDebt = INFTLoan(reserve.nftLoanAddress)
-            .getTotalReserveBorrowScaledAmount();
+    function updateState(
+        DataTypes.ReserveData storage reserve,
+        address reserveAddress
+    ) internal {
+        uint256 scaledVariableDebt = ILendPoolLoan(reserve.loanAddress)
+            .getReserveBorrowScaledAmount(reserveAddress);
         uint256 previousVariableBorrowIndex = reserve.variableBorrowIndex;
         uint256 previousLiquidityIndex = reserve.liquidityIndex;
         uint40 lastUpdatedTimestamp = reserve.lastUpdateTimestamp;
@@ -163,13 +166,13 @@ library ReserveLogic {
      * @dev Initializes a reserve
      * @param reserve The reserve object
      * @param bTokenAddress The address of the overlying bToken contract
-     * @param nftLoanAddress The address of the nft loan contract
+     * @param loanAddress The address of the nft loan contract
      * @param interestRateAddress The address of the interest rate strategy contract
      **/
     function init(
         DataTypes.ReserveData storage reserve,
         address bTokenAddress,
-        address nftLoanAddress,
+        address loanAddress,
         address interestRateAddress
     ) external {
         require(
@@ -180,7 +183,7 @@ library ReserveLogic {
         reserve.liquidityIndex = uint128(WadRayMath.ray());
         reserve.variableBorrowIndex = uint128(WadRayMath.ray());
         reserve.bTokenAddress = bTokenAddress;
-        reserve.nftLoanAddress = nftLoanAddress;
+        reserve.loanAddress = loanAddress;
         reserve.interestRateAddress = interestRateAddress;
     }
 
@@ -209,8 +212,8 @@ library ReserveLogic {
         //calculates the total variable debt locally using the scaled total supply instead
         //of totalSupply(), as it's noticeably cheaper. Also, the index has been
         //updated by the previous updateState() call
-        vars.totalVariableDebt = INFTLoan(reserve.nftLoanAddress)
-            .getTotalReserveBorrowScaledAmount()
+        vars.totalVariableDebt = ILendPoolLoan(reserve.loanAddress)
+            .getReserveBorrowScaledAmount(reserveAddress)
             .rayMul(reserve.variableBorrowIndex);
 
         (vars.newLiquidityRate, vars.newVariableRate) = IInterestRate(
@@ -269,6 +272,7 @@ library ReserveLogic {
         uint256 newVariableBorrowIndex,
         uint40 timestamp
     ) internal {
+        timestamp;
         MintToTreasuryLocalVars memory vars;
 
         vars.reserveFactor = reserve.configuration.getReserveFactor();

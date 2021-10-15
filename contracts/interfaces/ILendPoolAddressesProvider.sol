@@ -16,7 +16,7 @@ interface ILendPoolAddressesProvider {
     event LendPoolConfiguratorUpdated(address indexed newAddress);
     event ReserveOracleUpdated(address indexed newAddress);
     event NftOracleUpdated(address indexed newAddress);
-    event NftLoanUpdated(address indexed newAddress);
+    event LendPoolLoanUpdated(address indexed newAddress);
     event ProxyCreated(bytes32 id, address indexed newAddress);
     event AddressSet(bytes32 id, address indexed newAddress, bool hasProxy);
 
@@ -54,7 +54,7 @@ interface ILendPoolAddressesProvider {
 
     function setNftOracle(address nftOracle) external;
 
-    function getNftLoan() external view returns (address);
+    function getLendPoolLoan() external view returns (address);
 
-    function setNftLoan(address nftLoan) external;
+    function setLendPoolLoan(address loan) external;
 }

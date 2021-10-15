@@ -13,16 +13,14 @@ library NftLogic {
     /**
      * @dev Initializes a nft
      * @param nft The nft object
-     * @param nftLoanAddress The address of the nft loan contract
+     * @param bNftAddress The address of the bNFT contract
      **/
-    function init(DataTypes.NftData storage nft, address nftLoanAddress)
-        external
-    {
+    function init(DataTypes.NftData storage nft, address bNftAddress) external {
         require(
-            nft.nftLoanAddress == address(0),
+            nft.bNftAddress == address(0),
             Errors.RL_RESERVE_ALREADY_INITIALIZED
         );
 
-        nft.nftLoanAddress = nftLoanAddress;
+        nft.bNftAddress = bNftAddress;
     }
 }

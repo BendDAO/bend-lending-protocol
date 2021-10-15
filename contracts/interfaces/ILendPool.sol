@@ -283,16 +283,14 @@ interface ILendPool {
     function initReserve(
         address asset,
         address bTokenAddress,
-        address nftLoanAddress,
+        address loanAddress,
         address interestRateAddress
     ) external;
 
-    function initNft(address asset, address nftLoanAddress) external;
+    function initNft(address asset, address loanAddress) external;
 
     function setReserveInterestRateAddress(address asset, address rateAddress)
         external;
-
-    function setNftLoanAddress(address asset, address loanAddress) external;
 
     function setReserveConfiguration(address asset, uint256 configuration)
         external;

@@ -185,13 +185,13 @@ contract LendPoolAddressesProvider is
         emit NftOracleUpdated(nftOracle);
     }
 
-    function getNftLoan() external view override returns (address) {
+    function getLendPoolLoan() external view override returns (address) {
         return getAddress(NFT_LOAN);
     }
 
-    function setNftLoan(address nftLoan) external override {
-        _addresses[NFT_LOAN] = nftLoan;
-        emit NftLoanUpdated(nftLoan);
+    function setLendPoolLoan(address loanAddress) external override {
+        _addresses[NFT_LOAN] = loanAddress;
+        emit LendPoolLoanUpdated(loanAddress);
     }
 
     /**

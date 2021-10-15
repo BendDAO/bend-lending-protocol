@@ -5,13 +5,13 @@ pragma experimental ABIEncoderV2;
 interface ILendPoolConfigurator {
     struct InitReserveInput {
         address bTokenImpl;
-        address nftLoanImpl;
+        address loanImpl;
         uint8 underlyingAssetDecimals;
         address interestRateAddress;
         address underlyingAsset;
         address treasury;
         address incentivesController;
-        address nftLoanAddress;
+        address loanAddress;
         string underlyingAssetName;
         string bTokenName;
         string bTokenSymbol;
@@ -20,7 +20,7 @@ interface ILendPoolConfigurator {
 
     struct InitNftInput {
         address underlyingAsset;
-        address nftLoanAddress;
+        address loanAddress;
         bytes params;
     }
 
@@ -38,13 +38,13 @@ interface ILendPoolConfigurator {
      * @dev Emitted when a reserve is initialized.
      * @param asset The address of the underlying asset of the reserve
      * @param bToken The address of the associated bToken contract
-     * @param nftLoanToken The address of the associated nft loan token
+     * @param loanAddress The address of the associated nft loan token
      * @param interestRateAddress The address of the interest rate strategy for the reserve
      **/
     event ReserveInitialized(
         address indexed asset,
         address indexed bToken,
-        address nftLoanToken,
+        address loanAddress,
         address interestRateAddress
     );
 
@@ -108,9 +108,9 @@ interface ILendPoolConfigurator {
     /**
      * @dev Emitted when a nft is initialized.
      * @param asset The address of the underlying asset of the nft
-     * @param nftLoanToken The address of the associated nft loan token
+     * @param loanAddress The address of the associated nft loan token
      **/
-    event NftInitialized(address indexed asset, address nftLoanToken);
+    event NftInitialized(address indexed asset, address loanAddress);
 
     /**
      * @dev Emitted when the collateralization risk parameters for the specified NFT are updated.
@@ -163,12 +163,12 @@ interface ILendPoolConfigurator {
     );
 
     /**
-     * @dev Emitted when the implementation of a nft loan token is upgraded
+     * @dev Emitted when the implementation of a bNFT is upgraded
      * @param asset The address of the underlying asset of the reserve
-     * @param proxy The nft loan token proxy address
-     * @param implementation The new nft loan implementation
+     * @param proxy The bNFT proxy address
+     * @param implementation The new bNFT implementation
      **/
-    event NFTLoanTokenUpgraded(
+    event BNFTUpgraded(
         address indexed asset,
         address indexed proxy,
         address indexed implementation

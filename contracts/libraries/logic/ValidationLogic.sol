@@ -160,7 +160,7 @@ library ValidationLogic {
             vars.currentLtv,
             vars.currentLiquidationThreshold,
             vars.healthFactor
-        ) = GenericLogic.calculateNftLoanData(
+        ) = GenericLogic.calculateLoanData(
             asset,
             reserve,
             nftData,

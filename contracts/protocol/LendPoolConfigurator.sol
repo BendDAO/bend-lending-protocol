@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {INFTLoan} from "../interfaces/INFTLoan.sol";
+import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
@@ -90,7 +90,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         pool_.initReserve(
             input.underlyingAsset,
             bTokenProxyAddress,
-            input.nftLoanAddress,
+            input.loanAddress,
             input.interestRateAddress
         );
 
@@ -110,7 +110,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         emit ReserveInitialized(
             input.underlyingAsset,
             bTokenProxyAddress,
-            input.nftLoanAddress,
+            input.loanAddress,
             input.interestRateAddress
         );
     }
@@ -126,7 +126,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
 
     function _initNft(ILendPool pool_, InitNftInput calldata input) internal {
-        pool_.initNft(input.underlyingAsset, input.nftLoanAddress);
+        pool_.initNft(input.underlyingAsset, input.loanAddress);
 
         DataTypes.NftConfigurationMap memory currentConfig = pool_
             .getNftConfiguration(input.underlyingAsset);
@@ -136,7 +136,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
         pool_.setNftConfiguration(input.underlyingAsset, currentConfig.data);
 
-        emit NftInitialized(input.underlyingAsset, input.nftLoanAddress);
+        emit NftInitialized(input.underlyingAsset, input.loanAddress);
     }
 
     /**
