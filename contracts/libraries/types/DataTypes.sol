@@ -85,8 +85,8 @@ library DataTypes {
         uint256 loanId;
         //the current state of the loan
         LoanState state;
-        //address of nft contract
-        address nftContract;
+        //address of nft asset token
+        address nftAsset;
         //the id of nft token
         uint256 nftTokenId;
         //address of reserve asset token

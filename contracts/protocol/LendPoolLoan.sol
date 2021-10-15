@@ -55,8 +55,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
      * @inheritdoc ILendPoolLoan
      */
     function createLoan(
-        address user,
-        address nftContract,
+        address nftAsset,
         uint256 nftTokenId,
         address bNftAddress,
         address reserveAsset,
@@ -69,7 +68,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         _loanIdTracker.increment();
 
         // Receive Collateral Tokens
-        IERC721Upgradeable(nftContract).transferFrom(
+        IERC721Upgradeable(nftAsset).transferFrom(
             _msgSender(),
             address(this),
             nftTokenId
@@ -81,7 +80,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         _loans[loanId] = DataTypes.LoanData({
             loanId: loanId,
             state: DataTypes.LoanState.Active,
-            nftContract: nftContract,
+            nftAsset: nftAsset,
             nftTokenId: nftTokenId,
             reserveAsset: reserveAsset,
             scaledAmount: amountScaled
@@ -89,14 +88,15 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
         _reserveBorrowScaledAmount[reserveAsset] += _loans[loanId].scaledAmount;
 
-        _userReserveBorrowScaledAmounts[user][reserveAsset] += _loans[loanId]
-            .scaledAmount;
+        _userReserveBorrowScaledAmounts[_msgSender()][reserveAsset] += _loans[
+            loanId
+        ].scaledAmount;
 
-        _userNftCollateralAmounts[user][nftContract] += 1;
+        _userNftCollateralAmounts[_msgSender()][nftAsset] += 1;
 
         emit LoanCreated(
-            user,
-            nftContract,
+            _msgSender(),
+            nftAsset,
             nftTokenId,
             reserveAsset,
             amount,
@@ -246,7 +246,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         override
         returns (address, uint256)
     {
-        return (_loans[loanId].nftContract, _loans[loanId].nftTokenId);
+        return (_loans[loanId].nftAsset, _loans[loanId].nftTokenId);
     }
 
     function getReserveBorrowScaledAmount(address reserve)
@@ -284,13 +284,13 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
             );
     }
 
-    function getUserNftCollateralAmount(address user, address nftContract)
+    function getUserNftCollateralAmount(address user, address nftAsset)
         external
         view
         override
         returns (uint256)
     {
-        return _userNftCollateralAmounts[user][nftContract];
+        return _userNftCollateralAmounts[user][nftAsset];
     }
 
     function _getLendPool() internal view returns (ILendPool) {
@@ -334,15 +334,15 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
             .scaledAmount;
 
         require(
-            _userNftCollateralAmounts[user][loan.nftContract] >= 1,
+            _userNftCollateralAmounts[user][loan.nftAsset] >= 1,
             Errors.LP_INVALIED_USER_NFT_AMOUNT
         );
-        _userNftCollateralAmounts[user][loan.nftContract] -= 1;
+        _userNftCollateralAmounts[user][loan.nftAsset] -= 1;
 
         // collateral redistribution
         IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-        IERC721Upgradeable(loan.nftContract).transferFrom(
+        IERC721Upgradeable(loan.nftAsset).transferFrom(
             address(this),
             _msgSender(),
             loan.nftTokenId
@@ -352,7 +352,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
             emit LoanRepaid(
                 user,
                 loanId,
-                loan.nftContract,
+                loan.nftAsset,
                 loan.nftTokenId,
                 loan.reserveAsset,
                 loan.scaledAmount
@@ -361,7 +361,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
             emit LoanLiquidated(
                 user,
                 loanId,
-                loan.nftContract,
+                loan.nftAsset,
                 loan.nftTokenId,
                 loan.reserveAsset,
                 loan.scaledAmount

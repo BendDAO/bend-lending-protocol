@@ -78,7 +78,7 @@ library GenericLogic {
         uint256 totalDebtInETH;
         uint256 nftLtv;
         uint256 nftLiquidationThreshold;
-        address nftContract;
+        address nftAsset;
         uint256 nftTokenId;
         uint256 nftUnitPrice;
     }
@@ -114,7 +114,7 @@ library GenericLogic {
     {
         CalculateLoanDataVars memory vars;
 
-        (vars.nftContract, vars.nftTokenId) = ILendPoolLoan(loanAddress)
+        (vars.nftAsset, vars.nftTokenId) = ILendPoolLoan(loanAddress)
             .getLoanCollateral(loanId);
 
         (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData
@@ -135,7 +135,7 @@ library GenericLogic {
             vars.tokenUnit;
 
         vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPrice(
-            vars.nftContract
+            vars.nftAsset
         );
         vars.totalCollateralInETH = vars.nftUnitPrice;
 
