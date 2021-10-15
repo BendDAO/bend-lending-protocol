@@ -13,24 +13,24 @@ interface IBNFT is IERC721Upgradeable {
 
     /**
      * @dev Emitted on mint
-     * @param nftContract address of the underlying asset of NFT
+     * @param nftAsset address of the underlying asset of NFT
      * @param nftTokenId token id of the underlying asset of NFT
      **/
     event Mint(
         address indexed user,
-        address indexed nftContract,
+        address indexed nftAsset,
         uint256 nftTokenId
     );
 
     /**
      * @dev Emitted on burn
      * @param user The address initiating the burn
-     * @param nftContract address of the underlying asset of NFT
+     * @param nftAsset address of the underlying asset of NFT
      * @param nftTokenId token id of the underlying asset of NFT
      **/
     event Burn(
         address indexed user,
-        address indexed nftContract,
+        address indexed nftAsset,
         uint256 nftTokenId
     );
 

@@ -123,13 +123,13 @@ interface ILendPool {
     /**
      * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying bTokens.
      * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
-     * @param asset The address of the underlying asset to deposit
+     * @param reserve The address of the underlying asset to deposit
      * @param amount The amount to be deposited
      * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
      *   0 if the action is executed directly by the user, without any middle-man
      **/
     function deposit(
-        address asset,
+        address reserve,
         uint256 amount,
         uint16 referralCode
     ) external;
@@ -137,7 +137,7 @@ interface ILendPool {
     /**
      * @dev Withdraws an `amount` of underlying asset from the reserve, burning the equivalent bTokens owned
      * E.g. User has 100 aUSDC, calls withdraw() and receives 100 USDC, burning the 100 aUSDC
-     * @param asset The address of the underlying asset to withdraw
+     * @param reserve The address of the underlying asset to withdraw
      * @param amount The underlying amount to be withdrawn
      *   - Send the value type(uint256).max in order to withdraw the whole bToken balance
      * @param to Address that will receive the underlying, same as msg.sender if the user
@@ -146,7 +146,7 @@ interface ILendPool {
      * @return The final amount withdrawn
      **/
     function withdraw(
-        address asset,
+        address reserve,
         uint256 amount,
         address to
     ) external returns (uint256);
@@ -156,7 +156,7 @@ interface ILendPool {
      * already deposited enough collateral
      * - E.g. User borrows 100 USDC, receiving the 100 USDC in his wallet
      *   and lock collateral asset in contract
-     * @param asset The address of the underlying asset to borrow
+     * @param reserveAsset The address of the underlying asset to borrow
      * @param amount The amount to be borrowed
      * @param nftAsset The address of the underlying NFT used as collateral
      * @param nftTokenId The token ID of the underlying NFT used as collateral
@@ -165,7 +165,7 @@ interface ILendPool {
      *   0 if the action is executed directly by the user, without any middle-man
      **/
     function borrow(
-        address asset,
+        address reserveAsset,
         uint256 amount,
         address nftAsset,
         uint256 nftTokenId,

@@ -14,9 +14,9 @@ interface ILendPoolLoan {
      */
     event LoanCreated(
         address indexed user,
-        address nftTokenAddress,
+        address nftAsset,
         uint256 nftTokenId,
-        address assetAddress,
+        address reserveAsset,
         uint256 amount,
         uint256 borrowIndex
     );
@@ -27,7 +27,7 @@ interface ILendPoolLoan {
     event LoanUpdated(
         address indexed user,
         uint256 indexed loanId,
-        address assetAddress,
+        address reserveAsset,
         uint256 amountAdded,
         uint256 amountTaken,
         uint256 borrowIndex
@@ -39,9 +39,9 @@ interface ILendPoolLoan {
     event LoanRepaid(
         address indexed user,
         uint256 indexed loanId,
-        address nftTokenAddress,
+        address nftAsset,
         uint256 nftTokenId,
-        address assetAddress,
+        address reserveAsset,
         uint256 amount
     );
 
@@ -51,9 +51,9 @@ interface ILendPoolLoan {
     event LoanLiquidated(
         address indexed user,
         uint256 indexed loanId,
-        address nftTokenAddress,
+        address nftAsset,
         uint256 nftTokenId,
-        address assetAddress,
+        address reserveAsset,
         uint256 amount
     );
 
@@ -61,8 +61,7 @@ interface ILendPoolLoan {
      * @dev Create store a loan object with some params
      */
     function createLoan(
-        address user,
-        address nftTokenAddress,
+        address nftAsset,
         uint256 nftTokenId,
         address bNftAddress,
         address reserveAsset,
@@ -134,22 +133,22 @@ interface ILendPoolLoan {
         view
         returns (address, uint256);
 
-    function getReserveBorrowScaledAmount(address reserve)
+    function getReserveBorrowScaledAmount(address reserveAsset)
         external
         view
         returns (uint256);
 
-    function getUserReserveBorrowScaledAmount(address user, address reserve)
+    function getUserReserveBorrowScaledAmount(
+        address user,
+        address reserveAsset
+    ) external view returns (uint256);
+
+    function getUserReserveBorrowAmount(address user, address reserveAsset)
         external
         view
         returns (uint256);
 
-    function getUserReserveBorrowAmount(address user, address reserve)
-        external
-        view
-        returns (uint256);
-
-    function getUserNftCollateralAmount(address user, address nftContract)
+    function getUserNftCollateralAmount(address user, address nftAsset)
         external
         view
         returns (uint256);
