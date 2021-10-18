@@ -6,12 +6,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {INFTOracle} from "../interfaces/INFTOracle.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
 
-contract NFTOracle is
-    INFTOracle,
-    Initializable,
-    OwnableUpgradeable,
-    BlockContext
-{
+contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContext {
     modifier onlyAdmin() {
         require(_msgSender() == priceFeedAdmin, "!admin");
         _;
@@ -42,6 +37,11 @@ contract NFTOracle is
     address[] public nftPriceFeedKeys;
 
     function initialize(address _admin) public initializer {
+        __Ownable_init();
+        priceFeedAdmin = _admin;
+    }
+
+    function setPriceFeedAdmin(address _admin) external onlyOwner {
         priceFeedAdmin = _admin;
     }
 
