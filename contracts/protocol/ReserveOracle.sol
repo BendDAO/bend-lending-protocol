@@ -1,130 +1,194 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IReserveOracle} from "../interfaces/IReserveOracle.sol";
+import {BlockContext} from "../utils/BlockContext.sol";
 
-import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
-import {IChainlinkAggregator} from "../interfaces/IChainlinkAggregator.sol";
+contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
+    uint256 private constant TOKEN_DIGIT = 10**18;
 
-/// @title ReserveOracle
-/// @author NFTLend
-/// @notice Proxy smart contract to get the price of an asset from a price source, with Chainlink Aggregator
-///         smart contracts as primary option
-/// - If the returned price by a Chainlink aggregator is <= 0, the call is forwarded to a fallbackOracle
-/// - Owned by the NFTLend governance system, allowed to add sources for assets, replace them
-///   and change the fallbackOracle
-contract ReserveOracle is OwnableUpgradeable, IReserveOracleGetter {
-    event WethSet(address indexed weth);
-    event AssetSourceUpdated(address indexed asset, address indexed source);
-    event FallbackOracleUpdated(address indexed fallbackOracle);
+    event AggregatorAdded(bytes32 currencyKey, address aggregator);
+    event AggregatorRemoved(bytes32 currencyKey, address aggregator);
 
-    mapping(address => IChainlinkAggregator) private assetsSources;
-    IReserveOracleGetter private _fallbackOracle;
-    address public immutable WETH;
+    // key by currency symbol, eg USDT
+    mapping(bytes32 => AggregatorV3Interface) public priceFeedMap;
+    bytes32[] public priceFeedKeys;
 
-    /// @notice Constructor
-    /// @param assets The addresses of the assets
-    /// @param sources The address of the source of each asset
-    /// @param fallbackOracle The address of the fallback oracle to use if the data of an
-    ///        aggregator is not consistent
-    constructor(
-        address[] memory assets,
-        address[] memory sources,
-        address fallbackOracle,
-        address weth
-    ) public {
-        _setFallbackOracle(fallbackOracle);
-        _setAssetsSources(assets, sources);
-        WETH = weth;
-        emit WethSet(weth);
+    bytes32 public eth;
+
+    function initialize(bytes32 _eth) public initializer {
+        __Ownable_init();
+        eth = _eth;
     }
 
-    /// @notice External function called by the NFTLend governance to set or replace sources of assets
-    /// @param assets The addresses of the assets
-    /// @param sources The address of the source of each asset
-    function setAssetSources(
-        address[] calldata assets,
-        address[] calldata sources
-    ) external onlyOwner {
-        _setAssetsSources(assets, sources);
-    }
-
-    /// @notice Sets the fallbackOracle
-    /// - Callable only by the NFTLend governance
-    /// @param fallbackOracle The address of the fallbackOracle
-    function setFallbackOracle(address fallbackOracle) external onlyOwner {
-        _setFallbackOracle(fallbackOracle);
-    }
-
-    /// @notice Internal function to set the sources for each asset
-    /// @param assets The addresses of the assets
-    /// @param sources The address of the source of each asset
-    function _setAssetsSources(
-        address[] memory assets,
-        address[] memory sources
-    ) internal {
-        require(assets.length == sources.length, "INCONSISTENT_PARAMS_LENGTH");
-        for (uint256 i = 0; i < assets.length; i++) {
-            assetsSources[assets[i]] = IChainlinkAggregator(sources[i]);
-            emit AssetSourceUpdated(assets[i], sources[i]);
-        }
-    }
-
-    /// @notice Internal function to set the fallbackOracle
-    /// @param fallbackOracle The address of the fallbackOracle
-    function _setFallbackOracle(address fallbackOracle) internal {
-        _fallbackOracle = IReserveOracleGetter(fallbackOracle);
-        emit FallbackOracleUpdated(fallbackOracle);
-    }
-
-    /// @notice Gets an asset price by address
-    /// @param asset The asset address
-    function getAssetPrice(address asset)
-        public
-        view
-        override
-        returns (uint256)
+    function addAggregator(bytes32 _priceFeedKey, address _aggregator)
+        external
+        onlyOwner
     {
-        IChainlinkAggregator source = assetsSources[asset];
+        requireNonEmptyAddress(_aggregator);
+        if (address(priceFeedMap[_priceFeedKey]) == address(0)) {
+            priceFeedKeys.push(_priceFeedKey);
+        }
+        priceFeedMap[_priceFeedKey] = AggregatorV3Interface(_aggregator);
+        emit AggregatorAdded(_priceFeedKey, address(_aggregator));
+    }
 
-        if (asset == WETH) {
-            return 1 ether;
-        } else if (address(source) == address(0)) {
-            return _fallbackOracle.getAssetPrice(asset);
-        } else {
-            int256 price = IChainlinkAggregator(source).latestAnswer();
-            if (price > 0) {
-                return uint256(price);
-            } else {
-                return _fallbackOracle.getAssetPrice(asset);
+    function removeAggregator(bytes32 _priceFeedKey) external onlyOwner {
+        address aggregator = address(priceFeedMap[_priceFeedKey]);
+        requireNonEmptyAddress(aggregator);
+        delete priceFeedMap[_priceFeedKey];
+
+        uint256 length = priceFeedKeys.length;
+        for (uint256 i; i < length; i++) {
+            if (priceFeedKeys[i] == _priceFeedKey) {
+                // if the removal item is the last one, just `pop`
+                if (i != length - 1) {
+                    priceFeedKeys[i] = priceFeedKeys[length - 1];
+                }
+                priceFeedKeys.pop();
+                emit AggregatorRemoved(_priceFeedKey, aggregator);
+                break;
             }
         }
     }
 
-    /// @notice Gets a list of prices from a list of assets addresses
-    /// @param assets The list of assets addresses
-    function getAssetsPrices(address[] calldata assets)
+    function getAggregator(bytes32 _priceFeedKey)
+        public
+        view
+        returns (AggregatorV3Interface)
+    {
+        return priceFeedMap[_priceFeedKey];
+    }
+
+    function getAssetPrice(bytes32 _priceFeedKey)
         external
         view
-        returns (uint256[] memory)
+        override
+        returns (uint256)
     {
-        uint256[] memory prices = new uint256[](assets.length);
-        for (uint256 i = 0; i < assets.length; i++) {
-            prices[i] = getAssetPrice(assets[i]);
+        if (_priceFeedKey == eth) {
+            return 1 ether;
         }
-        return prices;
+        require(isExistedKey(_priceFeedKey), "key not existed");
+        AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
+
+        (, int256 _price, , , ) = aggregator.latestRoundData();
+        require(_price >= 0, "negative answer");
+        uint8 decimals = aggregator.decimals();
+
+        return formatDecimals(uint256(_price), decimals);
     }
 
-    /// @notice Gets the address of the source for an asset address
-    /// @param asset The address of the asset
-    /// @return address The address of the source
-    function getSourceOfAsset(address asset) external view returns (address) {
-        return address(assetsSources[asset]);
+    function getLatestTimestamp(bytes32 _priceFeedKey)
+        public
+        view
+        returns (uint256)
+    {
+        AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
+        requireNonEmptyAddress(address(aggregator));
+
+        (, , , uint256 timestamp, ) = aggregator.latestRoundData();
+
+        return timestamp;
     }
 
-    /// @notice Gets the address of the fallback oracle
-    /// @return address The addres of the fallback oracle
-    function getFallbackOracle() external view returns (address) {
-        return address(_fallbackOracle);
+    function getTwapPrice(bytes32 _priceFeedKey, uint256 _interval)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        require(isExistedKey(_priceFeedKey), "key not existed");
+        require(_interval != 0, "interval can't be 0");
+
+        AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
+        (uint80 roundId, int256 _price, , uint256 timestamp, ) = aggregator
+            .latestRoundData();
+        require(_price >= 0, "negative answer");
+        uint8 decimals = aggregator.decimals();
+
+        uint256 latestPrice = formatDecimals(uint256(_price), decimals);
+
+        require(roundId >= 0, "Not enough history");
+        uint256 latestTimestamp = timestamp;
+        uint256 baseTimestamp = block.timestamp - _interval;
+        // if latest updated timestamp is earlier than target timestamp, return the latest price.
+        if (latestTimestamp < baseTimestamp || roundId == 0) {
+            return latestPrice;
+        }
+
+        // rounds are like snapshots, latestRound means the latest price snapshot. follow chainlink naming
+        uint256 cumulativeTime = block.timestamp - latestTimestamp;
+        uint256 previousTimestamp = latestTimestamp;
+        uint256 weightedPrice = latestPrice * cumulativeTime;
+        while (true) {
+            if (roundId == 0) {
+                // if cumulative time is less than requested interval, return current twap price
+                return weightedPrice / cumulativeTime;
+            }
+
+            roundId = roundId - 1;
+            // get current round timestamp and price
+            (, int256 _priceTemp, , uint256 currentTimestamp, ) = aggregator
+                .getRoundData(roundId);
+            require(_priceTemp >= 0, "negative answer");
+
+            uint256 price = formatDecimals(uint256(_priceTemp), decimals);
+
+            // check if current round timestamp is earlier than target timestamp
+            if (currentTimestamp <= baseTimestamp) {
+                // weighted time period will be (target timestamp - previous timestamp). For example,
+                // now is 1000, _interval is 100, then target timestamp is 900. If timestamp of current round is 970,
+                // and timestamp of NEXT round is 880, then the weighted time period will be (970 - 900) = 70,
+                // instead of (970 - 880)
+                weightedPrice =
+                    weightedPrice +
+                    (price * (previousTimestamp - baseTimestamp));
+                break;
+            }
+
+            uint256 timeFraction = previousTimestamp - currentTimestamp;
+            weightedPrice = weightedPrice + (price * timeFraction);
+            cumulativeTime = cumulativeTime + timeFraction;
+            previousTimestamp = currentTimestamp;
+        }
+        return weightedPrice / _interval;
+    }
+
+    function isExistedKey(bytes32 _priceFeedKey) private view returns (bool) {
+        uint256 length = priceFeedKeys.length;
+        for (uint256 i; i < length; i++) {
+            if (priceFeedKeys[i] == _priceFeedKey) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function requireKeyExisted(bytes32 _key, bool _existed) private view {
+        if (_existed) {
+            require(isExistedKey(_key), "key not existed");
+        } else {
+            require(!isExistedKey(_key), "key existed");
+        }
+    }
+
+    function requireNonEmptyAddress(address _addr) internal pure {
+        require(_addr != address(0), "empty address");
+    }
+
+    function formatDecimals(uint256 _price, uint8 _decimals)
+        internal
+        pure
+        returns (uint256)
+    {
+        return (_price * TOKEN_DIGIT) / (10**uint256(_decimals));
+    }
+
+    function getPriceFeedLength() public view returns (uint256 length) {
+        return priceFeedKeys.length;
     }
 }
