@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "^4.3.2",
-    "@openzeppelin/test-helpers": "^0.5.15"
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "@chainlink/contracts": "0.2.2"
+
   }
 }
