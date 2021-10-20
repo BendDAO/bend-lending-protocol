@@ -50,9 +50,9 @@ interface ILendPoolAddressesProvider {
 
     function setReserveOracle(address reserveOracle) external;
 
-    function getNftOracle() external view returns (address);
+    function getNFTOracle() external view returns (address);
 
-    function setNftOracle(address nftOracle) external;
+    function setNFTOracle(address nftOracle) external;
 
     function getLendPoolLoan() external view returns (address);
 

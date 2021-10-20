@@ -11,6 +11,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 
 /**
  * @title NFTLend ERC20 BToken
@@ -36,7 +37,13 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
         _;
     }
 
-    function decimals() public view virtual override returns (uint8) {
+    function decimals()
+        public
+        view
+        virtual
+        override(ERC20Upgradeable, IERC20MetadataUpgradeable)
+        returns (uint8)
+    {
         return _decimals;
     }
 

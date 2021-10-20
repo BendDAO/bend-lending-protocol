@@ -106,9 +106,10 @@ library ReserveLogic {
      **/
     function updateState(
         DataTypes.ReserveData storage reserve,
-        address reserveAddress
+        address reserveAddress,
+        address loanAddress
     ) internal {
-        uint256 scaledVariableDebt = ILendPoolLoan(reserve.loanAddress)
+        uint256 scaledVariableDebt = ILendPoolLoan(loanAddress)
             .getReserveBorrowScaledAmount(reserveAddress);
         uint256 previousVariableBorrowIndex = reserve.variableBorrowIndex;
         uint256 previousLiquidityIndex = reserve.liquidityIndex;
@@ -166,13 +167,11 @@ library ReserveLogic {
      * @dev Initializes a reserve
      * @param reserve The reserve object
      * @param bTokenAddress The address of the overlying bToken contract
-     * @param loanAddress The address of the nft loan contract
      * @param interestRateAddress The address of the interest rate strategy contract
      **/
     function init(
         DataTypes.ReserveData storage reserve,
         address bTokenAddress,
-        address loanAddress,
         address interestRateAddress
     ) external {
         require(
@@ -183,7 +182,6 @@ library ReserveLogic {
         reserve.liquidityIndex = uint128(WadRayMath.ray());
         reserve.variableBorrowIndex = uint128(WadRayMath.ray());
         reserve.bTokenAddress = bTokenAddress;
-        reserve.loanAddress = loanAddress;
         reserve.interestRateAddress = interestRateAddress;
     }
 
@@ -205,14 +203,15 @@ library ReserveLogic {
         address reserveAddress,
         address bTokenAddress,
         uint256 liquidityAdded,
-        uint256 liquidityTaken
+        uint256 liquidityTaken,
+        address loanAddress
     ) internal {
         UpdateInterestRatesLocalVars memory vars;
 
         //calculates the total variable debt locally using the scaled total supply instead
         //of totalSupply(), as it's noticeably cheaper. Also, the index has been
         //updated by the previous updateState() call
-        vars.totalVariableDebt = ILendPoolLoan(reserve.loanAddress)
+        vars.totalVariableDebt = ILendPoolLoan(loanAddress)
             .getReserveBorrowScaledAmount(reserveAddress)
             .rayMul(reserve.variableBorrowIndex);
 

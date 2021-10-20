@@ -112,8 +112,14 @@ contract LendPool is
 
         address bToken = reserve.bTokenAddress;
 
-        reserve.updateState(asset);
-        reserve.updateInterestRates(asset, bToken, amount, 0);
+        reserve.updateState(asset, _addressesProvider.getLendPoolLoan());
+        reserve.updateInterestRates(
+            asset,
+            bToken,
+            amount,
+            0,
+            _addressesProvider.getLendPoolLoan()
+        );
 
         IERC20Upgradeable(asset).safeTransferFrom(_msgSender(), bToken, amount);
 
@@ -161,9 +167,15 @@ contract LendPool is
             _addressesProvider.getReserveOracle()
         );
 
-        reserve.updateState(asset);
+        reserve.updateState(asset, _addressesProvider.getLendPoolLoan());
 
-        reserve.updateInterestRates(asset, bToken, 0, amountToWithdraw);
+        reserve.updateInterestRates(
+            asset,
+            bToken,
+            0,
+            amountToWithdraw,
+            _addressesProvider.getLendPoolLoan()
+        );
 
         IBToken(bToken).burn(
             _msgSender(),
@@ -270,7 +282,7 @@ contract LendPool is
             vars.paybackAmount = amount;
         }
 
-        reserve.updateState(vars.asset);
+        reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
 
         if (vars.isUpdate) {
             ILendPoolLoan(loanAddress).updateLoan(
@@ -292,7 +304,8 @@ contract LendPool is
             vars.asset,
             reserve.bTokenAddress,
             vars.paybackAmount,
-            0
+            0,
+            _addressesProvider.getLendPoolLoan()
         );
 
         if (
@@ -383,7 +396,7 @@ contract LendPool is
             vars.paybackAmount
         );
 
-        address nftOracle = _addressesProvider.getNftOracle();
+        address nftOracle = _addressesProvider.getNFTOracle();
         uint256 nftPrice = INFTOracleGetter(nftOracle).getAssetPrice(
             vars.nftAsset
         );
@@ -407,7 +420,7 @@ contract LendPool is
             vars.remainAmount = vars.liquidatePrice - vars.paybackAmount;
         }
 
-        reserve.updateState(vars.asset);
+        reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
 
         ILendPoolLoan(loanAddress).liquidateLoan(
             vars.user,
@@ -419,7 +432,8 @@ contract LendPool is
             vars.asset,
             reserve.bTokenAddress,
             vars.paybackAmount,
-            0
+            0,
+            _addressesProvider.getLendPoolLoan()
         );
 
         if (
@@ -672,17 +686,15 @@ contract LendPool is
      * - Only callable by the LendingPoolConfigurator contract
      * @param asset The address of the underlying asset of the reserve
      * @param bTokenAddress The address of the bToken that will be assigned to the reserve
-     * @param loanAddress The address of the LendPoolLoan that will be assigned to the reserve
      * @param interestRateAddress The address of the interest rate strategy contract
      **/
     function initReserve(
         address asset,
         address bTokenAddress,
-        address loanAddress,
         address interestRateAddress
     ) external override onlyLendPoolConfigurator {
         require(AddressUpgradeable.isContract(asset), Errors.LP_NOT_CONTRACT);
-        _reserves[asset].init(bTokenAddress, loanAddress, interestRateAddress);
+        _reserves[asset].init(bTokenAddress, interestRateAddress);
         _addReserveToList(asset);
     }
 
@@ -817,7 +829,7 @@ contract LendPool is
 
         // Convert asset amount to ETH
         vars.reserveOracle = _addressesProvider.getReserveOracle();
-        vars.nftOracle = _addressesProvider.getNftOracle();
+        vars.nftOracle = _addressesProvider.getNFTOracle();
         vars.loanAddress = _addressesProvider.getLendPoolLoan();
 
         vars.reservePrice = IReserveOracleGetter(vars.reserveOracle)
@@ -839,7 +851,7 @@ contract LendPool is
             vars.nftOracle
         );
 
-        reserve.updateState(params.asset);
+        reserve.updateState(params.asset, _addressesProvider.getLendPoolLoan());
 
         vars.isFirstBorrowing = false;
         if (
@@ -892,7 +904,8 @@ contract LendPool is
             params.asset,
             params.bTokenAddress,
             0,
-            params.releaseUnderlying ? params.amount : 0
+            params.releaseUnderlying ? params.amount : 0,
+            _addressesProvider.getLendPoolLoan()
         );
 
         if (params.releaseUnderlying) {

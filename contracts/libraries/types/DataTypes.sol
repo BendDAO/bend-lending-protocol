@@ -18,8 +18,6 @@ library DataTypes {
         address bTokenAddress;
         //address of the interest rate strategy
         address interestRateAddress;
-        //address of the nft loan
-        address loanAddress;
         //the id of the reserve. Represents the position in the list of the active reserves
         uint8 id;
     }

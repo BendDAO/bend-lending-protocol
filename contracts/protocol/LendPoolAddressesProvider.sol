@@ -6,7 +6,7 @@ pragma solidity ^0.8.0;
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title LendingPoolAddressesProvider contract
@@ -15,10 +15,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
  * - Owned by the NFTLend Governance
  * @author NFTLend
  **/
-contract LendPoolAddressesProvider is
-    OwnableUpgradeable,
-    ILendPoolAddressesProvider
-{
+contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     string private _marketId;
     mapping(bytes32 => address) private _addresses;
 
@@ -176,11 +173,11 @@ contract LendPoolAddressesProvider is
         emit ReserveOracleUpdated(reserveOracle);
     }
 
-    function getNftOracle() external view override returns (address) {
+    function getNFTOracle() external view override returns (address) {
         return getAddress(NFT_ORACLE);
     }
 
-    function setNftOracle(address nftOracle) external override onlyOwner {
+    function setNFTOracle(address nftOracle) external override onlyOwner {
         _addresses[NFT_ORACLE] = nftOracle;
         emit NftOracleUpdated(nftOracle);
     }
@@ -206,22 +203,25 @@ contract LendPoolAddressesProvider is
     function _updateImpl(bytes32 id, address newAddress) internal {
         address payable proxyAddress = payable(_addresses[id]);
 
-        InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(
-                proxyAddress
-            );
         bytes memory params = abi.encodeWithSignature(
             "initialize(address)",
             address(this)
         );
 
         if (proxyAddress == address(0)) {
-            proxy = new InitializableImmutableAdminUpgradeabilityProxy(
-                address(this)
-            );
+            InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(
+                    address(this)
+                );
+
             proxy.initialize(newAddress, params);
+
             _addresses[id] = address(proxy);
             emit ProxyCreated(id, address(proxy));
         } else {
+            InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(
+                    proxyAddress
+                );
+
             proxy.upgradeToAndCall(newAddress, params);
         }
     }
