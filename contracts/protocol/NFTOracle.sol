@@ -6,7 +6,12 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {INFTOracle} from "../interfaces/INFTOracle.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
 
-contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContext {
+contract NFTOracle is
+    INFTOracle,
+    Initializable,
+    OwnableUpgradeable,
+    BlockContext
+{
     modifier onlyAdmin() {
         require(_msgSender() == priceFeedAdmin, "!admin");
         _;

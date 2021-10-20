@@ -1,17 +1,41 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-//import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-//import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {ERC1967UpgradeUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol";
+import {Proxy} from "@openzeppelin/contracts/proxy/Proxy.sol";
+import {ERC1967Upgrade} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
 contract InitializableImmutableAdminUpgradeabilityProxy is
-    ERC1967UpgradeUpgradeable
+    Proxy,
+    ERC1967Upgrade
 {
-    constructor(address admin_) {
+    constructor(address admin_) payable {
+        assert(
+            _ADMIN_SLOT ==
+                bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1)
+        );
         _changeAdmin(admin_);
     }
 
+    /**
+     * @dev Contract initializer.
+     * @param _logic Address of the initial implementation.
+     * @param _data Data to send as msg.data to the implementation to initialize the proxied contract.
+     * It should include the signature and the parameters of the function to be called, as described in
+     * https://solidity.readthedocs.io/en/v0.4.24/abi-spec.html#function-selector-and-argument-encoding.
+     * This parameter is optional, if no data is given the initialization call to proxied contract will be skipped.
+     */
+    function initialize(address _logic, bytes memory _data) public payable {
+        require(_implementation() == address(0));
+        assert(
+            _IMPLEMENTATION_SLOT ==
+                bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1)
+        );
+        _upgradeToAndCall(_logic, _data, false);
+    }
+
+    /**
+     * @dev Modifier used internally that will delegate the call to the implementation unless the sender is the admin.
+     */
     modifier ifAdmin() {
         if (msg.sender == _getAdmin()) {
             _;
@@ -21,117 +45,98 @@ contract InitializableImmutableAdminUpgradeabilityProxy is
     }
 
     /**
-     * @dev Contract initializer.
-     * @param _logic Address of the initial implementation.
-     * @param _data Data to send as msg.data to the implementation to initialize the proxied contract.
-     * It should include the signature and the parameters of the function to be called.
-     * This parameter is optional, if no data is given the initialization call to proxied contract will be skipped.
+     * @dev Returns the current admin.
+     *
+     * NOTE: Only the admin can call this function. See {ProxyAdmin-getProxyAdmin}.
+     *
+     * TIP: To get this value clients can read directly from the storage slot shown below (specified by EIP1967) using the
+     * https://eth.wiki/json-rpc/API#eth_getstorageat[`eth_getStorageAt`] RPC call.
+     * `0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103`
      */
-    function initialize(address _logic, bytes memory _data) public {
-        __ERC1967Upgrade_init();
-
-        _upgradeToAndCall(_logic, _data, false);
+    function admin() external ifAdmin returns (address admin_) {
+        admin_ = _getAdmin();
     }
 
     /**
-     * @dev The address of the proxy admin.
+     * @dev Returns the current implementation.
+     *
+     * NOTE: Only the admin can call this function. See {ProxyAdmin-getProxyImplementation}.
+     *
+     * TIP: To get this value clients can read directly from the storage slot shown below (specified by EIP1967) using the
+     * https://eth.wiki/json-rpc/API#eth_getstorageat[`eth_getStorageAt`] RPC call.
+     * `0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc`
      */
-    function admin() external ifAdmin returns (address) {
-        return _getAdmin();
+    function implementation()
+        external
+        ifAdmin
+        returns (address implementation_)
+    {
+        implementation_ = _implementation();
     }
 
     /**
-     * @dev The address of the implementation.
+     * @dev Changes the admin of the proxy.
+     *
+     * Emits an {AdminChanged} event.
+     *
+     * NOTE: Only the admin can call this function. See {ProxyAdmin-changeProxyAdmin}.
      */
-    function implementation() external ifAdmin returns (address) {
-        return _getImplementation();
+    function changeAdmin(address newAdmin) external virtual ifAdmin {
+        _changeAdmin(newAdmin);
     }
 
     /**
-     * @dev Upgrade the backing implementation of the proxy.
-     * Only the admin can call this function.
-     * @param newImplementation Address of the new implementation.
+     * @dev Upgrade the implementation of the proxy.
+     *
+     * NOTE: Only the admin can call this function. See {ProxyAdmin-upgrade}.
      */
     function upgradeTo(address newImplementation) external ifAdmin {
-        _upgradeTo(newImplementation);
+        _upgradeToAndCall(newImplementation, bytes(""), false);
     }
 
     /**
-     * @dev Upgrade the backing implementation of the proxy and call a function
-     * on the new implementation.
-     * This is useful to initialize the proxied contract.
-     * @param newImplementation Address of the new implementation.
-     * @param data Data to send as msg.data in the low level call.
-     * It should include the signature and the parameters of the function to be called, as described in
-     * https://solidity.readthedocs.io/en/v0.4.24/abi-spec.html#function-selector-and-argument-encoding.
+     * @dev Upgrade the implementation of the proxy, and then call a function from the new implementation as specified
+     * by `data`, which should be an encoded function call. This is useful to initialize new storage variables in the
+     * proxied contract.
+     *
+     * NOTE: Only the admin can call this function. See {ProxyAdmin-upgradeAndCall}.
      */
     function upgradeToAndCall(address newImplementation, bytes calldata data)
         external
         payable
         ifAdmin
     {
-        _upgradeToAndCall(newImplementation, data, false);
+        _upgradeToAndCall(newImplementation, data, true);
     }
 
     /**
-     * @dev Delegates the current call to `implementation`.
-     *
-     * This function does not return to its internall call site, it will return directly to the external caller.
+     * @dev Returns the current implementation address.
      */
-    function _delegate(address implementation_) internal virtual {
-        assembly {
-            // Copy msg.data. We take full control of memory in this inline assembly
-            // block because it will not return to Solidity code. We overwrite the
-            // Solidity scratch pad at memory position 0.
-            calldatacopy(0, 0, calldatasize())
-
-            // Call the implementation.
-            // out and outsize are 0 because we don't know the size yet.
-            let result := delegatecall(
-                gas(),
-                implementation_,
-                0,
-                calldatasize(),
-                0,
-                0
-            )
-
-            // Copy the returned data.
-            returndatacopy(0, 0, returndatasize())
-
-            switch result
-            // delegatecall returns 0 on error.
-            case 0 {
-                revert(0, returndatasize())
-            }
-            default {
-                return(0, returndatasize())
-            }
-        }
+    function _implementation()
+        internal
+        view
+        virtual
+        override
+        returns (address impl)
+    {
+        return ERC1967Upgrade._getImplementation();
     }
 
     /**
-     * @dev Delegates the current call to the address returned by `_implementation()`.
-     *
-     * This function does not return to its internall call site, it will return directly to the external caller.
+     * @dev Returns the current admin.
      */
-    function _fallback() internal virtual {
-        _delegate(_getImplementation());
+    function _admin() internal view virtual returns (address) {
+        return _getAdmin();
     }
 
     /**
-     * @dev Fallback function that delegates calls to the address returned by `_implementation()`. Will run if no other
-     * function in the contract matches the call data.
+     * @dev Makes sure the admin cannot access the fallback function. See {Proxy-_beforeFallback}.
      */
-    fallback() external payable virtual {
-        _fallback();
-    }
-
-    /**
-     * @dev Fallback function that delegates calls to the address returned by `_implementation()`. Will run if call data
-     * is empty.
-     */
-    receive() external payable virtual {
-        _fallback();
+    function _beforeFallback() internal virtual override {
+        require(
+            msg.sender != _getAdmin(),
+            "InitializableImmutableAdminUpgradeabilityProxy: admin cannot fallback to proxy target"
+        );
+        super._beforeFallback();
     }
 }

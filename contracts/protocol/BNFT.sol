@@ -24,7 +24,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
         string calldata bNftName,
         string calldata bNftSymbol,
         bytes calldata params
-    ) external initializer {
+    ) external override initializer {
         __ERC721_init(bNftName, bNftSymbol);
 
         _underlyingAsset = underlyingAsset;
@@ -90,7 +90,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
         public
         view
         virtual
-        override
+        override(ERC721Upgradeable, IERC721MetadataUpgradeable)
         returns (string memory)
     {
         return IERC721MetadataUpgradeable(_underlyingAsset).tokenURI(tokenId);

@@ -5,13 +5,11 @@ pragma experimental ABIEncoderV2;
 interface ILendPoolConfigurator {
     struct InitReserveInput {
         address bTokenImpl;
-        address loanImpl;
         uint8 underlyingAssetDecimals;
         address interestRateAddress;
         address underlyingAsset;
         address treasury;
         address incentivesController;
-        address loanAddress;
         string underlyingAssetName;
         string bTokenName;
         string bTokenSymbol;
@@ -19,8 +17,10 @@ interface ILendPoolConfigurator {
     }
 
     struct InitNftInput {
+        address bNftImpl;
         address underlyingAsset;
-        address loanAddress;
+        string bNftName;
+        string bNftSymbol;
         bytes params;
     }
 
@@ -34,17 +34,23 @@ interface ILendPoolConfigurator {
         bytes params;
     }
 
+    struct UpdateBNFTInput {
+        address asset;
+        string name;
+        string symbol;
+        address implementation;
+        bytes params;
+    }
+
     /**
      * @dev Emitted when a reserve is initialized.
      * @param asset The address of the underlying asset of the reserve
      * @param bToken The address of the associated bToken contract
-     * @param loanAddress The address of the associated nft loan token
      * @param interestRateAddress The address of the interest rate strategy for the reserve
      **/
     event ReserveInitialized(
         address indexed asset,
         address indexed bToken,
-        address loanAddress,
         address interestRateAddress
     );
 
@@ -108,9 +114,9 @@ interface ILendPoolConfigurator {
     /**
      * @dev Emitted when a nft is initialized.
      * @param asset The address of the underlying asset of the nft
-     * @param loanAddress The address of the associated nft loan token
+     * @param bNft The address of the associated bNFT contract
      **/
-    event NftInitialized(address indexed asset, address loanAddress);
+    event NftInitialized(address indexed asset, address indexed bNft);
 
     /**
      * @dev Emitted when the collateralization risk parameters for the specified NFT are updated.

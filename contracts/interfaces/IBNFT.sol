@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 
-interface IBNFT is IERC721Upgradeable {
+interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
     /**
      * @dev Emitted when an bNFT is initialized
      * @param underlyingAsset The address of the underlying asset
@@ -33,6 +34,17 @@ interface IBNFT is IERC721Upgradeable {
         address indexed nftAsset,
         uint256 nftTokenId
     );
+
+    /**
+     * @dev Initializes the bNFT
+     * @param underlyingAsset The address of the underlying asset of this bNFT (E.g. PUNK for bPUNK)
+     */
+    function initialize(
+        address underlyingAsset,
+        string calldata bNftName,
+        string calldata bNftSymbol,
+        bytes calldata params
+    ) external;
 
     function mint(uint256 nftTokenId) external;
 

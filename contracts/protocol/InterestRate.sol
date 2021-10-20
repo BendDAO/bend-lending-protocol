@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IInterestRate} from "../interfaces/IInterestRate.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 
@@ -17,6 +18,8 @@ import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20
 contract InterestRate is IInterestRate {
     using WadRayMath for uint256;
     using PercentageMath for uint256;
+
+    ILendPoolAddressesProvider public immutable addressesProvider;
 
     /**
      * @dev this constant represents the utilization rate at which the pool aims to obtain most competitive borrow rates.
@@ -42,11 +45,13 @@ contract InterestRate is IInterestRate {
     uint256 internal immutable _variableRateSlope2;
 
     constructor(
+        ILendPoolAddressesProvider provider,
         uint256 optimalUtilizationRate,
         uint256 baseVariableBorrowRate,
         uint256 variableRateSlope1,
         uint256 variableRateSlope2
     ) public {
+        addressesProvider = provider;
         OPTIMAL_UTILIZATION_RATE = optimalUtilizationRate;
         EXCESS_UTILIZATION_RATE = WadRayMath.ray() - (optimalUtilizationRate);
         _baseVariableBorrowRate = baseVariableBorrowRate;
