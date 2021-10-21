@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IBNFT} from "../interfaces/IBNFT.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
@@ -17,6 +18,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     using WadRayMath for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
+    ILendPoolAddressesProvider private _addressesProvider;
     ILendPool private _pool;
 
     CountersUpgradeable.Counter private _loanIdTracker;
@@ -42,10 +44,14 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _lendPool) external initializer {
+    function initialize(ILendPoolAddressesProvider provider)
+        external
+        initializer
+    {
         __Context_init();
 
-        _pool = ILendPool(_lendPool);
+        _addressesProvider = provider;
+        _pool = ILendPool(_addressesProvider.getLendPool());
 
         // Avoid having loanId = 0
         _loanIdTracker.increment();

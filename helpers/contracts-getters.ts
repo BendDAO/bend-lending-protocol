@@ -13,7 +13,7 @@ import {
   MintableERC20Factory,
   MintableERC721Factory,
   MockBTokenFactory,
-  BTokensAndRatesHelperFactory,
+  BTokensAndBNFTsHelperFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
   ReserveLogicFactory,
@@ -48,6 +48,7 @@ export const getLendPoolAddressesProvider = async (
     await getFirstSigner()
   );
 };
+
 export const getLendPoolConfiguratorProxy = async (
   address?: tEthereumAddress
 ) => {
@@ -56,6 +57,18 @@ export const getLendPoolConfiguratorProxy = async (
       (
         await getDb()
           .get(`${eContractid.LendPoolConfigurator}.${DRE.network.name}`)
+          .value()
+      ).address,
+    await getFirstSigner()
+  );
+};
+
+export const getLendPoolLoanProxy = async (address?: tEthereumAddress) => {
+  return await LendPoolLoanFactory.connect(
+    address ||
+      (
+        await getDb()
+          .get(`${eContractid.LendPoolLoan}.${DRE.network.name}`)
           .value()
       ).address,
     await getFirstSigner()
@@ -272,12 +285,12 @@ export const getGenericLogic = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
-export const getBTokensAndRatesHelper = async (address?: tEthereumAddress) =>
-  await BTokensAndRatesHelperFactory.connect(
+export const getBTokensAndBNFTsHelper = async (address?: tEthereumAddress) =>
+  await BTokensAndBNFTsHelperFactory.connect(
     address ||
       (
         await getDb()
-          .get(`${eContractid.BTokensAndRatesHelper}.${DRE.network.name}`)
+          .get(`${eContractid.BTokensAndBNFTsHelper}.${DRE.network.name}`)
           .value()
       ).address,
     await getFirstSigner()

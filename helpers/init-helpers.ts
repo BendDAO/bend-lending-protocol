@@ -11,10 +11,10 @@ import { BendProtocolDataProvider } from "../types/BendProtocolDataProvider";
 import { chunk, getDb, waitForTx } from "./misc-utils";
 import {
   getBToken,
-  getBTokensAndRatesHelper,
   getBNFT,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
+  getBTokensAndBNFTsHelper,
 } from "./contracts-getters";
 import {
   getContractAddressWithJsonFallback,
@@ -271,19 +271,16 @@ export const getPairsTokenAggregator = (
 export const configureReservesByHelper = async (
   reservesParams: iMultiPoolsAssets<IReserveParams>,
   tokenAddresses: { [symbol: string]: tEthereumAddress },
-  helpers: BendProtocolDataProvider,
+  dataHelpers: BendProtocolDataProvider,
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
-  const tokenAndRatesDeployer = await getBTokensAndRatesHelper();
+  const tokenHelperDeployer = await getBTokensAndBNFTsHelper();
   const tokens: string[] = [];
   const symbols: string[] = [];
 
   const inputParams: {
     asset: string;
-    baseLTV: BigNumberish;
-    liquidationThreshold: BigNumberish;
-    liquidationBonus: BigNumberish;
     reserveFactor: BigNumberish;
     borrowingEnabled: boolean;
   }[] = [];
@@ -316,9 +313,6 @@ export const configureReservesByHelper = async (
 
     inputParams.push({
       asset: tokenAddress,
-      baseLTV: baseLTVAsCollateral,
-      liquidationThreshold: liquidationThreshold,
-      liquidationBonus: liquidationBonus,
       reserveFactor: reserveFactor,
       borrowingEnabled: borrowingEnabled,
     });
@@ -327,9 +321,9 @@ export const configureReservesByHelper = async (
     symbols.push(assetSymbol);
   }
   if (tokens.length) {
-    // Set aTokenAndRatesDeployer as temporal admin
+    // Set helpDeployer as temporal admin
     await waitForTx(
-      await addressProvider.setPoolAdmin(tokenAndRatesDeployer.address)
+      await addressProvider.setPoolAdmin(tokenHelperDeployer.address)
     );
 
     // Deploy init per chunks
@@ -344,7 +338,7 @@ export const configureReservesByHelper = async (
       chunkIndex++
     ) {
       await waitForTx(
-        await tokenAndRatesDeployer.configureReserves(
+        await tokenHelperDeployer.configureReserves(
           chunkedInputParams[chunkIndex]
         )
       );
@@ -358,11 +352,11 @@ export const configureReservesByHelper = async (
 export const configureNftsByHelper = async (
   nftsParams: iMultiPoolsNfts<INftParams>,
   nftAddresses: { [symbol: string]: tEthereumAddress },
-  helpers: BendProtocolDataProvider,
+  dataHelpers: BendProtocolDataProvider,
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
-  const configurator = await getLendPoolConfiguratorProxy();
+  const tokenHelperDeployer = await getBTokensAndBNFTsHelper();
   const tokens: string[] = [];
   const symbols: string[] = [];
 
@@ -404,6 +398,11 @@ export const configureNftsByHelper = async (
     symbols.push(assetSymbol);
   }
   if (tokens.length) {
+    // Set helpDeployer as temporal admin
+    await waitForTx(
+      await addressProvider.setPoolAdmin(tokenHelperDeployer.address)
+    );
+
     // Deploy init per chunks
     const enableChunks = 20;
     const chunkedSymbols = chunk(symbols, enableChunks);
@@ -415,16 +414,14 @@ export const configureNftsByHelper = async (
       chunkIndex < chunkedInputParams.length;
       chunkIndex++
     ) {
+      //console.log("configureNfts:", chunkedInputParams[chunkIndex]);
       await waitForTx(
-        await configurator.configureNftAsCollateral(
-          chunkedInputParams[chunkIndex][0].asset,
-          chunkedInputParams[chunkIndex][0].baseLTV,
-          chunkedInputParams[chunkIndex][0].liquidationThreshold,
-          chunkedInputParams[chunkIndex][0].liquidationBonus
-        )
+        await tokenHelperDeployer.configureNfts(chunkedInputParams[chunkIndex])
       );
       console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
     }
+    // Set deployer back as admin
+    await waitForTx(await addressProvider.setPoolAdmin(admin));
   }
 };
 
