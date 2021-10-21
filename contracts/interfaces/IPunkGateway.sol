@@ -36,4 +36,22 @@ interface IPunkGateway {
         uint256 loanId,
         uint256 amount
     ) external returns (uint256, bool);
+
+    function borrowETH(
+        address wethGateway,
+        address lendPool,
+        uint256 amount,
+        uint256 punkIndex,
+        uint256 loanId,
+        uint16 referralCode
+    ) external;
+
+    function repayETH(
+        address wethGateway,
+        address lendPool,
+        address lendPoolLoan,
+        uint256 loanId,
+        uint256 amount,
+        address onBehalfOf
+    ) external payable returns (uint256, bool);
 }

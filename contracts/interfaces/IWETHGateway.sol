@@ -20,7 +20,8 @@ interface IWETHGateway {
         address nftAsset,
         uint256 nftTokenId,
         uint256 loanId,
-        uint16 referralCode
+        uint16 referralCode,
+        address to
     ) external;
 
     function repayETH(
@@ -29,5 +30,5 @@ interface IWETHGateway {
         uint256 loanId,
         uint256 amount,
         address onBehalfOf
-    ) external payable;
+    ) external payable returns (uint256, bool);
 }

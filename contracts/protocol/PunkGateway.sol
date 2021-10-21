@@ -12,6 +12,7 @@ import {IPunks} from "../interfaces/IPunks.sol";
 import {IWrappedPunks} from "../interfaces/IWrappedPunks.sol";
 import {IPunkGateway} from "../interfaces/IPunkGateway.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 
 contract PunkGateway is Initializable, Ownable, IPunkGateway {
     IPunks public punks;
@@ -25,14 +26,7 @@ contract PunkGateway is Initializable, Ownable, IPunkGateway {
         proxy = wrappedPunks.proxyInfo(address(this));
     }
 
-    function borrow(
-        address lendPool,
-        address reserveAsset,
-        uint256 amount,
-        uint256 punkIndex,
-        uint256 loanId,
-        uint16 referralCode
-    ) external override {
+    function _depositPunk(address lendPool, uint256 punkIndex) internal {
         address owner = punks.punkIndexToAddress(punkIndex);
         require(owner == _msgSender(), "PunkGateway: not owner");
 
@@ -41,6 +35,17 @@ contract PunkGateway is Initializable, Ownable, IPunkGateway {
 
         wrappedPunks.mint(punkIndex);
         wrappedPunks.approve(address(lendPool), punkIndex);
+    }
+
+    function borrow(
+        address lendPool,
+        address reserveAsset,
+        uint256 amount,
+        uint256 punkIndex,
+        uint256 loanId,
+        uint16 referralCode
+    ) external override {
+        _depositPunk(lendPool, punkIndex);
 
         ILendPool(lendPool).borrow(
             reserveAsset,
@@ -50,6 +55,14 @@ contract PunkGateway is Initializable, Ownable, IPunkGateway {
             loanId,
             referralCode
         );
+    }
+
+    function _withdrawPunk(uint256 punkIndex) internal {
+        address owner = wrappedPunks.ownerOf(punkIndex);
+        require(owner == address(this), "PunkGateway: invalid owner");
+
+        wrappedPunks.burn(punkIndex);
+        punks.transferPunk(_msgSender(), punkIndex);
     }
 
     function repay(
@@ -67,11 +80,55 @@ contract PunkGateway is Initializable, Ownable, IPunkGateway {
         );
 
         if (!isUpdate) {
-            address owner = wrappedPunks.ownerOf(loan.nftTokenId);
-            require(owner == address(this), "PunkGateway: invalid owner");
+            _withdrawPunk(loan.nftTokenId);
+        }
 
-            wrappedPunks.burn(loan.nftTokenId);
-            punks.transferPunk(_msgSender(), loan.nftTokenId);
+        return (paybackAmount, isUpdate);
+    }
+
+    function borrowETH(
+        address wethGateway,
+        address lendPool,
+        uint256 amount,
+        uint256 punkIndex,
+        uint256 loanId,
+        uint16 referralCode
+    ) external override {
+        _depositPunk(lendPool, punkIndex);
+        IWETHGateway(wethGateway).borrowETH(
+            lendPool,
+            amount,
+            address(wrappedPunks),
+            punkIndex,
+            loanId,
+            referralCode,
+            msg.sender
+        );
+    }
+
+    function repayETH(
+        address wethGateway,
+        address lendPool,
+        address lendPoolLoan,
+        uint256 loanId,
+        uint256 amount,
+        address onBehalfOf
+    ) external payable override returns (uint256, bool) {
+        DataTypes.LoanData memory loan = ILendPoolLoan(lendPoolLoan).getLoan(
+            loanId
+        );
+
+        (uint256 paybackAmount, bool isUpdate) = IWETHGateway(wethGateway)
+            .repayETH{value: msg.value}(
+            lendPool,
+            lendPoolLoan,
+            loanId,
+            amount,
+            onBehalfOf
+        );
+
+        if (!isUpdate) {
+            _withdrawPunk(loan.nftTokenId);
         }
 
         return (paybackAmount, isUpdate);
