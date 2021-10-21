@@ -22,6 +22,8 @@ contract PunkGateway is Initializable, ContextUpgradeable, IPunkGateway {
         IPunks _punks,
         IWrappedPunks _wrappedPunks
     ) external initializer {
+        __Context_init();
+
         addressProvider = _addressProvider;
         punks = _punks;
         wrappedPunks = _wrappedPunks;
@@ -61,7 +63,7 @@ contract PunkGateway is Initializable, ContextUpgradeable, IPunkGateway {
     function repay(uint256 loanId, uint256 amount)
         external
         override
-        returns (uint256)
+        returns (uint256, bool)
     {
         ILendPool lendPool = ILendPool(addressProvider.getLendPool());
         require(address(lendPool) != address(0), "PunkGateway: no LendPool");
@@ -74,15 +76,17 @@ contract PunkGateway is Initializable, ContextUpgradeable, IPunkGateway {
         );
 
         DataTypes.LoanData memory loan = lendPoolLoan.getLoan(loanId);
-        uint256 paybackAmount = lendPool.repay(loanId, amount);
+        (uint256 paybackAmount, bool isUpdate) = lendPool.repay(loanId, amount);
 
         // TODO: check repay result
-        address owner = wrappedPunks.ownerOf(loan.nftTokenId);
-        require(owner == address(this), "PunkGateway: invalid owner");
+        if (!isUpdate) {
+            address owner = wrappedPunks.ownerOf(loan.nftTokenId);
+            require(owner == address(this), "PunkGateway: invalid owner");
 
-        wrappedPunks.burn(loan.nftTokenId);
-        punks.transferPunk(_msgSender(), loan.nftTokenId);
+            wrappedPunks.burn(loan.nftTokenId);
+            punks.transferPunk(_msgSender(), loan.nftTokenId);
+        }
 
-        return paybackAmount;
+        return (paybackAmount, isUpdate);
     }
 }

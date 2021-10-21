@@ -27,7 +27,9 @@ interface IPunkGateway {
      * - E.g. User repays 100 USDC, burning loan and receives collateral asset
      * @param loanId The loan ID of the NFT loans
      * @param amount The amount to repay
-     * @return The final amount repaid
+     * @return The final amount repaid, loan is burned or not
      **/
-    function repay(uint256 loanId, uint256 amount) external returns (uint256);
+    function repay(uint256 loanId, uint256 amount)
+        external
+        returns (uint256, bool);
 }
