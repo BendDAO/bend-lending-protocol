@@ -15,6 +15,7 @@ interface IPunkGateway {
      *   0 if the action is executed directly by the user, without any middle-man
      **/
     function borrow(
+        address lendPool,
         address reserveAsset,
         uint256 amount,
         uint256 punkIndex,
@@ -29,7 +30,10 @@ interface IPunkGateway {
      * @param amount The amount to repay
      * @return The final amount repaid, loan is burned or not
      **/
-    function repay(uint256 loanId, uint256 amount)
-        external
-        returns (uint256, bool);
+    function repay(
+        address lendPool,
+        address lendPoolLoan,
+        uint256 loanId,
+        uint256 amount
+    ) external returns (uint256, bool);
 }
