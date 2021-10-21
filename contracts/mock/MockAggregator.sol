@@ -4,10 +4,20 @@ pragma solidity ^0.8.0;
 import {IChainlinkAggregator} from "../interfaces/IChainlinkAggregator.sol";
 
 contract MockAggregator is IChainlinkAggregator {
+    uint256 _version;
+    string _description;
+    uint8 _decimals;
+
+    uint80 _roundId;
     int256 private _latestAnswer;
 
     // v2
-    constructor(int256 _initialAnswer) public {
+    constructor(int256 _initialAnswer) {
+        _version = 1;
+        _description = "MockAggregator";
+        _decimals = 18;
+
+        _roundId = 1;
         _latestAnswer = _initialAnswer;
     }
 
@@ -20,7 +30,7 @@ contract MockAggregator is IChainlinkAggregator {
     }
 
     function latestRound() external view override returns (uint256) {
-        return 1;
+        return _roundId;
     }
 
     function getAnswer(uint256 roundId)
@@ -29,6 +39,7 @@ contract MockAggregator is IChainlinkAggregator {
         override
         returns (int256)
     {
+        roundId;
         return _latestAnswer;
     }
 
@@ -38,23 +49,24 @@ contract MockAggregator is IChainlinkAggregator {
         override
         returns (uint256)
     {
+        roundId;
         return block.timestamp;
     }
 
     // V3
     function decimals() external view override returns (uint8) {
-        return 18;
+        return _decimals;
     }
 
     function description() external view override returns (string memory) {
-        return "MockAggregator";
+        return _description;
     }
 
     function version() external view override returns (uint256) {
-        return 1;
+        return _version;
     }
 
-    function getRoundData(uint80 _roundId)
+    function getRoundData(uint80 roundId_)
         external
         view
         override
@@ -66,7 +78,8 @@ contract MockAggregator is IChainlinkAggregator {
             uint80 answeredInRound
         )
     {
-        return (1, _latestAnswer, block.timestamp, block.timestamp, 1);
+        roundId_;
+        return (_roundId, _latestAnswer, block.timestamp, block.timestamp, 1);
     }
 
     function latestRoundData()
@@ -81,6 +94,6 @@ contract MockAggregator is IChainlinkAggregator {
             uint80 answeredInRound
         )
     {
-        return (1, _latestAnswer, block.timestamp, block.timestamp, 1);
+        return (_roundId, _latestAnswer, block.timestamp, block.timestamp, 1);
     }
 }

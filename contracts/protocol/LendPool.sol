@@ -243,13 +243,13 @@ contract LendPool is
      * - E.g. User repays 100 USDC, burning loan and receives collateral asset
      * @param loanId The loan ID of the NFT loans
      * @param amount The amount to repay
-     * @return The final amount repaid
+     * @return The final amount repaid, loan is burned or not
      **/
     function repay(uint256 loanId, uint256 amount)
         external
         override
         whenNotPaused
-        returns (uint256)
+        returns (uint256, bool)
     {
         RepayLocalVars memory vars;
 
@@ -345,7 +345,7 @@ contract LendPool is
             vars.paybackAmount
         );
 
-        return vars.paybackAmount;
+        return (vars.paybackAmount, !vars.isUpdate);
     }
 
     struct LiquidationCallLocalVars {
@@ -595,7 +595,7 @@ contract LendPool is
         uint256 amount,
         uint256 balanceFromBefore,
         uint256 balanceToBefore
-    ) external override {
+    ) external pure override {
         asset;
         from;
         to;

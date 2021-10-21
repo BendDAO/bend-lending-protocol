@@ -9,7 +9,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract WETHGateway is IWETHGateway, Ownable {
     IWETH internal immutable WETH;
 
-    constructor(address weth) public {
+    constructor(address weth) {
         WETH = IWETH(weth);
     }
 

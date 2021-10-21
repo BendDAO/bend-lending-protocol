@@ -46,17 +46,17 @@ contract InterestRate is IInterestRate {
 
     constructor(
         ILendPoolAddressesProvider provider,
-        uint256 optimalUtilizationRate,
-        uint256 baseVariableBorrowRate,
-        uint256 variableRateSlope1,
-        uint256 variableRateSlope2
-    ) public {
+        uint256 optimalUtilizationRate_,
+        uint256 baseVariableBorrowRate_,
+        uint256 variableRateSlope1_,
+        uint256 variableRateSlope2_
+    ) {
         addressesProvider = provider;
-        OPTIMAL_UTILIZATION_RATE = optimalUtilizationRate;
-        EXCESS_UTILIZATION_RATE = WadRayMath.ray() - (optimalUtilizationRate);
-        _baseVariableBorrowRate = baseVariableBorrowRate;
-        _variableRateSlope1 = variableRateSlope1;
-        _variableRateSlope2 = variableRateSlope2;
+        OPTIMAL_UTILIZATION_RATE = optimalUtilizationRate_;
+        EXCESS_UTILIZATION_RATE = WadRayMath.ray() - (optimalUtilizationRate_);
+        _baseVariableBorrowRate = baseVariableBorrowRate_;
+        _variableRateSlope1 = variableRateSlope1_;
+        _variableRateSlope2 = variableRateSlope2_;
     }
 
     function variableRateSlope1() external view returns (uint256) {
@@ -141,6 +141,8 @@ contract InterestRate is IInterestRate {
         uint256 totalVariableDebt,
         uint256 reserveFactor
     ) public view override returns (uint256, uint256) {
+        reserve;
+
         CalcInterestRatesLocalVars memory vars;
 
         vars.totalDebt = totalVariableDebt;
