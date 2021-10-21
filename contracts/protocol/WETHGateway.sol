@@ -68,8 +68,13 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
         address nftAsset,
         uint256 nftTokenId,
         uint256 loanId,
-        uint16 referralCode
+        uint16 referralCode,
+        address to
     ) external override {
+        require(
+            address(to) != address(0),
+            "WETHGateway: `to` should not be zero"
+        );
         ILendPool(lendPool).borrow(
             address(WETH),
             amount,
@@ -79,7 +84,7 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
             referralCode
         );
         WETH.withdraw(amount);
-        _safeTransferETH(msg.sender, amount);
+        _safeTransferETH(to, amount);
     }
 
     function repayETH(
@@ -88,24 +93,29 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
         uint256 loanId,
         uint256 amount,
         address onBehalfOf
-    ) external payable override {
-        uint256 paybackAmount = ILendPoolLoan(lendPoolLoan)
+    ) external payable override returns (uint256, bool) {
+        uint256 repayDebtAmount = ILendPoolLoan(lendPoolLoan)
             .getLoanReserveBorrowAmount(loanId);
-        if (amount < paybackAmount) {
-            paybackAmount = amount;
+        if (amount < repayDebtAmount) {
+            repayDebtAmount = amount;
         }
         require(
-            msg.value >= paybackAmount,
+            msg.value >= repayDebtAmount,
             "msg.value is less than repayment amount"
         );
 
-        WETH.deposit{value: paybackAmount}();
-        ILendPool(lendPool).repay(loanId, amount);
+        WETH.deposit{value: repayDebtAmount}();
+        (uint256 paybackAmount, bool isUpdate) = ILendPool(lendPool).repay(
+            loanId,
+            amount
+        );
 
         // refund remaining dust eth
         if (msg.value > paybackAmount) {
-            _safeTransferETH(msg.sender, msg.value - paybackAmount);
+            _safeTransferETH(msg.sender, msg.value - repayDebtAmount);
         }
+
+        return (paybackAmount, isUpdate);
     }
 
     /**
