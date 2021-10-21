@@ -31,7 +31,7 @@ contract BendProtocolDataProvider {
 
     ILendPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
 
-    constructor(ILendPoolAddressesProvider addressesProvider) public {
+    constructor(ILendPoolAddressesProvider addressesProvider) {
         ADDRESSES_PROVIDER = addressesProvider;
     }
 
@@ -191,10 +191,6 @@ contract BendProtocolDataProvider {
         DataTypes.ReserveData memory reserve = ILendPool(
             ADDRESSES_PROVIDER.getLendPool()
         ).getReserveData(asset);
-
-        DataTypes.UserConfigurationMap memory userConfig = ILendPool(
-            ADDRESSES_PROVIDER.getLendPool()
-        ).getUserConfiguration(user);
 
         currentBTokenBalance = IERC20Detailed(reserve.bTokenAddress).balanceOf(
             user
