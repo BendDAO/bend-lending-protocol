@@ -14,7 +14,8 @@ import {
   deployBNFTImplementations,
   deployLendPoolConfigurator,
   deployLendPool,
-  deployBTokensAndRatesHelper,
+  deployLendPoolLoan,
+  deployBTokensAndBNFTsHelper,
   deployMockReserveOracle,
   deployMockNFTOracle,
   deployReserveOracle,
@@ -63,6 +64,7 @@ import { oneEther, ZERO_ADDRESS } from "../helpers/constants";
 import {
   getLendPool,
   getLendPoolConfiguratorProxy,
+  getLendPoolLoanProxy,
   getPairsTokenAggregator,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
@@ -190,6 +192,20 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
 
   //////////////////////////////////////////////////////////////////////////////
+  // prepare lend loan
+  const lendPoolLoanImpl = await deployLendPoolLoan();
+  await waitForTx(
+    await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address)
+  );
+  const lendPoolLoanProxy = await getLendPoolLoanProxy(
+    await addressesProvider.getLendPoolLoan()
+  );
+  await insertContractAddressInDb(
+    eContractid.LendPoolLoan,
+    lendPoolLoanProxy.address
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
   // prepare pool configurator
   const lendPoolConfiguratorImpl = await deployLendPoolConfigurator();
   await waitForTx(
@@ -207,7 +223,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   // prepare token and rate helper
-  await deployBTokensAndRatesHelper([
+  await deployBTokensAndBNFTsHelper([
     lendPoolProxy.address,
     addressesProvider.address,
     lendPoolConfiguratorProxy.address,

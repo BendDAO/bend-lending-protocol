@@ -186,11 +186,11 @@ export async function initializeMakeSuite() {
     process.exit(1);
   }
 
-  testEnv.bAPE = await getBNFT(bDaiAddress);
-  testEnv.bPUNK = await getBNFT(bWEthAddress);
+  testEnv.bAPE = await getBNFT(bApeAddress);
+  testEnv.bPUNK = await getBNFT(bPunkAddress);
 
-  testEnv.ape = await getMintableERC721(daiAddress);
-  //testEnv.wpunk = await getWPUNKMocked(wethAddress);
+  testEnv.ape = await getMintableERC721(apeAddress);
+  //testEnv.wpunk = await getWPUNKMocked(wpunkAddress);
   //testEnv.wpunkGateway = await getWPUNKGateway();
 }
 

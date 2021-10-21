@@ -32,7 +32,8 @@ import {
   LendPoolConfiguratorFactory,
   LendPoolFactory,
   LendPoolAddressesProviderFactory,
-  BTokensAndRatesHelperFactory,
+  LendPoolLoanFactory,
+  BTokensAndBNFTsHelperFactory,
   MockAggregatorFactory,
   MockBTokenFactory,
   ReserveOracleFactory,
@@ -87,6 +88,22 @@ export const deployLendPoolConfigurator = async (verify?: boolean) => {
   return withSaveAndVerify(
     lendPoolConfiguratorImpl,
     eContractid.LendPoolConfigurator,
+    [],
+    verify
+  );
+};
+
+export const deployLendPoolLoan = async (verify?: boolean) => {
+  const lendPoolLoanImpl = await new LendPoolLoanFactory(
+    await getFirstSigner()
+  ).deploy();
+  await insertContractAddressInDb(
+    eContractid.LendPoolLoanImpl,
+    lendPoolLoanImpl.address
+  );
+  return withSaveAndVerify(
+    lendPoolLoanImpl,
+    eContractid.LendPoolLoan,
     [],
     verify
   );
@@ -418,15 +435,15 @@ export const deployMockTokens = async (
   return tokens;
 };
 
-export const deployBTokensAndRatesHelper = async (
+export const deployBTokensAndBNFTsHelper = async (
   args: [tEthereumAddress, tEthereumAddress, tEthereumAddress],
   verify?: boolean
 ) =>
   withSaveAndVerify(
-    await new BTokensAndRatesHelperFactory(await getFirstSigner()).deploy(
+    await new BTokensAndBNFTsHelperFactory(await getFirstSigner()).deploy(
       ...args
     ),
-    eContractid.BTokensAndRatesHelper,
+    eContractid.BTokensAndBNFTsHelper,
     args,
     verify
   );

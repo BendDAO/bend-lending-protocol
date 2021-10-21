@@ -186,8 +186,8 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
         return getAddress(NFT_LOAN);
     }
 
-    function setLendPoolLoan(address loanAddress) external override {
-        _addresses[NFT_LOAN] = loanAddress;
+    function setLendPoolLoanImpl(address loanAddress) external override {
+        _updateImpl(NFT_LOAN, loanAddress);
         emit LendPoolLoanUpdated(loanAddress);
     }
 

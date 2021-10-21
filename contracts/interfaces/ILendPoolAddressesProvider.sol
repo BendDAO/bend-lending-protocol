@@ -56,5 +56,5 @@ interface ILendPoolAddressesProvider {
 
     function getLendPoolLoan() external view returns (address);
 
-    function setLendPoolLoan(address loan) external;
+    function setLendPoolLoanImpl(address loan) external;
 }
