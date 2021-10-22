@@ -124,13 +124,6 @@ interface IBToken is IERC20Upgradeable, IERC20MetadataUpgradeable {
         returns (uint256);
 
     /**
-     * @dev Invoked to execute actions on the bToken side after a repayment.
-     * @param user The user executing the repayment
-     * @param amount The amount getting repaid
-     **/
-    function handleRepayment(address user, uint256 amount) external;
-
-    /**
      * @dev Returns the address of the incentives controller contract
      **/
     function getIncentivesController()

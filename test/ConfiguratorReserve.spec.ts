@@ -194,7 +194,7 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
     );
 
     //user 1 deposits 1000 DAI
-    await pool.deposit(dai.address, amountDAItoDeposit, "0");
+    await pool.deposit(dai.address, amountDAItoDeposit, userAddress, "0");
 
     await expect(
       configurator.deactivateReserve(dai.address),

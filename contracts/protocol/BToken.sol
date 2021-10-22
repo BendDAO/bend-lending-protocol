@@ -315,17 +315,6 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     }
 
     /**
-     * @dev Invoked to execute actions on the bToken side after a repayment.
-     * @param user The user executing the repayment
-     * @param amount The amount getting repaid
-     **/
-    function handleRepayment(address user, uint256 amount)
-        external
-        override
-        onlyLendPool
-    {}
-
-    /**
      * @dev Transfers the bTokens between two users. Validates the transfer
      * (ie checks for valid HF after the transfer) if required
      * @param from The source address

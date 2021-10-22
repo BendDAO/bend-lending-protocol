@@ -12,10 +12,12 @@ import {NftConfiguration} from "../configuration/NftConfiguration.sol";
 import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
+import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
+//import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 /**
  * @title ValidationLogic library
@@ -135,7 +137,7 @@ library ValidationLogic {
 
         if (loanId != 0) {
             require(
-                user == IERC721Upgradeable(loanAddress).ownerOf(loanId),
+                user == ILendPoolLoan(loanAddress).borrowerOf(loanId),
                 Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
             );
         }
@@ -194,17 +196,17 @@ library ValidationLogic {
 
     /**
      * @dev Validates a repay action
+     * @param user The address of the user msg.sender is repaying for
      * @param reserve The reserve state from which the user is repaying
      * @param amountSent The amount sent for the repayment. Can be an actual value or uint(-1)
      * @param variableDebt The borrow balance of the user
      */
     function validateRepay(
         address user,
-        address loanAddress,
+        address borrower,
         DataTypes.ReserveData storage reserve,
         uint256 amountSent,
-        uint256 variableDebt,
-        uint256 loanId
+        uint256 variableDebt
     ) external view {
         bool isActive = reserve.configuration.getActive();
 
@@ -215,7 +217,7 @@ library ValidationLogic {
         require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
 
         require(
-            user == IERC721Upgradeable(loanAddress).ownerOf(loanId),
+            user == borrower,
             Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
         );
     }
@@ -230,31 +232,17 @@ library ValidationLogic {
         DataTypes.ReserveData storage principalReserve,
         DataTypes.NftData storage nftData,
         uint256 paybackAmount
-    ) internal view returns (uint256, string memory) {
-        if (!principalReserve.configuration.getActive()) {
-            return (
-                uint256(Errors.CollateralManagerErrors.NO_ACTIVE_RESERVE),
-                Errors.VL_NO_ACTIVE_RESERVE
-            );
-        }
+    ) internal view {
+        require(
+            principalReserve.configuration.getActive(),
+            Errors.VL_NO_ACTIVE_RESERVE
+        );
 
-        if (!nftData.configuration.getActive()) {
-            return (
-                uint256(Errors.CollateralManagerErrors.NO_ACTIVE_NFT),
-                Errors.VL_NO_ACTIVE_NFT
-            );
-        }
+        require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
-        if (paybackAmount == 0) {
-            return (
-                uint256(Errors.CollateralManagerErrors.CURRRENCY_NOT_BORROWED),
-                Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
-            );
-        }
-
-        return (
-            uint256(Errors.CollateralManagerErrors.NO_ERROR),
-            Errors.LPCM_NO_ERRORS
+        require(
+            paybackAmount > 0,
+            Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
         );
     }
 }

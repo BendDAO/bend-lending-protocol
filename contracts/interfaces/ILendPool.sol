@@ -9,12 +9,14 @@ interface ILendPool {
      * @dev Emitted on deposit()
      * @param reserve The address of the underlying asset of the reserve
      * @param user The address initiating the deposit
+     * @param onBehalfOf The beneficiary of the deposit, receiving the bTokens
      * @param amount The amount deposited
      * @param referral The referral code used
      **/
     event Deposit(
         address indexed reserve,
         address user,
+        address indexed onBehalfOf,
         uint256 amount,
         uint16 indexed referral
     );
@@ -34,10 +36,11 @@ interface ILendPool {
     );
 
     /**
-     * @dev Emitted on borrow() and flashLoan() when debt needs to be opened
+     * @dev Emitted on borrow() and flashLoan() when loan needs to be opened
      * @param reserve The address of the underlying asset being borrowed
      * @param user The address of the user initiating the borrow(), receiving the funds on borrow() or just
      * initiator of the transaction on flashLoan()
+     * @param onBehalfOf The address that will be getting the loan
      * @param amount The amount borrowed out
      * @param nftAsset The address of the underlying NFT used as collateral
      * @param nftTokenId The token id of the underlying NFT used as collateral
@@ -46,7 +49,8 @@ interface ILendPool {
      **/
     event Borrow(
         address indexed reserve,
-        address indexed user,
+        address user,
+        address indexed onBehalfOf,
         uint256 amount,
         address nftAsset,
         uint256 nftTokenId,
@@ -125,12 +129,16 @@ interface ILendPool {
      * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
      * @param reserve The address of the underlying asset to deposit
      * @param amount The amount to be deposited
+     * @param onBehalfOf The address that will receive the bTokens, same as msg.sender if the user
+     *   wants to receive them on his own wallet, or a different address if the beneficiary of bTokens
+     *   is a different wallet
      * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
      *   0 if the action is executed directly by the user, without any middle-man
      **/
     function deposit(
         address reserve,
         uint256 amount,
+        address onBehalfOf,
         uint16 referralCode
     ) external;
 
@@ -161,6 +169,9 @@ interface ILendPool {
      * @param nftAsset The address of the underlying NFT used as collateral
      * @param nftTokenId The token ID of the underlying NFT used as collateral
      * @param loanId The loan ID of the NFT loans
+     * @param onBehalfOf Address of the user who will receive the loan. Should be the address of the borrower itself
+     * calling the function if he wants to borrow against his own collateral, or the address of the credit delegator
+     * if he has been given credit delegation allowance
      * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
      *   0 if the action is executed directly by the user, without any middle-man
      **/
@@ -170,6 +181,7 @@ interface ILendPool {
         address nftAsset,
         uint256 nftTokenId,
         uint256 loanId,
+        address onBehalfOf,
         uint16 referralCode
     ) external;
 
