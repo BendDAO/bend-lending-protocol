@@ -13,7 +13,9 @@ import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/to
  * @dev Implements the methods for the bNFT protocol
  **/
 contract BNFT is IBNFT, ERC721Upgradeable {
-    address internal _underlyingAsset;
+    address private _underlyingAsset;
+    // Mapping from token ID to minter address
+    mapping(uint256 => address) private _minters;
 
     /**
      * @dev Initializes the bNFT
@@ -34,9 +36,14 @@ contract BNFT is IBNFT, ERC721Upgradeable {
 
     /**
      * @dev Mints bNFT token to the user address
+     *
+     * Requirements:
+     *  - The caller must be contract address
+     *
+     * @param to The owner address receive the bNFT token
      * @param tokenId token id of the underlying asset of NFT
      **/
-    function mint(uint256 tokenId) external override {
+    function mint(address to, uint256 tokenId) external override {
         require(
             AddressUpgradeable.isContract(_msgSender()),
             "BNFT: caller is not contract"
@@ -44,8 +51,9 @@ contract BNFT is IBNFT, ERC721Upgradeable {
         require(
             IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) ==
                 _msgSender(),
-            "BNFT: caller is not owner"
+            "BNFT: caller is not underlying asset owner"
         );
+        require(_exists(tokenId), "BNFT: exist token");
 
         // Receive NFT Tokens
         IERC721Upgradeable(_underlyingAsset).transferFrom(
@@ -55,13 +63,19 @@ contract BNFT is IBNFT, ERC721Upgradeable {
         );
 
         // mint bNFT to user
-        _mint(_msgSender(), tokenId);
+        _mint(to, tokenId);
 
-        emit Mint(_msgSender(), _underlyingAsset, tokenId);
+        _minters[tokenId] = _msgSender();
+
+        emit Mint(_msgSender(), _underlyingAsset, tokenId, to);
     }
 
     /**
      * @dev Burns user bNFT token
+     *
+     * Requirements:
+     *  - The caller must be contract address
+     *
      * @param tokenId token id of the underlying asset of NFT
      **/
     function burn(uint256 tokenId) external override {
@@ -70,7 +84,12 @@ contract BNFT is IBNFT, ERC721Upgradeable {
             "BNFT: caller is not contract"
         );
         require(_exists(tokenId), "BNFT: nonexist token");
-        require(ownerOf(tokenId) == _msgSender(), "BNFT: caller is not owner");
+        require(
+            this.minterOf(tokenId) == _msgSender(),
+            "BNFT: caller is not minter"
+        );
+
+        address owner = ERC721Upgradeable.ownerOf(tokenId);
 
         IERC721Upgradeable(_underlyingAsset).transferFrom(
             address(this),
@@ -80,7 +99,9 @@ contract BNFT is IBNFT, ERC721Upgradeable {
 
         _burn(tokenId);
 
-        emit Burn(_msgSender(), _underlyingAsset, tokenId);
+        delete _minters[tokenId];
+
+        emit Mint(_msgSender(), _underlyingAsset, tokenId, owner);
     }
 
     /**
@@ -94,6 +115,23 @@ contract BNFT is IBNFT, ERC721Upgradeable {
         returns (string memory)
     {
         return IERC721MetadataUpgradeable(_underlyingAsset).tokenURI(tokenId);
+    }
+
+    /**
+     * @dev See {IBNFT-minterOf}.
+     */
+    function minterOf(uint256 tokenId)
+        external
+        view
+        override
+        returns (address)
+    {
+        address minter = _minters[tokenId];
+        require(
+            minter != address(0),
+            "BNFT: minter query for nonexistent token"
+        );
+        return minter;
     }
 
     /**

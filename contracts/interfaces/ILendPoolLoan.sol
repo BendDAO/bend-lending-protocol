@@ -14,6 +14,8 @@ interface ILendPoolLoan {
      */
     event LoanCreated(
         address indexed user,
+        address indexed onBehalfOf,
+        uint256 indexed loanId,
         address nftAsset,
         uint256 nftTokenId,
         address reserveAsset,
@@ -59,8 +61,13 @@ interface ILendPoolLoan {
 
     /**
      * @dev Create store a loan object with some params
+     * @param user The address receiving the borrowed bTokens, being the delegatee in case
+     * of credit delegate, or same as `onBehalfOf` otherwise
+     * @param onBehalfOf The address receiving the loan
      */
     function createLoan(
+        address user,
+        address onBehalfOf,
         address nftAsset,
         uint256 nftTokenId,
         address bNftAddress,
@@ -75,6 +82,8 @@ interface ILendPoolLoan {
      * Requirements:
      *  - The caller must be a holder of the loan
      *  - The loan must be in state Active
+     * @param user The address receiving the borrowed bTokens, being the delegatee in case
+     * of credit delegate, or same as `onBehalfOf` otherwise
      */
     function updateLoan(
         address user,
@@ -91,6 +100,10 @@ interface ILendPoolLoan {
      *  - The caller must be a holder of the loan
      *  - The caller must send in principal + interest
      *  - The loan must be in state Active
+     *
+     * @param user The user receiving the returned underlying asset
+     * @param loanId The loan getting burned
+     * @param bNftAddress The address of bNFT
      */
     function repayLoan(
         address user,
@@ -104,12 +117,18 @@ interface ILendPoolLoan {
      * Requirements:
      *  - The caller must send in principal + interest
      *  - The loan must be in state Active
+     *
+     * @param user The user receiving the returned underlying asset
+     * @param loanId The loan getting burned
+     * @param bNftAddress The address of bNFT
      */
     function liquidateLoan(
         address user,
         uint256 loanId,
         address bNftAddress
     ) external;
+
+    function borrowerOf(uint256 loanId) external view returns (address);
 
     function getLoan(uint256 loanId)
         external
