@@ -4,27 +4,27 @@ pragma solidity ^0.8.0;
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IReserveOracle} from "../interfaces/IReserveOracle.sol";
+import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
 
-contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
+contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext {
     uint256 private constant TOKEN_DIGIT = 10**18;
 
-    event AggregatorAdded(bytes32 currencyKey, address aggregator);
-    event AggregatorRemoved(bytes32 currencyKey, address aggregator);
+    event AggregatorAdded(address currencyKey, address aggregator);
+    event AggregatorRemoved(address currencyKey, address aggregator);
 
     // key by currency symbol, eg USDT
-    mapping(bytes32 => AggregatorV3Interface) public priceFeedMap;
-    bytes32[] public priceFeedKeys;
+    mapping(address => AggregatorV3Interface) public priceFeedMap;
+    address[] public priceFeedKeys;
 
-    bytes32 public eth;
+    address public weth;
 
-    function initialize(bytes32 _eth) public initializer {
+    function initialize(address _weth) public initializer {
         __Ownable_init();
-        eth = _eth;
+        weth = _weth;
     }
 
-    function addAggregator(bytes32 _priceFeedKey, address _aggregator)
+    function addAggregator(address _priceFeedKey, address _aggregator)
         external
         onlyOwner
     {
@@ -36,7 +36,7 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         emit AggregatorAdded(_priceFeedKey, address(_aggregator));
     }
 
-    function removeAggregator(bytes32 _priceFeedKey) external onlyOwner {
+    function removeAggregator(address _priceFeedKey) external onlyOwner {
         address aggregator = address(priceFeedMap[_priceFeedKey]);
         requireNonEmptyAddress(aggregator);
         delete priceFeedMap[_priceFeedKey];
@@ -55,7 +55,7 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         }
     }
 
-    function getAggregator(bytes32 _priceFeedKey)
+    function getAggregator(address _priceFeedKey)
         public
         view
         returns (AggregatorV3Interface)
@@ -63,13 +63,13 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         return priceFeedMap[_priceFeedKey];
     }
 
-    function getAssetPrice(bytes32 _priceFeedKey)
+    function getAssetPrice(address _priceFeedKey)
         external
         view
         override
         returns (uint256)
     {
-        if (_priceFeedKey == eth) {
+        if (_priceFeedKey == weth) {
             return 1 ether;
         }
         require(isExistedKey(_priceFeedKey), "key not existed");
@@ -82,7 +82,7 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         return formatDecimals(uint256(_price), decimals);
     }
 
-    function getLatestTimestamp(bytes32 _priceFeedKey)
+    function getLatestTimestamp(address _priceFeedKey)
         public
         view
         returns (uint256)
@@ -95,7 +95,7 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         return timestamp;
     }
 
-    function getTwapPrice(bytes32 _priceFeedKey, uint256 _interval)
+    function getTwapPrice(address _priceFeedKey, uint256 _interval)
         external
         view
         override
@@ -158,7 +158,7 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         return weightedPrice / _interval;
     }
 
-    function isExistedKey(bytes32 _priceFeedKey) private view returns (bool) {
+    function isExistedKey(address _priceFeedKey) private view returns (bool) {
         uint256 length = priceFeedKeys.length;
         for (uint256 i; i < length; i++) {
             if (priceFeedKeys[i] == _priceFeedKey) {
@@ -168,7 +168,7 @@ contract ReserveOracle is IReserveOracle, OwnableUpgradeable, BlockContext {
         return false;
     }
 
-    function requireKeyExisted(bytes32 _key, bool _existed) private view {
+    function requireKeyExisted(address _key, bool _existed) private view {
         if (_existed) {
             require(isExistedKey(_key), "key not existed");
         } else {
