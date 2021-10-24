@@ -4,10 +4,7 @@ pragma solidity ^0.8.0;
 import {Proxy} from "@openzeppelin/contracts/proxy/Proxy.sol";
 import {ERC1967Upgrade} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
-contract InitializableImmutableAdminUpgradeabilityProxy is
-    Proxy,
-    ERC1967Upgrade
-{
+contract InitializableAdminProxy is Proxy, ERC1967Upgrade {
     constructor(address admin_) payable {
         assert(
             _ADMIN_SLOT ==
@@ -135,7 +132,7 @@ contract InitializableImmutableAdminUpgradeabilityProxy is
     function _beforeFallback() internal virtual override {
         require(
             msg.sender != _getAdmin(),
-            "InitializableImmutableAdminUpgradeabilityProxy: admin cannot fallback to proxy target"
+            "InitializableAdminProxy: admin cannot fallback to proxy target"
         );
         super._beforeFallback();
     }

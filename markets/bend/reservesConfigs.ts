@@ -62,14 +62,14 @@ export const strategyWETH: IReserveParams = {
   reserveFactor: '1000'
 };
 
-export const strategyWPUNK: INftParams = {
+export const strategyWPUNKS: INftParams = {
   baseLTVAsCollateral: '5000', // 50%
   liquidationThreshold: '7000', // 70%
   liquidationBonus: '10500', // 5% = 105% - 100%
   bNftImpl: eContractid.BNFT,
 };
 
-export const strategyAPE: INftParams = {
+export const strategyBAYC: INftParams = {
   baseLTVAsCollateral: '4000', // 40%
   liquidationThreshold: '6500', // 65%
   liquidationBonus: '10500', // 5% = 105% - 100%

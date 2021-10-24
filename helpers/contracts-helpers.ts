@@ -21,6 +21,7 @@ import { Artifact } from "hardhat/types";
 import { verifyEtherscanContract } from "./etherscan-verification";
 import { getFirstSigner, getIErc20Detailed } from "./contracts-getters";
 import { ConfigNames, loadPoolConfig } from "./configuration";
+import { string } from "hardhat/internal/core/params/argumentTypes";
 
 export type MockTokenMap = { [symbol: string]: MintableERC20 };
 
@@ -102,6 +103,11 @@ export const rawInsertContractAddressInDb = async (
 export const getEthersSigners = async (): Promise<Signer[]> => {
   const ethersSigners = await Promise.all(await DRE.ethers.getSigners());
   return ethersSigners;
+};
+
+export const getEthersSigner = async (address: string): Promise<Signer> => {
+  const ethersSigner = await DRE.ethers.getSigner(address);
+  return ethersSigner;
 };
 
 export const getEthersSignersAddresses = async (): Promise<

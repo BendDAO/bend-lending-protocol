@@ -5,16 +5,8 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IBendOracleGetter} from "../interfaces/IBendOracleGetter.sol";
 
-contract BendOracle is
-    IBendOracleGetter,
-    Initializable,
-    OwnableUpgradeable
-{
-
-    event SetAssetOracle(
-        address asset,
-        address oracle
-    );
+contract BendOracle is IBendOracleGetter, Initializable, OwnableUpgradeable {
+    event SetAssetOracle(address asset, address oracle);
 
     mapping(address => address) public assetOracleContract;
 
@@ -22,11 +14,14 @@ contract BendOracle is
         __Ownable_init();
     }
 
-    function setOracleContract(address _asset, address _oracle) external onlyOwner {
-        require(_asset!=address(0), "asset not existed");
-        require(_oracle!=address(0), "oracle not existed");
-        assetOracleContract[_asset]=_oracle;
-        emit SetAssetOracle(_asset,_oracle);
+    function setOracleContract(address _asset, address _oracle)
+        external
+        onlyOwner
+    {
+        require(_asset != address(0), "asset not existed");
+        require(_oracle != address(0), "oracle not existed");
+        assetOracleContract[_asset] = _oracle;
+        emit SetAssetOracle(_asset, _oracle);
     }
 
     function getAssetPrice(address _asset)
@@ -36,9 +31,8 @@ contract BendOracle is
         returns (uint256)
     {
         address oracle = assetOracleContract[_asset];
-        require(oracle!=address(0), "asset not existed");
+        require(oracle != address(0), "asset not existed");
         uint256 price = IBendOracleGetter(oracle).getAssetPrice(_asset);
         return price;
     }
-
 }

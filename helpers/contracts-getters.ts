@@ -1,7 +1,9 @@
+import { Signer, ethers } from "ethers";
 import {
   BendProtocolDataProviderFactory,
   BTokenFactory,
   BNFTFactory,
+  BNFTFactoryFactory,
   InterestRateFactory,
   GenericLogicFactory,
   //InitializableAdminUpgradeabilityProxyFactory,
@@ -57,6 +59,18 @@ export const getLendPoolConfiguratorProxy = async (
       (
         await getDb()
           .get(`${eContractid.LendPoolConfigurator}.${DRE.network.name}`)
+          .value()
+      ).address,
+    await getFirstSigner()
+  );
+};
+
+export const getBNFTFactoryProxy = async (address?: tEthereumAddress) => {
+  return await BNFTFactoryFactory.connect(
+    address ||
+      (
+        await getDb()
+          .get(`${eContractid.BNFTFactory}.${DRE.network.name}`)
           .value()
       ).address,
     await getFirstSigner()

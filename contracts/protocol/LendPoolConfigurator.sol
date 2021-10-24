@@ -5,11 +5,12 @@ pragma experimental ABIEncoderV2;
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
+import {IBNFTFactory} from "../interfaces/IBNFTFactory.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
-import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
+import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
@@ -32,6 +33,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     ILendPoolAddressesProvider internal _addressesProvider;
     ILendPool internal _pool;
+    IBNFTFactory internal _bnftFactory;
 
     modifier onlyPoolAdmin() {
         require(
@@ -55,6 +57,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     {
         _addressesProvider = provider;
         _pool = ILendPool(_addressesProvider.getLendPool());
+        _bnftFactory = IBNFTFactory(_addressesProvider.getBNFTFactory());
     }
 
     /**
@@ -119,24 +122,23 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         onlyPoolAdmin
     {
         ILendPool cachedPool = _pool;
+        IBNFTFactory cachedFactory = _bnftFactory;
+
         for (uint256 i = 0; i < input.length; i++) {
-            _initNft(cachedPool, input[i]);
+            _initNft(cachedPool, cachedFactory, input[i]);
         }
     }
 
-    function _initNft(ILendPool pool_, InitNftInput calldata input) internal {
-        address bNftProxyAddress = _initTokenWithProxy(
-            input.bNftImpl,
-            abi.encodeWithSelector(
-                IBNFT.initialize.selector,
-                input.underlyingAsset,
-                input.bNftName,
-                input.bNftSymbol,
-                input.params
-            )
-        );
+    function _initNft(
+        ILendPool pool_,
+        IBNFTFactory factory_,
+        InitNftInput calldata input
+    ) internal {
+        // BNFT proxy and implementation are created in BNFTFactory
+        (address bNftProxy, ) = factory_.getBNFT(input.underlyingAsset);
+        require(bNftProxy != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
 
-        pool_.initNft(input.underlyingAsset, bNftProxyAddress);
+        pool_.initNft(input.underlyingAsset, bNftProxy);
 
         DataTypes.NftConfigurationMap memory currentConfig = pool_
             .getNftConfiguration(input.underlyingAsset);
@@ -146,7 +148,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
         pool_.setNftConfiguration(input.underlyingAsset, currentConfig.data);
 
-        emit NftInitialized(input.underlyingAsset, bNftProxyAddress);
+        emit NftInitialized(input.underlyingAsset, bNftProxy);
     }
 
     /**
@@ -187,35 +189,6 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         emit BTokenUpgraded(
             input.asset,
             reserveData.bTokenAddress,
-            input.implementation
-        );
-    }
-
-    /**
-     * @dev Updates the bNFT implementation for the nft
-     **/
-    function updateBNFT(UpdateBNFTInput calldata input) external onlyPoolAdmin {
-        ILendPool cachedPool = _pool;
-
-        DataTypes.NftData memory nftData = cachedPool.getNftData(input.asset);
-
-        bytes memory encodedCall = abi.encodeWithSelector(
-            IBToken.initialize.selector,
-            input.asset,
-            input.name,
-            input.symbol,
-            input.params
-        );
-
-        _upgradeTokenImplementation(
-            nftData.bNftAddress,
-            input.implementation,
-            encodedCall
-        );
-
-        emit BNFTUpgraded(
-            input.asset,
-            nftData.bNftAddress,
             input.implementation
         );
     }
@@ -473,9 +446,9 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         address implementation,
         bytes memory initParams
     ) internal returns (address) {
-        InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(
-                address(this)
-            );
+        InitializableAdminProxy proxy = new InitializableAdminProxy(
+            address(this)
+        );
 
         proxy.initialize(implementation, initParams);
 
@@ -487,9 +460,9 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         address implementation,
         bytes memory initParams
     ) internal {
-        InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(
-                payable(proxyAddress)
-            );
+        InitializableAdminProxy proxy = InitializableAdminProxy(
+            payable(proxyAddress)
+        );
 
         proxy.upgradeToAndCall(implementation, initParams);
     }

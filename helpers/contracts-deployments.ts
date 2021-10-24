@@ -28,6 +28,7 @@ import {
   MintableERC721Factory,
   BTokenFactory,
   BNFTFactory,
+  BNFTFactoryFactory,
   InterestRateFactory,
   LendPoolConfiguratorFactory,
   LendPoolFactory,
@@ -104,6 +105,25 @@ export const deployLendPoolLoan = async (verify?: boolean) => {
   return withSaveAndVerify(
     lendPoolLoanImpl,
     eContractid.LendPoolLoan,
+    [],
+    verify
+  );
+};
+
+export const deployBNFTFactory = async (
+  args: [string, string],
+  verify?: boolean
+) => {
+  const bnftFactoryImpl = await new BNFTFactoryFactory(
+    await getFirstSigner()
+  ).deploy(...args);
+  await insertContractAddressInDb(
+    eContractid.BNFTFactoryImpl,
+    bnftFactoryImpl.address
+  );
+  return withSaveAndVerify(
+    bnftFactoryImpl,
+    eContractid.BNFTFactory,
     [],
     verify
   );
@@ -536,7 +556,7 @@ export const deployBTokenImplementations = async (
   const network = <eNetwork>DRE.network.name;
 
   // Obtain the different BToken implementations of all reserves inside the Market config
-  const aTokenImplementations = [
+  const tokenImplementations = [
     ...Object.entries(reservesConfig).reduce<Set<eContractid>>(
       (acc, [, entry]) => {
         acc.add(entry.bTokenImpl);
@@ -546,16 +566,16 @@ export const deployBTokenImplementations = async (
     ),
   ];
 
-  for (let x = 0; x < aTokenImplementations.length; x++) {
-    const aTokenAddress = getOptionalParamAddressPerNetwork(
-      poolConfig[aTokenImplementations[x].toString()],
+  for (let x = 0; x < tokenImplementations.length; x++) {
+    const tokenAddress = getOptionalParamAddressPerNetwork(
+      poolConfig[tokenImplementations[x].toString()],
       network
     );
-    if (!notFalsyOrZeroAddress(aTokenAddress)) {
+    if (!notFalsyOrZeroAddress(tokenAddress)) {
       const deployImplementationMethod = chooseBTokenDeployment(
-        aTokenImplementations[x]
+        tokenImplementations[x]
       );
-      console.log(`Deploying BToken implementation`, aTokenImplementations[x]);
+      console.log(`Deploying BToken implementation`, tokenImplementations[x]);
       await deployImplementationMethod(verify);
     }
   }

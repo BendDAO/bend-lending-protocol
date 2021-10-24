@@ -15,14 +15,17 @@ import {
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
+  getBNFTFactoryProxy,
 } from "./contracts-getters";
 import {
+  getEthersSigner,
   getContractAddressWithJsonFallback,
   rawInsertContractAddressInDb,
 } from "./contracts-helpers";
 import { BigNumberish } from "ethers";
 import { ConfigNames } from "./configuration";
 import { deployRateStrategy } from "./contracts-deployments";
+import { BNFTFactory } from "../types";
 
 export const getBTokenExtraParams = async (
   bTokenName: string,
@@ -117,7 +120,7 @@ export const initReservesByHelper = async (
     }
     // Prepare input parameters
     reserveSymbols.push(symbol);
-    initInputParams.push({
+    const initParam = {
       bTokenImpl: await getContractAddressWithJsonFallback(
         bTokenImpl,
         poolName
@@ -129,9 +132,11 @@ export const initReservesByHelper = async (
       incentivesController: incentivesController,
       underlyingAssetName: symbol,
       bTokenName: `${bTokenNamePrefix} ${symbol}`,
-      bTokenSymbol: `b${bTokenSymbolPrefix}${symbol}`,
+      bTokenSymbol: `${bTokenSymbolPrefix}${symbol}`,
       params: await getBTokenExtraParams(bTokenImpl, tokenAddresses[symbol]),
-    });
+    };
+    initInputParams.push(initParam);
+    console.log("initInputParams:", symbol, bTokenImpl, initParam);
   }
 
   // Deploy init reserves per chunks
@@ -153,7 +158,9 @@ export const initReservesByHelper = async (
     );
 
     console.log(
-      `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(", ")}`
+      `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
+      chunkedInitInputParams[chunkIndex][0].bTokenImpl,
+      chunkedInitInputParams[chunkIndex][0].underlyingAssetName
     );
     console.log("    * gasUsed", tx3.gasUsed.toString());
   }
@@ -180,6 +187,7 @@ export const initNftsByHelper = async (
   verify: boolean
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
+  const bnftFactory = await getBNFTFactoryProxy();
 
   // CHUNK CONFIGURATION
   const initChunks = 1;
@@ -188,16 +196,18 @@ export const initNftsByHelper = async (
   let nftSymbols: string[] = [];
 
   let initInputParams: {
-    bNftImpl: string;
+    // bNftProxy: string;
+    // bNftImpl: string;
     underlyingAsset: string;
-    underlyingAssetName: string;
-    bNftName: string;
-    bNftSymbol: string;
-    params: string;
+    // underlyingAssetName: string;
+    // bNftName: string;
+    // bNftSymbol: string;
+    // params: string;
   }[] = [];
 
   const nfts = Object.entries(nftsParams);
 
+  console.log(`- BNFTFactory create proxy in ${nfts.length} txs`);
   for (let [symbol, params] of nfts) {
     if (!nftAddresses[symbol]) {
       console.log(
@@ -205,18 +215,43 @@ export const initNftsByHelper = async (
       );
       continue;
     }
-    const { bNftImpl } = params;
+    const { bNftImpl } = params; // just for name
+    const bNftImplAddress = await getContractAddressWithJsonFallback(
+      bNftImpl,
+      poolName
+    );
+    const extraParams = await getBNftExtraParams(
+      bNftImpl,
+      nftAddresses[symbol]
+    );
+
+    // create bnft proxy via factory
+    const tx3 = await waitForTx(
+      await bnftFactory.createBNFTWithImpl(
+        nftAddresses[symbol],
+        bNftImplAddress,
+        extraParams
+      )
+    );
+    const { bNftProxyRet, bNftImplRet } = await bnftFactory.getBNFT(
+      nftAddresses[symbol]
+    );
+    console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);
+    console.log("    * gasUsed", tx3.gasUsed.toString());
+
+    const initParam = {
+      // bNftProxy: bNftProxyRet,
+      // bNftImpl: bNftImplAddress,
+      underlyingAsset: nftAddresses[symbol],
+      // underlyingAssetName: symbol,
+      // bNftName: `${bNftNamePrefix} ${symbol}`,
+      // bNftSymbol: `${bNftSymbolPrefix}${symbol}`,
+      // params: extraParams,
+    };
 
     // Prepare input parameters
     nftSymbols.push(symbol);
-    initInputParams.push({
-      bNftImpl: await getContractAddressWithJsonFallback(bNftImpl, poolName),
-      underlyingAsset: nftAddresses[symbol],
-      underlyingAssetName: symbol,
-      bNftName: `${bNftNamePrefix} ${symbol}`,
-      bNftSymbol: `b${bNftSymbolPrefix}${symbol}`,
-      params: await getBNftExtraParams(bNftImpl, nftAddresses[symbol]),
-    });
+    initInputParams.push(initParam);
   }
 
   // Deploy init nfts per chunks
@@ -235,7 +270,10 @@ export const initNftsByHelper = async (
       await configurator.batchInitNft(chunkedInitInputParams[chunkIndex])
     );
 
-    console.log(`  - NFT ready for: ${chunkedSymbols[chunkIndex].join(", ")}`);
+    console.log(
+      `  - NFT ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
+      chunkedInitInputParams[chunkIndex][0].underlyingAsset
+    );
     console.log("    * gasUsed", tx3.gasUsed.toString());
   }
 };

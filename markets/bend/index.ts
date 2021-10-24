@@ -9,8 +9,8 @@ import {
   strategyUSDC,
   strategyUSDT,
 
-  strategyWPUNK,
-  strategyAPE,
+  strategyWPUNKS,
+  strategyBAYC,
 } from './reservesConfigs';
 
 // ----------------
@@ -29,8 +29,8 @@ export const BendConfig: IBendConfiguration = {
     ///USDT: strategyUSDT,
   },
   NftsConfig: {
-    WPUNK: strategyWPUNK,
-    APE: strategyAPE,
+    WPUNKS: strategyWPUNKS,
+    BAYC: strategyBAYC,
   },
   ReserveAssets: {
     [eEthereumNetwork.buidlerevm]: {},
