@@ -63,13 +63,15 @@ export enum eContractid {
   WETHGateway = "WETHGateway",
   WETH = "WETH",
   WETHMocked = "WETHMocked",
-  WPUNKGateway = "WPUNKGateway",
-  WPUNK = "WPUNK",
-  WPUNKMocked = "WPUNKMocked",
+  WPUNKSGateway = "WPUNKSGateway",
+  WPUNKS = "WPUNKS",
+  WPUNKSMocked = "WPUNKSMocked",
   SelfdestructTransferMock = "SelfdestructTransferMock",
   LendPoolImpl = "LendPoolImpl",
   LendPoolConfiguratorImpl = "LendPoolConfiguratorImpl",
   LendPoolLoanImpl = "LendPoolLoanImpl",
+  BNFTFactory = "BNFTFactory",
+  BNFTFactoryImpl = "BNFTFactoryImpl",
 }
 
 /*
@@ -219,8 +221,8 @@ export interface iNftCommon<T> {
   [key: string]: T;
 }
 export interface iNftBase<T> {
-  WPUNK: T;
-  APE: T;
+  WPUNKS: T;
+  BAYC: T;
 }
 
 export type iMultiPoolsNfts<T> = iNftCommon<T> | iBendPoolNfts<T>;
@@ -230,8 +232,8 @@ export type iBendPoolNfts<T> = iNftBase<T>;
 export type iNftAggregatorBase<T> = iNftBase<T>;
 
 export enum NftContractId {
-  WPUNK = "WPUNK",
-  APE = "APE",
+  WPUNKS = "WPUNKS",
+  BAYC = "BAYC",
 }
 
 export interface IReserveParams

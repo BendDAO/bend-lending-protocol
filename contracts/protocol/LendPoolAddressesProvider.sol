@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 // Prettier ignore to prevent buidler flatter bug
 // prettier-ignore
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {InitializableImmutableAdminUpgradeabilityProxy} from "../libraries/upgradeability/InitializableImmutableAdminUpgradeabilityProxy.sol";
+import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -26,6 +26,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     bytes32 private constant RESERVE_ORACLE = "RESERVE_ORACLE";
     bytes32 private constant NFT_ORACLE = "NFT_ORACLE";
     bytes32 private constant NFT_LOAN = "NFT_LOAN";
+    bytes32 private constant BNFT_FACTORY = "BNFT_FACTORY";
 
     constructor(string memory marketId) {
         _setMarketId(marketId);
@@ -186,9 +187,22 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
         return getAddress(NFT_LOAN);
     }
 
-    function setLendPoolLoanImpl(address loanAddress) external override {
+    function setLendPoolLoanImpl(address loanAddress)
+        external
+        override
+        onlyOwner
+    {
         _updateImpl(NFT_LOAN, loanAddress);
         emit LendPoolLoanUpdated(loanAddress);
+    }
+
+    function getBNFTFactory() external view override returns (address) {
+        return getAddress(BNFT_FACTORY);
+    }
+
+    function setBNFTFactory(address factory) external override onlyOwner {
+        _addresses[BNFT_FACTORY] = factory;
+        emit BNFTFactoryUpdated(factory);
     }
 
     /**
@@ -209,18 +223,20 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
         );
 
         if (proxyAddress == address(0)) {
-            InitializableImmutableAdminUpgradeabilityProxy proxy = new InitializableImmutableAdminUpgradeabilityProxy(
-                    address(this)
-                );
+            // create proxy, then init proxy & implementation
+            InitializableAdminProxy proxy = new InitializableAdminProxy(
+                address(this)
+            );
 
             proxy.initialize(newAddress, params);
 
             _addresses[id] = address(proxy);
             emit ProxyCreated(id, address(proxy));
         } else {
-            InitializableImmutableAdminUpgradeabilityProxy proxy = InitializableImmutableAdminUpgradeabilityProxy(
-                    proxyAddress
-                );
+            // upgrade & init implementation
+            InitializableAdminProxy proxy = InitializableAdminProxy(
+                proxyAddress
+            );
 
             proxy.upgradeToAndCall(newAddress, params);
         }

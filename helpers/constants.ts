@@ -38,6 +38,6 @@ export const MOCK_RESERVE_AGGREGATORS_PRICES = {
 };
 
 export const MOCK_NFT_AGGREGATORS_PRICES = {
-  WPUNK: oneEther.multipliedBy("0.095").toFixed(),
-  APE: oneEther.multipliedBy("0.031").toFixed(),
+  WPUNKS: oneEther.multipliedBy("0.095").toFixed(),
+  BAYC: oneEther.multipliedBy("0.031").toFixed(),
 };

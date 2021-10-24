@@ -2,7 +2,7 @@ import { TestEnv, makeSuite } from "./helpers/make-suite";
 import { APPROVAL_AMOUNT_LENDING_POOL, RAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { ProtocolErrors } from "../helpers/types";
-import { strategyAPE } from "../markets/bend/reservesConfigs";
+import { strategyBAYC } from "../markets/bend/reservesConfigs";
 
 const { expect } = require("chai");
 
@@ -14,91 +14,91 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
     RC_INVALID_LIQ_BONUS,
   } = ProtocolErrors;
 
-  it("Deactivates the APE NFT", async () => {
-    const { configurator, ape, helpersContract } = testEnv;
-    await configurator.deactivateNft(ape.address);
+  it("Deactivates the BAYC NFT", async () => {
+    const { configurator, bayc, helpersContract } = testEnv;
+    await configurator.deactivateNft(bayc.address);
     const { isActive } = await helpersContract.getNftConfigurationData(
-      ape.address
+      bayc.address
     );
     expect(isActive).to.be.equal(false);
   });
 
-  it("Rectivates the APE NFT", async () => {
-    const { configurator, ape, helpersContract } = testEnv;
-    await configurator.activateNft(ape.address);
+  it("Rectivates the BAYC NFT", async () => {
+    const { configurator, bayc, helpersContract } = testEnv;
+    await configurator.activateNft(bayc.address);
 
     const { isActive } = await helpersContract.getNftConfigurationData(
-      ape.address
+      bayc.address
     );
     expect(isActive).to.be.equal(true);
   });
 
   it("Check the onlyAdmin on deactivateRNft ", async () => {
-    const { configurator, users, ape } = testEnv;
+    const { configurator, users, bayc } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).deactivateNft(ape.address),
+      configurator.connect(users[2].signer).deactivateNft(bayc.address),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
   it("Check the onlyAdmin on activateNft ", async () => {
-    const { configurator, users, ape } = testEnv;
+    const { configurator, users, bayc } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).activateNft(ape.address),
+      configurator.connect(users[2].signer).activateNft(bayc.address),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Freezes the APE NFT", async () => {
-    const { configurator, ape, helpersContract } = testEnv;
+  it("Freezes the BAYC NFT", async () => {
+    const { configurator, bayc, helpersContract } = testEnv;
 
-    await configurator.freezeNft(ape.address);
+    await configurator.freezeNft(bayc.address);
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(ape.address);
+      await helpersContract.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(true);
-    expect(ltv).to.be.equal(strategyAPE.baseLTVAsCollateral);
-    expect(liquidationThreshold).to.be.equal(strategyAPE.liquidationThreshold);
-    expect(liquidationBonus).to.be.equal(strategyAPE.liquidationBonus);
+    expect(ltv).to.be.equal(strategyBAYC.baseLTVAsCollateral);
+    expect(liquidationThreshold).to.be.equal(strategyBAYC.liquidationThreshold);
+    expect(liquidationBonus).to.be.equal(strategyBAYC.liquidationBonus);
   });
 
-  it("Unfreezes the APE NFT", async () => {
-    const { configurator, helpersContract, ape } = testEnv;
-    await configurator.unfreezeNft(ape.address);
+  it("Unfreezes the BAYC NFT", async () => {
+    const { configurator, helpersContract, bayc } = testEnv;
+    await configurator.unfreezeNft(bayc.address);
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(ape.address);
+      await helpersContract.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);
-    expect(ltv).to.be.equal(strategyAPE.baseLTVAsCollateral);
-    expect(liquidationThreshold).to.be.equal(strategyAPE.liquidationThreshold);
-    expect(liquidationBonus).to.be.equal(strategyAPE.liquidationBonus);
+    expect(ltv).to.be.equal(strategyBAYC.baseLTVAsCollateral);
+    expect(liquidationThreshold).to.be.equal(strategyBAYC.liquidationThreshold);
+    expect(liquidationBonus).to.be.equal(strategyBAYC.liquidationBonus);
   });
 
   it("Check the onlyAdmin on freezeNft ", async () => {
-    const { configurator, users, ape } = testEnv;
+    const { configurator, users, bayc } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).freezeNft(ape.address),
+      configurator.connect(users[2].signer).freezeNft(bayc.address),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
   it("Check the onlyAdmin on unfreezeNft ", async () => {
-    const { configurator, users, ape } = testEnv;
+    const { configurator, users, bayc } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).unfreezeNft(ape.address),
+      configurator.connect(users[2].signer).unfreezeNft(bayc.address),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Deactivates the APE NFT as collateral", async () => {
-    const { configurator, helpersContract, ape } = testEnv;
-    await configurator.configureNftAsCollateral(ape.address, 0, 0, 0);
+  it("Deactivates the BAYC NFT as collateral", async () => {
+    const { configurator, helpersContract, bayc } = testEnv;
+    await configurator.configureNftAsCollateral(bayc.address, 0, 0, 0);
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(ape.address);
+      await helpersContract.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);
@@ -107,17 +107,17 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
     expect(liquidationBonus).to.be.equal(0);
   });
 
-  it("Activates the APE NFT as collateral", async () => {
-    const { configurator, helpersContract, ape } = testEnv;
+  it("Activates the BAYC NFT as collateral", async () => {
+    const { configurator, helpersContract, bayc } = testEnv;
     await configurator.configureNftAsCollateral(
-      ape.address,
+      bayc.address,
       "8000",
       "8250",
       "10500"
     );
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(ape.address);
+      await helpersContract.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);
@@ -127,11 +127,11 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
   });
 
   it("Check the onlyAdmin on configureNftAsCollateral ", async () => {
-    const { configurator, users, ape } = testEnv;
+    const { configurator, users, bayc } = testEnv;
     await expect(
       configurator
         .connect(users[2].signer)
-        .configureNftAsCollateral(ape.address, "7500", "8000", "10500"),
+        .configureNftAsCollateral(bayc.address, "7500", "8000", "10500"),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });

@@ -7,7 +7,11 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
 
-contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext {
+contract ReserveOracle is
+    IReserveOracleGetter,
+    OwnableUpgradeable,
+    BlockContext
+{
     uint256 private constant TOKEN_DIGIT = 10**18;
 
     event AggregatorAdded(address currencyKey, address aggregator);

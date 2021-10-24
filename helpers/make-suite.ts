@@ -63,10 +63,10 @@ export interface TestEnv {
   dai: MintableERC20;
   bDai: BToken;
   usdc: MintableERC20;
-  //wpunks: WPUNKSMocked;
-  bPUNK: BNFT;
+  //wpunks: WPunkMocked;
+  bWPUNKS: BNFT;
   bayc: MintableERC721;
-  bBYAC: BNFT;
+  bBAYC: BNFT;
   addressesProvider: LendPoolAddressesProvider;
   wethGateway: WETHGateway;
 }
@@ -88,10 +88,10 @@ const testEnv: TestEnv = {
   bWETH: {} as BToken,
   dai: {} as MintableERC20,
   bDai: {} as BToken,
-  //wpunks: WPUNKSMocked,
-  bPUNK: {} as BNFT,
+  //wpunks: WPunkMocked,
+  bWPUNKS: {} as BNFT,
   bayc: {} as MintableERC721,
-  bBYAC: {} as BNFT,
+  bBAYC: {} as BNFT,
   addressesProvider: {} as LendPoolAddressesProvider,
   wethGateway: {} as WETHGateway,
   //wpunksGateway: {} as WPUNKSGateway,
@@ -161,11 +161,11 @@ export async function initializeMakeSuite() {
   const allBNftTokens = await testEnv.helpersContract.getAllBNfts();
   //console.log("allBNftTokens", allBNftTokens);
   const bPunkAddress = allBNftTokens.find(
-    (bNFT) => bNFT.symbol === "bWPUNKS"
+    (bNFT) => bNFT.symbol === "bWPUNK"
   )?.nftAddress;
 
   const bByacAddress = allBNftTokens.find(
-    (bNFT) => bNFT.symbol === "bBAYC"
+    (bNFT) => bNFT.symbol === "bBYAC"
   )?.nftAddress;
 
   const nftsTokens = await testEnv.helpersContract.getAllNftsTokens();
@@ -173,7 +173,7 @@ export async function initializeMakeSuite() {
   const wpunksAddress = nftsTokens.find(
     (token) => token.symbol === "WPUNKS"
   )?.nftAddress;
-  const baycAddress = nftsTokens.find(
+  const apeAddress = nftsTokens.find(
     (token) => token.symbol === "BAYC"
   )?.nftAddress;
 
@@ -181,15 +181,15 @@ export async function initializeMakeSuite() {
     console.error("Invalid BNFTs", bByacAddress, bPunkAddress);
     process.exit(1);
   }
-  if (!baycAddress || !wpunksAddress) {
-    console.error("Invalid NFT Tokens", baycAddress, wpunksAddress);
+  if (!apeAddress || !wpunksAddress) {
+    console.error("Invalid NFT Tokens", apeAddress, wpunksAddress);
     process.exit(1);
   }
 
-  testEnv.bBYAC = await getBNFT(bByacAddress);
-  testEnv.bPUNK = await getBNFT(bPunkAddress);
+  testEnv.bBAYC = await getBNFT(bByacAddress);
+  testEnv.bWPUNKS = await getBNFT(bPunkAddress);
 
-  testEnv.bayc = await getMintableERC721(baycAddress);
+  testEnv.bayc = await getMintableERC721(apeAddress);
   //testEnv.wpunks = await getWPUNKSMocked(wpunksAddress);
   //testEnv.wpunksGateway = await getWPUNKSGateway();
 }

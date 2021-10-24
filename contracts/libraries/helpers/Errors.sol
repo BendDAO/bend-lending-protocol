@@ -115,6 +115,8 @@ library Errors {
     string public constant LP_INVALIED_USER_SCALED_AMOUNT = "87";
     string public constant LP_INVALIED_USER_NFT_AMOUNT = "88";
 
+    string public constant LPC_INVALIED_BNFT_ADDRESS = "101";
+
     enum CollateralManagerErrors {
         NO_ERROR,
         NO_COLLATERAL_AVAILABLE,

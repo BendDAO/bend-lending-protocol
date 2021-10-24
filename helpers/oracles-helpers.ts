@@ -77,7 +77,7 @@ export const setReserveAggregatorsInOracle = async (
     );
     //console.log("assetBytes32", assetBytes32);
     await waitForTx(
-      await priceOracleInstance.addAggregator(assetBytes32, aggAddress)
+      await priceOracleInstance.addAggregator(assetAddress, aggAddress)
     );
   }
 };

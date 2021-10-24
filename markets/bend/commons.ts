@@ -15,10 +15,10 @@ import { ICommonConfiguration, eEthereumNetwork } from '../../helpers/types';
 
 export const CommonsConfig: ICommonConfiguration = {
   MarketId: 'Commons',
-  BTokenNamePrefix: 'Bend interest bearing',
-  BTokenSymbolPrefix: '',
-  BNftNamePrefix: 'Bend NFT',
-  BNftSymbolPrefix: '',
+  BTokenNamePrefix: 'Bend Interest Bearing',
+  BTokenSymbolPrefix: 'b',
+  BNftNamePrefix: 'Bend Wrapped',
+  BNftSymbolPrefix: 'b',
   ProviderId: 0, // Overriden in index.ts
   OracleQuoteCurrency: 'ETH',
   OracleQuoteUnit: oneEther.toString(),

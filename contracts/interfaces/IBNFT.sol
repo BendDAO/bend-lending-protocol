@@ -8,7 +8,6 @@ interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
     /**
      * @dev Emitted when an bNFT is initialized
      * @param underlyingAsset The address of the underlying asset
-     * @param params A set of encoded parameters for additional initialization
      **/
     event Initialized(address indexed underlyingAsset, bytes params);
 

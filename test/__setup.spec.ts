@@ -25,6 +25,7 @@ import {
   deployWETHGateway,
   deployWETHMocked,
   authorizeWETHGateway,
+  deployBNFTFactory,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import {
@@ -65,6 +66,7 @@ import {
   getLendPool,
   getLendPoolConfiguratorProxy,
   getLendPoolLoanProxy,
+  getBNFTFactoryProxy,
   getPairsTokenAggregator,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
@@ -122,8 +124,8 @@ const deployAllMockNfts = async (deployer: Signer) => {
 
   for (const tokenSymbol of Object.keys(NftContractId)) {
     /*
-    if (tokenSymbol === "WETH") {
-      tokens[tokenSymbol] = await deployWETHMocked();
+    if (tokenSymbol === "WPUNKS") {
+      tokens[tokenSymbol] = await deployWPUNKSMocked();
       await registerContractInJsonDb(
         tokenSymbol.toUpperCase(),
         tokens[tokenSymbol]
@@ -153,14 +155,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const config = loadPoolConfig(ConfigNames.Bend);
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare mock ERC20 Tokens
+  console.log("-> Prepare mock external ERC20 Tokens, such as WETH, DAI...");
   const mockTokens: {
     [symbol: string]: MockContract | MintableERC20 | WETH9Mocked;
   } = {
     ...(await deployAllMockTokens(deployer)),
   };
 
-  // prepare mock ERC721 NFTs
+  console.log("-> Prepare mock external ERC721 NFTs, such as WPUNKS, BAYC...");
   const mockNfts: {
     [symbol: string]: MockContract | MintableERC721;
   } = {
@@ -168,7 +170,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   };
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare address provider
+  console.log("-> Prepare address provider...");
   const addressesProvider = await deployLendPoolAddressesProvider(
     BendConfig.MarketId
   );
@@ -180,23 +182,47 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(await addressesProvider.setEmergencyAdmin(addressList[2]));
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare lend pool
+  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTFactory from address provider when init
+  console.log("-> Prepare bnft factory...");
+  const bnftFactoryImpl = await deployBNFTFactory([
+    config.BNftNamePrefix,
+    config.BNftSymbolPrefix,
+  ]);
+  await waitForTx(
+    await bnftFactoryImpl.transferOwnership(await deployer.getAddress())
+  );
+  await waitForTx(
+    await addressesProvider.setBNFTFactory(await bnftFactoryImpl.address)
+  );
+  /* no need proxy, just use implement is enough
+  const bnftFactoryProxy = await getBNFTFactoryProxy(
+    await addressesProvider.getBNFTFactory()
+  );
+  await insertContractAddressInDb(
+    eContractid.BNFTFactory,
+    bnftFactoryProxy.address
+  );
+  */
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare lend pool...");
   const lendPoolImpl = await deployLendPool();
   await waitForTx(
     await addressesProvider.setLendPoolImpl(lendPoolImpl.address)
   );
-
+  // configurator will create proxy for implement
   const lendPoolAddress = await addressesProvider.getLendPool();
   const lendPoolProxy = await getLendPool(lendPoolAddress);
 
   await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare lend loan
+  console.log("-> Prepare lend loan...");
   const lendPoolLoanImpl = await deployLendPoolLoan();
   await waitForTx(
     await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address)
   );
+  // configurator will create proxy for implement
   const lendPoolLoanProxy = await getLendPoolLoanProxy(
     await addressesProvider.getLendPoolLoan()
   );
@@ -206,13 +232,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare pool configurator
+  console.log("-> Prepare pool configurator...");
   const lendPoolConfiguratorImpl = await deployLendPoolConfigurator();
   await waitForTx(
     await addressesProvider.setLendPoolConfiguratorImpl(
       lendPoolConfiguratorImpl.address
     )
   );
+  // configurator will create proxy for implement
   const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
     await addressesProvider.getLendPoolConfigurator()
   );
@@ -222,14 +249,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare token and rate helper
+  console.log("-> Prepare token and rate helper...");
   await deployBTokensAndBNFTsHelper([
     lendPoolProxy.address,
     addressesProvider.address,
     lendPoolConfiguratorProxy.address,
   ]);
   /*
-  // prepare mock reservable oracle
+  console.log("-> Prepare mock reservable oracle...");
   const mockReserveOracle = await deployMockReserveOracle();
   await setInitialAssetPricesInOracle(
     ALL_ASSETS_INITIAL_PRICES,
@@ -243,11 +270,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     mockReserveOracle
   );
 
-  // prepare mock nft oracle
+  // Prepare mock nft oracle
   const mockNFTOracle = await deployMockNFTOracle();
 */
   //////////////////////////////////////////////////////////////////////////////
-  // prepare mock ERC20 token chainlink aggregators
+  console.log("-> Prepare mock ERC20 token chainlink aggregators...");
   const mockAggregators = await deployAllMockReserveAggregators(
     ALL_ASSETS_INITIAL_PRICES
   );
@@ -277,16 +304,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     config.OracleQuoteCurrency
   );
 
-  // prepare reserve oracle
+  console.log("-> Prepare reserve oracle...");
   const reserveOracleImpl = await deployReserveOracle([
     //mockTokens.WETH.address
   ]);
-  reserveOracleImpl.initialize(
-    rawBRE.ethers.utils.zeroPad(
-      rawBRE.ethers.utils.arrayify(mockTokens.WETH.address),
-      32
-    )
-  );
+  await waitForTx(await reserveOracleImpl.initialize(mockTokens.WETH.address));
   await waitForTx(
     await addressesProvider.setReserveOracle(reserveOracleImpl.address)
   );
@@ -297,7 +319,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare mock ERC721 token chainlink aggregators
+  console.log("-> Prepare mock ERC721 token chainlink aggregators...");
   const mockNftAggregators = await deployAllMockNftAggregators(
     ALL_NFTS_INITIAL_PRICES
   );
@@ -327,8 +349,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     config.OracleQuoteCurrency
   );
 
-  // prepare nft oracle
+  console.log("-> Prepare nft oracle...");
   const nftOracleImpl = await deployNFTOracle();
+  await waitForTx(
+    await nftOracleImpl.initialize(await addressesProvider.getPoolAdmin())
+  );
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
   await setNftAggregatorsInOracle(
     allNftAddresses,
@@ -343,7 +368,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const admin = await deployer.getAddress();
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare reserve pool
+  console.log("-> Prepare Reserve pool...");
   const { ...tokensAddressesWithoutUsd } = allTokenAddresses;
   const allReservesAddresses = {
     ...tokensAddressesWithoutUsd,
@@ -354,9 +379,10 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     ...config.ReservesConfig,
   };
 
-  // prepare BToken impl contract
+  console.log("-> Prepare BToken impl contract...");
   await deployBTokenImplementations(ConfigNames.Bend, reservesParams, false);
 
+  console.log("-> Prepare Reserve init and configure...");
   const { BTokenNamePrefix, BTokenSymbolPrefix } = config;
   const treasuryAddress = await getTreasuryAddress(config);
 
@@ -380,8 +406,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare nft pools
-  // prepare reserve pool
+  console.log("-> Prepare NFT pools...");
   const allNftsAddresses = {
     ...allNftAddresses,
   };
@@ -391,9 +416,10 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     ...config.NftsConfig,
   };
 
-  // prepare BNFT impl contract
+  console.log("-> Prepare BNFT impl contract...");
   await deployBNFTImplementations(ConfigNames.Bend, nftsParams, false);
 
+  console.log("-> Prepare NFT init and configure...");
   const { BNftNamePrefix, BNftSymbolPrefix } = config;
 
   await initNftsByHelper(
@@ -413,9 +439,13 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await deployWalletBalancerProvider();
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepare WETH gateway
-  //const gateWay = await deployWETHGateway([mockTokens.WETH.address]);
-  //await authorizeWETHGateway(gateWay.address, lendPoolAddress);
+  //console.log("-> Prepare WETH gateway...");
+  //const wethGateway = await deployWETHGateway([mockTokens.WETH.address]);
+  //await authorizeWETHGateway(wethGateway.address, lendPoolAddress);
+
+  //console.log("-> Prepare PUNK gateway...");
+  //const punkGateway = await deployWPUNKSGateway([mockNFTs.WPUNKS.address]);
+  //await authorizePunkGateway(punkGateWay.address, lendPoolAddress);
 
   console.timeEnd("setup");
 };
