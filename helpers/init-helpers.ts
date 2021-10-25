@@ -15,7 +15,7 @@ import {
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
-  getBNFTFactoryProxy,
+  getBNFTRegistryProxy,
 } from "./contracts-getters";
 import {
   getEthersSigner,
@@ -25,13 +25,13 @@ import {
 import { BigNumberish } from "ethers";
 import { ConfigNames } from "./configuration";
 import { deployRateStrategy } from "./contracts-deployments";
-import { BNFTFactory } from "../types";
+import { BNFTRegistry } from "../types";
 
 export const getBTokenExtraParams = async (
   bTokenName: string,
   tokenAddress: tEthereumAddress
 ) => {
-  console.log(bTokenName);
+  //console.log(bTokenName);
   switch (bTokenName) {
     default:
       return "0x10";
@@ -136,7 +136,7 @@ export const initReservesByHelper = async (
       params: await getBTokenExtraParams(bTokenImpl, tokenAddresses[symbol]),
     };
     initInputParams.push(initParam);
-    console.log("initInputParams:", symbol, bTokenImpl, initParam);
+    //console.log("initInputParams:", symbol, bTokenImpl, initParam);
   }
 
   // Deploy init reserves per chunks
@@ -170,7 +170,7 @@ export const getBNftExtraParams = async (
   bNftName: string,
   nftAddress: tEthereumAddress
 ) => {
-  console.log(bNftName);
+  //console.log(bNftName);
   switch (bNftName) {
     default:
       return "0x10";
@@ -187,7 +187,7 @@ export const initNftsByHelper = async (
   verify: boolean
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
-  const bnftFactory = await getBNFTFactoryProxy();
+  const bnftRegistry = await getBNFTRegistryProxy();
 
   // CHUNK CONFIGURATION
   const initChunks = 1;
@@ -207,7 +207,7 @@ export const initNftsByHelper = async (
 
   const nfts = Object.entries(nftsParams);
 
-  console.log(`- BNFTFactory create proxy in ${nfts.length} txs`);
+  console.log(`- BNFTRegistry create proxy in ${nfts.length} txs`);
   for (let [symbol, params] of nfts) {
     if (!nftAddresses[symbol]) {
       console.log(
@@ -227,13 +227,13 @@ export const initNftsByHelper = async (
 
     // create bnft proxy via factory
     const tx3 = await waitForTx(
-      await bnftFactory.createBNFTWithImpl(
+      await bnftRegistry.createBNFTWithImpl(
         nftAddresses[symbol],
         bNftImplAddress,
         extraParams
       )
     );
-    const { bNftProxyRet, bNftImplRet } = await bnftFactory.getBNFT(
+    const { bNftProxyRet, bNftImplRet } = await bnftRegistry.getBNFT(
       nftAddresses[symbol]
     );
     console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);

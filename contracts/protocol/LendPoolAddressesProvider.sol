@@ -196,13 +196,13 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
         emit LendPoolLoanUpdated(loanAddress);
     }
 
-    function getBNFTFactory() external view override returns (address) {
+    function getBNFTRegistry() external view override returns (address) {
         return getAddress(BNFT_FACTORY);
     }
 
-    function setBNFTFactory(address factory) external override onlyOwner {
+    function setBNFTRegistry(address factory) external override onlyOwner {
         _addresses[BNFT_FACTORY] = factory;
-        emit BNFTFactoryUpdated(factory);
+        emit BNFTRegistryUpdated(factory);
     }
 
     /**

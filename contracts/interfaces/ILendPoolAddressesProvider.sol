@@ -19,7 +19,7 @@ interface ILendPoolAddressesProvider {
     event LendPoolLoanUpdated(address indexed newAddress);
     event ProxyCreated(bytes32 id, address indexed newAddress);
     event AddressSet(bytes32 id, address indexed newAddress, bool hasProxy);
-    event BNFTFactoryUpdated(address indexed newAddress);
+    event BNFTRegistryUpdated(address indexed newAddress);
 
     function getMarketId() external view returns (string memory);
 
@@ -59,7 +59,7 @@ interface ILendPoolAddressesProvider {
 
     function setLendPoolLoanImpl(address loan) external;
 
-    function getBNFTFactory() external view returns (address);
+    function getBNFTRegistry() external view returns (address);
 
-    function setBNFTFactory(address factory) external;
+    function setBNFTRegistry(address factory) external;
 }

@@ -3,7 +3,7 @@ import {
   BendProtocolDataProviderFactory,
   BTokenFactory,
   BNFTFactory,
-  BNFTFactoryFactory,
+  BNFTRegistryFactory,
   InterestRateFactory,
   GenericLogicFactory,
   //InitializableAdminUpgradeabilityProxyFactory,
@@ -65,12 +65,12 @@ export const getLendPoolConfiguratorProxy = async (
   );
 };
 
-export const getBNFTFactoryProxy = async (address?: tEthereumAddress) => {
-  return await BNFTFactoryFactory.connect(
+export const getBNFTRegistryProxy = async (address?: tEthereumAddress) => {
+  return await BNFTRegistryFactory.connect(
     address ||
       (
         await getDb()
-          .get(`${eContractid.BNFTFactory}.${DRE.network.name}`)
+          .get(`${eContractid.BNFTRegistry}.${DRE.network.name}`)
           .value()
       ).address,
     await getFirstSigner()
