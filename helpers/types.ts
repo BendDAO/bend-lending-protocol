@@ -70,8 +70,8 @@ export enum eContractid {
   LendPoolImpl = "LendPoolImpl",
   LendPoolConfiguratorImpl = "LendPoolConfiguratorImpl",
   LendPoolLoanImpl = "LendPoolLoanImpl",
-  BNFTFactory = "BNFTFactory",
-  BNFTFactoryImpl = "BNFTFactoryImpl",
+  BNFTRegistry = "BNFTRegistry",
+  BNFTRegistryImpl = "BNFTRegistryImpl",
 }
 
 /*

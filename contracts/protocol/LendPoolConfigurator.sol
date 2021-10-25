@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
-import {IBNFTFactory} from "../interfaces/IBNFTFactory.sol";
+import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
@@ -33,7 +33,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     ILendPoolAddressesProvider internal _addressesProvider;
     ILendPool internal _pool;
-    IBNFTFactory internal _bnftFactory;
+    IBNFTRegistry internal _bnftRegistry;
 
     modifier onlyPoolAdmin() {
         require(
@@ -57,7 +57,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     {
         _addressesProvider = provider;
         _pool = ILendPool(_addressesProvider.getLendPool());
-        _bnftFactory = IBNFTFactory(_addressesProvider.getBNFTFactory());
+        _bnftRegistry = IBNFTRegistry(_addressesProvider.getBNFTRegistry());
     }
 
     /**
@@ -122,20 +122,20 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
         onlyPoolAdmin
     {
         ILendPool cachedPool = _pool;
-        IBNFTFactory cachedFactory = _bnftFactory;
+        IBNFTRegistry cachedRegistry = _bnftRegistry;
 
         for (uint256 i = 0; i < input.length; i++) {
-            _initNft(cachedPool, cachedFactory, input[i]);
+            _initNft(cachedPool, cachedRegistry, input[i]);
         }
     }
 
     function _initNft(
         ILendPool pool_,
-        IBNFTFactory factory_,
+        IBNFTRegistry registry_,
         InitNftInput calldata input
     ) internal {
-        // BNFT proxy and implementation are created in BNFTFactory
-        (address bNftProxy, ) = factory_.getBNFT(input.underlyingAsset);
+        // BNFT proxy and implementation are created in BNFTRegistry
+        (address bNftProxy, ) = registry_.getBNFT(input.underlyingAsset);
         require(bNftProxy != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
 
         pool_.initNft(input.underlyingAsset, bNftProxy);

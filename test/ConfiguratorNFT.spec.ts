@@ -15,19 +15,19 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
   } = ProtocolErrors;
 
   it("Deactivates the BAYC NFT", async () => {
-    const { configurator, bayc, helpersContract } = testEnv;
+    const { configurator, bayc, dataProvider } = testEnv;
     await configurator.deactivateNft(bayc.address);
-    const { isActive } = await helpersContract.getNftConfigurationData(
+    const { isActive } = await dataProvider.getNftConfigurationData(
       bayc.address
     );
     expect(isActive).to.be.equal(false);
   });
 
   it("Rectivates the BAYC NFT", async () => {
-    const { configurator, bayc, helpersContract } = testEnv;
+    const { configurator, bayc, dataProvider } = testEnv;
     await configurator.activateNft(bayc.address);
 
-    const { isActive } = await helpersContract.getNftConfigurationData(
+    const { isActive } = await dataProvider.getNftConfigurationData(
       bayc.address
     );
     expect(isActive).to.be.equal(true);
@@ -50,11 +50,11 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
   });
 
   it("Freezes the BAYC NFT", async () => {
-    const { configurator, bayc, helpersContract } = testEnv;
+    const { configurator, bayc, dataProvider } = testEnv;
 
     await configurator.freezeNft(bayc.address);
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(bayc.address);
+      await dataProvider.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(true);
@@ -64,11 +64,11 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
   });
 
   it("Unfreezes the BAYC NFT", async () => {
-    const { configurator, helpersContract, bayc } = testEnv;
+    const { configurator, dataProvider, bayc } = testEnv;
     await configurator.unfreezeNft(bayc.address);
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(bayc.address);
+      await dataProvider.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);
@@ -94,11 +94,11 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
   });
 
   it("Deactivates the BAYC NFT as collateral", async () => {
-    const { configurator, helpersContract, bayc } = testEnv;
+    const { configurator, dataProvider, bayc } = testEnv;
     await configurator.configureNftAsCollateral(bayc.address, 0, 0, 0);
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(bayc.address);
+      await dataProvider.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);
@@ -108,7 +108,7 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
   });
 
   it("Activates the BAYC NFT as collateral", async () => {
-    const { configurator, helpersContract, bayc } = testEnv;
+    const { configurator, dataProvider, bayc } = testEnv;
     await configurator.configureNftAsCollateral(
       bayc.address,
       "8000",
@@ -117,7 +117,7 @@ makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
     );
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
-      await helpersContract.getNftConfigurationData(bayc.address);
+      await dataProvider.getNftConfigurationData(bayc.address);
 
     expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);

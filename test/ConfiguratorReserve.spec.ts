@@ -28,19 +28,19 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
   });
 
   it("Deactivates the ETH reserve", async () => {
-    const { configurator, weth, helpersContract } = testEnv;
+    const { configurator, weth, dataProvider } = testEnv;
     await configurator.deactivateReserve(weth.address);
-    const { isActive } = await helpersContract.getReserveConfigurationData(
+    const { isActive } = await dataProvider.getReserveConfigurationData(
       weth.address
     );
     expect(isActive).to.be.equal(false);
   });
 
   it("Rectivates the ETH reserve", async () => {
-    const { configurator, weth, helpersContract } = testEnv;
+    const { configurator, weth, dataProvider } = testEnv;
     await configurator.activateReserve(weth.address);
 
-    const { isActive } = await helpersContract.getReserveConfigurationData(
+    const { isActive } = await dataProvider.getReserveConfigurationData(
       weth.address
     );
     expect(isActive).to.be.equal(true);
@@ -63,11 +63,11 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
   });
 
   it("Freezes the ETH reserve", async () => {
-    const { configurator, weth, helpersContract } = testEnv;
+    const { configurator, weth, dataProvider } = testEnv;
 
     await configurator.freezeReserve(weth.address);
     const { decimals, reserveFactor, borrowingEnabled, isActive, isFrozen } =
-      await helpersContract.getReserveConfigurationData(weth.address);
+      await dataProvider.getReserveConfigurationData(weth.address);
 
     expect(borrowingEnabled).to.be.equal(true);
     expect(isActive).to.be.equal(true);
@@ -77,11 +77,11 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
   });
 
   it("Unfreezes the ETH reserve", async () => {
-    const { configurator, helpersContract, weth } = testEnv;
+    const { configurator, dataProvider, weth } = testEnv;
     await configurator.unfreezeReserve(weth.address);
 
     const { decimals, reserveFactor, borrowingEnabled, isActive, isFrozen } =
-      await helpersContract.getReserveConfigurationData(weth.address);
+      await dataProvider.getReserveConfigurationData(weth.address);
 
     expect(borrowingEnabled).to.be.equal(true);
     expect(isActive).to.be.equal(true);
@@ -107,10 +107,10 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
   });
 
   it("Deactivates the ETH reserve for borrowing", async () => {
-    const { configurator, helpersContract, weth } = testEnv;
+    const { configurator, dataProvider, weth } = testEnv;
     await configurator.disableBorrowingOnReserve(weth.address);
     const { decimals, reserveFactor, borrowingEnabled, isActive, isFrozen } =
-      await helpersContract.getReserveConfigurationData(weth.address);
+      await dataProvider.getReserveConfigurationData(weth.address);
 
     expect(borrowingEnabled).to.be.equal(false);
     expect(isActive).to.be.equal(true);
@@ -120,14 +120,14 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
   });
 
   it("Activates the ETH reserve for borrowing", async () => {
-    const { configurator, weth, helpersContract } = testEnv;
+    const { configurator, weth, dataProvider } = testEnv;
     await configurator.enableBorrowingOnReserve(weth.address);
-    const { variableBorrowIndex } = await helpersContract.getReserveData(
+    const { variableBorrowIndex } = await dataProvider.getReserveData(
       weth.address
     );
 
     const { decimals, reserveFactor, borrowingEnabled, isActive, isFrozen } =
-      await helpersContract.getReserveConfigurationData(weth.address);
+      await dataProvider.getReserveConfigurationData(weth.address);
 
     expect(borrowingEnabled).to.be.equal(true);
     expect(isActive).to.be.equal(true);
@@ -159,10 +159,10 @@ makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
   });
 
   it("Changes the reserve factor of WETH", async () => {
-    const { configurator, helpersContract, weth } = testEnv;
+    const { configurator, dataProvider, weth } = testEnv;
     await configurator.setReserveFactor(weth.address, "1000");
     const { decimals, reserveFactor, borrowingEnabled, isActive, isFrozen } =
-      await helpersContract.getReserveConfigurationData(weth.address);
+      await dataProvider.getReserveConfigurationData(weth.address);
 
     expect(borrowingEnabled).to.be.equal(true);
     expect(isActive).to.be.equal(true);

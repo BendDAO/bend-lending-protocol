@@ -28,7 +28,7 @@ import {
   MintableERC721Factory,
   BTokenFactory,
   BNFTFactory,
-  BNFTFactoryFactory,
+  BNFTRegistryFactory,
   InterestRateFactory,
   LendPoolConfiguratorFactory,
   LendPoolFactory,
@@ -110,20 +110,20 @@ export const deployLendPoolLoan = async (verify?: boolean) => {
   );
 };
 
-export const deployBNFTFactory = async (
+export const deployBNFTRegistry = async (
   args: [string, string],
   verify?: boolean
 ) => {
-  const bnftFactoryImpl = await new BNFTFactoryFactory(
+  const bnftRegistryImpl = await new BNFTRegistryFactory(
     await getFirstSigner()
   ).deploy(...args);
   await insertContractAddressInDb(
-    eContractid.BNFTFactoryImpl,
-    bnftFactoryImpl.address
+    eContractid.BNFTRegistryImpl,
+    bnftRegistryImpl.address
   );
   return withSaveAndVerify(
-    bnftFactoryImpl,
-    eContractid.BNFTFactory,
+    bnftRegistryImpl,
+    eContractid.BNFTRegistry,
     [],
     verify
   );

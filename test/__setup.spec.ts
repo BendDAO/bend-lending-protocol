@@ -25,7 +25,7 @@ import {
   deployWETHGateway,
   deployWETHMocked,
   authorizeWETHGateway,
-  deployBNFTFactory,
+  deployBNFTRegistry,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import {
@@ -66,7 +66,7 @@ import {
   getLendPool,
   getLendPoolConfiguratorProxy,
   getLendPoolLoanProxy,
-  getBNFTFactoryProxy,
+  getBNFTRegistryProxy,
   getPairsTokenAggregator,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
@@ -182,25 +182,25 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(await addressesProvider.setEmergencyAdmin(addressList[2]));
 
   //////////////////////////////////////////////////////////////////////////////
-  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTFactory from address provider when init
-  console.log("-> Prepare bnft factory...");
-  const bnftFactoryImpl = await deployBNFTFactory([
+  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
+  console.log("-> Prepare bnft registry...");
+  const bnftRegistryImpl = await deployBNFTRegistry([
     config.BNftNamePrefix,
     config.BNftSymbolPrefix,
   ]);
   await waitForTx(
-    await bnftFactoryImpl.transferOwnership(await deployer.getAddress())
+    await bnftRegistryImpl.transferOwnership(await deployer.getAddress())
   );
   await waitForTx(
-    await addressesProvider.setBNFTFactory(await bnftFactoryImpl.address)
+    await addressesProvider.setBNFTRegistry(await bnftRegistryImpl.address)
   );
   /* no need proxy, just use implement is enough
-  const bnftFactoryProxy = await getBNFTFactoryProxy(
-    await addressesProvider.getBNFTFactory()
+  const bnftRegistryProxy = await getBNFTRegistryProxy(
+    await addressesProvider.getBNFTRegistry()
   );
   await insertContractAddressInDb(
-    eContractid.BNFTFactory,
-    bnftFactoryProxy.address
+    eContractid.BNFTRegistry,
+    bnftRegistryProxy.address
   );
   */
 

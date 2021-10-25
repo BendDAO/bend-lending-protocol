@@ -13,6 +13,7 @@ import {
   getNFTOracle,
   getWETHMocked,
   getWETHGateway,
+  getBNFTRegistryProxy,
 } from "../../helpers/contracts-getters";
 import {
   eEthereumNetwork,
@@ -41,6 +42,7 @@ import { WETHGateway } from "../../types/WETHGateway";
 import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { BNFTRegistry } from "../../types";
 
 chai.use(bignumberChai());
 chai.use(almostEqual());
@@ -53,11 +55,12 @@ export interface SignerWithAddress {
 export interface TestEnv {
   deployer: SignerWithAddress;
   users: SignerWithAddress[];
+  bnftRegistry: BNFTRegistry;
   pool: LendPool;
   configurator: LendPoolConfigurator;
   reserveOracle: ReserveOracle;
   nftOracle: NFTOracle;
-  helpersContract: BendProtocolDataProvider;
+  dataProvider: BendProtocolDataProvider;
   weth: WETH9Mocked;
   bWETH: BToken;
   dai: MintableERC20;
@@ -79,9 +82,10 @@ const setBuidlerevmSnapshotId = (id: string) => {
 const testEnv: TestEnv = {
   deployer: {} as SignerWithAddress,
   users: [] as SignerWithAddress[],
+  bnftRegistry: {} as BNFTRegistry,
   pool: {} as LendPool,
   configurator: {} as LendPoolConfigurator,
-  helpersContract: {} as BendProtocolDataProvider,
+  dataProvider: {} as BendProtocolDataProvider,
   reserveOracle: {} as ReserveOracle,
   nftOracle: {} as NFTOracle,
   weth: {} as WETH9Mocked,
@@ -111,6 +115,9 @@ export async function initializeMakeSuite() {
     });
   }
   testEnv.deployer = deployer;
+
+  testEnv.bnftRegistry = await getBNFTRegistryProxy();
+
   testEnv.pool = await getLendPool();
 
   testEnv.configurator = await getLendPoolConfiguratorProxy();
@@ -120,10 +127,10 @@ export async function initializeMakeSuite() {
   testEnv.reserveOracle = await getReserveOracle();
   testEnv.nftOracle = await getNFTOracle();
 
-  testEnv.helpersContract = await getBendProtocolDataProvider();
+  testEnv.dataProvider = await getBendProtocolDataProvider();
 
   // Reserve Tokens
-  const allTokens = await testEnv.helpersContract.getAllBTokens();
+  const allTokens = await testEnv.dataProvider.getAllBTokens();
   const bDaiAddress = allTokens.find(
     (bToken) => bToken.symbol === "bDAI"
   )?.tokenAddress;
@@ -132,7 +139,7 @@ export async function initializeMakeSuite() {
     (bToken) => bToken.symbol === "bWETH"
   )?.tokenAddress;
 
-  const reservesTokens = await testEnv.helpersContract.getAllReservesTokens();
+  const reservesTokens = await testEnv.dataProvider.getAllReservesTokens();
 
   const daiAddress = reservesTokens.find(
     (token) => token.symbol === "DAI"
@@ -158,7 +165,7 @@ export async function initializeMakeSuite() {
   //testEnv.wethGateway = await getWETHGateway();
 
   // NFT Tokens
-  const allBNftTokens = await testEnv.helpersContract.getAllBNfts();
+  const allBNftTokens = await testEnv.dataProvider.getAllBNfts();
   //console.log("allBNftTokens", allBNftTokens);
   const bPunkAddress = allBNftTokens.find(
     (bNFT) => bNFT.symbol === "bWPUNKS"
@@ -168,7 +175,7 @@ export async function initializeMakeSuite() {
     (bNFT) => bNFT.symbol === "bBAYC"
   )?.nftAddress;
 
-  const nftsTokens = await testEnv.helpersContract.getAllNftsTokens();
+  const nftsTokens = await testEnv.dataProvider.getAllNftsTokens();
   //console.log("nftsTokens", nftsTokens);
   const wpunksAddress = nftsTokens.find(
     (token) => token.symbol === "WPUNKS"

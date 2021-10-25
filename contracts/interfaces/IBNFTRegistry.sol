@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-interface IBNFTFactory {
+interface IBNFTRegistry {
     event BNFTCreated(
         address indexed nftAsset,
         address bNftImpl,
@@ -54,11 +54,11 @@ interface IBNFTFactory {
      * @dev Update bNFT proxy to an new deployed implement, then initialize it
      * @param nftAsset The address of the underlying asset of the BNFT
      * @param bNftImpl The address of the deployed implement of the BNFT
-     * @param params The additional parameters for the initialize
+     * @param data The encoded function call.
      **/
     function upgradeBNFTWithImpl(
         address nftAsset,
         address bNftImpl,
-        bytes memory params
+        bytes memory data
     ) external;
 }
