@@ -18,7 +18,7 @@ describe("ReserveOralce", () => {
         await reserveOracle.initialize(stringToBytes32("ETH"));
 
         cm = await ethers.getContractFactory("ChainlinkMock");
-        chainLinkMock = await cm.deploy();
+        chainLinkMock = await cm.deploy(8);
         await chainLinkMock.deployed();
     });
 

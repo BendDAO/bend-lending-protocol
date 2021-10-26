@@ -9,9 +9,14 @@ contract ChainlinkMock is AggregatorV3Interface {
     uint256[] decimalsArray;
     uint256[] timestampArray;
     uint80[] versionArray;
+    uint8 _decimals;
 
-    function decimals() external pure override returns (uint8) {
-        return 8;
+    constructor(uint8 decimals_) {
+        _decimals = decimals_;
+    }
+
+    function decimals() external view override returns (uint8) {
+        return _decimals;
     }
 
     function description() external pure override returns (string memory) {

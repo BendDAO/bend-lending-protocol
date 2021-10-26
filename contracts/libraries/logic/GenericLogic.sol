@@ -96,6 +96,7 @@ library GenericLogic {
     function calculateLoanData(
         address reserveAddress,
         DataTypes.ReserveData storage reserveData,
+        address nftAddress,
         DataTypes.NftData storage nftData,
         address loanAddress,
         uint256 loanId,
@@ -114,9 +115,6 @@ library GenericLogic {
     {
         CalculateLoanDataVars memory vars;
 
-        (vars.nftAsset, vars.nftTokenId) = ILendPoolLoan(loanAddress)
-            .getLoanCollateral(loanId);
-
         (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData
             .configuration
             .getParams();
@@ -125,20 +123,25 @@ library GenericLogic {
             .configuration
             .getParams();
 
+        // calculate total borrow balance for the loan
         vars.tokenUnit = 10**vars.decimals;
         vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle)
             .getAssetPrice(reserveAddress);
-        vars.compoundedBorrowBalance = ILendPoolLoan(loanAddress)
-            .getLoanReserveBorrowAmount(loanId);
-        vars.totalDebtInETH =
-            (vars.reserveUnitPrice * vars.compoundedBorrowBalance) /
-            vars.tokenUnit;
+        if (loanId != 0) {
+            vars.compoundedBorrowBalance = ILendPoolLoan(loanAddress)
+                .getLoanReserveBorrowAmount(loanId);
+            vars.totalDebtInETH =
+                (vars.reserveUnitPrice * vars.compoundedBorrowBalance) /
+                vars.tokenUnit;
+        }
 
+        // calculate total collateral balance for the nft
         vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPrice(
-            vars.nftAsset
+            nftAddress
         );
         vars.totalCollateralInETH = vars.nftUnitPrice;
 
+        // calculate health by borrow and collateral
         vars.healthFactor = calculateHealthFactorFromBalances(
             vars.totalCollateralInETH,
             vars.totalDebtInETH,

@@ -25,6 +25,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     bytes32 private constant EMERGENCY_ADMIN = "EMERGENCY_ADMIN";
     bytes32 private constant RESERVE_ORACLE = "RESERVE_ORACLE";
     bytes32 private constant NFT_ORACLE = "NFT_ORACLE";
+    bytes32 private constant BEND_ORACLE = "BEND_ORACLE";
     bytes32 private constant NFT_LOAN = "NFT_LOAN";
     bytes32 private constant BNFT_FACTORY = "BNFT_FACTORY";
 
@@ -159,6 +160,15 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     {
         _addresses[EMERGENCY_ADMIN] = emergencyAdmin;
         emit EmergencyAdminUpdated(emergencyAdmin);
+    }
+
+    function getBendOracle() external view override returns (address) {
+        return getAddress(BEND_ORACLE);
+    }
+
+    function setBendOracle(address bendOracle) external override onlyOwner {
+        _addresses[BEND_ORACLE] = bendOracle;
+        emit BendOracleUpdated(bendOracle);
     }
 
     function getReserveOracle() external view override returns (address) {

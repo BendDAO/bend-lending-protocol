@@ -116,6 +116,10 @@ library Errors {
     string public constant LP_INVALIED_USER_NFT_AMOUNT = "88";
 
     string public constant LPC_INVALIED_BNFT_ADDRESS = "101";
+    string public constant LPC_INVALIED_LOAN_ADDRESS = "102";
+    string public constant LPL_NFT_IS_NOT_USED_AS_COLLATERAL = "103";
+    string public constant LPL_NFT_IS_ALREADY_USED_AS_COLLATERAL = "104";
+    string public constant LPL_LOAN_IS_NOT_EXIST = "105";
 
     enum CollateralManagerErrors {
         NO_ERROR,

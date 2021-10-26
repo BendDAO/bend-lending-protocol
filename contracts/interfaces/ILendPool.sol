@@ -44,7 +44,6 @@ interface ILendPool {
      * @param amount The amount borrowed out
      * @param nftAsset The address of the underlying NFT used as collateral
      * @param nftTokenId The token id of the underlying NFT used as collateral
-     * @param loanId The loan ID of the NFT loans
      * @param referral The referral code used
      **/
     event Borrow(
@@ -54,8 +53,8 @@ interface ILendPool {
         uint256 amount,
         address nftAsset,
         uint256 nftTokenId,
-        uint256 loanId,
         uint256 borrowRate,
+        uint256 loanId,
         uint16 indexed referral
     );
 
@@ -68,11 +67,13 @@ interface ILendPool {
      * @param amount The amount repaid
      **/
     event Repay(
-        uint256 indexed loanId,
+        address indexed nftAsset,
+        uint256 nftTokenId,
         address indexed reserve,
         address indexed user,
         address repayer,
-        uint256 amount
+        uint256 amount,
+        uint256 loanId
     );
 
     /**
@@ -87,12 +88,14 @@ interface ILendPool {
      * @param liquidator The address of the liquidator
      **/
     event Liquidate(
-        uint256 indexed loanId,
+        address indexed nftAsset,
+        uint256 nftTokenId,
         address indexed user,
         address indexed reserve,
         uint256 repayAmount,
         uint256 borrowerAmount,
-        address liquidator
+        address liquidator,
+        uint256 loanId
     );
 
     /**
@@ -168,7 +171,6 @@ interface ILendPool {
      * @param amount The amount to be borrowed
      * @param nftAsset The address of the underlying NFT used as collateral
      * @param nftTokenId The token ID of the underlying NFT used as collateral
-     * @param loanId The loan ID of the NFT loans
      * @param onBehalfOf Address of the user who will receive the loan. Should be the address of the borrower itself
      * calling the function if he wants to borrow against his own collateral, or the address of the credit delegator
      * if he has been given credit delegation allowance
@@ -180,7 +182,6 @@ interface ILendPool {
         uint256 amount,
         address nftAsset,
         uint256 nftTokenId,
-        uint256 loanId,
         address onBehalfOf,
         uint16 referralCode
     ) external;
@@ -188,21 +189,25 @@ interface ILendPool {
     /**
      * @notice Repays a borrowed `amount` on a specific reserve, burning the equivalent loan owned
      * - E.g. User repays 100 USDC, burning loan and receives collateral asset
-     * @param loanId The loan ID of the NFT loans
+     * @param nftAsset The address of the underlying NFT used as collateral
+     * @param nftTokenId The token ID of the underlying NFT used as collateral
      * @param amount The amount to repay
      * @return The final amount repaid, loan is burned or not
      **/
-    function repay(uint256 loanId, uint256 amount)
-        external
-        returns (uint256, bool);
+    function repay(
+        address nftAsset,
+        uint256 nftTokenId,
+        uint256 amount
+    ) external returns (uint256, bool);
 
     /**
      * @dev Function to liquidate a non-healthy position collateral-wise
      * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
      *   the collateral asset
-     * @param loanId The loan ID of the NFT loans
+     * @param nftAsset The address of the underlying NFT used as collateral
+     * @param nftTokenId The token ID of the underlying NFT used as collateral
      **/
-    function liquidate(uint256 loanId) external;
+    function liquidate(address nftAsset, uint256 nftTokenId) external;
 
     /**
      * @dev Validates and finalizes an bToken transfer

@@ -12,6 +12,8 @@ import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol"
 import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
+import "hardhat/console.sol";
+
 contract BendProtocolDataProvider {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using NftConfiguration for DataTypes.NftConfigurationMap;
@@ -160,7 +162,7 @@ contract BendProtocolDataProvider {
         return (
             IERC20Detailed(asset).balanceOf(reserve.bTokenAddress),
             ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan())
-                .getReserveBorrowScaledAmount(asset),
+                .getReserveBorrowAmount(asset),
             reserve.currentLiquidityRate,
             reserve.currentVariableBorrowRate,
             reserve.liquidityIndex,
@@ -204,5 +206,71 @@ contract BendProtocolDataProvider {
         ).getReserveData(asset);
 
         return (reserve.bTokenAddress);
+    }
+
+    function getNftTokensAddresses(address asset)
+        external
+        view
+        returns (address bNftAddress)
+    {
+        DataTypes.NftData memory reserve = ILendPool(
+            ADDRESSES_PROVIDER.getLendPool()
+        ).getNftData(asset);
+
+        return (reserve.bNftAddress);
+    }
+
+    struct LoanData {
+        uint256 loanId;
+        uint8 state;
+        address borrower;
+        address nftAsset;
+        uint256 nftTokenId;
+        address reserveAsset;
+        uint256 scaledAmount;
+        uint256 currentAmount;
+    }
+
+    function getLoanDataByCollateral(address nftAsset, uint256 nftTokenId)
+        external
+        view
+        returns (LoanData memory loanData)
+    {
+        loanData.loanId = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan())
+            .getCollateralLoanId(nftAsset, nftTokenId);
+        if (loanData.loanId != 0) {
+            DataTypes.LoanData memory data = ILendPoolLoan(
+                ADDRESSES_PROVIDER.getLendPoolLoan()
+            ).getLoan(loanData.loanId);
+            loanData.state = uint8(data.state);
+            loanData.borrower = data.borrower;
+            loanData.nftAsset = data.nftAsset;
+            loanData.nftTokenId = data.nftTokenId;
+            loanData.reserveAsset = data.reserveAsset;
+            loanData.scaledAmount = data.scaledAmount;
+            loanData.currentAmount = ILendPoolLoan(
+                ADDRESSES_PROVIDER.getLendPoolLoan()
+            ).getLoanReserveBorrowAmount(loanData.loanId);
+        }
+    }
+
+    function getLoanDataByLoanId(uint256 loanId)
+        external
+        view
+        returns (LoanData memory loanData)
+    {
+        DataTypes.LoanData memory data = ILendPoolLoan(
+            ADDRESSES_PROVIDER.getLendPoolLoan()
+        ).getLoan(loanId);
+        loanData.loanId = loanId;
+        loanData.state = uint8(data.state);
+        loanData.borrower = data.borrower;
+        loanData.nftAsset = data.nftAsset;
+        loanData.nftTokenId = data.nftTokenId;
+        loanData.reserveAsset = data.reserveAsset;
+        loanData.scaledAmount = data.scaledAmount;
+        loanData.currentAmount = ILendPoolLoan(
+            ADDRESSES_PROVIDER.getLendPoolLoan()
+        ).getLoanReserveBorrowAmount(loanId);
     }
 }

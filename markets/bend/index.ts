@@ -25,7 +25,7 @@ export const BendConfig: IBendConfiguration = {
     WETH: strategyWETH,
     DAI: strategyDAI,
     //BUSD: strategyBUSD,
-    //USDC: strategyUSDC,
+    USDC: strategyUSDC,
     ///USDT: strategyUSDT,
   },
   NftsConfig: {

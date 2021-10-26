@@ -76,11 +76,11 @@ contract ReserveOracle is
         if (_priceFeedKey == weth) {
             return 1 ether;
         }
-        require(isExistedKey(_priceFeedKey), "key not existed");
+        require(isExistedKey(_priceFeedKey), "ReserveOracle: key not existed");
         AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
 
         (, int256 _price, , , ) = aggregator.latestRoundData();
-        require(_price >= 0, "negative answer");
+        require(_price >= 0, "ReserveOracle: negative answer");
         uint8 decimals = aggregator.decimals();
 
         return formatDecimals(uint256(_price), decimals);
@@ -105,18 +105,18 @@ contract ReserveOracle is
         override
         returns (uint256)
     {
-        require(isExistedKey(_priceFeedKey), "key not existed");
-        require(_interval != 0, "interval can't be 0");
+        require(isExistedKey(_priceFeedKey), "ReserveOracle: key not existed");
+        require(_interval != 0, "ReserveOracle: interval can't be 0");
 
         AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
         (uint80 roundId, int256 _price, , uint256 timestamp, ) = aggregator
             .latestRoundData();
-        require(_price >= 0, "negative answer");
+        require(_price >= 0, "ReserveOracle: negative answer");
         uint8 decimals = aggregator.decimals();
 
         uint256 latestPrice = formatDecimals(uint256(_price), decimals);
 
-        require(roundId >= 0, "Not enough history");
+        require(roundId >= 0, "ReserveOracle: Not enough history");
         uint256 latestTimestamp = timestamp;
         uint256 baseTimestamp = block.timestamp - _interval;
         // if latest updated timestamp is earlier than target timestamp, return the latest price.
@@ -138,7 +138,7 @@ contract ReserveOracle is
             // get current round timestamp and price
             (, int256 _priceTemp, , uint256 currentTimestamp, ) = aggregator
                 .getRoundData(roundId);
-            require(_priceTemp >= 0, "negative answer");
+            require(_priceTemp >= 0, "ReserveOracle: negative answer");
 
             uint256 price = formatDecimals(uint256(_priceTemp), decimals);
 
@@ -174,14 +174,14 @@ contract ReserveOracle is
 
     function requireKeyExisted(address _key, bool _existed) private view {
         if (_existed) {
-            require(isExistedKey(_key), "key not existed");
+            require(isExistedKey(_key), "ReserveOracle: key not existed");
         } else {
-            require(!isExistedKey(_key), "key existed");
+            require(!isExistedKey(_key), "ReserveOracle: key existed");
         }
     }
 
     function requireNonEmptyAddress(address _addr) internal pure {
-        require(_addr != address(0), "empty address");
+        require(_addr != address(0), "ReserveOracle: empty address");
     }
 
     function formatDecimals(uint256 _price, uint8 _decimals)

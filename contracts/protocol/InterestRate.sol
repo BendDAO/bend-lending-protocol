@@ -8,6 +8,8 @@ import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title InterestRate contract
  * @notice Implements the calculation of the interest rates depending on the reserve state

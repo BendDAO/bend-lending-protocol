@@ -19,6 +19,8 @@ import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ER
 
 //import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title ValidationLogic library
  * @author NFTLend
@@ -114,17 +116,18 @@ library ValidationLogic {
 
     /**
      * @dev Validates a borrow action
-     * @param asset The address of the asset to borrow
+     * @param reserveAsset The address of the asset to borrow
      * @param amount The amount to be borrowed
      * @param reserve The reserve state from which the user is borrowing
      * @param nftData The state of the user for the specific nft
      */
     function validateBorrow(
         address user,
-        address asset,
+        address reserveAsset,
         uint256 amount,
         uint256 amountInETH,
         DataTypes.ReserveData storage reserve,
+        address nftAsset,
         DataTypes.NftData storage nftData,
         address loanAddress,
         uint256 loanId,
@@ -163,8 +166,9 @@ library ValidationLogic {
             vars.currentLiquidationThreshold,
             vars.healthFactor
         ) = GenericLogic.calculateLoanData(
-            asset,
+            reserveAsset,
             reserve,
+            nftAsset,
             nftData,
             loanAddress,
             loanId,

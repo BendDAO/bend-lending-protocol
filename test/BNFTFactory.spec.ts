@@ -102,12 +102,11 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
 
     const testBNFTImpl = await deployGenericBNFTImpl(false);
 
-    const data = new Uint8Array(0);
     await waitForTx(
       await bnftRegistry.upgradeBNFTWithImpl(
         bayc.address,
         testBNFTImpl.address,
-        data
+        []
       )
     );
 
@@ -123,13 +122,11 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
 
     const testBNFTImpl = await deployGenericBNFTImpl(false);
 
-    const data = new Uint8Array(0);
-
     await expect(
       bnftRegistry.upgradeBNFTWithImpl(
         testNftAsset.address,
         testBNFTImpl.address,
-        data
+        []
       )
     ).to.be.revertedWith("BNFTRegistry: asset nonexist");
   });
