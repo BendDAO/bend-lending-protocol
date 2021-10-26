@@ -33,11 +33,11 @@ export const MOCK_RESERVE_AGGREGATORS_PRICES = {
   WETH: oneEther.toFixed(),
   DAI: oneEther.multipliedBy("0.00369068412860").toFixed(),
   //BUSD: oneEther.multipliedBy('0.00736484').toFixed(),
-  //USDC: oneEther.multipliedBy('0.00367714136416').toFixed(),
+  USDC: oneEther.multipliedBy("0.00367714136416").toFixed(),
   //USDT: oneEther.multipliedBy('0.00369068412860').toFixed(),
 };
 
 export const MOCK_NFT_AGGREGATORS_PRICES = {
-  WPUNKS: oneEther.multipliedBy("0.095").toFixed(),
-  BAYC: oneEther.multipliedBy("0.031").toFixed(),
+  WPUNKS: oneEther.multipliedBy("100").toFixed(),
+  BAYC: oneEther.multipliedBy("30").toFixed(),
 };

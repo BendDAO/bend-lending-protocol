@@ -59,6 +59,8 @@ interface ILendPoolLoan {
         uint256 amount
     );
 
+    function initNft(address nftAsset, address bNftAddress) external;
+
     /**
      * @dev Create store a loan object with some params
      * @param user The address receiving the borrowed bTokens, being the delegatee in case
@@ -130,10 +132,24 @@ interface ILendPoolLoan {
 
     function borrowerOf(uint256 loanId) external view returns (address);
 
+    function getCollateralLoanId(address nftAsset, uint256 nftTokenId)
+        external
+        view
+        returns (uint256);
+
     function getLoan(uint256 loanId)
         external
         view
         returns (DataTypes.LoanData calldata loanData);
+
+    function getLoanCollateralAndReserve(uint256 loanId)
+        external
+        view
+        returns (
+            address nftAsset,
+            uint256 nftTokenId,
+            address reserve
+        );
 
     function getLoanReserve(uint256 loanId) external view returns (address);
 
@@ -153,6 +169,11 @@ interface ILendPoolLoan {
         returns (address, uint256);
 
     function getReserveBorrowScaledAmount(address reserveAsset)
+        external
+        view
+        returns (uint256);
+
+    function getReserveBorrowAmount(address reserve)
         external
         view
         returns (uint256);

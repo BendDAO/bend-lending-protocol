@@ -35,18 +35,18 @@ import {
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
   BTokensAndBNFTsHelperFactory,
-  MockAggregatorFactory,
   MockBTokenFactory,
+  BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
-  MockReserveOracleFactory,
-  NFTOracleFakeFactory,
+  MockBendOracleFactory,
   ReserveLogicFactory,
   //NftLogicFactory,
   SelfdestructTransferFactory,
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
   WETHGatewayFactory,
+  ChainlinkMockFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -250,18 +250,18 @@ export const deployLendPool = async (verify?: boolean) => {
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
 };
 
-export const deployMockReserveOracle = async (verify?: boolean) =>
+export const deployMockBendOracle = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new MockReserveOracleFactory(await getFirstSigner()).deploy(),
-    eContractid.MockReserveOracle,
+    await new MockBendOracleFactory(await getFirstSigner()).deploy(),
+    eContractid.MockBendOracle,
     [],
     verify
   );
 
-export const deployMockNFTOracle = async (verify?: boolean) =>
+export const deployBendOracle = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new NFTOracleFakeFactory(await getFirstSigner()).deploy(),
-    eContractid.MockNFTOracle,
+    await new BendOracleFactory(await getFirstSigner()).deploy(),
+    eContractid.BendOracle,
     [],
     verify
   );
@@ -282,14 +282,11 @@ export const deployNFTOracle = async (verify?: boolean) =>
     verify
   );
 
-export const deployMockReserveAggregator = async (
-  price: tStringTokenSmallUnits,
-  verify?: boolean
-) =>
+export const deployChainlinkMock = async (decimals: string, verify?: boolean) =>
   withSaveAndVerify(
-    await new MockAggregatorFactory(await getFirstSigner()).deploy(price),
-    eContractid.MockReserveAggregator,
-    [price],
+    await new ChainlinkMockFactory(await getFirstSigner()).deploy(decimals),
+    eContractid.ChainlinkMock,
+    [decimals],
     verify
   );
 

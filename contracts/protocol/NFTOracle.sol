@@ -13,7 +13,7 @@ contract NFTOracle is
     BlockContext
 {
     modifier onlyAdmin() {
-        require(_msgSender() == priceFeedAdmin, "!admin");
+        require(_msgSender() == priceFeedAdmin, "NFTOracle: !admin");
         _;
     }
 
@@ -79,7 +79,7 @@ contract NFTOracle is
         requireKeyExisted(_nftContract, true);
         require(
             _timestamp > getLatestTimestamp(_nftContract),
-            "incorrect timestamp"
+            "NFTOracle: incorrect timestamp"
         );
 
         NFTPriceData memory data = NFTPriceData({
@@ -98,9 +98,9 @@ contract NFTOracle is
         override
         returns (uint256)
     {
-        require(isExistedKey(_nftContract), "key not existed");
+        require(isExistedKey(_nftContract), "NFTOracle: key not existed");
         uint256 len = getPriceFeedLength(_nftContract);
-        require(len > 0, "no price data");
+        require(len > 0, "NFTOracle: no price data");
         return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
     }
 
@@ -110,7 +110,7 @@ contract NFTOracle is
         override
         returns (uint256)
     {
-        require(isExistedKey(_nftContract), "key not existed");
+        require(isExistedKey(_nftContract), "NFTOracle: key not existed");
         uint256 len = getPriceFeedLength(_nftContract);
         if (len == 0) {
             return 0;
@@ -124,11 +124,11 @@ contract NFTOracle is
         override
         returns (uint256)
     {
-        require(isExistedKey(_nftContract), "key not existed");
-        require(_interval != 0, "interval can't be 0");
+        require(isExistedKey(_nftContract), "NFTOracle: key not existed");
+        require(_interval != 0, "NFTOracle: interval can't be 0");
 
         uint256 len = getPriceFeedLength(_nftContract);
-        require(len > 0, "Not enough history");
+        require(len > 0, "NFTOracle: Not enough history");
         uint256 round = len - 1;
         NFTPriceData memory priceRecord = nftPriceFeedMap[_nftContract]
             .nftPriceData[round];
@@ -181,10 +181,13 @@ contract NFTOracle is
         override
         returns (uint256)
     {
-        require(isExistedKey(_nftContract), "key not existed");
+        require(isExistedKey(_nftContract), "NFTOracle: key not existed");
 
         uint256 len = getPriceFeedLength(_nftContract);
-        require(len > 0 && _numOfRoundBack < len, "Not enough history");
+        require(
+            len > 0 && _numOfRoundBack < len,
+            "NFTOracle: Not enough history"
+        );
         return
             nftPriceFeedMap[_nftContract]
                 .nftPriceData[len - _numOfRoundBack - 1]
@@ -197,10 +200,13 @@ contract NFTOracle is
         override
         returns (uint256)
     {
-        require(isExistedKey(_nftContract), "key not existed");
+        require(isExistedKey(_nftContract), "NFTOracle: key not existed");
 
         uint256 len = getPriceFeedLength(_nftContract);
-        require(len > 0 && _numOfRoundBack < len, "Not enough history");
+        require(
+            len > 0 && _numOfRoundBack < len,
+            "NFTOracle: Not enough history"
+        );
         return
             nftPriceFeedMap[_nftContract]
                 .nftPriceData[len - _numOfRoundBack - 1]
@@ -233,9 +239,9 @@ contract NFTOracle is
 
     function requireKeyExisted(address _key, bool _existed) private view {
         if (_existed) {
-            require(isExistedKey(_key), "key not existed");
+            require(isExistedKey(_key), "NFTOracle: key not existed");
         } else {
-            require(!isExistedKey(_key), "key existed");
+            require(!isExistedKey(_key), "NFTOracle: key existed");
         }
     }
 }

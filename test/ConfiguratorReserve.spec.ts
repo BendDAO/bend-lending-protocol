@@ -6,7 +6,7 @@ import { strategyWETH } from "../markets/bend/reservesConfigs";
 
 const { expect } = require("chai");
 
-makeSuite("LendingPoolConfigurator-Reserve", (testEnv: TestEnv) => {
+makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
   const {
     CALLER_NOT_POOL_ADMIN,
     LPC_RESERVE_LIQUIDITY_NOT_0,

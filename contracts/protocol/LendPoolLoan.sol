@@ -14,6 +14,8 @@ import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cou
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
+import "hardhat/console.sol";
+
 contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     using WadRayMath for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -23,6 +25,9 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
     CountersUpgradeable.Counter private _loanIdTracker;
     mapping(uint256 => DataTypes.LoanData) private _loans;
+
+    // nftAsset + nftTokenId => loanId
+    mapping(address => mapping(uint256 => uint256)) private _nftToLoanIds;
 
     // scaled total borrow amount. Expressed in ray
     mapping(address => uint256) _reserveBorrowScaledAmount;
@@ -57,6 +62,14 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         _loanIdTracker.increment();
     }
 
+    function initNft(address nftAsset, address bNftAddress)
+        external
+        override
+        onlyLendPool
+    {
+        IERC721Upgradeable(nftAsset).setApprovalForAll(bNftAddress, true);
+    }
+
     /**
      * @inheritdoc ILendPoolLoan
      */
@@ -75,12 +88,22 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         uint256 loanId = _loanIdTracker.current();
         _loanIdTracker.increment();
 
+        _nftToLoanIds[nftAsset][nftTokenId] = loanId;
+
         // transfer underlying NFT asset to pool and mint bNFT to onBehalfOf
+        require(
+            IERC721Upgradeable(nftAsset).isApprovedForAll(
+                _msgSender(),
+                address(this)
+            ),
+            "222"
+        );
         IERC721Upgradeable(nftAsset).transferFrom(
             _msgSender(),
             address(this),
             nftTokenId
         );
+
         IBNFT(bNftAddress).mint(onBehalfOf, nftTokenId);
 
         // Save Info
@@ -141,10 +164,10 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
             loan.scaledAmount += amountScaled;
 
-            _reserveBorrowScaledAmount[loan.reserveAsset] += loan.scaledAmount;
+            _reserveBorrowScaledAmount[loan.reserveAsset] += amountScaled;
             _userReserveBorrowScaledAmounts[loan.borrower][
                 loan.reserveAsset
-            ] += loan.scaledAmount;
+            ] += amountScaled;
         }
 
         if (amountTaken > 0) {
@@ -158,21 +181,20 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
             loan.scaledAmount -= amountScaled;
 
             require(
-                _reserveBorrowScaledAmount[loan.reserveAsset] >=
-                    loan.scaledAmount,
+                _reserveBorrowScaledAmount[loan.reserveAsset] >= amountScaled,
                 Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
             );
-            _reserveBorrowScaledAmount[loan.reserveAsset] -= loan.scaledAmount;
+            _reserveBorrowScaledAmount[loan.reserveAsset] -= amountScaled;
 
             require(
                 _userReserveBorrowScaledAmounts[loan.borrower][
                     loan.reserveAsset
-                ] >= loan.scaledAmount,
+                ] >= amountScaled,
                 Errors.LP_INVALIED_USER_SCALED_AMOUNT
             );
             _userReserveBorrowScaledAmounts[loan.borrower][
                 loan.reserveAsset
-            ] -= loan.scaledAmount;
+            ] -= amountScaled;
         }
 
         emit LoanUpdated(
@@ -216,6 +238,15 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         return _loans[loanId].borrower;
     }
 
+    function getCollateralLoanId(address nftAsset, uint256 nftTokenId)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return _nftToLoanIds[nftAsset][nftTokenId];
+    }
+
     function getLoan(uint256 loanId)
         external
         view
@@ -223,6 +254,23 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         returns (DataTypes.LoanData memory loanData)
     {
         return _loans[loanId];
+    }
+
+    function getLoanCollateralAndReserve(uint256 loanId)
+        external
+        view
+        override
+        returns (
+            address nftAsset,
+            uint256 nftTokenId,
+            address reserve
+        )
+    {
+        return (
+            _loans[loanId].nftAsset,
+            _loans[loanId].nftTokenId,
+            _loans[loanId].reserveAsset
+        );
     }
 
     function getLoanReserve(uint256 loanId)
@@ -278,6 +326,23 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         returns (uint256)
     {
         return _reserveBorrowScaledAmount[reserve];
+    }
+
+    function getReserveBorrowAmount(address reserve)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        uint256 scaledAmount = _reserveBorrowScaledAmount[reserve];
+        if (scaledAmount == 0) {
+            return 0;
+        }
+
+        return
+            scaledAmount.rayMul(
+                _pool.getReserveNormalizedVariableDebt(reserve)
+            );
     }
 
     function getUserReserveBorrowScaledAmount(address user, address reserve)
@@ -339,6 +404,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
         } else {
             _loans[loanId].state = DataTypes.LoanState.Defaulted;
         }
+
+        _nftToLoanIds[loan.nftAsset][loan.nftTokenId] = 0;
 
         // Ensure scaled amount is valid
         require(

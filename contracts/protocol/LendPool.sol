@@ -26,6 +26,8 @@ import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC7
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
+import "hardhat/console.sol";
+
 /**
  * @title LendPool contract
  * @dev Main point of interaction with an NFTLend protocol's market
@@ -213,7 +215,6 @@ contract LendPool is
         uint256 amount,
         address nftAsset,
         uint256 nftTokenId,
-        uint256 loanId,
         address onBehalfOf,
         uint16 referralCode
     ) external override whenNotPaused {
@@ -230,7 +231,6 @@ contract LendPool is
                 nftAsset,
                 nftTokenId,
                 nftData.bNftAddress,
-                loanId,
                 referralCode,
                 true
             )
@@ -244,6 +244,7 @@ contract LendPool is
         address asset;
         address nftAsset;
         uint256 nftTokenId;
+        uint256 loanId;
         bool isUpdate;
         uint256 variableDebt;
         uint256 paybackAmount;
@@ -252,31 +253,38 @@ contract LendPool is
     /**
      * @notice Repays a borrowed `amount` on a specific reserve, burning the equivalent loan owned
      * - E.g. User repays 100 USDC, burning loan and receives collateral asset
-     * @param loanId The loan ID of the NFT loans
+     * @param nftAsset The address of the underlying NFT used as collateral
+     * @param nftTokenId The token ID of the underlying NFT used as collateral
      * @param amount The amount to repay
      * @return The final amount repaid, loan is burned or not
      **/
-    function repay(uint256 loanId, uint256 amount)
-        external
-        override
-        whenNotPaused
-        returns (uint256, bool)
-    {
+    function repay(
+        address nftAsset,
+        uint256 nftTokenId,
+        uint256 amount
+    ) external override whenNotPaused returns (uint256, bool) {
         RepayLocalVars memory vars;
 
         address loanAddress = _addressesProvider.getLendPoolLoan();
 
+        vars.nftAsset = nftAsset;
+        vars.nftTokenId = nftTokenId;
+
+        vars.loanId = ILendPoolLoan(loanAddress).getCollateralLoanId(
+            nftAsset,
+            nftTokenId
+        );
+        require(vars.loanId != 0, Errors.LPL_NFT_IS_NOT_USED_AS_COLLATERAL);
+
         vars.repayer = _msgSender();
-        vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(loanId);
-        (vars.nftAsset, vars.nftTokenId) = ILendPoolLoan(loanAddress)
-            .getLoanCollateral(loanId);
-        vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(loanId);
+        vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(vars.loanId);
+        vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(vars.loanId);
 
         DataTypes.ReserveData storage reserve = _reserves[vars.asset];
         DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
 
         vars.variableDebt = ILendPoolLoan(loanAddress)
-            .getLoanReserveBorrowAmount(loanId);
+            .getLoanReserveBorrowAmount(vars.loanId);
 
         ValidationLogic.validateRepay(
             vars.repayer,
@@ -298,7 +306,7 @@ contract LendPool is
         if (vars.isUpdate) {
             ILendPoolLoan(loanAddress).updateLoan(
                 vars.borrower,
-                loanId,
+                vars.loanId,
                 0,
                 amount,
                 reserve.variableBorrowIndex
@@ -306,7 +314,7 @@ contract LendPool is
         } else {
             ILendPoolLoan(loanAddress).repayLoan(
                 vars.borrower,
-                loanId,
+                vars.loanId,
                 nftData.bNftAddress
             );
         }
@@ -347,11 +355,13 @@ contract LendPool is
         );
 
         emit Repay(
-            loanId,
+            vars.nftAsset,
+            vars.nftTokenId,
             vars.asset,
             vars.borrower,
             vars.repayer,
-            vars.paybackAmount
+            vars.paybackAmount,
+            vars.loanId
         );
 
         return (vars.paybackAmount, !vars.isUpdate);
@@ -363,6 +373,7 @@ contract LendPool is
         address borrower;
         address nftAsset;
         uint256 nftTokenId;
+        uint256 loanId;
         uint256 ltv;
         uint256 liquidationThreshold;
         uint256 liquidationBonus;
@@ -375,25 +386,38 @@ contract LendPool is
      * @dev Function to liquidate a non-healthy position collateral-wise
      * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
      *   the collateral asset
-     * @param loanId The loan ID of the NFT loans
+     * @param nftAsset The address of the underlying NFT used as collateral
+     * @param nftTokenId The token ID of the underlying NFT used as collateral
      **/
-    function liquidate(uint256 loanId) external override whenNotPaused {
+    function liquidate(address nftAsset, uint256 nftTokenId)
+        external
+        override
+        whenNotPaused
+    {
         LiquidationCallLocalVars memory vars;
         vars.user = _msgSender();
 
         address loanAddress = _addressesProvider.getLendPoolLoan();
-        vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(loanId);
 
-        (vars.nftAsset, vars.nftTokenId) = ILendPoolLoan(loanAddress)
-            .getLoanCollateral(loanId);
+        vars.nftAsset = nftAsset;
+        vars.nftTokenId = nftTokenId;
+
+        vars.loanId = ILendPoolLoan(loanAddress).getCollateralLoanId(
+            nftAsset,
+            nftTokenId
+        );
+        require(vars.loanId != 0, Errors.LPL_NFT_IS_NOT_USED_AS_COLLATERAL);
+
+        vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(vars.loanId);
+
         vars.paybackAmount = ILendPoolLoan(loanAddress)
-            .getLoanReserveBorrowAmount(loanId);
+            .getLoanReserveBorrowAmount(vars.loanId);
 
         DataTypes.ReserveData storage reserve = _reserves[vars.asset];
         DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
 
         //vars.borrower = IERC721Upgradeable(nftData.bNftAddress).ownerOf(vars.nftTokenId);
-        vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(loanId);
+        vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(vars.loanId);
 
         (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData
             .configuration
@@ -429,7 +453,7 @@ contract LendPool is
 
         ILendPoolLoan(loanAddress).liquidateLoan(
             vars.user,
-            loanId,
+            vars.loanId,
             nftData.bNftAddress
         );
 
@@ -476,12 +500,14 @@ contract LendPool is
         }
 
         emit Liquidate(
-            loanId,
+            vars.nftAsset,
+            vars.nftTokenId,
             vars.borrower,
             vars.asset,
             vars.paybackAmount,
             vars.remainAmount,
-            vars.user
+            vars.user,
+            vars.loanId
         );
     }
 
@@ -717,6 +743,20 @@ contract LendPool is
         require(AddressUpgradeable.isContract(asset), Errors.LP_NOT_CONTRACT);
         _nfts[asset].init(bNftAddress);
         _addNftToList(asset);
+
+        require(
+            _addressesProvider.getLendPoolLoan() != address(0),
+            Errors.LPC_INVALIED_LOAN_ADDRESS
+        );
+        IERC721Upgradeable(asset).setApprovalForAll(
+            _addressesProvider.getLendPoolLoan(),
+            true
+        );
+
+        ILendPoolLoan(_addressesProvider.getLendPoolLoan()).initNft(
+            asset,
+            bNftAddress
+        );
     }
 
     /**
@@ -804,7 +844,6 @@ contract LendPool is
         address nftAsset;
         uint256 nftTokenId;
         address bNftAddress;
-        uint256 loanId;
         uint16 referralCode;
         bool releaseUnderlying;
     }
@@ -819,7 +858,7 @@ contract LendPool is
         uint256 thresholdPrice;
         bool isFirstBorrowing;
         bool isFirstPledging;
-        uint256 newLoanId;
+        uint256 loanId;
         address reserveOracle;
         address nftOracle;
         address loanAddress;
@@ -844,15 +883,21 @@ contract LendPool is
             (vars.reservePrice * params.amount) /
             10**reserve.configuration.getDecimals();
 
+        vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(
+            params.nftAsset,
+            params.nftTokenId
+        );
+
         ValidationLogic.validateBorrow(
             params.onBehalfOf,
             params.asset,
             params.amount,
             vars.amountInETH,
             reserve,
+            params.nftAsset,
             nftData,
             vars.loanAddress,
-            params.loanId,
+            vars.loanId,
             vars.reserveOracle,
             vars.nftOracle
         );
@@ -879,8 +924,14 @@ contract LendPool is
             vars.isFirstPledging = true;
         }
 
-        if (params.loanId == 0) {
-            (vars.newLoanId) = ILendPoolLoan(vars.loanAddress).createLoan(
+        if (vars.loanId == 0) {
+            IERC721Upgradeable(params.nftAsset).transferFrom(
+                _msgSender(),
+                address(this),
+                params.nftTokenId
+            );
+
+            vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
                 params.user,
                 params.onBehalfOf,
                 params.nftAsset,
@@ -901,7 +952,7 @@ contract LendPool is
         } else {
             ILendPoolLoan(vars.loanAddress).updateLoan(
                 params.user,
-                params.loanId,
+                vars.loanId,
                 params.amount,
                 0,
                 reserve.variableBorrowIndex
@@ -930,8 +981,8 @@ contract LendPool is
             params.amount,
             params.nftAsset,
             params.nftTokenId,
-            params.loanId == 0 ? vars.newLoanId : params.loanId,
             reserve.currentVariableBorrowRate,
+            vars.loanId,
             params.referralCode
         );
     }

@@ -40,13 +40,12 @@ export enum eContractid {
   GenericLogic = "GenericLogic",
   LendPool = "LendPool",
   LendPoolLoan = "LendPoolLoan",
+  BendOracle = "BendOracle",
+  MockBendOracle = "MockBendOracle",
   ReserveOracle = "ReserveOracle",
-  MockReserveOracle = "MockReserveOracle",
   NFTOracle = "NFTOracle",
-  MockNFTOracle = "MockNFTOracle",
   Proxy = "Proxy",
-  MockReserveAggregator = "MockReserveAggregator",
-  MockNftAggregator = "MockNftAggregator",
+  ChainlinkMock = "ChainlinkMock",
   InterestRate = "InterestRate",
   InitializableAdminUpgradeabilityProxy = "InitializableAdminUpgradeabilityProxy",
   WalletBalanceProvider = "WalletBalanceProvider",
@@ -187,7 +186,7 @@ export interface iAssetBase<T> {
   //BUSD: T;
   WETH: T;
   DAI: T;
-  //USDC: T;
+  USDC: T;
   //USDT: T;
 }
 
@@ -197,9 +196,10 @@ export type iAssetsWithoutUSD<T> = Omit<iAssetBase<T>, "USD">;
 
 export type iBendPoolAssets<T> = Pick<
   iAssetsWithoutUSD<T>,
-  "WETH" | "DAI"
+  | "WETH"
+  | "DAI"
   //| 'BUSD'
-  //| 'USDC'
+  | "USDC"
   //| 'USDT'
 >;
 
@@ -213,7 +213,7 @@ export enum TokenContractId {
   WETH = "WETH",
   DAI = "DAI",
   //BUSD = 'BUSD',
-  //USDC = 'USDC',
+  USDC = "USDC",
   //USDT = 'USDT',
 }
 

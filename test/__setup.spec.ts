@@ -16,8 +16,7 @@ import {
   deployLendPool,
   deployLendPoolLoan,
   deployBTokensAndBNFTsHelper,
-  deployMockReserveOracle,
-  deployMockNFTOracle,
+  deployBendOracle,
   deployReserveOracle,
   deployNFTOracle,
   deployWalletBalancerProvider,
@@ -47,11 +46,12 @@ import {
 import { initializeMakeSuite } from "./helpers/make-suite";
 
 import {
-  setInitialAssetPricesInOracle,
-  setReserveAggregatorsInOracle,
-  setNftAggregatorsInOracle,
-  deployAllMockReserveAggregators,
-  deployAllMockNftAggregators,
+  setAssetContractsInBendOracle,
+  setPricesInChainlinkMockAggregator,
+  setAggregatorsInReserveOracle,
+  addAssetsInNFTOracle,
+  setPricesInNFTOracle,
+  deployAllChainlinkMockAggregators,
 } from "../helpers/oracles-helpers";
 import { DRE, waitForTx } from "../helpers/misc-utils";
 import {
@@ -97,14 +97,14 @@ const deployAllMockTokens = async (deployer: Signer) => {
 
     let configData = (<any>protoConfigData)[tokenSymbol];
 
-    if (!configData) {
-      decimals = 18;
+    if (configData) {
+      decimals = configData.reserveDecimals;
     }
 
     tokens[tokenSymbol] = await deployMintableERC20([
       tokenSymbol,
       tokenSymbol,
-      configData ? configData.reserveDecimals : 18,
+      decimals.toString(),
     ]);
     await registerContractInJsonDb(
       tokenSymbol.toUpperCase(),
@@ -255,27 +255,22 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     addressesProvider.address,
     lendPoolConfiguratorProxy.address,
   ]);
-  /*
-  console.log("-> Prepare mock reservable oracle...");
-  const mockReserveOracle = await deployMockReserveOracle();
-  await setInitialAssetPricesInOracle(
-    ALL_ASSETS_INITIAL_PRICES,
-    {
-      WETH: mockTokens.WETH.address,
-      DAI: mockTokens.DAI.address,
-      //USDC: mockTokens.USDC.address,
-      //USDT: mockTokens.USDT.address,
-      //BUSD: mockTokens.BUSD.address,
-    },
-    mockReserveOracle
+
+  const dataProvider = await deployBendProtocolDataProvider(
+    addressesProvider.address
   );
 
-  // Prepare mock nft oracle
-  const mockNFTOracle = await deployMockNFTOracle();
-*/
   //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare mock ERC20 token chainlink aggregators...");
-  const mockAggregators = await deployAllMockReserveAggregators(
+  console.log("-> Prepare mock reserve token aggregators...");
+  const allTokenDecimals = Object.entries(config.ReservesConfig).reduce(
+    (accum: { [tokenSymbol: string]: string }, [tokenSymbol, tokenConfig]) => ({
+      ...accum,
+      [tokenSymbol]: tokenConfig.reserveDecimals,
+    }),
+    {}
+  );
+  const mockAggregators = await deployAllChainlinkMockAggregators(
+    allTokenDecimals,
     ALL_ASSETS_INITIAL_PRICES
   );
   const allTokenAddresses = Object.entries(mockTokens).reduce(
@@ -312,17 +307,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(
     await addressesProvider.setReserveOracle(reserveOracleImpl.address)
   );
-  await setReserveAggregatorsInOracle(
+  await setAggregatorsInReserveOracle(
     allTokenAddresses,
     allAggregatorsAddresses,
     reserveOracleImpl
   );
 
   //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare mock ERC721 token chainlink aggregators...");
-  const mockNftAggregators = await deployAllMockNftAggregators(
-    ALL_NFTS_INITIAL_PRICES
-  );
+  console.log("-> Prepare mock NFT token aggregators...");
   const allNftAddresses = Object.entries(mockNfts).reduce(
     (
       accum: { [tokenSymbol: string]: tEthereumAddress },
@@ -333,20 +325,12 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     }),
     {}
   );
-  const allNftAggregatorsAddresses = Object.entries(mockNftAggregators).reduce(
-    (
-      accum: { [tokenSymbol: string]: tEthereumAddress },
-      [tokenSymbol, aggregator]
-    ) => ({
+  const allNftPrices = Object.entries(ALL_NFTS_INITIAL_PRICES).reduce(
+    (accum: { [tokenSymbol: string]: string }, [tokenSymbol, tokenPrice]) => ({
       ...accum,
-      [tokenSymbol]: aggregator.address,
+      [tokenSymbol]: tokenPrice,
     }),
     {}
-  );
-  const [nftTokens, nftAggregators] = getPairsTokenAggregator(
-    allNftAddresses,
-    allNftAggregatorsAddresses,
-    config.OracleQuoteCurrency
   );
 
   console.log("-> Prepare nft oracle...");
@@ -355,17 +339,23 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     await nftOracleImpl.initialize(await addressesProvider.getPoolAdmin())
   );
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
-  await setNftAggregatorsInOracle(
+  await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
+  await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare bend oracle...");
+  const bendOracleImpl = await deployBendOracle();
+  await waitForTx(await bendOracleImpl.initialize());
+  await setAssetContractsInBendOracle(
+    allTokenAddresses,
+    reserveOracleImpl.address,
+    bendOracleImpl
+  );
+  await setAssetContractsInBendOracle(
     allNftAddresses,
-    allNftAggregatorsAddresses,
-    nftOracleImpl
+    nftOracleImpl.address,
+    bendOracleImpl
   );
-
-  const testHelpers = await deployBendProtocolDataProvider(
-    addressesProvider.address
-  );
-
-  const admin = await deployer.getAddress();
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare Reserve pool...");
@@ -391,7 +381,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     allReservesAddresses,
     BTokenNamePrefix,
     BTokenSymbolPrefix,
-    admin,
+    bendAdmin,
     treasuryAddress,
     ZERO_ADDRESS,
     ConfigNames.Bend,
@@ -401,8 +391,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await configureReservesByHelper(
     reservesParams,
     allReservesAddresses,
-    testHelpers,
-    admin
+    dataProvider,
+    bendAdmin
   );
 
   //////////////////////////////////////////////////////////////////////////////
@@ -427,12 +417,17 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     allNftsAddresses,
     BNftNamePrefix,
     BNftSymbolPrefix,
-    admin,
+    bendAdmin,
     ConfigNames.Bend,
     false
   );
 
-  await configureNftsByHelper(nftsParams, allNftsAddresses, testHelpers, admin);
+  await configureNftsByHelper(
+    nftsParams,
+    allNftsAddresses,
+    dataProvider,
+    bendAdmin
+  );
 
   //////////////////////////////////////////////////////////////////////////////
   // prepapre wallet

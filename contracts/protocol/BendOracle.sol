@@ -18,8 +18,8 @@ contract BendOracle is IBendOracleGetter, Initializable, OwnableUpgradeable {
         external
         onlyOwner
     {
-        require(_asset != address(0), "asset not existed");
-        require(_oracle != address(0), "oracle not existed");
+        require(_asset != address(0), "BendOracle: asset not existed");
+        require(_oracle != address(0), "BendOracle: oracle not existed");
         assetOracleContract[_asset] = _oracle;
         emit SetAssetOracle(_asset, _oracle);
     }
@@ -31,7 +31,7 @@ contract BendOracle is IBendOracleGetter, Initializable, OwnableUpgradeable {
         returns (uint256)
     {
         address oracle = assetOracleContract[_asset];
-        require(oracle != address(0), "asset not existed");
+        require(oracle != address(0), "BendOracle: asset not existed");
         uint256 price = IBendOracleGetter(oracle).getAssetPrice(_asset);
         return price;
     }

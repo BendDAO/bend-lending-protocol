@@ -14,6 +14,7 @@ import {
   getWETHMocked,
   getWETHGateway,
   getBNFTRegistryProxy,
+  getBendOracle,
 } from "../../helpers/contracts-getters";
 import {
   eEthereumNetwork,
@@ -42,7 +43,7 @@ import { WETHGateway } from "../../types/WETHGateway";
 import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BNFTRegistry } from "../../types";
+import { BendOracle, BNFTRegistry } from "../../types";
 
 chai.use(bignumberChai());
 chai.use(almostEqual());
@@ -60,18 +61,21 @@ export interface TestEnv {
   configurator: LendPoolConfigurator;
   reserveOracle: ReserveOracle;
   nftOracle: NFTOracle;
+  bendOracle: BendOracle;
   dataProvider: BendProtocolDataProvider;
   weth: WETH9Mocked;
   bWETH: BToken;
   dai: MintableERC20;
   bDai: BToken;
   usdc: MintableERC20;
+  bUsdc: BToken;
   //wpunks: WPUNKSMocked;
   bPUNK: BNFT;
   bayc: MintableERC721;
   bBYAC: BNFT;
   addressesProvider: LendPoolAddressesProvider;
   wethGateway: WETHGateway;
+  tokenIdTracker: number;
 }
 
 let buidlerevmSnapshotId: string = "0x1";
@@ -88,10 +92,13 @@ const testEnv: TestEnv = {
   dataProvider: {} as BendProtocolDataProvider,
   reserveOracle: {} as ReserveOracle,
   nftOracle: {} as NFTOracle,
+  bendOracle: {} as BendOracle,
   weth: {} as WETH9Mocked,
   bWETH: {} as BToken,
   dai: {} as MintableERC20,
   bDai: {} as BToken,
+  usdc: {} as MintableERC20,
+  bUsdc: {} as BToken,
   //wpunks: WPUNKSMocked,
   bPUNK: {} as BNFT,
   bayc: {} as MintableERC721,
@@ -99,6 +106,7 @@ const testEnv: TestEnv = {
   addressesProvider: {} as LendPoolAddressesProvider,
   wethGateway: {} as WETHGateway,
   //wpunksGateway: {} as WPUNKSGateway,
+  tokenIdTracker: {} as number,
 } as TestEnv;
 
 export async function initializeMakeSuite() {
@@ -126,6 +134,7 @@ export async function initializeMakeSuite() {
 
   testEnv.reserveOracle = await getReserveOracle();
   testEnv.nftOracle = await getNFTOracle();
+  testEnv.bendOracle = await getBendOracle();
 
   testEnv.dataProvider = await getBendProtocolDataProvider();
 
@@ -134,7 +143,9 @@ export async function initializeMakeSuite() {
   const bDaiAddress = allTokens.find(
     (bToken) => bToken.symbol === "bDAI"
   )?.tokenAddress;
-
+  const bUsdcAddress = allTokens.find(
+    (bToken) => bToken.symbol === "bUSDC"
+  )?.tokenAddress;
   const bWEthAddress = allTokens.find(
     (bToken) => bToken.symbol === "bWETH"
   )?.tokenAddress;
@@ -144,23 +155,33 @@ export async function initializeMakeSuite() {
   const daiAddress = reservesTokens.find(
     (token) => token.symbol === "DAI"
   )?.tokenAddress;
+  const usdcAddress = reservesTokens.find(
+    (token) => token.symbol === "USDC"
+  )?.tokenAddress;
   const wethAddress = reservesTokens.find(
     (token) => token.symbol === "WETH"
   )?.tokenAddress;
 
-  if (!bDaiAddress || !bWEthAddress) {
-    console.error("Invalid BTokens", bDaiAddress, bWEthAddress);
+  if (!bDaiAddress || !bUsdcAddress || !bWEthAddress) {
+    console.error("Invalid BTokens", bDaiAddress, bUsdcAddress, bWEthAddress);
     process.exit(1);
   }
-  if (!daiAddress || !wethAddress) {
-    console.error("Invalid Reserve Tokens", daiAddress, wethAddress);
+  if (!daiAddress || !usdcAddress || !wethAddress) {
+    console.error(
+      "Invalid Reserve Tokens",
+      daiAddress,
+      usdcAddress,
+      wethAddress
+    );
     process.exit(1);
   }
 
   testEnv.bDai = await getBToken(bDaiAddress);
+  testEnv.bUsdc = await getBToken(bUsdcAddress);
   testEnv.bWETH = await getBToken(bWEthAddress);
 
   testEnv.dai = await getMintableERC20(daiAddress);
+  testEnv.usdc = await getMintableERC20(usdcAddress);
   testEnv.weth = await getWETHMocked(wethAddress);
   //testEnv.wethGateway = await getWETHGateway();
 
@@ -199,6 +220,8 @@ export async function initializeMakeSuite() {
   testEnv.bayc = await getMintableERC721(baycAddress);
   //testEnv.wpunks = await getWPUNKSMocked(wpunksAddress);
   //testEnv.wpunksGateway = await getWPUNKSGateway();
+
+  testEnv.tokenIdTracker = 100;
 }
 
 const setSnapshot = async () => {

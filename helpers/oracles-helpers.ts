@@ -10,35 +10,16 @@ import {
 
 import { ReserveOracle } from "../types/ReserveOracle";
 import { NFTOracle } from "../types/NFTOracle";
-import { MockAggregator } from "../types/MockAggregator";
-import { deployMockReserveAggregator } from "./contracts-deployments";
+import { BendOracle } from "../types/BendOracle";
+import { ChainlinkMock } from "../types/ChainlinkMock";
+import { deployChainlinkMock } from "./contracts-deployments";
 import { chunk, waitForTx } from "./misc-utils";
+import { ChainlinkMockFactory } from "../types";
 
-export const setInitialAssetPricesInOracle = async (
-  prices: iAssetBase<tEthereumAddress>,
-  assetsAddresses: iAssetBase<tEthereumAddress>,
-  priceOracleInstance: ReserveOracle
-) => {
-  for (const [assetSymbol, price] of Object.entries(prices) as [
-    string,
-    string
-  ][]) {
-    const assetAddressIndex = Object.keys(assetsAddresses).findIndex(
-      (value) => value === assetSymbol
-    );
-    const [, assetAddress] = (
-      Object.entries(assetsAddresses) as [string, string][]
-    )[assetAddressIndex];
-    await waitForTx(
-      await priceOracleInstance.setAssetPrice(assetAddress, price)
-    );
-  }
-};
-
-export const setAssetPricesInOracle = async (
+export const setPricesInChainlinkMockAggregator = async (
   prices: SymbolMap<string>,
   assetsAddresses: SymbolMap<tEthereumAddress>,
-  priceOracleInstance: ReserveOracle
+  reserveAggregatorInstance: ChainlinkMock
 ) => {
   for (const [assetSymbol, price] of Object.entries(prices) as [
     string,
@@ -50,13 +31,11 @@ export const setAssetPricesInOracle = async (
     const [, assetAddress] = (
       Object.entries(assetsAddresses) as [string, string][]
     )[assetAddressIndex];
-    await waitForTx(
-      await priceOracleInstance.setAssetPrice(assetAddress, price)
-    );
+    await reserveAggregatorInstance.mockAddAnswer("1", price, "1", "1", "1");
   }
 };
 
-export const setReserveAggregatorsInOracle = async (
+export const setAggregatorsInReserveOracle = async (
   allAssetsAddresses: { [tokenSymbol: string]: tEthereumAddress },
   aggregatorsAddresses: { [tokenSymbol: string]: tEthereumAddress },
   priceOracleInstance: ReserveOracle
@@ -76,60 +55,79 @@ export const setReserveAggregatorsInOracle = async (
       32
     );
     //console.log("assetBytes32", assetBytes32);
+    console.log(
+      "setAggregatorsInReserveOracle",
+      assetSymbol,
+      assetAddress,
+      aggAddress
+    );
     await waitForTx(
       await priceOracleInstance.addAggregator(assetAddress, aggAddress)
     );
   }
 };
 
-export const setNftAggregatorsInOracle = async (
+export const addAssetsInNFTOracle = async (
+  assetsAddresses: SymbolMap<tEthereumAddress>,
+  nftOracleInstance: NFTOracle
+) => {
+  for (const [assetSymbol, assetAddress] of Object.entries(assetsAddresses) as [
+    string,
+    tEthereumAddress
+  ][]) {
+    console.log("addAssetsInNFTOracle", assetSymbol, assetAddress);
+    await waitForTx(await nftOracleInstance.addAsset(assetAddress));
+  }
+};
+
+export const setPricesInNFTOracle = async (
+  prices: SymbolMap<string>,
+  assetsAddresses: SymbolMap<tEthereumAddress>,
+  nftOracleInstance: NFTOracle
+) => {
+  for (const [assetSymbol, price] of Object.entries(prices) as [
+    string,
+    string
+  ][]) {
+    const assetAddressIndex = Object.keys(assetsAddresses).findIndex(
+      (value) => value === assetSymbol
+    );
+    const [, assetAddress] = (
+      Object.entries(assetsAddresses) as [string, string][]
+    )[assetAddressIndex];
+    console.log("setPricesInNFTOracle", assetSymbol, assetAddress, price);
+    await waitForTx(
+      await nftOracleInstance.setAssetData(
+        assetAddress,
+        price,
+        "1444004400",
+        "10001"
+      )
+    );
+  }
+};
+
+export const setAssetContractsInBendOracle = async (
   allAssetsAddresses: { [tokenSymbol: string]: tEthereumAddress },
-  aggregatorsAddresses: { [tokenSymbol: string]: tEthereumAddress },
-  priceOracleInstance: NFTOracle
+  oracleContract: tEthereumAddress,
+  bendOracleInstance: BendOracle
 ) => {
   for (const [assetSymbol, assetAddress] of Object.entries(
     allAssetsAddresses
   ) as [string, tEthereumAddress][]) {
-    const aggAddressIndex = Object.keys(aggregatorsAddresses).findIndex(
-      (value) => value === assetSymbol
+    console.log("setAssetContractsInBendOracle", assetSymbol, assetAddress);
+    await waitForTx(
+      await bendOracleInstance.setOracleContract(assetAddress, oracleContract)
     );
-    const [, aggAddress] = (
-      Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][]
-    )[aggAddressIndex];
-    //console.log("assetSymbol", assetSymbol, "assetAddress", assetAddress, "aggAddress", aggAddress);
-    // await waitForTx(
-    //   await priceOracleInstance.addAggregator(assetAddress, aggAddress)
-    // );
   }
 };
 
-export const deployMockReserveAggregators = async (
-  initialPrices: SymbolMap<string>,
-  verify?: boolean
-) => {
-  const aggregators: { [tokenSymbol: string]: MockAggregator } = {};
-  for (const tokenContractName of Object.keys(initialPrices)) {
-    if (tokenContractName !== "ETH") {
-      const priceIndex = Object.keys(initialPrices).findIndex(
-        (value) => value === tokenContractName
-      );
-      const [, price] = (Object.entries(initialPrices) as [string, string][])[
-        priceIndex
-      ];
-      aggregators[tokenContractName] = await deployMockReserveAggregator(
-        price,
-        verify
-      );
-    }
-  }
-  return aggregators;
-};
-
-export const deployAllMockReserveAggregators = async (
+export const deployAllChainlinkMockAggregators = async (
+  allTokenDecimals: { [tokenSymbol: string]: string },
   initialPrices: iAssetAggregatorBase<string>,
   verify?: boolean
 ) => {
-  const aggregators: { [tokenSymbol: string]: MockAggregator } = {};
+  const aggregators: { [tokenSymbol: string]: ChainlinkMock } = {};
   for (const tokenContractName of Object.keys(initialPrices)) {
     if (tokenContractName !== "ETH") {
       const priceIndex = Object.keys(initialPrices).findIndex(
@@ -138,31 +136,25 @@ export const deployAllMockReserveAggregators = async (
       const [, price] = (Object.entries(initialPrices) as [string, string][])[
         priceIndex
       ];
-      aggregators[tokenContractName] = await deployMockReserveAggregator(
-        price,
+      aggregators[tokenContractName] = await deployChainlinkMock(
+        allTokenDecimals[tokenContractName],
         verify
       );
+      console.log(
+        "ChainlinkMockAggregator,",
+        tokenContractName,
+        aggregators[tokenContractName].address,
+        price,
+        allTokenDecimals[tokenContractName]
+      );
+      await aggregators[tokenContractName].mockAddAnswer(
+        "1",
+        price,
+        "1",
+        "1",
+        "1"
+      );
     }
-  }
-  return aggregators;
-};
-
-export const deployAllMockNftAggregators = async (
-  initialPrices: iNftAggregatorBase<string>,
-  verify?: boolean
-) => {
-  const aggregators: { [tokenSymbol: string]: MockAggregator } = {};
-  for (const tokenContractName of Object.keys(initialPrices)) {
-    const priceIndex = Object.keys(initialPrices).findIndex(
-      (value) => value === tokenContractName
-    );
-    const [, price] = (Object.entries(initialPrices) as [string, string][])[
-      priceIndex
-    ];
-    aggregators[tokenContractName] = await deployMockReserveAggregator(
-      price,
-      verify
-    );
   }
   return aggregators;
 };

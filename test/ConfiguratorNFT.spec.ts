@@ -6,7 +6,7 @@ import { strategyBAYC } from "../markets/bend/reservesConfigs";
 
 const { expect } = require("chai");
 
-makeSuite("LendingPoolConfigurator-NFT", (testEnv: TestEnv) => {
+makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
   const {
     CALLER_NOT_POOL_ADMIN,
     RC_INVALID_LTV,

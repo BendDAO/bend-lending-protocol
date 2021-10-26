@@ -53,9 +53,16 @@ contract BNFT is IBNFT, ERC721Upgradeable {
                 _msgSender(),
             "BNFT: caller is not underlying asset owner"
         );
-        require(_exists(tokenId), "BNFT: exist token");
+        require(!_exists(tokenId), "BNFT: exist token");
 
         // Receive NFT Tokens
+        require(
+            IERC721Upgradeable(_underlyingAsset).isApprovedForAll(
+                _msgSender(),
+                address(this)
+            ),
+            "333"
+        );
         IERC721Upgradeable(_underlyingAsset).transferFrom(
             _msgSender(),
             address(this),

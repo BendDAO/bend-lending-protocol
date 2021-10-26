@@ -16,6 +16,7 @@ import {
   MintableERC721Factory,
   MockBTokenFactory,
   BTokensAndBNFTsHelperFactory,
+  BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
   ReserveLogicFactory,
@@ -94,6 +95,17 @@ export const getLendPool = async (address?: tEthereumAddress) =>
     address ||
       (
         await getDb().get(`${eContractid.LendPool}.${DRE.network.name}`).value()
+      ).address,
+    await getFirstSigner()
+  );
+
+export const getBendOracle = async (address?: tEthereumAddress) =>
+  await BendOracleFactory.connect(
+    address ||
+      (
+        await getDb()
+          .get(`${eContractid.BendOracle}.${DRE.network.name}`)
+          .value()
       ).address,
     await getFirstSigner()
   );
