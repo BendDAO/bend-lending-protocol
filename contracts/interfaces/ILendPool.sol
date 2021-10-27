@@ -221,7 +221,7 @@ interface ILendPool {
     uint256 amount,
     uint256 balanceFromBefore,
     uint256 balanceToBefore
-  ) external pure;
+  ) external view;
 
   function getReserveConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory);
 
@@ -253,6 +253,31 @@ interface ILendPool {
   function getReservesList() external view returns (address[] memory);
 
   function getNftData(address asset) external view returns (DataTypes.NftData memory);
+
+  /**
+   * @dev Returns the loan data of the NFT
+   * @param nftAsset The address of the NFT
+   * @param nftTokenId The token id of the NFT
+   * @return totalCollateralETH the total collateral in ETH of the NFT
+   * @return totalDebtETH the total debt in ETH of the NFT
+   * @return availableBorrowsETH the borrowing power left of the NFT
+   * @return ltv the loan to value of the user
+   * @return liquidationThreshold the liquidation threshold of the NFT
+   * @return loanId the loan id of the NFT
+   * @return healthFactor the current health factor of the NFT
+   **/
+  function getNftLoanData(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    returns (
+      uint256 totalCollateralETH,
+      uint256 totalDebtETH,
+      uint256 availableBorrowsETH,
+      uint256 ltv,
+      uint256 liquidationThreshold,
+      uint256 loanId,
+      uint256 healthFactor
+    );
 
   function getNftsList() external view returns (address[] memory);
 

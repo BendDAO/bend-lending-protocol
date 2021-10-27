@@ -9,6 +9,7 @@ import {INFTOracleGetter} from "../interfaces/INFTOracleGetter.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import {GenericLogic} from "../libraries/logic/GenericLogic.sol";
 import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
 import {NftLogic} from "../libraries/logic/NftLogic.sol";
@@ -471,6 +472,62 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   }
 
   /**
+   * @dev Returns the loan data of the NFT
+   * @param nftAsset The address of the NFT
+   * @param nftTokenId The token id of the NFT
+   * @return totalCollateralETH the total collateral in ETH of the NFT
+   * @return totalDebtETH the total debt in ETH of the NFT
+   * @return availableBorrowsETH the borrowing power left of the NFT
+   * @return ltv the loan to value of the user
+   * @return liquidationThreshold the liquidation threshold of the NFT
+   * @return loanId the loan id of the NFT
+   * @return healthFactor the current health factor of the NFT
+   **/
+  function getNftLoanData(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    override
+    returns (
+      uint256 totalCollateralETH,
+      uint256 totalDebtETH,
+      uint256 availableBorrowsETH,
+      uint256 ltv,
+      uint256 liquidationThreshold,
+      uint256 loanId,
+      uint256 healthFactor
+    )
+  {
+    DataTypes.NftData storage nftData = _nfts[nftAsset];
+
+    loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
+    if (loanId != 0) {
+      address reserveAsset = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanReserve(loanId);
+      DataTypes.ReserveData storage reserveData = _reserves[reserveAsset];
+      totalDebtETH = GenericLogic.calculateNftDebtData(
+        reserveAsset,
+        reserveData,
+        _addressesProvider.getLendPoolLoan(),
+        loanId,
+        _addressesProvider.getReserveOracle()
+      );
+    }
+
+    (totalCollateralETH, ltv, liquidationThreshold) = GenericLogic.calculateNftCollateralData(
+      nftAsset,
+      nftData,
+      _addressesProvider.getNFTOracle()
+    );
+
+    availableBorrowsETH = GenericLogic.calculateAvailableBorrowsETH(totalCollateralETH, totalDebtETH, ltv);
+
+    healthFactor = GenericLogic.calculateHealthFactorFromBalances(
+      totalCollateralETH,
+      totalDebtETH,
+      liquidationThreshold
+    );
+  }
+
+  /**
    * @dev Validates and finalizes an bToken transfer
    * - Only callable by the overlying bToken of the `asset`
    * @param asset The address of the underlying asset of the bToken
@@ -487,13 +544,18 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 amount,
     uint256 balanceFromBefore,
     uint256 balanceToBefore
-  ) external pure override {
+  ) external view override whenNotPaused {
     asset;
     from;
     to;
     amount;
     balanceFromBefore;
     balanceToBefore;
+
+    DataTypes.ReserveData storage reserve = _reserves[asset];
+    require(_msgSender() == reserve.bTokenAddress, Errors.LP_CALLER_MUST_BE_AN_BTOKEN);
+
+    ValidationLogic.validateTransfer(from, reserve);
   }
 
   /**
