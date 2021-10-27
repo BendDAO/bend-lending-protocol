@@ -77,7 +77,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     _nftToLoanIds[nftAsset][nftTokenId] = loanId;
 
     // transfer underlying NFT asset to pool and mint bNFT to onBehalfOf
-    require(IERC721Upgradeable(nftAsset).isApprovedForAll(_msgSender(), address(this)), "222");
     IERC721Upgradeable(nftAsset).transferFrom(_msgSender(), address(this), nftTokenId);
 
     IBNFT(bNftAddress).mint(onBehalfOf, nftTokenId);
@@ -114,7 +113,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     uint256 amountTaken,
     uint256 borrowIndex
   ) external override onlyLendPool {
-    DataTypes.LoanData memory loan = _loans[loanId];
+    // Must use storage to change state
+    DataTypes.LoanData storage loan = _loans[loanId];
     // Ensure valid loan state
     require(loan.state == DataTypes.LoanState.Active, "LendPoolLoan:Invalid loan state");
 
@@ -127,6 +127,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
       loan.scaledAmount += amountScaled;
 
       _reserveBorrowScaledAmount[loan.reserveAsset] += amountScaled;
+
       _userReserveBorrowScaledAmounts[loan.borrower][loan.reserveAsset] += amountScaled;
     }
 
@@ -261,7 +262,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     address bNftAddress,
     bool isRepay
   ) internal {
-    DataTypes.LoanData memory loan = _loans[loanId];
+    // Must use storage to change state
+    DataTypes.LoanData storage loan = _loans[loanId];
     // Ensure valid loan state
     require(loan.state == DataTypes.LoanState.Active, "LendPoolLoan:Invalid loan state");
 

@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import { ONE_YEAR, RAY, MAX_UINT_AMOUNT, PERCENTAGE_FACTOR } from "../../../helpers/constants";
 import { IReserveParams, iBendPoolAssets, tEthereumAddress } from "../../../helpers/types";
 import "./math";
-import { ReserveData, UserReserveData } from "./interfaces";
+import { ReserveData, UserReserveData, LoanData } from "./interfaces";
 import { expect } from "chai";
 
 export const strToBN = (amount: string): BigNumber => new BigNumber(amount);
@@ -406,6 +406,75 @@ export const calcExpectedUserDataAfterRepay = (
   return expectedUserData;
 };
 
+export const calcExpectedLoanDataAfterBorrow = (
+  amountBorrowed: string,
+  loanDataBeforeAction: LoanData,
+  loanDataAfterAction: LoanData,
+  expectedDataAfterAction: ReserveData,
+  txTimestamp: BigNumber,
+  currentTimestamp: BigNumber
+): LoanData => {
+  const expectedLoanData = <LoanData>{};
+
+  const amountBorrowedBN = new BigNumber(amountBorrowed);
+
+  expectedLoanData.state = new BigNumber(loanDataAfterAction.state);
+  expectedLoanData.borrower = loanDataAfterAction.borrower.toString();
+  expectedLoanData.nftAsset = loanDataAfterAction.nftAsset.toString();
+  expectedLoanData.nftTokenId = new BigNumber(loanDataAfterAction.nftTokenId);
+  expectedLoanData.reserveAsset = loanDataAfterAction.reserveAsset;
+
+  {
+    expectedLoanData.scaledAmount = loanDataBeforeAction.scaledAmount.plus(
+      amountBorrowedBN.rayDiv(expectedDataAfterAction.variableBorrowIndex)
+    );
+  }
+
+  expectedLoanData.currentAmount = calcExpectedLoanBorrowBalance(
+    expectedDataAfterAction,
+    expectedLoanData,
+    currentTimestamp
+  );
+
+  return expectedLoanData;
+};
+
+export const calcExpectedLoanDataAfterRepay = (
+  totalRepaid: string,
+  reserveDataBeforeAction: ReserveData,
+  expectedDataAfterAction: ReserveData,
+  loanDataBeforeAction: LoanData,
+  loanDataAfterAction: LoanData,
+  user: string,
+  onBehalfOf: string,
+  txTimestamp: BigNumber,
+  currentTimestamp: BigNumber
+): LoanData => {
+  const expectedLoanData = <LoanData>{};
+
+  expectedLoanData.state = new BigNumber(loanDataAfterAction.state);
+  expectedLoanData.borrower = loanDataAfterAction.borrower.toString();
+  expectedLoanData.nftAsset = loanDataAfterAction.nftAsset.toString();
+  expectedLoanData.nftTokenId = new BigNumber(loanDataAfterAction.nftTokenId);
+  expectedLoanData.reserveAsset = loanDataAfterAction.reserveAsset;
+
+  const borrowAmount = calcExpectedLoanBorrowBalance(reserveDataBeforeAction, loanDataBeforeAction, currentTimestamp);
+
+  let totalRepaidBN = new BigNumber(totalRepaid);
+  if (totalRepaidBN.abs().eq(MAX_UINT_AMOUNT)) {
+    totalRepaidBN = borrowAmount;
+  }
+
+  {
+    expectedLoanData.scaledAmount = loanDataBeforeAction.scaledAmount.minus(
+      totalRepaidBN.rayDiv(expectedDataAfterAction.variableBorrowIndex)
+    );
+    expectedLoanData.currentAmount = expectedLoanData.scaledAmount.rayMul(expectedDataAfterAction.variableBorrowIndex);
+  }
+
+  return expectedLoanData;
+};
+
 const calcExpectedScaledBTokenBalance = (
   userDataBeforeAction: UserReserveData,
   index: BigNumber,
@@ -442,6 +511,23 @@ export const calcExpectedVariableDebtTokenBalance = (
   const { scaledVariableDebt } = userData;
 
   return scaledVariableDebt.rayMul(normalizedDebt);
+};
+
+export const calcExpectedLoanBorrowBalance = (
+  reserveData: ReserveData,
+  loanData: LoanData,
+  currentTimestamp: BigNumber
+) => {
+  const normalizedDebt = calcExpectedReserveNormalizedDebt(
+    reserveData.variableBorrowRate,
+    reserveData.variableBorrowIndex,
+    reserveData.lastUpdateTimestamp,
+    currentTimestamp
+  );
+
+  const { scaledAmount } = loanData;
+
+  return scaledAmount.rayMul(normalizedDebt);
 };
 
 const calcLinearInterest = (rate: BigNumber, currentTimestamp: BigNumber, lastUpdateTimestamp: BigNumber) => {

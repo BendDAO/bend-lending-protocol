@@ -96,8 +96,8 @@ export const getLoanData = async (
     nftAsset: loanData.nftAsset,
     nftTokenId: new BigNumber(loanData.nftTokenId.toString()),
     reserveAsset: loanData.reserveAsset,
-    scaledAmount: new BigNumber(loanData.scaledAmount),
-    currentAmount: new BigNumber(loanData.currentAmount),
+    scaledAmount: new BigNumber(loanData.scaledAmount.toString()),
+    currentAmount: new BigNumber(loanData.currentAmount.toString()),
   };
 };
 
