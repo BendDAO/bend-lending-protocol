@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {ILendPoolLoan} from '../../interfaces/ILendPoolLoan.sol';
-import {IReserveOracleGetter} from '../../interfaces/IReserveOracleGetter.sol';
-import {INFTOracleGetter} from '../../interfaces/INFTOracleGetter.sol';
-import {WadRayMath} from '../math/WadRayMath.sol';
-import {PercentageMath} from '../math/PercentageMath.sol';
-import {ReserveConfiguration} from '../configuration/ReserveConfiguration.sol';
-import {UserConfiguration} from '../configuration/UserConfiguration.sol';
-import {NftConfiguration} from '../configuration/NftConfiguration.sol';
-import {Errors} from '../helpers/Errors.sol';
-import {DataTypes} from '../types/DataTypes.sol';
-import {ReserveLogic} from './ReserveLogic.sol';
+import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
+import {IReserveOracleGetter} from "../../interfaces/IReserveOracleGetter.sol";
+import {INFTOracleGetter} from "../../interfaces/INFTOracleGetter.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
+import {PercentageMath} from "../math/PercentageMath.sol";
+import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
+import {UserConfiguration} from "../configuration/UserConfiguration.sol";
+import {NftConfiguration} from "../configuration/NftConfiguration.sol";
+import {Errors} from "../helpers/Errors.sol";
+import {DataTypes} from "../types/DataTypes.sol";
+import {ReserveLogic} from "./ReserveLogic.sol";
 
 /**
  * @title GenericLogic library
@@ -56,10 +56,7 @@ library GenericLogic {
     reservesCount;
     oracle;
 
-    if (
-      !userConfig.isReserveBorrowingAny() ||
-      !userConfig.isUsingReserveAsCollateral(reservesData[asset].id)
-    ) {
+    if (!userConfig.isReserveBorrowingAny() || !userConfig.isUsingReserveAsCollateral(reservesData[asset].id)) {
       return true;
     }
 
@@ -115,9 +112,7 @@ library GenericLogic {
   {
     CalculateLoanDataVars memory vars;
 
-    (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData
-      .configuration
-      .getParams();
+    (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData.configuration.getParams();
 
     (vars.nftLtv, vars.nftLiquidationThreshold, ) = nftData.configuration.getParams();
 

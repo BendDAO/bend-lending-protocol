@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IWETHGateway} from '../interfaces/IWETHGateway.sol';
-import {IWETH} from '../interfaces/IWETH.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
+import {IWETH} from "../interfaces/IWETH.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract WETHGateway is IWETHGateway, Ownable {
   IWETH internal immutable WETH;

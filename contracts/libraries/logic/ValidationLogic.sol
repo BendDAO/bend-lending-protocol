@@ -2,20 +2,20 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {ReserveLogic} from './ReserveLogic.sol';
-import {GenericLogic} from './GenericLogic.sol';
-import {WadRayMath} from '../math/WadRayMath.sol';
-import {PercentageMath} from '../math/PercentageMath.sol';
-import {ReserveConfiguration} from '../configuration/ReserveConfiguration.sol';
-import {UserConfiguration} from '../configuration/UserConfiguration.sol';
-import {NftConfiguration} from '../configuration/NftConfiguration.sol';
-import {Errors} from '../helpers/Errors.sol';
-import {DataTypes} from '../types/DataTypes.sol';
-import {IInterestRate} from '../../interfaces/IInterestRate.sol';
-import {ILendPoolLoan} from '../../interfaces/ILendPoolLoan.sol';
+import {ReserveLogic} from "./ReserveLogic.sol";
+import {GenericLogic} from "./GenericLogic.sol";
+import {WadRayMath} from "../math/WadRayMath.sol";
+import {PercentageMath} from "../math/PercentageMath.sol";
+import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
+import {UserConfiguration} from "../configuration/UserConfiguration.sol";
+import {NftConfiguration} from "../configuration/NftConfiguration.sol";
+import {Errors} from "../helpers/Errors.sol";
+import {DataTypes} from "../types/DataTypes.sol";
+import {IInterestRate} from "../../interfaces/IInterestRate.sol";
+import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 
-import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
-import {SafeERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 /**
  * @title ValidationLogic library
@@ -170,9 +170,7 @@ library ValidationLogic {
 
     //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
     //LTV is calculated in percentage
-    vars.amountOfCollateralNeededETH = (vars.userBorrowBalanceETH + (amountInETH)).percentDiv(
-      vars.currentLtv
-    );
+    vars.amountOfCollateralNeededETH = (vars.userBorrowBalanceETH + (amountInETH)).percentDiv(vars.currentLtv);
 
     require(
       vars.amountOfCollateralNeededETH <= vars.userCollateralBalanceETH,

@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import BigNumber from "bignumber.js";
 import {
   RAY,
   WAD,
@@ -7,9 +7,9 @@ import {
   WAD_RAY_RATIO,
   HALF_PERCENTAGE,
   PERCENTAGE_FACTOR,
-} from '../../../helpers/constants';
+} from "../../../helpers/constants";
 
-declare module 'bignumber.js' {
+declare module "bignumber.js" {
   interface BigNumber {
     ray: () => BigNumber;
     wad: () => BigNumber;
@@ -81,17 +81,11 @@ BigNumber.prototype.halfPercentage = (): BigNumber => {
 };
 
 BigNumber.prototype.percentMul = function (b: BigNumber): BigNumber {
-  return this.halfPercentage()
-    .plus(this.multipliedBy(b))
-    .div(PERCENTAGE_FACTOR)
-    .decimalPlaces(0, BigNumber.ROUND_DOWN);
+  return this.halfPercentage().plus(this.multipliedBy(b)).div(PERCENTAGE_FACTOR).decimalPlaces(0, BigNumber.ROUND_DOWN);
 };
 
 BigNumber.prototype.percentDiv = function (a: BigNumber): BigNumber {
   const halfA = a.div(2).decimalPlaces(0, BigNumber.ROUND_DOWN);
 
-  return halfA
-    .plus(this.multipliedBy(PERCENTAGE_FACTOR))
-    .div(a)
-    .decimalPlaces(0, BigNumber.ROUND_DOWN);
+  return halfA.plus(this.multipliedBy(PERCENTAGE_FACTOR)).div(a).decimalPlaces(0, BigNumber.ROUND_DOWN);
 };

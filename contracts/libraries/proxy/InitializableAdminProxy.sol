@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {Proxy} from '@openzeppelin/contracts/proxy/Proxy.sol';
-import {ERC1967Upgrade} from '@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol';
+import {Proxy} from "@openzeppelin/contracts/proxy/Proxy.sol";
+import {ERC1967Upgrade} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol";
 
 contract InitializableAdminProxy is Proxy, ERC1967Upgrade {
   constructor(address admin_) payable {
-    assert(_ADMIN_SLOT == bytes32(uint256(keccak256('eip1967.proxy.admin')) - 1));
+    assert(_ADMIN_SLOT == bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1));
     _changeAdmin(admin_);
   }
 
@@ -20,7 +20,7 @@ contract InitializableAdminProxy is Proxy, ERC1967Upgrade {
    */
   function initialize(address _logic, bytes memory _data) public payable {
     require(_implementation() == address(0));
-    assert(_IMPLEMENTATION_SLOT == bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1));
+    assert(_IMPLEMENTATION_SLOT == bytes32(uint256(keccak256("eip1967.proxy.implementation")) - 1));
     _upgradeToAndCall(_logic, _data, false);
   }
 
@@ -78,7 +78,7 @@ contract InitializableAdminProxy is Proxy, ERC1967Upgrade {
    * NOTE: Only the admin can call this function. See {ProxyAdmin-upgrade}.
    */
   function upgradeTo(address newImplementation) external ifAdmin {
-    _upgradeToAndCall(newImplementation, bytes(''), false);
+    _upgradeToAndCall(newImplementation, bytes(""), false);
   }
 
   /**
@@ -88,11 +88,7 @@ contract InitializableAdminProxy is Proxy, ERC1967Upgrade {
    *
    * NOTE: Only the admin can call this function. See {ProxyAdmin-upgradeAndCall}.
    */
-  function upgradeToAndCall(address newImplementation, bytes calldata data)
-    external
-    payable
-    ifAdmin
-  {
+  function upgradeToAndCall(address newImplementation, bytes calldata data) external payable ifAdmin {
     _upgradeToAndCall(newImplementation, data, true);
   }
 
@@ -114,10 +110,7 @@ contract InitializableAdminProxy is Proxy, ERC1967Upgrade {
    * @dev Makes sure the admin cannot access the fallback function. See {Proxy-_beforeFallback}.
    */
   function _beforeFallback() internal virtual override {
-    require(
-      msg.sender != _getAdmin(),
-      'InitializableAdminProxy: admin cannot fallback to proxy target'
-    );
+    require(msg.sender != _getAdmin(), "InitializableAdminProxy: admin cannot fallback to proxy target");
     super._beforeFallback();
   }
 }

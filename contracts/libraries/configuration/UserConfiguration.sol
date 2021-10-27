@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {Errors} from '../helpers/Errors.sol';
-import {DataTypes} from '../types/DataTypes.sol';
+import {Errors} from "../helpers/Errors.sol";
+import {DataTypes} from "../types/DataTypes.sol";
 
 /**
  * @title UserConfiguration library
@@ -10,11 +10,9 @@ import {DataTypes} from '../types/DataTypes.sol';
  * @notice Implements the bitmap logic to handle the user configuration
  */
 library UserConfiguration {
-  uint256 internal constant BORROWING_MASK =
-    0x5555555555555555555555555555555555555555555555555555555555555555;
+  uint256 internal constant BORROWING_MASK = 0x5555555555555555555555555555555555555555555555555555555555555555;
 
-  uint256 internal constant PLEDGING_MASK =
-    0x5555555555555555555555555555555555555555555555555555555555555555;
+  uint256 internal constant PLEDGING_MASK = 0x5555555555555555555555555555555555555555555555555555555555555555;
 
   /**
    * @dev Sets if the user is borrowing the reserve identified by reserveIndex
@@ -56,10 +54,11 @@ library UserConfiguration {
    * @param reserveIndex The index of the reserve in the bitmap
    * @return True if the user has been using a reserve for borrowing or as collateral, false otherwise
    **/
-  function isUsingReserveAsCollateralOrBorrowing(
-    DataTypes.UserConfigurationMap memory self,
-    uint256 reserveIndex
-  ) internal pure returns (bool) {
+  function isUsingReserveAsCollateralOrBorrowing(DataTypes.UserConfigurationMap memory self, uint256 reserveIndex)
+    internal
+    pure
+    returns (bool)
+  {
     require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
     return (self.reserveData >> (reserveIndex * 2)) & 3 != 0;
   }
@@ -85,10 +84,11 @@ library UserConfiguration {
    * @param reserveIndex The index of the reserve in the bitmap
    * @return True if the user has been using a reserve as collateral, false otherwise
    **/
-  function isUsingReserveAsCollateral(
-    DataTypes.UserConfigurationMap memory self,
-    uint256 reserveIndex
-  ) internal pure returns (bool) {
+  function isUsingReserveAsCollateral(DataTypes.UserConfigurationMap memory self, uint256 reserveIndex)
+    internal
+    pure
+    returns (bool)
+  {
     require(reserveIndex < 128, Errors.UL_INVALID_INDEX);
     return (self.reserveData >> (reserveIndex * 2 + 1)) & 1 != 0;
   }
@@ -98,11 +98,7 @@ library UserConfiguration {
    * @param self The configuration object
    * @return True if the user has been borrowing any reserve, false otherwise
    **/
-  function isReserveBorrowingAny(DataTypes.UserConfigurationMap memory self)
-    internal
-    pure
-    returns (bool)
-  {
+  function isReserveBorrowingAny(DataTypes.UserConfigurationMap memory self) internal pure returns (bool) {
     return self.reserveData & BORROWING_MASK != 0;
   }
 

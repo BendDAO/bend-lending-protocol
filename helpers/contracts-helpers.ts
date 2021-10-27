@@ -1,9 +1,9 @@
-import { Contract, Signer, utils, ethers, BigNumberish } from 'ethers';
-import { signTypedData_v4 } from 'eth-sig-util';
-import { fromRpcSig, ECDSASignature } from 'ethereumjs-util';
-import BigNumber from 'bignumber.js';
-import { ZERO_ADDRESS } from './constants';
-import { getDb, DRE, waitForTx, notFalsyOrZeroAddress } from './misc-utils';
+import { Contract, Signer, utils, ethers, BigNumberish } from "ethers";
+import { signTypedData_v4 } from "eth-sig-util";
+import { fromRpcSig, ECDSASignature } from "ethereumjs-util";
+import BigNumber from "bignumber.js";
+import { ZERO_ADDRESS } from "./constants";
+import { getDb, DRE, waitForTx, notFalsyOrZeroAddress } from "./misc-utils";
 import {
   tEthereumAddress,
   eContractid,
@@ -15,20 +15,20 @@ import {
   eNetwork,
   iParamsPerNetworkAll,
   iEthereumParamsPerNetwork,
-} from './types';
-import { MintableERC20 } from '../types/MintableERC20';
-import { Artifact } from 'hardhat/types';
-import { verifyEtherscanContract } from './etherscan-verification';
-import { getFirstSigner, getIErc20Detailed } from './contracts-getters';
-import { ConfigNames, loadPoolConfig } from './configuration';
-import { string } from 'hardhat/internal/core/params/argumentTypes';
+} from "./types";
+import { MintableERC20 } from "../types/MintableERC20";
+import { Artifact } from "hardhat/types";
+import { verifyEtherscanContract } from "./etherscan-verification";
+import { getFirstSigner, getIErc20Detailed } from "./contracts-getters";
+import { ConfigNames, loadPoolConfig } from "./configuration";
+import { string } from "hardhat/internal/core/params/argumentTypes";
 
 export type MockTokenMap = { [symbol: string]: MintableERC20 };
 
 export const registerContractInJsonDb = async (contractId: string, contractInstance: Contract) => {
   const currentNetwork = DRE.network.name;
   const FORK = process.env.FORK;
-  if (FORK || (currentNetwork !== 'hardhat' && !currentNetwork.includes('coverage'))) {
+  if (FORK || (currentNetwork !== "hardhat" && !currentNetwork.includes("coverage"))) {
     console.log(`*** ${contractId} ***\n`);
     console.log(`Network: ${currentNetwork}`);
     console.log(`tx: ${contractInstance.deployTransaction.hash}`);
@@ -48,18 +48,18 @@ export const registerContractInJsonDb = async (contractId: string, contractInsta
     .write();
 
   console.log(
-    'contracts-helpers:registerContractInJsonDb,',
-    'contractId:',
+    "contracts-helpers:registerContractInJsonDb,",
+    "contractId:",
     contractId,
-    'address:',
+    "address:",
     contractInstance.address,
-    'deployer',
+    "deployer",
     contractInstance.deployTransaction.from
   );
 };
 
 export const insertContractAddressInDb = async (id: eContractid, address: tEthereumAddress) => {
-  console.log('contracts-helpers:insertContractAddressInDb,', 'id:', id, 'address', address);
+  console.log("contracts-helpers:insertContractAddressInDb,", "id:", id, "address", address);
   await getDb()
     .set(`${id}.${DRE.network.name}`, {
       address,
@@ -68,7 +68,7 @@ export const insertContractAddressInDb = async (id: eContractid, address: tEther
 };
 
 export const rawInsertContractAddressInDb = async (id: string, address: tEthereumAddress) => {
-  console.log('contracts-helpers:rawInsertContractAddressInDb,', 'id:', id, 'address', address);
+  console.log("contracts-helpers:rawInsertContractAddressInDb,", "id:", id, "address", address);
   await getDb()
     .set(`${id}.${DRE.network.name}`, {
       address,
@@ -94,13 +94,13 @@ export const getCurrentBlock = async () => {
 };
 
 export const decodeAbiNumber = (data: string): number =>
-  parseInt(utils.defaultAbiCoder.decode(['uint256'], data).toString());
+  parseInt(utils.defaultAbiCoder.decode(["uint256"], data).toString());
 
 export const deployContract = async <ContractType extends Contract>(
   contractName: string,
   args: any[]
 ): Promise<ContractType> => {
-  console.log('contracts-helpers:deployContract,', 'contractName', contractName);
+  console.log("contracts-helpers:deployContract,", "contractName", contractName);
   const contract = (await (await DRE.ethers.getContractFactory(contractName))
     .connect(await getFirstSigner())
     .deploy(...args)) as ContractType;
@@ -153,8 +153,7 @@ export const linkBytecode = (artifact: Artifact, libraries: any) => {
 };
 
 export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNetwork) => {
-  const { main, rikeyby, ropsten, kovan, coverage, buidlerevm } =
-    param as iEthereumParamsPerNetwork<T>;
+  const { main, rikeyby, ropsten, kovan, coverage, buidlerevm } = param as iEthereumParamsPerNetwork<T>;
   if (process.env.FORK) {
     return param[process.env.FORK as eNetwork] as T;
   }
@@ -224,20 +223,20 @@ export const buildPermitParams = (
 ) => ({
   types: {
     EIP712Domain: [
-      { name: 'name', type: 'string' },
-      { name: 'version', type: 'string' },
-      { name: 'chainId', type: 'uint256' },
-      { name: 'verifyingContract', type: 'address' },
+      { name: "name", type: "string" },
+      { name: "version", type: "string" },
+      { name: "chainId", type: "uint256" },
+      { name: "verifyingContract", type: "address" },
     ],
     Permit: [
-      { name: 'owner', type: 'address' },
-      { name: 'spender', type: 'address' },
-      { name: 'value', type: 'uint256' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'deadline', type: 'uint256' },
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" },
+      { name: "nonce", type: "uint256" },
+      { name: "deadline", type: "uint256" },
     ],
   },
-  primaryType: 'Permit' as const,
+  primaryType: "Permit" as const,
   domain: {
     name: tokenName,
     version: revision,
@@ -257,25 +256,18 @@ export const getSignatureFromTypedData = (
   privateKey: string,
   typedData: any // TODO: should be TypedData, from eth-sig-utils, but TS doesn't accept it
 ): ECDSASignature => {
-  const signature = signTypedData_v4(Buffer.from(privateKey.substring(2, 66), 'hex'), {
+  const signature = signTypedData_v4(Buffer.from(privateKey.substring(2, 66), "hex"), {
     data: typedData,
   });
   return fromRpcSig(signature);
 };
 
-export const verifyContract = async (
-  id: string,
-  instance: Contract,
-  args: (string | string[])[]
-) => {
+export const verifyContract = async (id: string, instance: Contract, args: (string | string[])[]) => {
   await verifyEtherscanContract(instance.address, args);
   return instance;
 };
 
-export const getContractAddressWithJsonFallback = async (
-  id: string,
-  pool: ConfigNames
-): Promise<tEthereumAddress> => {
+export const getContractAddressWithJsonFallback = async (id: string, pool: ConfigNames): Promise<tEthereumAddress> => {
   const poolConfig = loadPoolConfig(pool);
   const network = <eNetwork>DRE.network.name;
   const db = getDb();

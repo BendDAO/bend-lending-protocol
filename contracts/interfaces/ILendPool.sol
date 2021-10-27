@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {ILendPoolAddressesProvider} from './ILendPoolAddressesProvider.sol';
-import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {ILendPoolAddressesProvider} from "./ILendPoolAddressesProvider.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 interface ILendPool {
   /**
@@ -223,20 +223,11 @@ interface ILendPool {
     uint256 balanceToBefore
   ) external pure;
 
-  function getReserveConfiguration(address asset)
-    external
-    view
-    returns (DataTypes.ReserveConfigurationMap memory);
+  function getReserveConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory);
 
-  function getUserConfiguration(address user)
-    external
-    view
-    returns (DataTypes.UserConfigurationMap memory);
+  function getUserConfiguration(address user) external view returns (DataTypes.UserConfigurationMap memory);
 
-  function getNftConfiguration(address asset)
-    external
-    view
-    returns (DataTypes.NftConfigurationMap memory);
+  function getNftConfiguration(address asset) external view returns (DataTypes.NftConfigurationMap memory);
 
   /**
    * @dev Returns the normalized income normalized income of the reserve

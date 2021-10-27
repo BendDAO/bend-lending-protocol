@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {ILendPool} from '../interfaces/ILendPool.sol';
-import {IBToken} from '../interfaces/IBToken.sol';
-import {IIncentivesController} from '../interfaces/IIncentivesController.sol';
-import {WadRayMath} from '../libraries/math/WadRayMath.sol';
-import {Errors} from '../libraries/helpers/Errors.sol';
+import {ILendPool} from "../interfaces/ILendPool.sol";
+import {IBToken} from "../interfaces/IBToken.sol";
+import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
+import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
 
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import {ERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol';
-import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
-import {SafeERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
-import {IERC20MetadataUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 
 /**
  * @title NFTLend ERC20 BToken
@@ -34,13 +34,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     _;
   }
 
-  function decimals()
-    public
-    view
-    virtual
-    override(ERC20Upgradeable, IERC20MetadataUpgradeable)
-    returns (uint8)
-  {
+  function decimals() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (uint8) {
     return _decimals;
   }
 
@@ -69,13 +63,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     _underlyingAsset = underlyingAsset;
     _incentivesController = incentivesController;
 
-    emit Initialized(
-      underlyingAsset,
-      address(pool),
-      treasury,
-      address(incentivesController),
-      params
-    );
+    emit Initialized(underlyingAsset, address(pool), treasury, address(incentivesController), params);
   }
 
   /**
@@ -167,12 +155,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * @param user The user whose balance is calculated
    * @return The balance of the user
    **/
-  function balanceOf(address user)
-    public
-    view
-    override(IERC20Upgradeable, ERC20Upgradeable)
-    returns (uint256)
-  {
+  function balanceOf(address user) public view override(IERC20Upgradeable, ERC20Upgradeable) returns (uint256) {
     return super.balanceOf(user).rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
   }
 
@@ -202,12 +185,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * does that too.
    * @return the current total supply
    **/
-  function totalSupply()
-    public
-    view
-    override(IERC20Upgradeable, ERC20Upgradeable)
-    returns (uint256)
-  {
+  function totalSupply() public view override(IERC20Upgradeable, ERC20Upgradeable) returns (uint256) {
     uint256 currentSupplyScaled = super.totalSupply();
 
     if (currentSupplyScaled == 0) {
@@ -267,12 +245,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * @param amount The amount getting transferred
    * @return The amount transferred
    **/
-  function transferUnderlyingTo(address target, uint256 amount)
-    external
-    override
-    onlyLendPool
-    returns (uint256)
-  {
+  function transferUnderlyingTo(address target, uint256 amount) external override onlyLendPool returns (uint256) {
     IERC20Upgradeable(_underlyingAsset).safeTransfer(target, amount);
     return amount;
   }

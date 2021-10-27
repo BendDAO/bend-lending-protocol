@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
-import {IERC721MetadataUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol';
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 
 interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
   /**
@@ -18,12 +18,7 @@ interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
    * @param nftTokenId token id of the underlying asset of NFT
    * @param owner The owner address receive the bNFT token
    **/
-  event Mint(
-    address indexed user,
-    address indexed nftAsset,
-    uint256 nftTokenId,
-    address indexed owner
-  );
+  event Mint(address indexed user, address indexed nftAsset, uint256 nftTokenId, address indexed owner);
 
   /**
    * @dev Emitted on burn
@@ -32,12 +27,7 @@ interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
    * @param nftTokenId token id of the underlying asset of NFT
    * @param owner The owner address of the burned bNFT token
    **/
-  event Burn(
-    address indexed user,
-    address indexed nftAsset,
-    uint256 nftTokenId,
-    address indexed owner
-  );
+  event Burn(address indexed user, address indexed nftAsset, uint256 nftTokenId, address indexed owner);
 
   /**
    * @dev Initializes the bNFT

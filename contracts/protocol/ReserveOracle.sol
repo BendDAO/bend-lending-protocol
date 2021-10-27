@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
-import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import {IReserveOracleGetter} from '../interfaces/IReserveOracleGetter.sol';
-import {BlockContext} from '../utils/BlockContext.sol';
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
+import {BlockContext} from "../utils/BlockContext.sol";
 
 contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext {
   uint256 private constant TOKEN_DIGIT = 10**18;
@@ -60,11 +60,11 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
     if (_priceFeedKey == weth) {
       return 1 ether;
     }
-    require(isExistedKey(_priceFeedKey), 'ReserveOracle: key not existed');
+    require(isExistedKey(_priceFeedKey), "ReserveOracle: key not existed");
     AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
 
     (, int256 _price, , , ) = aggregator.latestRoundData();
-    require(_price >= 0, 'ReserveOracle: negative answer');
+    require(_price >= 0, "ReserveOracle: negative answer");
     uint8 decimals = aggregator.decimals();
 
     return formatDecimals(uint256(_price), decimals);
@@ -79,23 +79,18 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
     return timestamp;
   }
 
-  function getTwapPrice(address _priceFeedKey, uint256 _interval)
-    external
-    view
-    override
-    returns (uint256)
-  {
-    require(isExistedKey(_priceFeedKey), 'ReserveOracle: key not existed');
+  function getTwapPrice(address _priceFeedKey, uint256 _interval) external view override returns (uint256) {
+    require(isExistedKey(_priceFeedKey), "ReserveOracle: key not existed");
     require(_interval != 0, "ReserveOracle: interval can't be 0");
 
     AggregatorV3Interface aggregator = getAggregator(_priceFeedKey);
     (uint80 roundId, int256 _price, , uint256 timestamp, ) = aggregator.latestRoundData();
-    require(_price >= 0, 'ReserveOracle: negative answer');
+    require(_price >= 0, "ReserveOracle: negative answer");
     uint8 decimals = aggregator.decimals();
 
     uint256 latestPrice = formatDecimals(uint256(_price), decimals);
 
-    require(roundId >= 0, 'ReserveOracle: Not enough history');
+    require(roundId >= 0, "ReserveOracle: Not enough history");
     uint256 latestTimestamp = timestamp;
     uint256 baseTimestamp = block.timestamp - _interval;
     // if latest updated timestamp is earlier than target timestamp, return the latest price.
@@ -116,7 +111,7 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
       roundId = roundId - 1;
       // get current round timestamp and price
       (, int256 _priceTemp, , uint256 currentTimestamp, ) = aggregator.getRoundData(roundId);
-      require(_priceTemp >= 0, 'ReserveOracle: negative answer');
+      require(_priceTemp >= 0, "ReserveOracle: negative answer");
 
       uint256 price = formatDecimals(uint256(_priceTemp), decimals);
 
@@ -150,14 +145,14 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
 
   function requireKeyExisted(address _key, bool _existed) private view {
     if (_existed) {
-      require(isExistedKey(_key), 'ReserveOracle: key not existed');
+      require(isExistedKey(_key), "ReserveOracle: key not existed");
     } else {
-      require(!isExistedKey(_key), 'ReserveOracle: key existed');
+      require(!isExistedKey(_key), "ReserveOracle: key existed");
     }
   }
 
   function requireNonEmptyAddress(address _addr) internal pure {
-    require(_addr != address(0), 'ReserveOracle: empty address');
+    require(_addr != address(0), "ReserveOracle: empty address");
   }
 
   function formatDecimals(uint256 _price, uint8 _decimals) internal pure returns (uint256) {

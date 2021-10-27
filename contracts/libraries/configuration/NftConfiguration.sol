@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {Errors} from '../helpers/Errors.sol';
-import {DataTypes} from '../types/DataTypes.sol';
+import {Errors} from "../helpers/Errors.sol";
+import {DataTypes} from "../types/DataTypes.sol";
 
 /**
  * @title NftConfiguration library
@@ -51,15 +51,10 @@ library NftConfiguration {
    * @param self The NFT configuration
    * @param threshold The new liquidation threshold
    **/
-  function setLiquidationThreshold(DataTypes.NftConfigurationMap memory self, uint256 threshold)
-    internal
-    pure
-  {
+  function setLiquidationThreshold(DataTypes.NftConfigurationMap memory self, uint256 threshold) internal pure {
     require(threshold <= MAX_VALID_LIQUIDATION_THRESHOLD, Errors.RC_INVALID_LIQ_THRESHOLD);
 
-    self.data =
-      (self.data & LIQUIDATION_THRESHOLD_MASK) |
-      (threshold << LIQUIDATION_THRESHOLD_START_BIT_POSITION);
+    self.data = (self.data & LIQUIDATION_THRESHOLD_MASK) | (threshold << LIQUIDATION_THRESHOLD_START_BIT_POSITION);
   }
 
   /**
@@ -67,11 +62,7 @@ library NftConfiguration {
    * @param self The NFT configuration
    * @return The liquidation threshold
    **/
-  function getLiquidationThreshold(DataTypes.NftConfigurationMap storage self)
-    internal
-    view
-    returns (uint256)
-  {
+  function getLiquidationThreshold(DataTypes.NftConfigurationMap storage self) internal view returns (uint256) {
     return (self.data & ~LIQUIDATION_THRESHOLD_MASK) >> LIQUIDATION_THRESHOLD_START_BIT_POSITION;
   }
 
@@ -80,15 +71,10 @@ library NftConfiguration {
    * @param self The NFT configuration
    * @param bonus The new liquidation bonus
    **/
-  function setLiquidationBonus(DataTypes.NftConfigurationMap memory self, uint256 bonus)
-    internal
-    pure
-  {
+  function setLiquidationBonus(DataTypes.NftConfigurationMap memory self, uint256 bonus) internal pure {
     require(bonus <= MAX_VALID_LIQUIDATION_BONUS, Errors.RC_INVALID_LIQ_BONUS);
 
-    self.data =
-      (self.data & LIQUIDATION_BONUS_MASK) |
-      (bonus << LIQUIDATION_BONUS_START_BIT_POSITION);
+    self.data = (self.data & LIQUIDATION_BONUS_MASK) | (bonus << LIQUIDATION_BONUS_START_BIT_POSITION);
   }
 
   /**
@@ -96,11 +82,7 @@ library NftConfiguration {
    * @param self The NFT configuration
    * @return The liquidation bonus
    **/
-  function getLiquidationBonus(DataTypes.NftConfigurationMap storage self)
-    internal
-    view
-    returns (uint256)
-  {
+  function getLiquidationBonus(DataTypes.NftConfigurationMap storage self) internal view returns (uint256) {
     return (self.data & ~LIQUIDATION_BONUS_MASK) >> LIQUIDATION_BONUS_START_BIT_POSITION;
   }
 
@@ -110,9 +92,7 @@ library NftConfiguration {
    * @param active The active state
    **/
   function setActive(DataTypes.NftConfigurationMap memory self, bool active) internal pure {
-    self.data =
-      (self.data & ACTIVE_MASK) |
-      (uint256(active ? 1 : 0) << IS_ACTIVE_START_BIT_POSITION);
+    self.data = (self.data & ACTIVE_MASK) | (uint256(active ? 1 : 0) << IS_ACTIVE_START_BIT_POSITION);
   }
 
   /**
@@ -130,9 +110,7 @@ library NftConfiguration {
    * @param frozen The frozen state
    **/
   function setFrozen(DataTypes.NftConfigurationMap memory self, bool frozen) internal pure {
-    self.data =
-      (self.data & FROZEN_MASK) |
-      (uint256(frozen ? 1 : 0) << IS_FROZEN_START_BIT_POSITION);
+    self.data = (self.data & FROZEN_MASK) | (uint256(frozen ? 1 : 0) << IS_FROZEN_START_BIT_POSITION);
   }
 
   /**
@@ -204,11 +182,7 @@ library NftConfiguration {
    * @param self The NFT configuration
    * @return The state flags representing active, frozen
    **/
-  function getFlagsMemory(DataTypes.NftConfigurationMap memory self)
-    internal
-    pure
-    returns (bool, bool)
-  {
+  function getFlagsMemory(DataTypes.NftConfigurationMap memory self) internal pure returns (bool, bool) {
     return ((self.data & ~ACTIVE_MASK) != 0, (self.data & ~FROZEN_MASK) != 0);
   }
 }

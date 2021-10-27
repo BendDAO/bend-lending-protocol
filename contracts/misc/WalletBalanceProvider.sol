@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 pragma experimental ABIEncoderV2;
 
-import {Address} from '@openzeppelin/contracts/utils/Address.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {ILendPoolAddressesProvider} from '../interfaces/ILendPoolAddressesProvider.sol';
-import {ILendPool} from '../interfaces/ILendPool.sol';
-import {ReserveConfiguration} from '../libraries/configuration/ReserveConfiguration.sol';
-import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILendPool} from "../interfaces/ILendPool.sol";
+import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 /**
  * @title WalletBalanceProvider contract
@@ -32,7 +32,7 @@ contract WalletBalanceProvider {
     **/
   receive() external payable {
     //only contracts can send ETH to the core
-    require(msg.sender.isContract(), '22');
+    require(msg.sender.isContract(), "22");
   }
 
   /**
@@ -48,7 +48,7 @@ contract WalletBalanceProvider {
     } else if (token.isContract()) {
       return IERC20(token).balanceOf(user);
     }
-    revert('INVALID_TOKEN');
+    revert("INVALID_TOKEN");
   }
 
   /**
@@ -93,9 +93,7 @@ contract WalletBalanceProvider {
     uint256[] memory balances = new uint256[](reservesWithEth.length);
 
     for (uint256 j = 0; j < reserves.length; j++) {
-      DataTypes.ReserveConfigurationMap memory configuration = pool.getReserveConfiguration(
-        reservesWithEth[j]
-      );
+      DataTypes.ReserveConfigurationMap memory configuration = pool.getReserveConfiguration(reservesWithEth[j]);
 
       (bool isActive, , , ) = configuration.getFlagsMemory();
 

@@ -1,16 +1,16 @@
-import { LendPool } from '../../../types/LendPool';
-import { ReserveData, UserReserveData, LoanData } from './interfaces';
+import { LendPool } from "../../../types/LendPool";
+import { ReserveData, UserReserveData, LoanData } from "./interfaces";
 import {
   getIErc20Detailed,
   getMintableERC20,
   getMintableERC721,
   getBToken,
   getLendPoolLoanProxy,
-} from '../../../helpers/contracts-getters';
-import { tEthereumAddress } from '../../../helpers/types';
-import BigNumber from 'bignumber.js';
-import { getDb, DRE } from '../../../helpers/misc-utils';
-import { BendProtocolDataProvider } from '../../../types/BendProtocolDataProvider';
+} from "../../../helpers/contracts-getters";
+import { tEthereumAddress } from "../../../helpers/types";
+import BigNumber from "bignumber.js";
+import { getDb, DRE } from "../../../helpers/misc-utils";
+import { BendProtocolDataProvider } from "../../../types/BendProtocolDataProvider";
 
 export const getReserveData = async (
   helper: BendProtocolDataProvider,
@@ -34,9 +34,7 @@ export const getReserveData = async (
   );
 
   const utilizationRate = new BigNumber(
-    totalLiquidity.eq(0)
-      ? 0
-      : new BigNumber(reserveData.totalVariableDebt.toString()).rayDiv(totalLiquidity)
+    totalLiquidity.eq(0) ? 0 : new BigNumber(reserveData.totalVariableDebt.toString()).rayDiv(totalLiquidity)
   );
 
   return {
@@ -104,11 +102,7 @@ export const getLoanData = async (
 };
 
 export const getReserveAddressFromSymbol = async (symbol: string) => {
-  const token = await getMintableERC20(
-    (
-      await getDb().get(`${symbol}.${DRE.network.name}`).value()
-    ).address
-  );
+  const token = await getMintableERC20((await getDb().get(`${symbol}.${DRE.network.name}`).value()).address);
 
   if (!token) {
     throw `Could not find instance for contract ${symbol}`;
@@ -117,11 +111,7 @@ export const getReserveAddressFromSymbol = async (symbol: string) => {
 };
 
 export const getNftAddressFromSymbol = async (symbol: string) => {
-  const token = await getMintableERC721(
-    (
-      await getDb().get(`${symbol}.${DRE.network.name}`).value()
-    ).address
-  );
+  const token = await getMintableERC721((await getDb().get(`${symbol}.${DRE.network.name}`).value()).address);
 
   if (!token) {
     throw `Could not find instance for contract ${symbol}`;
@@ -129,11 +119,7 @@ export const getNftAddressFromSymbol = async (symbol: string) => {
   return token.address;
 };
 
-const getBTokenUserData = async (
-  reserve: string,
-  user: string,
-  dataProvider: BendProtocolDataProvider
-) => {
+const getBTokenUserData = async (reserve: string, user: string, dataProvider: BendProtocolDataProvider) => {
   const tokenAddress: string = await dataProvider.getReserveTokensAddresses(reserve);
 
   const bToken = await getBToken(tokenAddress);
