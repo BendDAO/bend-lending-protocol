@@ -81,13 +81,16 @@ export const deployAllChainlinkMockAggregators = async (
     if (tokenContractName !== "ETH") {
       const priceIndex = Object.keys(initialPrices).findIndex((value) => value === tokenContractName);
       const [, price] = (Object.entries(initialPrices) as [string, string][])[priceIndex];
-      aggregators[tokenContractName] = await deployChainlinkMock(allTokenDecimals[tokenContractName], verify);
+      //all reserves price must be ETH based, so aggregtaor decimals is 18
+      //const decimals = allTokenDecimals[tokenContractName];
+      const decimals = "18";
+      aggregators[tokenContractName] = await deployChainlinkMock(decimals, verify);
       console.log(
         "ChainlinkMockAggregator,",
         tokenContractName,
         aggregators[tokenContractName].address,
         price,
-        allTokenDecimals[tokenContractName]
+        decimals
       );
       await aggregators[tokenContractName].mockAddAnswer("1", price, "1", "1", "1");
     }

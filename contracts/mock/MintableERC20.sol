@@ -13,13 +13,17 @@ contract MintableERC20 is ERC20 {
   constructor(
     string memory name,
     string memory symbol,
-    uint8 decimals
+    uint8 decimals_
   ) ERC20(name, symbol) {
-    _setupDecimals(decimals);
+    _setupDecimals(decimals_);
   }
 
-  function _setupDecimals(uint8 decimals) internal {
-    _decimals = decimals;
+  function _setupDecimals(uint8 decimals_) internal {
+    _decimals = decimals_;
+  }
+
+  function decimals() public view virtual override returns (uint8) {
+    return _decimals;
   }
 
   /**

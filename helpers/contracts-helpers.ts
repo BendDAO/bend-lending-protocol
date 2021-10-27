@@ -198,8 +198,13 @@ export const getParamPerPool = <T>({ proto }: iParamsPerPool<T>, pool: BendPools
 export const convertToCurrencyDecimals = async (tokenAddress: tEthereumAddress, amount: string) => {
   const token = await getIErc20Detailed(tokenAddress);
   let decimals = (await token.decimals()).toString();
+  let tokenAmount = ethers.utils.parseUnits(amount, decimals);
+  const symbol = await token.symbol();
+  if (symbol == "USDC") {
+    //console.log("convertToCurrencyDecimals", symbol, decimals, amount, tokenAmount.toString());
+  }
 
-  return ethers.utils.parseUnits(amount, decimals);
+  return tokenAmount;
 };
 
 export const convertToCurrencyUnits = async (tokenAddress: string, amount: string) => {

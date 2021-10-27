@@ -93,6 +93,7 @@ const deployAllMockTokens = async (deployer: Signer) => {
     }
 
     tokens[tokenSymbol] = await deployMintableERC20([tokenSymbol, tokenSymbol, decimals.toString()]);
+    //console.log("deployAllMockTokens", tokenSymbol, decimals, await tokens[tokenSymbol].decimals());
     await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
   }
 

@@ -9,6 +9,8 @@ import {
   calcExpectedUserDataAfterDeposit,
   calcExpectedUserDataAfterRepay,
   calcExpectedUserDataAfterWithdraw,
+  calcExpectedLoanDataAfterBorrow,
+  calcExpectedLoanDataAfterRepay,
 } from "./utils/calculations";
 import {
   getReserveAddressFromSymbol,
@@ -25,7 +27,7 @@ import { SignerWithAddress, TestEnv } from "./make-suite";
 import { advanceTimeAndBlock, DRE, timeLatest, waitForTx } from "../../helpers/misc-utils";
 
 import chai from "chai";
-import { ReserveData, UserReserveData } from "./utils/interfaces";
+import { ReserveData, UserReserveData, LoanData } from "./utils/interfaces";
 import { ContractReceipt } from "ethers";
 import { BToken } from "../../types/BToken";
 import { tEthereumAddress } from "../../helpers/types";
@@ -287,12 +289,11 @@ export const borrow = async (
 
   const nftAsset = await getNftAddressFromSymbol(nftSymbol);
 
-  const { reserveData: reserveDataBefore, userData: userDataBefore } = await getContractsData(
-    reserve,
-    onBehalfOf,
-    testEnv,
-    user.address
-  );
+  const {
+    reserveData: reserveDataBefore,
+    userData: userDataBefore,
+    loanData: loanDataBefore,
+  } = await getContractsDataWithLoan(reserve, onBehalfOf, nftAsset, nftTokenId, testEnv, user.address);
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve, amount);
 
@@ -312,8 +313,9 @@ export const borrow = async (
     const {
       reserveData: reserveDataAfter,
       userData: userDataAfter,
+      loanData: loanDataAfter,
       timestamp,
-    } = await getContractsData(reserve, onBehalfOf, testEnv, user.address);
+    } = await getContractsDataWithLoan(reserve, onBehalfOf, nftAsset, nftTokenId, testEnv, user.address);
 
     const expectedReserveData = calcExpectedReserveDataAfterBorrow(
       amountToBorrow.toString(),
@@ -331,10 +333,21 @@ export const borrow = async (
       txTimestamp,
       timestamp
     );
+
+    const expectedLoanData = calcExpectedLoanDataAfterBorrow(
+      amountToBorrow.toString(),
+      loanDataBefore,
+      loanDataAfter,
+      expectedReserveData,
+      txTimestamp,
+      timestamp
+    );
     //console.log("actual", reserveDataAfter, "expected", expectedReserveData);
+    //console.log("borrow", "actual", loanDataAfter, "expected", expectedLoanData);
 
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserData);
+    expectEqual(loanDataAfter, expectedLoanData);
   } else if (expectedResult === "revert") {
     await expect(
       pool.connect(user.signer).borrow(reserve, amountToBorrow, nftAsset, nftTokenId, onBehalfOf, "0"),
@@ -360,11 +373,11 @@ export const repay = async (
 
   const { reserveAsset } = await getLoanData(pool, dataProvider, nftAsset, nftTokenId, onBehalfOf.address);
 
-  const { reserveData: reserveDataBefore, userData: userDataBefore } = await getContractsData(
-    reserveAsset,
-    onBehalfOf.address,
-    testEnv
-  );
+  const {
+    reserveData: reserveDataBefore,
+    userData: userDataBefore,
+    loanData: loanDataBefore,
+  } = await getContractsDataWithLoan(reserveAsset, onBehalfOf.address, nftAsset, nftTokenId, testEnv);
 
   let amountToRepay = "0";
 
@@ -392,8 +405,9 @@ export const repay = async (
     const {
       reserveData: reserveDataAfter,
       userData: userDataAfter,
+      loanData: loanDataAfter,
       timestamp,
-    } = await getContractsData(reserveAsset, onBehalfOf.address, testEnv);
+    } = await getContractsDataWithLoan(reserveAsset, onBehalfOf.address, nftAsset, nftTokenId, testEnv);
 
     const expectedReserveData = calcExpectedReserveDataAfterRepay(
       amountToRepay,
@@ -414,15 +428,32 @@ export const repay = async (
       timestamp
     );
 
+    const expectedLoanData = calcExpectedLoanDataAfterRepay(
+      amountToRepay,
+      reserveDataBefore,
+      expectedReserveData,
+      loanDataBefore,
+      loanDataAfter,
+      user.address,
+      onBehalfOf.address,
+      txTimestamp,
+      timestamp
+    );
+    //console.log("repay", "actual", loanDataAfter, "expected", expectedLoanData);
+
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserData);
+    expectEqual(loanDataAfter, expectedLoanData);
   } else if (expectedResult === "revert") {
     await expect(pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions), revertMessage).to.be
       .reverted;
   }
 };
 
-const expectEqual = (actual: UserReserveData | ReserveData, expected: UserReserveData | ReserveData) => {
+const expectEqual = (
+  actual: UserReserveData | ReserveData | LoanData,
+  expected: UserReserveData | ReserveData | LoanData
+) => {
   //console.log("expectEqual", actual, expected);
   if (!configuration.skipIntegrityCheck) {
     // @ts-ignore
@@ -478,6 +509,31 @@ export const getContractsData = async (reserve: string, user: string, testEnv: T
   return {
     reserveData,
     userData,
+    timestamp: new BigNumber(timestamp),
+  };
+};
+
+export const getContractsDataWithLoan = async (
+  reserve: string,
+  user: string,
+  nftAsset: string,
+  nftTokenId: string,
+  testEnv: TestEnv,
+  sender?: string
+) => {
+  const { pool, dataProvider } = testEnv;
+
+  const [userData, reserveData, loanData, timestamp] = await Promise.all([
+    getUserData(pool, dataProvider, reserve, user, sender || user),
+    getReserveData(dataProvider, reserve),
+    getLoanData(pool, dataProvider, nftAsset, nftTokenId, user, sender || user),
+    timeLatest(),
+  ]);
+
+  return {
+    reserveData,
+    userData,
+    loanData,
     timestamp: new BigNumber(timestamp),
   };
 };
