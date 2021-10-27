@@ -220,4 +220,14 @@ library ValidationLogic {
 
     require(paybackAmount > 0, Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
   }
+
+  /**
+   * @dev Validates an bToken transfer
+   * @param from The user from which the bTokens are being transferred
+   * @param reserveData The state of the reserve
+   */
+  function validateTransfer(address from, DataTypes.ReserveData storage reserveData) internal pure {
+    from;
+    reserveData;
+  }
 }

@@ -150,13 +150,14 @@ export const deployBendLibraries = async (verify?: boolean): Promise<LendPoolLib
   // require a hardcoded string.
   //
   //  how-to:
-  //  1. PLACEHOLDER = solidityKeccak256(['string'], `${libPath}:${libName}`).slice(2, 36)
+  //  1. PLACEHOLDER = solidity Keccak256(['string'], `${libPath}:${libName}`).slice(2, 36)
   //  2. LIB_PLACEHOLDER = `__$${PLACEHOLDER}$__`
   // or grab placeholdes from LendPoolLibraryAddresses at Typechain generation.
   //
   // libPath example: contracts/libraries/logic/GenericLogic.sol
   // libName example: GenericLogic
   return {
+    //["__$4c26be947d349222af871a3168b3fe584b$__"]: genericLogic.address,
     ["__$5201a97c05ba6aa659e2f36a933dd51801$__"]: validationLogic.address,
     ["__$d3b4366daeb9cadc7528af6145b50b2183$__"]: reserveLogic.address,
     ["__$eceb79063fab52ea3826f3ee75ecd7f36d$__"]: nftLogic.address,
