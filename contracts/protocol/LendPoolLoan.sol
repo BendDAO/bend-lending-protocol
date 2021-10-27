@@ -14,8 +14,6 @@ import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cou
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
-import "hardhat/console.sol";
-
 contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     using WadRayMath for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;

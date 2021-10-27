@@ -20,6 +20,12 @@ const { expect } = require("chai");
 
 makeSuite("LendPool: Withdraw", (testEnv: TestEnv) => {
   before("Initializing configuration", async () => {
+    // Sets BigNumber for this suite, instead of globally
+    BigNumber.config({
+      DECIMAL_PLACES: 0,
+      ROUNDING_MODE: BigNumber.ROUND_DOWN,
+    });
+
     actionsConfiguration.skipIntegrityCheck = false; //set this to true to execute solidity-coverage
 
     calculationsConfiguration.reservesParams = <

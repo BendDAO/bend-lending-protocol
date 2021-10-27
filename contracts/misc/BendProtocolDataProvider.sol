@@ -12,8 +12,6 @@ import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol"
 import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
-import "hardhat/console.sol";
-
 contract BendProtocolDataProvider {
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
     using NftConfiguration for DataTypes.NftConfigurationMap;
