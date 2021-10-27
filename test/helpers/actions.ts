@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
 import {
   calcExpectedReserveDataAfterBorrow,
@@ -9,36 +9,31 @@ import {
   calcExpectedUserDataAfterDeposit,
   calcExpectedUserDataAfterRepay,
   calcExpectedUserDataAfterWithdraw,
-} from "./utils/calculations";
+} from './utils/calculations';
 import {
   getReserveAddressFromSymbol,
   getNftAddressFromSymbol,
   getReserveData,
   getUserData,
   getLoanData,
-} from "./utils/helpers";
+} from './utils/helpers';
 
-import { convertToCurrencyDecimals } from "../../helpers/contracts-helpers";
+import { convertToCurrencyDecimals } from '../../helpers/contracts-helpers';
 import {
   getBToken,
   getMintableERC20,
   getMintableERC721,
   getLendPoolLoanProxy,
-} from "../../helpers/contracts-getters";
-import { MAX_UINT_AMOUNT, ONE_YEAR } from "../../helpers/constants";
-import { SignerWithAddress, TestEnv } from "./make-suite";
-import {
-  advanceTimeAndBlock,
-  DRE,
-  timeLatest,
-  waitForTx,
-} from "../../helpers/misc-utils";
+} from '../../helpers/contracts-getters';
+import { MAX_UINT_AMOUNT, ONE_YEAR } from '../../helpers/constants';
+import { SignerWithAddress, TestEnv } from './make-suite';
+import { advanceTimeAndBlock, DRE, timeLatest, waitForTx } from '../../helpers/misc-utils';
 
-import chai from "chai";
-import { ReserveData, UserReserveData } from "./utils/interfaces";
-import { ContractReceipt } from "ethers";
-import { BToken } from "../../types/BToken";
-import { tEthereumAddress } from "../../helpers/types";
+import chai from 'chai';
+import { ReserveData, UserReserveData } from './utils/interfaces';
+import { ContractReceipt } from 'ethers';
+import { BToken } from '../../types/BToken';
+import { tEthereumAddress } from '../../helpers/types';
 
 const { expect } = chai;
 
@@ -51,43 +46,25 @@ const almostEqualOrEqual = function (
 
   keys.forEach((key) => {
     if (
-      key === "lastUpdateTimestamp" ||
-      key === "symbol" ||
-      key === "bTokenAddress" ||
-      key === "decimals"
+      key === 'lastUpdateTimestamp' ||
+      key === 'symbol' ||
+      key === 'bTokenAddress' ||
+      key === 'decimals'
     ) {
       // skipping consistency check on accessory data
       return;
     }
 
-    this.assert(
-      actual[key] != undefined,
-      `Property ${key} is undefined in the actual data`
-    );
-    expect(
-      expected[key] != undefined,
-      `Property ${key} is undefined in the expected data`
-    );
+    this.assert(actual[key] != undefined, `Property ${key} is undefined in the actual data`);
+    expect(expected[key] != undefined, `Property ${key} is undefined in the expected data`);
 
     if (expected[key] == null || actual[key] == null) {
-      console.log(
-        "Found a undefined value for Key ",
-        key,
-        " value ",
-        expected[key],
-        actual[key]
-      );
+      console.log('Found a undefined value for Key ', key, ' value ', expected[key], actual[key]);
     }
 
     if (actual[key] instanceof BigNumber) {
-      const actualValue = (<BigNumber>actual[key]).decimalPlaces(
-        0,
-        BigNumber.ROUND_DOWN
-      );
-      const expectedValue = (<BigNumber>expected[key]).decimalPlaces(
-        0,
-        BigNumber.ROUND_DOWN
-      );
+      const actualValue = (<BigNumber>actual[key]).decimalPlaces(0, BigNumber.ROUND_DOWN);
+      const expectedValue = (<BigNumber>expected[key]).decimalPlaces(0, BigNumber.ROUND_DOWN);
 
       this.assert(
         actualValue.eq(expectedValue) ||
@@ -117,18 +94,15 @@ const almostEqualOrEqual = function (
 };
 
 chai.use(function (chai: any, utils: any) {
-  chai.Assertion.overwriteMethod(
-    "almostEqualOrEqual",
-    function (original: any) {
-      return function (this: any, expected: ReserveData | UserReserveData) {
-        const actual = (expected as ReserveData)
-          ? <ReserveData>this._obj
-          : <UserReserveData>this._obj;
+  chai.Assertion.overwriteMethod('almostEqualOrEqual', function (original: any) {
+    return function (this: any, expected: ReserveData | UserReserveData) {
+      const actual = (expected as ReserveData)
+        ? <ReserveData>this._obj
+        : <UserReserveData>this._obj;
 
-        almostEqualOrEqual.apply(this, [expected, actual]);
-      };
-    }
-  );
+      almostEqualOrEqual.apply(this, [expected, actual]);
+    };
+  });
 });
 
 interface ActionsConfig {
@@ -148,9 +122,7 @@ export const mintERC20 = async (
   const token = await getMintableERC20(reserve);
 
   await waitForTx(
-    await token
-      .connect(user.signer)
-      .mint(await convertToCurrencyDecimals(reserve, amount))
+    await token.connect(user.signer).mint(await convertToCurrencyDecimals(reserve, amount))
   );
 };
 
@@ -178,9 +150,7 @@ export const approveERC20 = async (
   const token = await getMintableERC20(reserve);
 
   await waitForTx(
-    await token
-      .connect(user.signer)
-      .approve(pool.address, "100000000000000000000000000000")
+    await token.connect(user.signer).approve(pool.address, '100000000000000000000000000000')
   );
 };
 
@@ -195,9 +165,7 @@ export const approveERC721 = async (
 
   const token = await getMintableERC721(reserve);
 
-  await waitForTx(
-    await token.connect(user.signer).approve(pool.address, tokenId)
-  );
+  await waitForTx(await token.connect(user.signer).approve(pool.address, tokenId));
 };
 
 export const setApprovalForAll = async (
@@ -210,9 +178,7 @@ export const setApprovalForAll = async (
 
   const token = await getMintableERC721(nftAsset);
 
-  await waitForTx(
-    await token.connect(user.signer).setApprovalForAll(pool.address, true)
-  );
+  await waitForTx(await token.connect(user.signer).setApprovalForAll(pool.address, true));
 };
 
 export const deposit = async (
@@ -233,18 +199,22 @@ export const deposit = async (
 
   const txOptions: any = {};
 
-  const { reserveData: reserveDataBefore, userData: userDataBefore } =
-    await getContractsData(reserve, onBehalfOf, testEnv, sender.address);
+  const { reserveData: reserveDataBefore, userData: userDataBefore } = await getContractsData(
+    reserve,
+    onBehalfOf,
+    testEnv,
+    sender.address
+  );
 
   if (sendValue) {
     txOptions.value = await convertToCurrencyDecimals(reserve, sendValue);
   }
 
-  if (expectedResult === "success") {
+  if (expectedResult === 'success') {
     const txResult = await waitForTx(
       await pool
         .connect(sender.signer)
-        .deposit(reserve, amountToDeposit, onBehalfOf, "0", txOptions)
+        .deposit(reserve, amountToDeposit, onBehalfOf, '0', txOptions)
     );
 
     const {
@@ -273,11 +243,9 @@ export const deposit = async (
 
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserReserveData);
-  } else if (expectedResult === "revert") {
+  } else if (expectedResult === 'revert') {
     await expect(
-      pool
-        .connect(sender.signer)
-        .deposit(reserve, amountToDeposit, onBehalfOf, "0", txOptions),
+      pool.connect(sender.signer).deposit(reserve, amountToDeposit, onBehalfOf, '0', txOptions),
       revertMessage
     ).to.be.reverted;
   }
@@ -300,21 +268,17 @@ export const withdraw = async (
     reserveData: reserveDataBefore,
   } = await getDataBeforeAction(reserveSymbol, user.address, testEnv);
 
-  let amountToWithdraw = "0";
+  let amountToWithdraw = '0';
 
-  if (amount !== "-1") {
-    amountToWithdraw = (
-      await convertToCurrencyDecimals(reserve, amount)
-    ).toString();
+  if (amount !== '-1') {
+    amountToWithdraw = (await convertToCurrencyDecimals(reserve, amount)).toString();
   } else {
     amountToWithdraw = MAX_UINT_AMOUNT;
   }
 
-  if (expectedResult === "success") {
+  if (expectedResult === 'success') {
     const txResult = await waitForTx(
-      await pool
-        .connect(user.signer)
-        .withdraw(reserve, amountToWithdraw, user.address)
+      await pool.connect(user.signer).withdraw(reserve, amountToWithdraw, user.address)
     );
 
     const {
@@ -344,11 +308,9 @@ export const withdraw = async (
 
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserData);
-  } else if (expectedResult === "revert") {
+  } else if (expectedResult === 'revert') {
     await expect(
-      pool
-        .connect(user.signer)
-        .withdraw(reserve, amountToWithdraw, user.address),
+      pool.connect(user.signer).withdraw(reserve, amountToWithdraw, user.address),
       revertMessage
     ).to.be.reverted;
   }
@@ -372,25 +334,26 @@ export const borrow = async (
 
   const nftAsset = await getNftAddressFromSymbol(nftSymbol);
 
-  const { reserveData: reserveDataBefore, userData: userDataBefore } =
-    await getContractsData(reserve, onBehalfOf, testEnv, user.address);
+  const { reserveData: reserveDataBefore, userData: userDataBefore } = await getContractsData(
+    reserve,
+    onBehalfOf,
+    testEnv,
+    user.address
+  );
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve, amount);
 
-  if (expectedResult === "success") {
+  if (expectedResult === 'success') {
     const txResult = await waitForTx(
       await pool
         .connect(user.signer)
-        .borrow(reserve, amountToBorrow, nftAsset, nftTokenId, onBehalfOf, "0")
+        .borrow(reserve, amountToBorrow, nftAsset, nftTokenId, onBehalfOf, '0')
     );
 
     const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
 
     if (timeTravel) {
-      const secondsToTravel = new BigNumber(timeTravel)
-        .multipliedBy(ONE_YEAR)
-        .div(365)
-        .toNumber();
+      const secondsToTravel = new BigNumber(timeTravel).multipliedBy(ONE_YEAR).div(365).toNumber();
 
       await advanceTimeAndBlock(secondsToTravel);
     }
@@ -421,11 +384,11 @@ export const borrow = async (
 
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserData);
-  } else if (expectedResult === "revert") {
+  } else if (expectedResult === 'revert') {
     await expect(
       pool
         .connect(user.signer)
-        .borrow(reserve, amountToBorrow, nftAsset, nftTokenId, onBehalfOf, "0"),
+        .borrow(reserve, amountToBorrow, nftAsset, nftTokenId, onBehalfOf, '0'),
       revertMessage
     ).to.be.reverted;
   }
@@ -454,35 +417,31 @@ export const repay = async (
     onBehalfOf.address
   );
 
-  const { reserveData: reserveDataBefore, userData: userDataBefore } =
-    await getContractsData(reserveAsset, onBehalfOf.address, testEnv);
+  const { reserveData: reserveDataBefore, userData: userDataBefore } = await getContractsData(
+    reserveAsset,
+    onBehalfOf.address,
+    testEnv
+  );
 
-  let amountToRepay = "0";
+  let amountToRepay = '0';
 
-  if (amount !== "-1") {
-    amountToRepay = (
-      await convertToCurrencyDecimals(reserveAsset, amount)
-    ).toString();
+  if (amount !== '-1') {
+    amountToRepay = (await convertToCurrencyDecimals(reserveAsset, amount)).toString();
   } else {
     amountToRepay = MAX_UINT_AMOUNT;
   }
-  amountToRepay = "0x" + new BigNumber(amountToRepay).toString(16);
+  amountToRepay = '0x' + new BigNumber(amountToRepay).toString(16);
 
   const txOptions: any = {};
 
   if (sendValue) {
-    const valueToSend = await convertToCurrencyDecimals(
-      reserveAsset,
-      sendValue
-    );
-    txOptions.value = "0x" + new BigNumber(valueToSend.toString()).toString(16);
+    const valueToSend = await convertToCurrencyDecimals(reserveAsset, sendValue);
+    txOptions.value = '0x' + new BigNumber(valueToSend.toString()).toString(16);
   }
 
-  if (expectedResult === "success") {
+  if (expectedResult === 'success') {
     const txResult = await waitForTx(
-      await pool
-        .connect(user.signer)
-        .repay(nftAsset, nftTokenId, amountToRepay, txOptions)
+      await pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions)
     );
 
     const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
@@ -514,11 +473,9 @@ export const repay = async (
 
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserData);
-  } else if (expectedResult === "revert") {
+  } else if (expectedResult === 'revert') {
     await expect(
-      pool
-        .connect(user.signer)
-        .repay(nftAsset, nftTokenId, amountToRepay, txOptions),
+      pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions),
       revertMessage
     ).to.be.reverted;
   }
@@ -549,11 +506,7 @@ const getDataBeforeAction = async (
 ): Promise<ActionData> => {
   const reserve = await getReserveAddressFromSymbol(reserveSymbol);
 
-  const { reserveData, userData } = await getContractsData(
-    reserve,
-    user,
-    testEnv
-  );
+  const { reserveData, userData } = await getContractsData(reserve, user, testEnv);
   const bTokenInstance = await getBToken(reserveData.bTokenAddress);
   return {
     reserve,
@@ -565,11 +518,9 @@ const getDataBeforeAction = async (
 
 export const getTxCostAndTimestamp = async (tx: ContractReceipt) => {
   if (!tx.blockNumber || !tx.transactionHash || !tx.cumulativeGasUsed) {
-    throw new Error("No tx blocknumber");
+    throw new Error('No tx blocknumber');
   }
-  const txTimestamp = new BigNumber(
-    (await DRE.ethers.provider.getBlock(tx.blockNumber)).timestamp
-  );
+  const txTimestamp = new BigNumber((await DRE.ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
   const txInfo = await DRE.ethers.provider.getTransaction(tx.transactionHash);
   const txCost = new BigNumber(tx.cumulativeGasUsed.toString()).multipliedBy(

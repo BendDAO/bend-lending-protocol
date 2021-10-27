@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import {IERC20MetadataUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
 
 /**
  * @dev Interface for the optional metadata functions from the ERC20 standard.
