@@ -377,15 +377,6 @@ export const borrow = async (
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve, amount);
 
-  console.log(
-    "borrow",
-    reserve,
-    amountToBorrow,
-    nftAsset,
-    nftTokenId,
-    onBehalfOf,
-    timeTravel
-  );
   if (expectedResult === "success") {
     const txResult = await waitForTx(
       await pool
@@ -487,8 +478,6 @@ export const repay = async (
     txOptions.value = "0x" + new BigNumber(valueToSend.toString()).toString(16);
   }
 
-  console.log("repay", nftAsset, nftTokenId, amountToRepay);
-
   if (expectedResult === "success") {
     const txResult = await waitForTx(
       await pool
@@ -522,14 +511,6 @@ export const repay = async (
       txTimestamp,
       timestamp
     );
-    console.log(
-      "repay",
-      "actual",
-      reserveDataAfter,
-      "expected",
-      expectedReserveData
-    );
-    console.log("repay", "actual", userDataAfter, "expected", expectedUserData);
 
     expectEqual(reserveDataAfter, expectedReserveData);
     expectEqual(userDataAfter, expectedUserData);

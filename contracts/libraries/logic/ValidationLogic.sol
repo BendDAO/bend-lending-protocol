@@ -17,10 +17,6 @@ import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-//import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-
-import "hardhat/console.sol";
-
 /**
  * @title ValidationLogic library
  * @author NFTLend
