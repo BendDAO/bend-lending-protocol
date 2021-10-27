@@ -1,29 +1,29 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {DataTypes} from "../libraries/types/DataTypes.sol";
-import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
-import {NftLogic} from "../libraries/logic/NftLogic.sol";
-import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {ReserveLogic} from '../libraries/logic/ReserveLogic.sol';
+import {NftLogic} from '../libraries/logic/NftLogic.sol';
+import {ILendPoolAddressesProvider} from '../interfaces/ILendPoolAddressesProvider.sol';
 
 contract LendPoolStorage {
-    using ReserveLogic for DataTypes.ReserveData;
-    using NftLogic for DataTypes.NftData;
+  using ReserveLogic for DataTypes.ReserveData;
+  using NftLogic for DataTypes.NftData;
 
-    ILendPoolAddressesProvider internal _addressesProvider;
+  ILendPoolAddressesProvider internal _addressesProvider;
 
-    mapping(address => DataTypes.ReserveData) internal _reserves;
-    mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
-    mapping(address => DataTypes.NftData) internal _nfts;
+  mapping(address => DataTypes.ReserveData) internal _reserves;
+  mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
+  mapping(address => DataTypes.NftData) internal _nfts;
 
-    mapping(uint256 => address) internal _reservesList;
-    uint256 internal _reservesCount;
+  mapping(uint256 => address) internal _reservesList;
+  uint256 internal _reservesCount;
 
-    mapping(uint256 => address) internal _nftsList;
-    uint256 internal _nftsCount;
+  mapping(uint256 => address) internal _nftsList;
+  uint256 internal _nftsCount;
 
-    bool internal _paused;
+  bool internal _paused;
 
-    uint256 internal _maxNumberOfReserves;
-    uint256 internal _maxNumberOfNfts;
+  uint256 internal _maxNumberOfReserves;
+  uint256 internal _maxNumberOfNfts;
 }

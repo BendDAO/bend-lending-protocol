@@ -6,9 +6,9 @@ import {
   iMultiPoolsNfts,
   INftParams,
   tEthereumAddress,
-} from "./types";
-import { BendProtocolDataProvider } from "../types/BendProtocolDataProvider";
-import { chunk, getDb, waitForTx } from "./misc-utils";
+} from './types';
+import { BendProtocolDataProvider } from '../types/BendProtocolDataProvider';
+import { chunk, getDb, waitForTx } from './misc-utils';
 import {
   getBToken,
   getBNFT,
@@ -16,25 +16,22 @@ import {
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
   getBNFTRegistryProxy,
-} from "./contracts-getters";
+} from './contracts-getters';
 import {
   getEthersSigner,
   getContractAddressWithJsonFallback,
   rawInsertContractAddressInDb,
-} from "./contracts-helpers";
-import { BigNumberish } from "ethers";
-import { ConfigNames } from "./configuration";
-import { deployRateStrategy } from "./contracts-deployments";
-import { BNFTRegistry } from "../types";
+} from './contracts-helpers';
+import { BigNumberish } from 'ethers';
+import { ConfigNames } from './configuration';
+import { deployRateStrategy } from './contracts-deployments';
+import { BNFTRegistry } from '../types';
 
-export const getBTokenExtraParams = async (
-  bTokenName: string,
-  tokenAddress: tEthereumAddress
-) => {
+export const getBTokenExtraParams = async (bTokenName: string, tokenAddress: tEthereumAddress) => {
   //console.log(bTokenName);
   switch (bTokenName) {
     default:
-      return "0x10";
+      return '0x10';
   }
 };
 
@@ -84,9 +81,7 @@ export const initReservesByHelper = async (
 
   for (let [symbol, params] of reserves) {
     if (!tokenAddresses[symbol]) {
-      console.log(
-        `- Skipping init of ${symbol} due token address is not set at markets config`
-      );
+      console.log(`- Skipping init of ${symbol} due token address is not set at markets config`);
       continue;
     }
     const { strategy, bTokenImpl, reserveDecimals } = params;
@@ -113,18 +108,12 @@ export const initReservesByHelper = async (
 
       // This causes the last strategy to be printed twice, once under "DefaultReserveInterestRateStrategy"
       // and once under the actual `strategyASSET` key.
-      rawInsertContractAddressInDb(
-        strategy.name,
-        strategyAddresses[strategy.name]
-      );
+      rawInsertContractAddressInDb(strategy.name, strategyAddresses[strategy.name]);
     }
     // Prepare input parameters
     reserveSymbols.push(symbol);
     const initParam = {
-      bTokenImpl: await getContractAddressWithJsonFallback(
-        bTokenImpl,
-        poolName
-      ),
+      bTokenImpl: await getContractAddressWithJsonFallback(bTokenImpl, poolName),
       underlyingAssetDecimals: reserveDecimals,
       interestRateAddress: strategyAddresses[strategy.name],
       underlyingAsset: tokenAddresses[symbol],
@@ -145,35 +134,26 @@ export const initReservesByHelper = async (
 
   const configurator = await getLendPoolConfiguratorProxy();
 
-  console.log(
-    `- Reserves initialization in ${chunkedInitInputParams.length} txs`
-  );
-  for (
-    let chunkIndex = 0;
-    chunkIndex < chunkedInitInputParams.length;
-    chunkIndex++
-  ) {
+  console.log(`- Reserves initialization in ${chunkedInitInputParams.length} txs`);
+  for (let chunkIndex = 0; chunkIndex < chunkedInitInputParams.length; chunkIndex++) {
     const tx3 = await waitForTx(
       await configurator.batchInitReserve(chunkedInitInputParams[chunkIndex])
     );
 
     console.log(
-      `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
+      `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(', ')}`,
       chunkedInitInputParams[chunkIndex][0].bTokenImpl,
       chunkedInitInputParams[chunkIndex][0].underlyingAssetName
     );
-    console.log("    * gasUsed", tx3.gasUsed.toString());
+    console.log('    * gasUsed', tx3.gasUsed.toString());
   }
 };
 
-export const getBNftExtraParams = async (
-  bNftName: string,
-  nftAddress: tEthereumAddress
-) => {
+export const getBNftExtraParams = async (bNftName: string, nftAddress: tEthereumAddress) => {
   //console.log(bNftName);
   switch (bNftName) {
     default:
-      return "0x10";
+      return '0x10';
   }
 };
 
@@ -210,34 +190,20 @@ export const initNftsByHelper = async (
   console.log(`- BNFTRegistry create proxy in ${nfts.length} txs`);
   for (let [symbol, params] of nfts) {
     if (!nftAddresses[symbol]) {
-      console.log(
-        `- Skipping init of ${symbol} due nft address is not set at markets config`
-      );
+      console.log(`- Skipping init of ${symbol} due nft address is not set at markets config`);
       continue;
     }
     const { bNftImpl } = params; // just for name
-    const bNftImplAddress = await getContractAddressWithJsonFallback(
-      bNftImpl,
-      poolName
-    );
-    const extraParams = await getBNftExtraParams(
-      bNftImpl,
-      nftAddresses[symbol]
-    );
+    const bNftImplAddress = await getContractAddressWithJsonFallback(bNftImpl, poolName);
+    const extraParams = await getBNftExtraParams(bNftImpl, nftAddresses[symbol]);
 
     // create bnft proxy via factory
     const tx3 = await waitForTx(
-      await bnftRegistry.createBNFTWithImpl(
-        nftAddresses[symbol],
-        bNftImplAddress,
-        extraParams
-      )
+      await bnftRegistry.createBNFTWithImpl(nftAddresses[symbol], bNftImplAddress, extraParams)
     );
-    const { bNftProxyRet, bNftImplRet } = await bnftRegistry.getBNFT(
-      nftAddresses[symbol]
-    );
-    console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);
-    console.log("    * gasUsed", tx3.gasUsed.toString());
+    const { bNftProxyRet, bNftImplRet } = await bnftRegistry.getBNFT(nftAddresses[symbol]);
+    console.log('  - BNFT proxy ready for:', symbol, bNftImplAddress);
+    console.log('    * gasUsed', tx3.gasUsed.toString());
 
     const initParam = {
       // bNftProxy: bNftProxyRet,
@@ -261,20 +227,16 @@ export const initNftsByHelper = async (
   const configurator = await getLendPoolConfiguratorProxy();
 
   console.log(`- NFTs initialization in ${chunkedInitInputParams.length} txs`);
-  for (
-    let chunkIndex = 0;
-    chunkIndex < chunkedInitInputParams.length;
-    chunkIndex++
-  ) {
+  for (let chunkIndex = 0; chunkIndex < chunkedInitInputParams.length; chunkIndex++) {
     const tx3 = await waitForTx(
       await configurator.batchInitNft(chunkedInitInputParams[chunkIndex])
     );
 
     console.log(
-      `  - NFT ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
+      `  - NFT ready for: ${chunkedSymbols[chunkIndex].join(', ')}`,
       chunkedInitInputParams[chunkIndex][0].underlyingAsset
     );
-    console.log("    * gasUsed", tx3.gasUsed.toString());
+    console.log('    * gasUsed', tx3.gasUsed.toString());
   }
 };
 
@@ -286,19 +248,17 @@ export const getPairsTokenAggregator = (
 ): [string[], string[]] => {
   const { ETH, WETH, ...assetsAddressesWithoutEth } = allAssetsAddresses;
 
-  const pairs = Object.entries(assetsAddressesWithoutEth).map(
-    ([tokenSymbol, tokenAddress]) => {
-      if (tokenSymbol !== "WETH" && tokenSymbol !== "ETH") {
-        const aggregatorAddressIndex = Object.keys(
-          aggregatorsAddresses
-        ).findIndex((value) => value === tokenSymbol);
-        const [, aggregatorAddress] = (
-          Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][]
-        )[aggregatorAddressIndex];
-        return [tokenAddress, aggregatorAddress];
-      }
+  const pairs = Object.entries(assetsAddressesWithoutEth).map(([tokenSymbol, tokenAddress]) => {
+    if (tokenSymbol !== 'WETH' && tokenSymbol !== 'ETH') {
+      const aggregatorAddressIndex = Object.keys(aggregatorsAddresses).findIndex(
+        (value) => value === tokenSymbol
+      );
+      const [, aggregatorAddress] = (
+        Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][]
+      )[aggregatorAddressIndex];
+      return [tokenAddress, aggregatorAddress];
     }
-  ) as [string, string][];
+  }) as [string, string][];
 
   const mappedPairs = pairs.map(([asset]) => asset);
   const mappedAggregators = pairs.map(([, source]) => source);
@@ -339,14 +299,14 @@ export const configureReservesByHelper = async (
       );
       continue;
     }
-    if (baseLTVAsCollateral === "-1") continue;
+    if (baseLTVAsCollateral === '-1') continue;
 
     const assetAddressIndex = Object.keys(tokenAddresses).findIndex(
       (value) => value === assetSymbol
     );
-    const [, tokenAddress] = (
-      Object.entries(tokenAddresses) as [string, string][]
-    )[assetAddressIndex];
+    const [, tokenAddress] = (Object.entries(tokenAddresses) as [string, string][])[
+      assetAddressIndex
+    ];
     // Push data
 
     inputParams.push({
@@ -360,9 +320,7 @@ export const configureReservesByHelper = async (
   }
   if (tokens.length) {
     // Set helpDeployer as temporal admin
-    await waitForTx(
-      await addressProvider.setPoolAdmin(tokenHelperDeployer.address)
-    );
+    await waitForTx(await addressProvider.setPoolAdmin(tokenHelperDeployer.address));
 
     // Deploy init per chunks
     const enableChunks = 20;
@@ -370,17 +328,9 @@ export const configureReservesByHelper = async (
     const chunkedInputParams = chunk(inputParams, enableChunks);
 
     console.log(`- Configure reserves in ${chunkedInputParams.length} txs`);
-    for (
-      let chunkIndex = 0;
-      chunkIndex < chunkedInputParams.length;
-      chunkIndex++
-    ) {
-      await waitForTx(
-        await tokenHelperDeployer.configureReserves(
-          chunkedInputParams[chunkIndex]
-        )
-      );
-      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
+    for (let chunkIndex = 0; chunkIndex < chunkedInputParams.length; chunkIndex++) {
+      await waitForTx(await tokenHelperDeployer.configureReserves(chunkedInputParams[chunkIndex]));
+      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(', ')}`);
     }
     // Set deployer back as admin
     await waitForTx(await addressProvider.setPoolAdmin(admin));
@@ -410,19 +360,15 @@ export const configureNftsByHelper = async (
     { baseLTVAsCollateral, liquidationBonus, liquidationThreshold },
   ] of Object.entries(nftsParams) as [string, INftParams][]) {
     if (!nftAddresses[assetSymbol]) {
-      console.log(
-        `- Skipping init of ${assetSymbol} due nft address is not set at markets config`
-      );
+      console.log(`- Skipping init of ${assetSymbol} due nft address is not set at markets config`);
       continue;
     }
-    if (baseLTVAsCollateral === "-1") continue;
+    if (baseLTVAsCollateral === '-1') continue;
 
-    const assetAddressIndex = Object.keys(nftAddresses).findIndex(
-      (value) => value === assetSymbol
-    );
-    const [, tokenAddress] = (
-      Object.entries(nftAddresses) as [string, string][]
-    )[assetAddressIndex];
+    const assetAddressIndex = Object.keys(nftAddresses).findIndex((value) => value === assetSymbol);
+    const [, tokenAddress] = (Object.entries(nftAddresses) as [string, string][])[
+      assetAddressIndex
+    ];
     // Push data
 
     inputParams.push({
@@ -437,9 +383,7 @@ export const configureNftsByHelper = async (
   }
   if (tokens.length) {
     // Set helpDeployer as temporal admin
-    await waitForTx(
-      await addressProvider.setPoolAdmin(tokenHelperDeployer.address)
-    );
+    await waitForTx(await addressProvider.setPoolAdmin(tokenHelperDeployer.address));
 
     // Deploy init per chunks
     const enableChunks = 20;
@@ -447,16 +391,10 @@ export const configureNftsByHelper = async (
     const chunkedInputParams = chunk(inputParams, enableChunks);
 
     console.log(`- Configure NFTs in ${chunkedInputParams.length} txs`);
-    for (
-      let chunkIndex = 0;
-      chunkIndex < chunkedInputParams.length;
-      chunkIndex++
-    ) {
+    for (let chunkIndex = 0; chunkIndex < chunkedInputParams.length; chunkIndex++) {
       //console.log("configureNfts:", chunkedInputParams[chunkIndex]);
-      await waitForTx(
-        await tokenHelperDeployer.configureNfts(chunkedInputParams[chunkIndex])
-      );
-      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
+      await waitForTx(await tokenHelperDeployer.configureNfts(chunkedInputParams[chunkIndex]));
+      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(', ')}`);
     }
     // Set deployer back as admin
     await waitForTx(await addressProvider.setPoolAdmin(admin));
@@ -470,20 +408,14 @@ const getAddressById = async (
   (await getDb().get(`${id}.${network}`).value())?.address || undefined;
 
 // Function deprecated
-const isErc20SymbolCorrect = async (
-  token: tEthereumAddress,
-  symbol: string
-) => {
+const isErc20SymbolCorrect = async (token: tEthereumAddress, symbol: string) => {
   const erc20 = await getBToken(token); // using bToken for ERC20 interface
   const erc20Symbol = await erc20.symbol();
   return symbol === erc20Symbol;
 };
 
 // Function deprecated
-const isErc721SymbolCorrect = async (
-  token: tEthereumAddress,
-  symbol: string
-) => {
+const isErc721SymbolCorrect = async (token: tEthereumAddress, symbol: string) => {
   const erc721 = await getBNFT(token); // using bNFT for ERC721 interface
   const erc721Symbol = await erc721.symbol();
   return symbol === erc721Symbol;

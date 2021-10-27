@@ -1,11 +1,6 @@
-import BigNumber from "bignumber.js";
+import BigNumber from 'bignumber.js';
 
-function almostEqualAssertion(
-  this: any,
-  expected: any,
-  actual: any,
-  message: string
-): any {
+function almostEqualAssertion(this: any, expected: any, actual: any, message: string): any {
   this.assert(
     expected.plus(new BigNumber(1)).eq(actual) ||
       expected.plus(new BigNumber(2)).eq(actual) ||
@@ -21,9 +16,9 @@ function almostEqualAssertion(
 
 export function almostEqual() {
   return function (chai: any, utils: any) {
-    chai.Assertion.overwriteMethod("almostEqual", function (original: any) {
+    chai.Assertion.overwriteMethod('almostEqual', function (original: any) {
       return function (this: any, value: any, message: string) {
-        if (utils.flag(this, "bignumber")) {
+        if (utils.flag(this, 'bignumber')) {
           var expected = new BigNumber(value);
           var actual = new BigNumber(this._obj);
           almostEqualAssertion.apply(this, [expected, actual, message]);

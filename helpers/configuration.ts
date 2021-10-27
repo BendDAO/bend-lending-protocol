@@ -7,21 +7,18 @@ import {
   PoolConfiguration,
   ICommonConfiguration,
   eNetwork,
-} from "./types";
-import {
-  getEthersSignersAddresses,
-  getParamPerPool,
-} from "./contracts-helpers";
-import BendConfig from "../markets/bend";
-import { CommonsConfig } from "../markets/bend/commons";
-import { DRE, filterMapBy } from "./misc-utils";
-import { tEthereumAddress } from "./types";
-import { getParamPerNetwork } from "./contracts-helpers";
-import { deployWETHMocked } from "./contracts-deployments";
+} from './types';
+import { getEthersSignersAddresses, getParamPerPool } from './contracts-helpers';
+import BendConfig from '../markets/bend';
+import { CommonsConfig } from '../markets/bend/commons';
+import { DRE, filterMapBy } from './misc-utils';
+import { tEthereumAddress } from './types';
+import { getParamPerNetwork } from './contracts-helpers';
+import { deployWETHMocked } from './contracts-deployments';
 
 export enum ConfigNames {
-  Commons = "Commons",
-  Bend = "Bend",
+  Commons = 'Commons',
+  Bend = 'Bend',
 }
 
 export const loadPoolConfig = (configName: ConfigNames): PoolConfiguration => {
@@ -31,9 +28,7 @@ export const loadPoolConfig = (configName: ConfigNames): PoolConfiguration => {
     case ConfigNames.Commons:
       return CommonsConfig;
     default:
-      throw new Error(
-        `Unsupported pool configuration: ${Object.values(ConfigNames)}`
-      );
+      throw new Error(`Unsupported pool configuration: ${Object.values(ConfigNames)}`);
   }
 };
 
@@ -41,9 +36,7 @@ export const loadPoolConfig = (configName: ConfigNames): PoolConfiguration => {
 // PROTOCOL PARAMS PER POOL
 // ----------------
 
-export const getReservesConfigByPool = (
-  pool: BendPools
-): iMultiPoolsAssets<IReserveParams> =>
+export const getReservesConfigByPool = (pool: BendPools): iMultiPoolsAssets<IReserveParams> =>
   getParamPerPool<iMultiPoolsAssets<IReserveParams>>(
     {
       [BendPools.proto]: {
@@ -53,9 +46,7 @@ export const getReservesConfigByPool = (
     pool
   );
 
-export const getNftsConfigByPool = (
-  pool: BendPools
-): iMultiPoolsNfts<INftParams> =>
+export const getNftsConfigByPool = (pool: BendPools): iMultiPoolsNfts<INftParams> =>
   getParamPerPool<iMultiPoolsNfts<INftParams>>(
     {
       [BendPools.proto]: {
@@ -69,10 +60,7 @@ export const getGenesisPoolAdmin = async (
   config: ICommonConfiguration
 ): Promise<tEthereumAddress> => {
   const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;
-  const targetAddress = getParamPerNetwork(
-    config.PoolAdmin,
-    <eNetwork>currentNetwork
-  );
+  const targetAddress = getParamPerNetwork(config.PoolAdmin, <eNetwork>currentNetwork);
   if (targetAddress) {
     return targetAddress;
   }
@@ -85,10 +73,7 @@ export const getEmergencyAdmin = async (
   config: ICommonConfiguration
 ): Promise<tEthereumAddress> => {
   const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;
-  const targetAddress = getParamPerNetwork(
-    config.EmergencyAdmin,
-    <eNetwork>currentNetwork
-  );
+  const targetAddress = getParamPerNetwork(config.EmergencyAdmin, <eNetwork>currentNetwork);
   if (targetAddress) {
     return targetAddress;
   }
@@ -101,17 +86,13 @@ export const getTreasuryAddress = async (
   config: ICommonConfiguration
 ): Promise<tEthereumAddress> => {
   const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;
-  return getParamPerNetwork(
-    config.ReserveFactorTreasuryAddress,
-    <eNetwork>currentNetwork
-  );
+  return getParamPerNetwork(config.ReserveFactorTreasuryAddress, <eNetwork>currentNetwork);
 };
 
 export const getBTokenDomainSeparatorPerNetwork = (
   network: eNetwork,
   config: ICommonConfiguration
-): tEthereumAddress =>
-  getParamPerNetwork<tEthereumAddress>(config.BTokenDomainSeparator, network);
+): tEthereumAddress => getParamPerNetwork<tEthereumAddress>(config.BTokenDomainSeparator, network);
 
 export const getWethAddress = async (config: ICommonConfiguration) => {
   const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;
@@ -119,27 +100,21 @@ export const getWethAddress = async (config: ICommonConfiguration) => {
   if (wethAddress) {
     return wethAddress;
   }
-  if (currentNetwork.includes("main")) {
-    throw new Error("WETH not set at mainnet configuration.");
+  if (currentNetwork.includes('main')) {
+    throw new Error('WETH not set at mainnet configuration.');
   }
   const weth = await deployWETHMocked();
   return weth.address;
 };
 
-export const getWrappedNativeTokenAddress = async (
-  config: ICommonConfiguration
-) => {
-  const currentNetwork =
-    process.env.MAINNET_FORK === "true" ? "main" : DRE.network.name;
-  const wethAddress = getParamPerNetwork(
-    config.WrappedNativeToken,
-    <eNetwork>currentNetwork
-  );
+export const getWrappedNativeTokenAddress = async (config: ICommonConfiguration) => {
+  const currentNetwork = process.env.MAINNET_FORK === 'true' ? 'main' : DRE.network.name;
+  const wethAddress = getParamPerNetwork(config.WrappedNativeToken, <eNetwork>currentNetwork);
   if (wethAddress) {
     return wethAddress;
   }
-  if (currentNetwork.includes("main")) {
-    throw new Error("WETH not set at mainnet configuration.");
+  if (currentNetwork.includes('main')) {
+    throw new Error('WETH not set at mainnet configuration.');
   }
   const weth = await deployWETHMocked();
   return weth.address;

@@ -71,5 +71,10 @@
     "tslint-plugin-prettier": "^2.3.0",
     "typechain": "^4.0.0",
     "typescript": "^4.0.5"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern 'contracts/**/*.sol' --pattern 'helpers/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts'"
+    }
   }
 }

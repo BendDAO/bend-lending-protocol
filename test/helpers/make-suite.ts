@@ -1,5 +1,5 @@
-import { evmRevert, evmSnapshot, DRE } from "../../helpers/misc-utils";
-import { Signer } from "ethers";
+import { evmRevert, evmSnapshot, DRE } from '../../helpers/misc-utils';
+import { Signer } from 'ethers';
 import {
   getLendPool,
   getLendPoolAddressesProvider,
@@ -15,35 +15,31 @@ import {
   getWETHGateway,
   getBNFTRegistryProxy,
   getBendOracle,
-} from "../../helpers/contracts-getters";
-import {
-  eEthereumNetwork,
-  eNetwork,
-  tEthereumAddress,
-} from "../../helpers/types";
-import { LendPool } from "../../types/LendPool";
-import { BendProtocolDataProvider } from "../../types/BendProtocolDataProvider";
-import { MintableERC20 } from "../../types/MintableERC20";
-import { BToken } from "../../types/BToken";
-import { MintableERC721 } from "../../types/MintableERC721";
-import { BNFT } from "../../types/BNFT";
-import { LendPoolConfigurator } from "../../types/LendPoolConfigurator";
+} from '../../helpers/contracts-getters';
+import { eEthereumNetwork, eNetwork, tEthereumAddress } from '../../helpers/types';
+import { LendPool } from '../../types/LendPool';
+import { BendProtocolDataProvider } from '../../types/BendProtocolDataProvider';
+import { MintableERC20 } from '../../types/MintableERC20';
+import { BToken } from '../../types/BToken';
+import { MintableERC721 } from '../../types/MintableERC721';
+import { BNFT } from '../../types/BNFT';
+import { LendPoolConfigurator } from '../../types/LendPoolConfigurator';
 
-import chai from "chai";
+import chai from 'chai';
 // @ts-ignore
-import bignumberChai from "chai-bignumber";
-import { almostEqual } from "./almost-equal";
-import { ReserveOracle } from "../../types/ReserveOracle";
-import { NFTOracle } from "../../types/NFTOracle";
-import { LendPoolAddressesProvider } from "../../types/LendPoolAddressesProvider";
-import { getEthersSigners } from "../../helpers/contracts-helpers";
-import { getParamPerNetwork } from "../../helpers/contracts-helpers";
-import { WETH9Mocked } from "../../types/WETH9Mocked";
-import { WETHGateway } from "../../types/WETHGateway";
-import { solidity } from "ethereum-waffle";
-import { BendConfig } from "../../markets/bend";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BendOracle, BNFTRegistry } from "../../types";
+import bignumberChai from 'chai-bignumber';
+import { almostEqual } from './almost-equal';
+import { ReserveOracle } from '../../types/ReserveOracle';
+import { NFTOracle } from '../../types/NFTOracle';
+import { LendPoolAddressesProvider } from '../../types/LendPoolAddressesProvider';
+import { getEthersSigners } from '../../helpers/contracts-helpers';
+import { getParamPerNetwork } from '../../helpers/contracts-helpers';
+import { WETH9Mocked } from '../../types/WETH9Mocked';
+import { WETHGateway } from '../../types/WETHGateway';
+import { solidity } from 'ethereum-waffle';
+import { BendConfig } from '../../markets/bend';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { BendOracle, BNFTRegistry } from '../../types';
 
 chai.use(bignumberChai());
 chai.use(almostEqual());
@@ -78,7 +74,7 @@ export interface TestEnv {
   tokenIdTracker: number;
 }
 
-let buidlerevmSnapshotId: string = "0x1";
+let buidlerevmSnapshotId: string = '0x1';
 const setBuidlerevmSnapshotId = (id: string) => {
   buidlerevmSnapshotId = id;
 };
@@ -140,39 +136,22 @@ export async function initializeMakeSuite() {
 
   // Reserve Tokens
   const allTokens = await testEnv.dataProvider.getAllBTokens();
-  const bDaiAddress = allTokens.find(
-    (bToken) => bToken.symbol === "bDAI"
-  )?.tokenAddress;
-  const bUsdcAddress = allTokens.find(
-    (bToken) => bToken.symbol === "bUSDC"
-  )?.tokenAddress;
-  const bWEthAddress = allTokens.find(
-    (bToken) => bToken.symbol === "bWETH"
-  )?.tokenAddress;
+  const bDaiAddress = allTokens.find((bToken) => bToken.symbol === 'bDAI')?.tokenAddress;
+  const bUsdcAddress = allTokens.find((bToken) => bToken.symbol === 'bUSDC')?.tokenAddress;
+  const bWEthAddress = allTokens.find((bToken) => bToken.symbol === 'bWETH')?.tokenAddress;
 
   const reservesTokens = await testEnv.dataProvider.getAllReservesTokens();
 
-  const daiAddress = reservesTokens.find(
-    (token) => token.symbol === "DAI"
-  )?.tokenAddress;
-  const usdcAddress = reservesTokens.find(
-    (token) => token.symbol === "USDC"
-  )?.tokenAddress;
-  const wethAddress = reservesTokens.find(
-    (token) => token.symbol === "WETH"
-  )?.tokenAddress;
+  const daiAddress = reservesTokens.find((token) => token.symbol === 'DAI')?.tokenAddress;
+  const usdcAddress = reservesTokens.find((token) => token.symbol === 'USDC')?.tokenAddress;
+  const wethAddress = reservesTokens.find((token) => token.symbol === 'WETH')?.tokenAddress;
 
   if (!bDaiAddress || !bUsdcAddress || !bWEthAddress) {
-    console.error("Invalid BTokens", bDaiAddress, bUsdcAddress, bWEthAddress);
+    console.error('Invalid BTokens', bDaiAddress, bUsdcAddress, bWEthAddress);
     process.exit(1);
   }
   if (!daiAddress || !usdcAddress || !wethAddress) {
-    console.error(
-      "Invalid Reserve Tokens",
-      daiAddress,
-      usdcAddress,
-      wethAddress
-    );
+    console.error('Invalid Reserve Tokens', daiAddress, usdcAddress, wethAddress);
     process.exit(1);
   }
 
@@ -188,29 +167,21 @@ export async function initializeMakeSuite() {
   // NFT Tokens
   const allBNftTokens = await testEnv.dataProvider.getAllBNfts();
   //console.log("allBNftTokens", allBNftTokens);
-  const bPunkAddress = allBNftTokens.find(
-    (bNFT) => bNFT.symbol === "bWPUNKS"
-  )?.nftAddress;
+  const bPunkAddress = allBNftTokens.find((bNFT) => bNFT.symbol === 'bWPUNKS')?.nftAddress;
 
-  const bByacAddress = allBNftTokens.find(
-    (bNFT) => bNFT.symbol === "bBAYC"
-  )?.nftAddress;
+  const bByacAddress = allBNftTokens.find((bNFT) => bNFT.symbol === 'bBAYC')?.nftAddress;
 
   const nftsTokens = await testEnv.dataProvider.getAllNftsTokens();
   //console.log("nftsTokens", nftsTokens);
-  const wpunksAddress = nftsTokens.find(
-    (token) => token.symbol === "WPUNKS"
-  )?.nftAddress;
-  const baycAddress = nftsTokens.find(
-    (token) => token.symbol === "BAYC"
-  )?.nftAddress;
+  const wpunksAddress = nftsTokens.find((token) => token.symbol === 'WPUNKS')?.nftAddress;
+  const baycAddress = nftsTokens.find((token) => token.symbol === 'BAYC')?.nftAddress;
 
   if (!bByacAddress || !bPunkAddress) {
-    console.error("Invalid BNFTs", bByacAddress, bPunkAddress);
+    console.error('Invalid BNFTs', bByacAddress, bPunkAddress);
     process.exit(1);
   }
   if (!baycAddress || !wpunksAddress) {
-    console.error("Invalid NFT Tokens", baycAddress, wpunksAddress);
+    console.error('Invalid NFT Tokens', baycAddress, wpunksAddress);
     process.exit(1);
   }
 
