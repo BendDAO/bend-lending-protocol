@@ -6,9 +6,9 @@ import {
   iMultiPoolsNfts,
   INftParams,
   tEthereumAddress,
-} from './types';
-import { BendProtocolDataProvider } from '../types/BendProtocolDataProvider';
-import { chunk, getDb, waitForTx } from './misc-utils';
+} from "./types";
+import { BendProtocolDataProvider } from "../types/BendProtocolDataProvider";
+import { chunk, getDb, waitForTx } from "./misc-utils";
 import {
   getBToken,
   getBNFT,
@@ -16,22 +16,18 @@ import {
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
   getBNFTRegistryProxy,
-} from './contracts-getters';
-import {
-  getEthersSigner,
-  getContractAddressWithJsonFallback,
-  rawInsertContractAddressInDb,
-} from './contracts-helpers';
-import { BigNumberish } from 'ethers';
-import { ConfigNames } from './configuration';
-import { deployRateStrategy } from './contracts-deployments';
-import { BNFTRegistry } from '../types';
+} from "./contracts-getters";
+import { getEthersSigner, getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
+import { BigNumberish } from "ethers";
+import { ConfigNames } from "./configuration";
+import { deployRateStrategy } from "./contracts-deployments";
+import { BNFTRegistry } from "../types";
 
 export const getBTokenExtraParams = async (bTokenName: string, tokenAddress: tEthereumAddress) => {
   //console.log(bTokenName);
   switch (bTokenName) {
     default:
-      return '0x10';
+      return "0x10";
   }
 };
 
@@ -85,12 +81,7 @@ export const initReservesByHelper = async (
       continue;
     }
     const { strategy, bTokenImpl, reserveDecimals } = params;
-    const {
-      optimalUtilizationRate,
-      baseVariableBorrowRate,
-      variableRateSlope1,
-      variableRateSlope2,
-    } = strategy;
+    const { optimalUtilizationRate, baseVariableBorrowRate, variableRateSlope1, variableRateSlope2 } = strategy;
     if (!strategyAddresses[strategy.name]) {
       // Strategy does not exist, create a new one
       rateStrategies[strategy.name] = [
@@ -100,11 +91,7 @@ export const initReservesByHelper = async (
         variableRateSlope1,
         variableRateSlope2,
       ];
-      strategyAddresses[strategy.name] = await deployRateStrategy(
-        strategy.name,
-        rateStrategies[strategy.name],
-        verify
-      );
+      strategyAddresses[strategy.name] = await deployRateStrategy(strategy.name, rateStrategies[strategy.name], verify);
 
       // This causes the last strategy to be printed twice, once under "DefaultReserveInterestRateStrategy"
       // and once under the actual `strategyASSET` key.
@@ -136,16 +123,14 @@ export const initReservesByHelper = async (
 
   console.log(`- Reserves initialization in ${chunkedInitInputParams.length} txs`);
   for (let chunkIndex = 0; chunkIndex < chunkedInitInputParams.length; chunkIndex++) {
-    const tx3 = await waitForTx(
-      await configurator.batchInitReserve(chunkedInitInputParams[chunkIndex])
-    );
+    const tx3 = await waitForTx(await configurator.batchInitReserve(chunkedInitInputParams[chunkIndex]));
 
     console.log(
-      `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(', ')}`,
+      `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
       chunkedInitInputParams[chunkIndex][0].bTokenImpl,
       chunkedInitInputParams[chunkIndex][0].underlyingAssetName
     );
-    console.log('    * gasUsed', tx3.gasUsed.toString());
+    console.log("    * gasUsed", tx3.gasUsed.toString());
   }
 };
 
@@ -153,7 +138,7 @@ export const getBNftExtraParams = async (bNftName: string, nftAddress: tEthereum
   //console.log(bNftName);
   switch (bNftName) {
     default:
-      return '0x10';
+      return "0x10";
   }
 };
 
@@ -202,8 +187,8 @@ export const initNftsByHelper = async (
       await bnftRegistry.createBNFTWithImpl(nftAddresses[symbol], bNftImplAddress, extraParams)
     );
     const { bNftProxyRet, bNftImplRet } = await bnftRegistry.getBNFT(nftAddresses[symbol]);
-    console.log('  - BNFT proxy ready for:', symbol, bNftImplAddress);
-    console.log('    * gasUsed', tx3.gasUsed.toString());
+    console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);
+    console.log("    * gasUsed", tx3.gasUsed.toString());
 
     const initParam = {
       // bNftProxy: bNftProxyRet,
@@ -228,15 +213,13 @@ export const initNftsByHelper = async (
 
   console.log(`- NFTs initialization in ${chunkedInitInputParams.length} txs`);
   for (let chunkIndex = 0; chunkIndex < chunkedInitInputParams.length; chunkIndex++) {
-    const tx3 = await waitForTx(
-      await configurator.batchInitNft(chunkedInitInputParams[chunkIndex])
-    );
+    const tx3 = await waitForTx(await configurator.batchInitNft(chunkedInitInputParams[chunkIndex]));
 
     console.log(
-      `  - NFT ready for: ${chunkedSymbols[chunkIndex].join(', ')}`,
+      `  - NFT ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
       chunkedInitInputParams[chunkIndex][0].underlyingAsset
     );
-    console.log('    * gasUsed', tx3.gasUsed.toString());
+    console.log("    * gasUsed", tx3.gasUsed.toString());
   }
 };
 
@@ -249,13 +232,11 @@ export const getPairsTokenAggregator = (
   const { ETH, WETH, ...assetsAddressesWithoutEth } = allAssetsAddresses;
 
   const pairs = Object.entries(assetsAddressesWithoutEth).map(([tokenSymbol, tokenAddress]) => {
-    if (tokenSymbol !== 'WETH' && tokenSymbol !== 'ETH') {
-      const aggregatorAddressIndex = Object.keys(aggregatorsAddresses).findIndex(
-        (value) => value === tokenSymbol
-      );
-      const [, aggregatorAddress] = (
-        Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][]
-      )[aggregatorAddressIndex];
+    if (tokenSymbol !== "WETH" && tokenSymbol !== "ETH") {
+      const aggregatorAddressIndex = Object.keys(aggregatorsAddresses).findIndex((value) => value === tokenSymbol);
+      const [, aggregatorAddress] = (Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][])[
+        aggregatorAddressIndex
+      ];
       return [tokenAddress, aggregatorAddress];
     }
   }) as [string, string][];
@@ -285,28 +266,16 @@ export const configureReservesByHelper = async (
 
   for (const [
     assetSymbol,
-    {
-      baseLTVAsCollateral,
-      liquidationBonus,
-      liquidationThreshold,
-      reserveFactor,
-      borrowingEnabled,
-    },
+    { baseLTVAsCollateral, liquidationBonus, liquidationThreshold, reserveFactor, borrowingEnabled },
   ] of Object.entries(reservesParams) as [string, IReserveParams][]) {
     if (!tokenAddresses[assetSymbol]) {
-      console.log(
-        `- Skipping init of ${assetSymbol} due token address is not set at markets config`
-      );
+      console.log(`- Skipping init of ${assetSymbol} due token address is not set at markets config`);
       continue;
     }
-    if (baseLTVAsCollateral === '-1') continue;
+    if (baseLTVAsCollateral === "-1") continue;
 
-    const assetAddressIndex = Object.keys(tokenAddresses).findIndex(
-      (value) => value === assetSymbol
-    );
-    const [, tokenAddress] = (Object.entries(tokenAddresses) as [string, string][])[
-      assetAddressIndex
-    ];
+    const assetAddressIndex = Object.keys(tokenAddresses).findIndex((value) => value === assetSymbol);
+    const [, tokenAddress] = (Object.entries(tokenAddresses) as [string, string][])[assetAddressIndex];
     // Push data
 
     inputParams.push({
@@ -330,7 +299,7 @@ export const configureReservesByHelper = async (
     console.log(`- Configure reserves in ${chunkedInputParams.length} txs`);
     for (let chunkIndex = 0; chunkIndex < chunkedInputParams.length; chunkIndex++) {
       await waitForTx(await tokenHelperDeployer.configureReserves(chunkedInputParams[chunkIndex]));
-      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(', ')}`);
+      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
     }
     // Set deployer back as admin
     await waitForTx(await addressProvider.setPoolAdmin(admin));
@@ -355,20 +324,17 @@ export const configureNftsByHelper = async (
     liquidationBonus: BigNumberish;
   }[] = [];
 
-  for (const [
-    assetSymbol,
-    { baseLTVAsCollateral, liquidationBonus, liquidationThreshold },
-  ] of Object.entries(nftsParams) as [string, INftParams][]) {
+  for (const [assetSymbol, { baseLTVAsCollateral, liquidationBonus, liquidationThreshold }] of Object.entries(
+    nftsParams
+  ) as [string, INftParams][]) {
     if (!nftAddresses[assetSymbol]) {
       console.log(`- Skipping init of ${assetSymbol} due nft address is not set at markets config`);
       continue;
     }
-    if (baseLTVAsCollateral === '-1') continue;
+    if (baseLTVAsCollateral === "-1") continue;
 
     const assetAddressIndex = Object.keys(nftAddresses).findIndex((value) => value === assetSymbol);
-    const [, tokenAddress] = (Object.entries(nftAddresses) as [string, string][])[
-      assetAddressIndex
-    ];
+    const [, tokenAddress] = (Object.entries(nftAddresses) as [string, string][])[assetAddressIndex];
     // Push data
 
     inputParams.push({
@@ -394,17 +360,14 @@ export const configureNftsByHelper = async (
     for (let chunkIndex = 0; chunkIndex < chunkedInputParams.length; chunkIndex++) {
       //console.log("configureNfts:", chunkedInputParams[chunkIndex]);
       await waitForTx(await tokenHelperDeployer.configureNfts(chunkedInputParams[chunkIndex]));
-      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(', ')}`);
+      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
     }
     // Set deployer back as admin
     await waitForTx(await addressProvider.setPoolAdmin(admin));
   }
 };
 
-const getAddressById = async (
-  id: string,
-  network: eNetwork
-): Promise<tEthereumAddress | undefined> =>
+const getAddressById = async (id: string, network: eNetwork): Promise<tEthereumAddress | undefined> =>
   (await getDb().get(`${id}.${network}`).value())?.address || undefined;
 
 // Function deprecated

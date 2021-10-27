@@ -2,23 +2,23 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import {ILendPoolLoan} from '../interfaces/ILendPoolLoan.sol';
-import {IBToken} from '../interfaces/IBToken.sol';
-import {IBNFT} from '../interfaces/IBNFT.sol';
-import {IBNFTRegistry} from '../interfaces/IBNFTRegistry.sol';
-import {IIncentivesController} from '../interfaces/IIncentivesController.sol';
-import {ILendPoolConfigurator} from '../interfaces/ILendPoolConfigurator.sol';
-import {ILendPoolAddressesProvider} from '../interfaces/ILendPoolAddressesProvider.sol';
-import {ILendPool} from '../interfaces/ILendPool.sol';
-import {InitializableAdminProxy} from '../libraries/proxy/InitializableAdminProxy.sol';
-import {ReserveConfiguration} from '../libraries/configuration/ReserveConfiguration.sol';
-import {NftConfiguration} from '../libraries/configuration/NftConfiguration.sol';
-import {Errors} from '../libraries/helpers/Errors.sol';
-import {PercentageMath} from '../libraries/math/PercentageMath.sol';
-import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
+import {IBToken} from "../interfaces/IBToken.sol";
+import {IBNFT} from "../interfaces/IBNFT.sol";
+import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
+import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
+import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILendPool} from "../interfaces/ILendPool.sol";
+import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
+import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
+import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
+import {PercentageMath} from "../libraries/math/PercentageMath.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
-import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 /**
  * @title LendPoolConfigurator contract
@@ -41,10 +41,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
   }
 
   modifier onlyEmergencyAdmin() {
-    require(
-      _addressesProvider.getEmergencyAdmin() == msg.sender,
-      Errors.LPC_CALLER_NOT_EMERGENCY_ADMIN
-    );
+    require(_addressesProvider.getEmergencyAdmin() == msg.sender, Errors.LPC_CALLER_NOT_EMERGENCY_ADMIN);
     _;
   }
 
@@ -82,9 +79,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     pool_.initReserve(input.underlyingAsset, bTokenProxyAddress, input.interestRateAddress);
 
-    DataTypes.ReserveConfigurationMap memory currentConfig = pool_.getReserveConfiguration(
-      input.underlyingAsset
-    );
+    DataTypes.ReserveConfigurationMap memory currentConfig = pool_.getReserveConfiguration(input.underlyingAsset);
 
     currentConfig.setDecimals(input.underlyingAssetDecimals);
 
@@ -116,9 +111,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     pool_.initNft(input.underlyingAsset, bNftProxy);
 
-    DataTypes.NftConfigurationMap memory currentConfig = pool_.getNftConfiguration(
-      input.underlyingAsset
-    );
+    DataTypes.NftConfigurationMap memory currentConfig = pool_.getNftConfiguration(input.underlyingAsset);
 
     currentConfig.setActive(true);
     currentConfig.setFrozen(false);
@@ -261,10 +254,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
    * @param asset The address of the underlying asset of the reserve
    * @param rateAddress The new address of the interest strategy contract
    **/
-  function setReserveInterestRateAddress(address asset, address rateAddress)
-    external
-    onlyPoolAdmin
-  {
+  function setReserveInterestRateAddress(address asset, address rateAddress) external onlyPoolAdmin {
     _pool.setReserveInterestRateAddress(asset, rateAddress);
     emit ReserveInterestRateChanged(asset, rateAddress);
   }
@@ -294,10 +284,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     if (liquidationThreshold != 0) {
       //liquidation bonus must be bigger than 100.00%, otherwise the liquidator would receive less
       //collateral than needed to cover the debt
-      require(
-        liquidationBonus > PercentageMath.PERCENTAGE_FACTOR,
-        Errors.LPC_INVALID_CONFIGURATION
-      );
+      require(liquidationBonus > PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
 
       //if threshold * bonus is less than PERCENTAGE_FACTOR, it's guaranteed that at the moment
       //a loan is taken there is enough collateral available to cover the liquidation bonus
@@ -383,10 +370,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     _pool.setPause(val);
   }
 
-  function _initTokenWithProxy(address implementation, bytes memory initParams)
-    internal
-    returns (address)
-  {
+  function _initTokenWithProxy(address implementation, bytes memory initParams) internal returns (address) {
     InitializableAdminProxy proxy = new InitializableAdminProxy(address(this));
 
     proxy.initialize(implementation, initParams);
@@ -409,9 +393,6 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     uint256 availableLiquidity = IERC20Upgradeable(asset).balanceOf(reserveData.bTokenAddress);
 
-    require(
-      availableLiquidity == 0 && reserveData.currentLiquidityRate == 0,
-      Errors.LPC_RESERVE_LIQUIDITY_NOT_0
-    );
+    require(availableLiquidity == 0 && reserveData.currentLiquidityRate == 0, Errors.LPC_RESERVE_LIQUIDITY_NOT_0);
   }
 }

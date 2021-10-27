@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IInterestRate} from '../interfaces/IInterestRate.sol';
-import {ILendPoolAddressesProvider} from '../interfaces/ILendPoolAddressesProvider.sol';
-import {WadRayMath} from '../libraries/math/WadRayMath.sol';
-import {PercentageMath} from '../libraries/math/PercentageMath.sol';
+import {IInterestRate} from "../interfaces/IInterestRate.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 
-import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /**
  * @title InterestRate contract
@@ -130,13 +130,12 @@ contract InterestRate is IInterestRate {
     vars.currentVariableBorrowRate = 0;
     vars.currentLiquidityRate = 0;
 
-    vars.utilizationRate = vars.totalDebt == 0
-      ? 0
-      : vars.totalDebt.rayDiv(availableLiquidity + (vars.totalDebt));
+    vars.utilizationRate = vars.totalDebt == 0 ? 0 : vars.totalDebt.rayDiv(availableLiquidity + (vars.totalDebt));
 
     if (vars.utilizationRate > OPTIMAL_UTILIZATION_RATE) {
-      uint256 excessUtilizationRateRatio = (vars.utilizationRate - (OPTIMAL_UTILIZATION_RATE))
-        .rayDiv(EXCESS_UTILIZATION_RATE);
+      uint256 excessUtilizationRateRatio = (vars.utilizationRate - (OPTIMAL_UTILIZATION_RATE)).rayDiv(
+        EXCESS_UTILIZATION_RATE
+      );
 
       vars.currentVariableBorrowRate =
         _baseVariableBorrowRate +
@@ -148,10 +147,9 @@ contract InterestRate is IInterestRate {
         (vars.utilizationRate.rayMul(_variableRateSlope1).rayDiv(OPTIMAL_UTILIZATION_RATE));
     }
 
-    vars.currentLiquidityRate = _getOverallBorrowRate(
-      totalVariableDebt,
-      vars.currentVariableBorrowRate
-    ).rayMul(vars.utilizationRate).percentMul(PercentageMath.PERCENTAGE_FACTOR - (reserveFactor));
+    vars.currentLiquidityRate = _getOverallBorrowRate(totalVariableDebt, vars.currentVariableBorrowRate)
+      .rayMul(vars.utilizationRate)
+      .percentMul(PercentageMath.PERCENTAGE_FACTOR - (reserveFactor));
 
     return (vars.currentLiquidityRate, vars.currentVariableBorrowRate);
   }

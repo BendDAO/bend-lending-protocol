@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IBNFT} from '../interfaces/IBNFT.sol';
+import {IBNFT} from "../interfaces/IBNFT.sol";
 
-import {AddressUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
-import {ERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol';
-import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
-import {IERC721MetadataUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol';
+import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 
 /**
  * @title BNFT contract
@@ -44,18 +44,15 @@ contract BNFT is IBNFT, ERC721Upgradeable {
    * @param tokenId token id of the underlying asset of NFT
    **/
   function mint(address to, uint256 tokenId) external override {
-    require(AddressUpgradeable.isContract(_msgSender()), 'BNFT: caller is not contract');
+    require(AddressUpgradeable.isContract(_msgSender()), "BNFT: caller is not contract");
     require(
       IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) == _msgSender(),
-      'BNFT: caller is not underlying asset owner'
+      "BNFT: caller is not underlying asset owner"
     );
-    require(!_exists(tokenId), 'BNFT: exist token');
+    require(!_exists(tokenId), "BNFT: exist token");
 
     // Receive NFT Tokens
-    require(
-      IERC721Upgradeable(_underlyingAsset).isApprovedForAll(_msgSender(), address(this)),
-      '333'
-    );
+    require(IERC721Upgradeable(_underlyingAsset).isApprovedForAll(_msgSender(), address(this)), "333");
     IERC721Upgradeable(_underlyingAsset).transferFrom(_msgSender(), address(this), tokenId);
 
     // mint bNFT to user
@@ -75,9 +72,9 @@ contract BNFT is IBNFT, ERC721Upgradeable {
    * @param tokenId token id of the underlying asset of NFT
    **/
   function burn(uint256 tokenId) external override {
-    require(AddressUpgradeable.isContract(_msgSender()), 'BNFT: caller is not contract');
-    require(_exists(tokenId), 'BNFT: nonexist token');
-    require(this.minterOf(tokenId) == _msgSender(), 'BNFT: caller is not minter');
+    require(AddressUpgradeable.isContract(_msgSender()), "BNFT: caller is not contract");
+    require(_exists(tokenId), "BNFT: nonexist token");
+    require(this.minterOf(tokenId) == _msgSender(), "BNFT: caller is not minter");
 
     address owner = ERC721Upgradeable.ownerOf(tokenId);
 
@@ -108,7 +105,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
    */
   function minterOf(uint256 tokenId) external view override returns (address) {
     address minter = _minters[tokenId];
-    require(minter != address(0), 'BNFT: minter query for nonexistent token');
+    require(minter != address(0), "BNFT: minter query for nonexistent token");
     return minter;
   }
 
@@ -116,14 +113,10 @@ contract BNFT is IBNFT, ERC721Upgradeable {
    * @dev Being non transferrable, the bNFT token does not implement any of the
    * standard ERC721 functions for transfer and allowance.
    **/
-  function approve(address to, uint256 tokenId)
-    public
-    virtual
-    override(ERC721Upgradeable, IERC721Upgradeable)
-  {
+  function approve(address to, uint256 tokenId) public virtual override(ERC721Upgradeable, IERC721Upgradeable) {
     to;
     tokenId;
-    revert('APPROVAL_NOT_SUPPORTED');
+    revert("APPROVAL_NOT_SUPPORTED");
   }
 
   function setApprovalForAll(address operator, bool approved)
@@ -133,7 +126,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
   {
     operator;
     approved;
-    revert('APPROVAL_NOT_SUPPORTED');
+    revert("APPROVAL_NOT_SUPPORTED");
   }
 
   function transferFrom(
@@ -144,7 +137,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
     from;
     to;
     tokenId;
-    revert('TRANSFER_NOT_SUPPORTED');
+    revert("TRANSFER_NOT_SUPPORTED");
   }
 
   function safeTransferFrom(
@@ -155,7 +148,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
     from;
     to;
     tokenId;
-    revert('TRANSFER_NOT_SUPPORTED');
+    revert("TRANSFER_NOT_SUPPORTED");
   }
 
   function safeTransferFrom(
@@ -168,7 +161,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
     to;
     tokenId;
     _data;
-    revert('TRANSFER_NOT_SUPPORTED');
+    revert("TRANSFER_NOT_SUPPORTED");
   }
 
   function _transfer(
@@ -179,6 +172,6 @@ contract BNFT is IBNFT, ERC721Upgradeable {
     from;
     to;
     tokenId;
-    revert('TRANSFER_NOT_SUPPORTED');
+    revert("TRANSFER_NOT_SUPPORTED");
   }
 }

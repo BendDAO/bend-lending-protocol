@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {AggregatorV3Interface} from '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 contract ChainlinkMock is AggregatorV3Interface {
   uint80[] roundIdArray;
@@ -20,7 +20,7 @@ contract ChainlinkMock is AggregatorV3Interface {
   }
 
   function description() external pure override returns (string memory) {
-    return '';
+    return "";
   }
 
   function version() external pure override returns (uint256) {
@@ -53,13 +53,7 @@ contract ChainlinkMock is AggregatorV3Interface {
     )
   {
     uint256 index = roundIdArray.length - 1;
-    return (
-      roundIdArray[index],
-      answerArray[index],
-      decimalsArray[index],
-      timestampArray[index],
-      versionArray[index]
-    );
+    return (roundIdArray[index], answerArray[index], decimalsArray[index], timestampArray[index], versionArray[index]);
   }
 
   function mockAddAnswer(

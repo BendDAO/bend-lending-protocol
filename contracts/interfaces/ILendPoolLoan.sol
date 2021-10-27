@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {DataTypes} from '../libraries/types/DataTypes.sol';
+import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 interface ILendPoolLoan {
   /**
@@ -132,10 +132,7 @@ interface ILendPoolLoan {
 
   function borrowerOf(uint256 loanId) external view returns (address);
 
-  function getCollateralLoanId(address nftAsset, uint256 nftTokenId)
-    external
-    view
-    returns (uint256);
+  function getCollateralLoanId(address nftAsset, uint256 nftTokenId) external view returns (uint256);
 
   function getLoan(uint256 loanId) external view returns (DataTypes.LoanData calldata loanData);
 
@@ -160,18 +157,9 @@ interface ILendPoolLoan {
 
   function getReserveBorrowAmount(address reserve) external view returns (uint256);
 
-  function getUserReserveBorrowScaledAmount(address user, address reserveAsset)
-    external
-    view
-    returns (uint256);
+  function getUserReserveBorrowScaledAmount(address user, address reserveAsset) external view returns (uint256);
 
-  function getUserReserveBorrowAmount(address user, address reserveAsset)
-    external
-    view
-    returns (uint256);
+  function getUserReserveBorrowAmount(address user, address reserveAsset) external view returns (uint256);
 
-  function getUserNftCollateralAmount(address user, address nftAsset)
-    external
-    view
-    returns (uint256);
+  function getUserNftCollateralAmount(address user, address nftAsset) external view returns (uint256);
 }

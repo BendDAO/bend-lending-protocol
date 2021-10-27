@@ -12,16 +12,10 @@ interface INFTOracle {
   function getLatestTimestamp(address _asset) external view returns (uint256);
 
   // get previous price with _back rounds
-  function getPreviousPrice(address _asset, uint256 _numOfRoundBack)
-    external
-    view
-    returns (uint256);
+  function getPreviousPrice(address _asset, uint256 _numOfRoundBack) external view returns (uint256);
 
   // get previous timestamp with _back rounds
-  function getPreviousTimestamp(address _asset, uint256 _numOfRoundBack)
-    external
-    view
-    returns (uint256);
+  function getPreviousTimestamp(address _asset, uint256 _numOfRoundBack) external view returns (uint256);
 
   // get twap price depending on _period
   function getTwapPrice(address _asset, uint256 _interval) external view returns (uint256);

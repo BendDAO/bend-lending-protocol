@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import {INFTOracle} from '../interfaces/INFTOracle.sol';
-import {BlockContext} from '../utils/BlockContext.sol';
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {INFTOracle} from "../interfaces/INFTOracle.sol";
+import {BlockContext} from "../utils/BlockContext.sol";
 
 contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContext {
   modifier onlyAdmin() {
-    require(_msgSender() == priceFeedAdmin, 'NFTOracle: !admin');
+    require(_msgSender() == priceFeedAdmin, "NFTOracle: !admin");
     _;
   }
 
@@ -67,27 +67,23 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _roundId
   ) external override onlyAdmin {
     requireKeyExisted(_nftContract, true);
-    require(_timestamp > getLatestTimestamp(_nftContract), 'NFTOracle: incorrect timestamp');
+    require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
 
-    NFTPriceData memory data = NFTPriceData({
-      price: _price,
-      timestamp: _timestamp,
-      roundId: _roundId
-    });
+    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: _roundId});
     nftPriceFeedMap[_nftContract].nftPriceData.push(data);
 
     emit SetAssetData(_nftContract, _price, _timestamp, _roundId);
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
-    require(isExistedKey(_nftContract), 'NFTOracle: key not existed');
+    require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
-    require(len > 0, 'NFTOracle: no price data');
+    require(len > 0, "NFTOracle: no price data");
     return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
   }
 
   function getLatestTimestamp(address _nftContract) public view override returns (uint256) {
-    require(isExistedKey(_nftContract), 'NFTOracle: key not existed');
+    require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
     if (len == 0) {
       return 0;
@@ -95,17 +91,12 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].timestamp;
   }
 
-  function getTwapPrice(address _nftContract, uint256 _interval)
-    external
-    view
-    override
-    returns (uint256)
-  {
-    require(isExistedKey(_nftContract), 'NFTOracle: key not existed');
+  function getTwapPrice(address _nftContract, uint256 _interval) external view override returns (uint256) {
+    require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     require(_interval != 0, "NFTOracle: interval can't be 0");
 
     uint256 len = getPriceFeedLength(_nftContract);
-    require(len > 0, 'NFTOracle: Not enough history');
+    require(len > 0, "NFTOracle: Not enough history");
     uint256 round = len - 1;
     NFTPriceData memory priceRecord = nftPriceFeedMap[_nftContract].nftPriceData[round];
     uint256 latestTimestamp = priceRecord.timestamp;
@@ -149,29 +140,19 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     return weightedPrice / _interval;
   }
 
-  function getPreviousPrice(address _nftContract, uint256 _numOfRoundBack)
-    public
-    view
-    override
-    returns (uint256)
-  {
-    require(isExistedKey(_nftContract), 'NFTOracle: key not existed');
+  function getPreviousPrice(address _nftContract, uint256 _numOfRoundBack) public view override returns (uint256) {
+    require(isExistedKey(_nftContract), "NFTOracle: key not existed");
 
     uint256 len = getPriceFeedLength(_nftContract);
-    require(len > 0 && _numOfRoundBack < len, 'NFTOracle: Not enough history');
+    require(len > 0 && _numOfRoundBack < len, "NFTOracle: Not enough history");
     return nftPriceFeedMap[_nftContract].nftPriceData[len - _numOfRoundBack - 1].price;
   }
 
-  function getPreviousTimestamp(address _nftContract, uint256 _numOfRoundBack)
-    public
-    view
-    override
-    returns (uint256)
-  {
-    require(isExistedKey(_nftContract), 'NFTOracle: key not existed');
+  function getPreviousTimestamp(address _nftContract, uint256 _numOfRoundBack) public view override returns (uint256) {
+    require(isExistedKey(_nftContract), "NFTOracle: key not existed");
 
     uint256 len = getPriceFeedLength(_nftContract);
-    require(len > 0 && _numOfRoundBack < len, 'NFTOracle: Not enough history');
+    require(len > 0 && _numOfRoundBack < len, "NFTOracle: Not enough history");
     return nftPriceFeedMap[_nftContract].nftPriceData[len - _numOfRoundBack - 1].timestamp;
   }
 
@@ -193,9 +174,9 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   function requireKeyExisted(address _key, bool _existed) private view {
     if (_existed) {
-      require(isExistedKey(_key), 'NFTOracle: key not existed');
+      require(isExistedKey(_key), "NFTOracle: key not existed");
     } else {
-      require(!isExistedKey(_key), 'NFTOracle: key existed');
+      require(!isExistedKey(_key), "NFTOracle: key existed");
     }
   }
 }

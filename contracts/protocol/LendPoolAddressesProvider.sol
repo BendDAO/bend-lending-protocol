@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 // Prettier ignore to prevent buidler flatter bug
 // prettier-ignore
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {InitializableAdminProxy} from '../libraries/proxy/InitializableAdminProxy.sol';
+import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
 
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title LendingPoolAddressesProvider contract
@@ -19,15 +19,15 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   string private _marketId;
   mapping(bytes32 => address) private _addresses;
 
-  bytes32 private constant LEND_POOL = 'LEND_POOL';
-  bytes32 private constant LEND_POOL_CONFIGURATOR = 'LEND_POOL_CONFIGURATOR';
-  bytes32 private constant POOL_ADMIN = 'POOL_ADMIN';
-  bytes32 private constant EMERGENCY_ADMIN = 'EMERGENCY_ADMIN';
-  bytes32 private constant RESERVE_ORACLE = 'RESERVE_ORACLE';
-  bytes32 private constant NFT_ORACLE = 'NFT_ORACLE';
-  bytes32 private constant BEND_ORACLE = 'BEND_ORACLE';
-  bytes32 private constant NFT_LOAN = 'NFT_LOAN';
-  bytes32 private constant BNFT_FACTORY = 'BNFT_FACTORY';
+  bytes32 private constant LEND_POOL = "LEND_POOL";
+  bytes32 private constant LEND_POOL_CONFIGURATOR = "LEND_POOL_CONFIGURATOR";
+  bytes32 private constant POOL_ADMIN = "POOL_ADMIN";
+  bytes32 private constant EMERGENCY_ADMIN = "EMERGENCY_ADMIN";
+  bytes32 private constant RESERVE_ORACLE = "RESERVE_ORACLE";
+  bytes32 private constant NFT_ORACLE = "NFT_ORACLE";
+  bytes32 private constant BEND_ORACLE = "BEND_ORACLE";
+  bytes32 private constant NFT_LOAN = "NFT_LOAN";
+  bytes32 private constant BNFT_FACTORY = "BNFT_FACTORY";
 
   constructor(string memory marketId) {
     _setMarketId(marketId);
@@ -58,11 +58,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
    * @param id The id
    * @param implementationAddress The address of the new implementation
    */
-  function setAddressAsProxy(bytes32 id, address implementationAddress)
-    external
-    override
-    onlyOwner
-  {
+  function setAddressAsProxy(bytes32 id, address implementationAddress) external override onlyOwner {
     _updateImpl(id, implementationAddress);
     emit AddressSet(id, implementationAddress, true);
   }
@@ -202,7 +198,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   function _updateImpl(bytes32 id, address newAddress) internal {
     address payable proxyAddress = payable(_addresses[id]);
 
-    bytes memory params = abi.encodeWithSignature('initialize(address)', address(this));
+    bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
     if (proxyAddress == address(0)) {
       // create proxy, then init proxy & implementation

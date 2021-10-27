@@ -36,11 +36,7 @@ interface ILendPoolConfigurator {
    * @param bToken The address of the associated bToken contract
    * @param interestRateAddress The address of the interest rate strategy for the reserve
    **/
-  event ReserveInitialized(
-    address indexed asset,
-    address indexed bToken,
-    address interestRateAddress
-  );
+  event ReserveInitialized(address indexed asset, address indexed bToken, address interestRateAddress);
 
   /**
    * @dev Emitted when borrowing is enabled on a reserve
@@ -150,9 +146,5 @@ interface ILendPoolConfigurator {
    * @param proxy The bToken proxy address
    * @param implementation The new bToken implementation
    **/
-  event BTokenUpgraded(
-    address indexed asset,
-    address indexed proxy,
-    address indexed implementation
-  );
+  event BTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
 }

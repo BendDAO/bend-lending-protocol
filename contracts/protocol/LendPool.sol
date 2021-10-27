@@ -1,30 +1,30 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IBToken} from '../interfaces/IBToken.sol';
-import {ILendPoolLoan} from '../interfaces/ILendPoolLoan.sol';
-import {ILendPool} from '../interfaces/ILendPool.sol';
-import {IReserveOracleGetter} from '../interfaces/IReserveOracleGetter.sol';
-import {INFTOracleGetter} from '../interfaces/INFTOracleGetter.sol';
-import {ILendPoolAddressesProvider} from '../interfaces/ILendPoolAddressesProvider.sol';
-import {Errors} from '../libraries/helpers/Errors.sol';
-import {WadRayMath} from '../libraries/math/WadRayMath.sol';
-import {PercentageMath} from '../libraries/math/PercentageMath.sol';
-import {ReserveLogic} from '../libraries/logic/ReserveLogic.sol';
-import {NftLogic} from '../libraries/logic/NftLogic.sol';
-import {ValidationLogic} from '../libraries/logic/ValidationLogic.sol';
-import {UserConfiguration} from '../libraries/configuration/UserConfiguration.sol';
-import {ReserveConfiguration} from '../libraries/configuration/ReserveConfiguration.sol';
-import {NftConfiguration} from '../libraries/configuration/NftConfiguration.sol';
-import {DataTypes} from '../libraries/types/DataTypes.sol';
-import {LendPoolStorage} from './LendPoolStorage.sol';
+import {IBToken} from "../interfaces/IBToken.sol";
+import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
+import {ILendPool} from "../interfaces/ILendPool.sol";
+import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
+import {INFTOracleGetter} from "../interfaces/INFTOracleGetter.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
+import {WadRayMath} from "../libraries/math/WadRayMath.sol";
+import {PercentageMath} from "../libraries/math/PercentageMath.sol";
+import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
+import {NftLogic} from "../libraries/logic/NftLogic.sol";
+import {ValidationLogic} from "../libraries/logic/ValidationLogic.sol";
+import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
+import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
+import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
+import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {LendPoolStorage} from "./LendPoolStorage.sol";
 
-import {AddressUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
-import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
-import {SafeERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
-import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import {ContextUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol';
+import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
 /**
  * @title LendPool contract
@@ -159,13 +159,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     reserve.updateState(asset, _addressesProvider.getLendPoolLoan());
 
-    reserve.updateInterestRates(
-      asset,
-      bToken,
-      0,
-      amountToWithdraw,
-      _addressesProvider.getLendPoolLoan()
-    );
+    reserve.updateInterestRates(asset, bToken, 0, amountToWithdraw, _addressesProvider.getLendPoolLoan());
 
     IBToken(bToken).burn(_msgSender(), to, amountToWithdraw, reserve.liquidityIndex);
 
@@ -273,13 +267,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
 
     if (vars.isUpdate) {
-      ILendPoolLoan(loanAddress).updateLoan(
-        vars.borrower,
-        vars.loanId,
-        0,
-        amount,
-        reserve.variableBorrowIndex
-      );
+      ILendPoolLoan(loanAddress).updateLoan(vars.borrower, vars.loanId, 0, amount, reserve.variableBorrowIndex);
     } else {
       ILendPoolLoan(loanAddress).repayLoan(vars.borrower, vars.loanId, nftData.bNftAddress);
     }
@@ -292,9 +280,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       _addressesProvider.getLendPoolLoan()
     );
 
-    if (
-      ILendPoolLoan(loanAddress).getUserReserveBorrowScaledAmount(vars.borrower, vars.asset) == 0
-    ) {
+    if (ILendPoolLoan(loanAddress).getUserReserveBorrowScaledAmount(vars.borrower, vars.asset) == 0) {
       _usersConfig[vars.borrower].setReserveBorrowing(reserve.id, false);
     }
 
@@ -302,11 +288,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       _usersConfig[vars.borrower].setUsingNftAsCollateral(nftData.id, false);
     }
 
-    IERC20Upgradeable(vars.asset).safeTransferFrom(
-      vars.repayer,
-      reserve.bTokenAddress,
-      vars.paybackAmount
-    );
+    IERC20Upgradeable(vars.asset).safeTransferFrom(vars.repayer, reserve.bTokenAddress, vars.paybackAmount);
 
     emit Repay(
       vars.nftAsset,
@@ -365,9 +347,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     //vars.borrower = IERC721Upgradeable(nftData.bNftAddress).ownerOf(vars.nftTokenId);
     vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(vars.loanId);
 
-    (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData
-      .configuration
-      .getParams();
+    (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getParams();
 
     ValidationLogic.validateLiquidate(reserve, nftData, vars.paybackAmount);
 
@@ -377,9 +357,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 thresholdPrice = nftPrice.percentMul(vars.liquidationThreshold);
     require(vars.paybackAmount <= thresholdPrice, Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
 
-    vars.liquidatePrice = nftPrice.percentMul(
-      vars.liquidationBonus - PercentageMath.PERCENTAGE_FACTOR
-    );
+    vars.liquidatePrice = nftPrice.percentMul(vars.liquidationBonus - PercentageMath.PERCENTAGE_FACTOR);
     require(vars.liquidatePrice >= vars.paybackAmount, Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
 
     vars.remainAmount = 0;
@@ -399,9 +377,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       _addressesProvider.getLendPoolLoan()
     );
 
-    if (
-      ILendPoolLoan(loanAddress).getUserReserveBorrowScaledAmount(vars.borrower, vars.asset) == 0
-    ) {
+    if (ILendPoolLoan(loanAddress).getUserReserveBorrowScaledAmount(vars.borrower, vars.asset) == 0) {
       _usersConfig[vars.borrower].setReserveBorrowing(reserve.id, false);
     }
 
@@ -445,12 +421,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param user The user address
    * @return The configuration of the user
    **/
-  function getUserConfiguration(address user)
-    external
-    view
-    override
-    returns (DataTypes.UserConfigurationMap memory)
-  {
+  function getUserConfiguration(address user) external view override returns (DataTypes.UserConfigurationMap memory) {
     return _usersConfig[user];
   }
 
@@ -459,12 +430,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param asset The address of the asset of the NFT
    * @return The configuration of the NFT
    **/
-  function getNftConfiguration(address asset)
-    external
-    view
-    override
-    returns (DataTypes.NftConfigurationMap memory)
-  {
+  function getNftConfiguration(address asset) external view override returns (DataTypes.NftConfigurationMap memory) {
     return _nfts[asset].configuration;
   }
 
@@ -482,12 +448,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param asset The address of the underlying asset of the reserve
    * @return The reserve normalized variable debt
    */
-  function getReserveNormalizedVariableDebt(address asset)
-    external
-    view
-    override
-    returns (uint256)
-  {
+  function getReserveNormalizedVariableDebt(address asset) external view override returns (uint256) {
     return _reserves[asset].getNormalizedDebt();
   }
 
@@ -496,12 +457,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param asset The address of the underlying asset of the reserve
    * @return The state of the reserve
    **/
-  function getReserveData(address asset)
-    external
-    view
-    override
-    returns (DataTypes.ReserveData memory)
-  {
+  function getReserveData(address asset) external view override returns (DataTypes.ReserveData memory) {
     return _reserves[asset];
   }
 
@@ -661,11 +617,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param asset The address of the underlying asset of the reserve
    * @param configuration The new configuration bitmap
    **/
-  function setReserveConfiguration(address asset, uint256 configuration)
-    external
-    override
-    onlyLendPoolConfigurator
-  {
+  function setReserveConfiguration(address asset, uint256 configuration) external override onlyLendPoolConfigurator {
     _reserves[asset].configuration.data = configuration;
   }
 
@@ -675,11 +627,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param asset The address of the asset of the NFT
    * @param configuration The new configuration bitmap
    **/
-  function setNftConfiguration(address asset, uint256 configuration)
-    external
-    override
-    onlyLendPoolConfigurator
-  {
+  function setNftConfiguration(address asset, uint256 configuration) external override onlyLendPoolConfigurator {
     _nfts[asset].configuration.data = configuration;
   }
 
@@ -754,14 +702,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     vars.loanAddress = _addressesProvider.getLendPoolLoan();
 
     vars.reservePrice = IReserveOracleGetter(vars.reserveOracle).getAssetPrice(params.asset);
-    vars.amountInETH =
-      (vars.reservePrice * params.amount) /
-      10**reserve.configuration.getDecimals();
+    vars.amountInETH = (vars.reservePrice * params.amount) / 10**reserve.configuration.getDecimals();
 
-    vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(
-      params.nftAsset,
-      params.nftTokenId
-    );
+    vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(params.nftAsset, params.nftTokenId);
 
     ValidationLogic.validateBorrow(
       params.onBehalfOf,
@@ -780,31 +723,17 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     reserve.updateState(params.asset, _addressesProvider.getLendPoolLoan());
 
     vars.isFirstBorrowing = false;
-    if (
-      ILendPoolLoan(vars.loanAddress).getUserReserveBorrowScaledAmount(
-        params.onBehalfOf,
-        params.asset
-      ) == 0
-    ) {
+    if (ILendPoolLoan(vars.loanAddress).getUserReserveBorrowScaledAmount(params.onBehalfOf, params.asset) == 0) {
       vars.isFirstBorrowing = true;
     }
 
     vars.isFirstPledging = false;
-    if (
-      ILendPoolLoan(vars.loanAddress).getUserNftCollateralAmount(
-        params.onBehalfOf,
-        params.nftAsset
-      ) == 0
-    ) {
+    if (ILendPoolLoan(vars.loanAddress).getUserNftCollateralAmount(params.onBehalfOf, params.nftAsset) == 0) {
       vars.isFirstPledging = true;
     }
 
     if (vars.loanId == 0) {
-      IERC721Upgradeable(params.nftAsset).transferFrom(
-        _msgSender(),
-        address(this),
-        params.nftTokenId
-      );
+      IERC721Upgradeable(params.nftAsset).transferFrom(_msgSender(), address(this), params.nftTokenId);
 
       vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
         params.user,
