@@ -111,7 +111,7 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
     const { users } = testEnv;
     const user1 = users[1];
 
-    expect(cachedTokenId).to.not.be.undefined;
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
     const tokenId = cachedTokenId;
 
     await repay(testEnv, user1, "", "BAYC", tokenId, "0", user1, "revert", "Amount must be greater than 0");
@@ -121,7 +121,7 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
     const { users } = testEnv;
     const user1 = users[1];
 
-    expect(cachedTokenId).to.not.be.undefined;
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
     const tokenId = cachedTokenId;
 
     await approveERC20(testEnv, user1, "WETH");
@@ -135,7 +135,7 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
 
     await mintERC20(testEnv, user1, "WETH", "10");
 
-    expect(cachedTokenId).to.not.be.undefined;
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
     const tokenId = cachedTokenId;
 
     await approveERC20(testEnv, user1, "WETH");

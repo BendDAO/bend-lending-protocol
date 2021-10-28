@@ -3,7 +3,6 @@ import { ZERO_ADDRESS, RAY } from "../helpers/constants";
 import { deployMintableERC721, deployGenericBNFTImpl } from "../helpers/contracts-deployments";
 import { getIErc721Detailed } from "../helpers/contracts-getters";
 import { waitForTx } from "../helpers/misc-utils";
-import { BNFT, MintableERC721, IERC721Detailed } from "../types";
 
 const { expect } = require("chai");
 

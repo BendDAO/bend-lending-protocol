@@ -186,13 +186,13 @@ export const initNftsByHelper = async (
     const tx3 = await waitForTx(
       await bnftRegistry.createBNFTWithImpl(nftAddresses[symbol], bNftImplAddress, extraParams)
     );
-    const { bNftProxyRet, bNftImplRet } = await bnftRegistry.getBNFT(nftAddresses[symbol]);
+    //const bnftAddresses = await bnftRegistry.getBNFT(nftAddresses[symbol]);
     console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);
     console.log("    * gasUsed", tx3.gasUsed.toString());
 
     const initParam = {
-      // bNftProxy: bNftProxyRet,
-      // bNftImpl: bNftImplAddress,
+      // bNftProxy: bnftAddresses.bNftProxy,
+      // bNftImpl: bnftAddresses.bNftImpl,
       underlyingAsset: nftAddresses[symbol],
       // underlyingAssetName: symbol,
       // bNftName: `${bNftNamePrefix} ${symbol}`,

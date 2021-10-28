@@ -492,7 +492,12 @@ export const getTxCostAndTimestamp = async (tx: ContractReceipt) => {
   const txTimestamp = new BigNumber((await DRE.ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
   const txInfo = await DRE.ethers.provider.getTransaction(tx.transactionHash);
-  const txCost = new BigNumber(tx.cumulativeGasUsed.toString()).multipliedBy(txInfo.gasPrice.toString());
+
+  let gasPrice = "1";
+  if (txInfo.gasPrice != undefined) {
+    gasPrice = txInfo.gasPrice.toString();
+  }
+  const txCost = new BigNumber(tx.cumulativeGasUsed.toString()).multipliedBy(gasPrice);
 
   return { txCost, txTimestamp };
 };

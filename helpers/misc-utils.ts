@@ -44,8 +44,15 @@ export const increaseTime = async (secondsToIncrease: number) => {
   await DRE.ethers.provider.send("evm_mine", []);
 };
 
-// Workaround for time travel tests bug: https://github.com/Tonyhaenn/hh-time-travel/blob/0161d993065a0b7585ec5a043af2eb4b654498b8/test/test.js#L12
 export const advanceTimeAndBlock = async function (forwardTime: number) {
+  await DRE.ethers.provider.send("evm_increaseTime", [forwardTime]);
+  await DRE.ethers.provider.send("evm_mine", []);
+  //Set the next blocktime back to 15 seconds
+  await DRE.ethers.provider.send("evm_increaseTime", [15]);
+};
+
+// Workaround for time travel tests bug: https://github.com/Tonyhaenn/hh-time-travel/blob/0161d993065a0b7585ec5a043af2eb4b654498b8/test/test.js#L12
+export const advanceTimeAndBlock_coverage_failed = async function (forwardTime: number) {
   const currentBlockNumber = await DRE.ethers.provider.getBlockNumber();
   const currentBlock = await DRE.ethers.provider.getBlock(currentBlockNumber);
 
