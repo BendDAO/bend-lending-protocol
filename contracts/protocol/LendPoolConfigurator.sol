@@ -282,16 +282,8 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     require(ltv <= liquidationThreshold, Errors.LPC_INVALID_CONFIGURATION);
 
     if (liquidationThreshold != 0) {
-      //liquidation bonus must be bigger than 100.00%, otherwise the liquidator would receive less
-      //collateral than needed to cover the debt
-      require(liquidationBonus > PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
-
-      //if threshold * bonus is less than PERCENTAGE_FACTOR, it's guaranteed that at the moment
-      //a loan is taken there is enough collateral available to cover the liquidation bonus
-      require(
-        liquidationThreshold.percentMul(liquidationBonus) <= PercentageMath.PERCENTAGE_FACTOR,
-        Errors.LPC_INVALID_CONFIGURATION
-      );
+      //liquidation bonus must be smaller than 100.00%
+      require(liquidationBonus < PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
     } else {
       require(liquidationBonus == 0, Errors.LPC_INVALID_CONFIGURATION);
     }
