@@ -100,7 +100,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
 
   it("Activates the BAYC NFT as collateral", async () => {
     const { configurator, dataProvider, bayc } = testEnv;
-    await configurator.configureNftAsCollateral(bayc.address, "8000", "8250", "10500");
+    await configurator.configureNftAsCollateral(bayc.address, "8000", "8250", "500");
 
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
       await dataProvider.getNftConfigurationData(bayc.address);
@@ -109,13 +109,13 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(isFrozen).to.be.equal(false);
     expect(ltv).to.be.equal(8000);
     expect(liquidationThreshold).to.be.equal(8250);
-    expect(liquidationBonus).to.be.equal(10500);
+    expect(liquidationBonus).to.be.equal(500);
   });
 
   it("Check the onlyAdmin on configureNftAsCollateral ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).configureNftAsCollateral(bayc.address, "7500", "8000", "10500"),
+      configurator.connect(users[2].signer).configureNftAsCollateral(bayc.address, "7500", "8000", "500"),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });

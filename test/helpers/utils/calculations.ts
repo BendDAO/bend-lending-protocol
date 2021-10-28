@@ -424,6 +424,8 @@ export const calcExpectedLoanDataAfterBorrow = (
   expectedLoanData.nftTokenId = new BigNumber(loanDataAfterAction.nftTokenId);
   expectedLoanData.reserveAsset = loanDataAfterAction.reserveAsset;
 
+  expectedLoanData.state = new BigNumber(2); //active
+
   {
     expectedLoanData.scaledAmount = loanDataBeforeAction.scaledAmount.plus(
       amountBorrowedBN.rayDiv(expectedDataAfterAction.variableBorrowIndex)
@@ -463,6 +465,10 @@ export const calcExpectedLoanDataAfterRepay = (
   let totalRepaidBN = new BigNumber(totalRepaid);
   if (totalRepaidBN.abs().eq(MAX_UINT_AMOUNT)) {
     totalRepaidBN = borrowAmount;
+
+    expectedLoanData.state = new BigNumber(3); //repaid
+  } else {
+    expectedLoanData.state = new BigNumber(2); //active
   }
 
   {

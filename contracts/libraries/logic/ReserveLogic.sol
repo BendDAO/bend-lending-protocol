@@ -173,7 +173,7 @@ library ReserveLogic {
    * @dev Updates the reserve current stable borrow rate, the current variable borrow rate and the current liquidity rate
    * @param reserve The address of the reserve to be updated
    * @param liquidityAdded The amount of liquidity added to the protocol (deposit or repay) in the previous action
-   * @param liquidityTaken The amount of liquidity taken from the protocol (redeem or borrow)
+   * @param liquidityTaken The amount of liquidity taken from the protocol (withdraw or borrow)
    **/
   function updateInterestRates(
     DataTypes.ReserveData storage reserve,
@@ -185,8 +185,8 @@ library ReserveLogic {
   ) internal {
     UpdateInterestRatesLocalVars memory vars;
 
-    //calculates the total variable debt locally using the scaled total supply instead
-    //of totalSupply(), as it's noticeably cheaper. Also, the index has been
+    //calculates the total variable debt locally using the scaled borrow amount instead
+    //of borrow amount(), as it's noticeably cheaper. Also, the index has been
     //updated by the previous updateState() call
     vars.totalVariableDebt = ILendPoolLoan(loanAddress).getReserveBorrowScaledAmount(reserveAddress).rayMul(
       reserve.variableBorrowIndex

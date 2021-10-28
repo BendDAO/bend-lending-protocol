@@ -170,8 +170,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   }
 
   /**
-   * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
-   * already deposited enough collateral
+   * @dev Allows users to borrow a specific `amount` of the reserve underlying asset
    * - E.g. User borrows 100 USDC, receiving the 100 USDC in his wallet
    *   and lock collateral asset in contract
    * @param asset The address of the underlying asset to borrow
@@ -179,8 +178,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param nftAsset The address of the underlying nft used as collateral
    * @param nftTokenId The token ID of the underlying nft used as collateral
    * @param onBehalfOf Address of the user who will receive the loan. Should be the address of the borrower itself
-   * calling the function if he wants to borrow against his own collateral, or the address of the credit delegator
-   * if he has been given credit delegation allowance
+   * calling the function if he wants to borrow against his own collateral
    * @param referralCode Code used to register the integrator originating the operation, for potential rewards.
    *   0 if the action is executed directly by the user, without any middle-man
    **/
@@ -254,6 +252,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     DataTypes.ReserveData storage reserve = _reserves[vars.asset];
     DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
+
     vars.variableDebt = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(vars.loanId);
 
     ValidationLogic.validateRepay(vars.repayer, vars.borrower, reserve, amount, vars.variableDebt);
@@ -265,14 +266,13 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.paybackAmount = amount;
     }
 
-    reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
-
     if (vars.isUpdate) {
       ILendPoolLoan(loanAddress).updateLoan(vars.borrower, vars.loanId, 0, amount, reserve.variableBorrowIndex);
     } else {
       ILendPoolLoan(loanAddress).repayLoan(vars.borrower, vars.loanId, nftData.bNftAddress);
     }
 
+    // update interest rate according latest borrow amount (utilizaton)
     reserve.updateInterestRates(
       vars.asset,
       reserve.bTokenAddress,
@@ -314,6 +314,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 ltv;
     uint256 liquidationThreshold;
     uint256 liquidationBonus;
+    uint256 nftPrice;
+    uint256 thresholdPrice;
     uint256 liquidatePrice;
     uint256 paybackAmount;
     uint256 remainAmount;
@@ -340,25 +342,36 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(vars.loanId);
 
-    vars.paybackAmount = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(vars.loanId);
-
     DataTypes.ReserveData storage reserve = _reserves[vars.asset];
     DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
 
-    //vars.borrower = IERC721Upgradeable(nftData.bNftAddress).ownerOf(vars.nftTokenId);
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
+
+    vars.paybackAmount = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(vars.loanId);
+
     vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(vars.loanId);
 
     (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getParams();
 
     ValidationLogic.validateLiquidate(reserve, nftData, vars.paybackAmount);
 
-    address nftOracle = _addressesProvider.getNFTOracle();
-    uint256 nftPrice = INFTOracleGetter(nftOracle).getAssetPrice(vars.nftAsset);
+    /*
+     * 0                   CR                  LH                  100
+     * |___________________|___________________|___________________|
+     *  <       Borrowing with Interest        <
+     * CR: Callteral Ratio;
+     * LH: Liquidate Threshold;
+     * Liquidate Trigger: Borrowing with Interest (paybackAmount) > thresholdPrice;
+     * Liquidate Price: (100% - BonusRatio) * NFT Price;
+     * If NFT price is too low, can't cover borrowing, there's no liquidation;
+     */
+    vars.nftPrice = INFTOracleGetter(_addressesProvider.getNFTOracle()).getAssetPrice(vars.nftAsset);
 
-    uint256 thresholdPrice = nftPrice.percentMul(vars.liquidationThreshold);
-    require(vars.paybackAmount <= thresholdPrice, Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
+    vars.thresholdPrice = vars.nftPrice.percentMul(vars.liquidationThreshold);
+    require(vars.paybackAmount > vars.thresholdPrice, Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
 
-    vars.liquidatePrice = nftPrice.percentMul(vars.liquidationBonus - PercentageMath.PERCENTAGE_FACTOR);
+    vars.liquidatePrice = vars.nftPrice.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
     require(vars.liquidatePrice >= vars.paybackAmount, Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
 
     vars.remainAmount = 0;
@@ -366,10 +379,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.remainAmount = vars.liquidatePrice - vars.paybackAmount;
     }
 
-    reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
-
     ILendPoolLoan(loanAddress).liquidateLoan(vars.user, vars.loanId, nftData.bNftAddress);
 
+    // update interest rate according latest borrow amount (utilizaton)
     reserve.updateInterestRates(
       vars.asset,
       reserve.bTokenAddress,
@@ -386,7 +398,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       _usersConfig[vars.borrower].setUsingNftAsCollateral(nftData.id, false);
     }
 
-    IERC20Upgradeable(vars.asset).safeTransferFrom(vars.user, vars.asset, vars.paybackAmount);
+    IERC20Upgradeable(vars.asset).safeTransferFrom(vars.user, reserve.bTokenAddress, vars.paybackAmount);
     if (vars.remainAmount > 0) {
       IERC20Upgradeable(vars.asset).safeTransferFrom(vars.user, vars.borrower, vars.remainAmount);
     }
@@ -758,6 +770,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     DataTypes.NftData storage nftData = _nfts[params.nftAsset];
     ExecuteBorrowLocalVars memory vars;
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    reserve.updateState(params.asset, _addressesProvider.getLendPoolLoan());
+
     // Convert asset amount to ETH
     vars.reserveOracle = _addressesProvider.getReserveOracle();
     vars.nftOracle = _addressesProvider.getNFTOracle();
@@ -781,8 +796,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.reserveOracle,
       vars.nftOracle
     );
-
-    reserve.updateState(params.asset, _addressesProvider.getLendPoolLoan());
 
     vars.isFirstBorrowing = false;
     if (ILendPoolLoan(vars.loanAddress).getUserReserveBorrowScaledAmount(params.onBehalfOf, params.asset) == 0) {
@@ -825,6 +838,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       );
     }
 
+    // update interest rate according latest borrow amount (utilizaton)
     reserve.updateInterestRates(
       params.asset,
       params.bTokenAddress,
