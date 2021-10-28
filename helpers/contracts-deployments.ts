@@ -35,7 +35,6 @@ import {
   BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
-  MockBendOracleFactory,
   ReserveLogicFactory,
   //NftLogicFactory,
   SelfdestructTransferFactory,
@@ -170,14 +169,6 @@ export const deployLendPool = async (verify?: boolean) => {
   await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImpl.address);
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
 };
-
-export const deployMockBendOracle = async (verify?: boolean) =>
-  withSaveAndVerify(
-    await new MockBendOracleFactory(await getFirstSigner()).deploy(),
-    eContractid.MockBendOracle,
-    [],
-    verify
-  );
 
 export const deployBendOracle = async (verify?: boolean) =>
   withSaveAndVerify(await new BendOracleFactory(await getFirstSigner()).deploy(), eContractid.BendOracle, [], verify);
