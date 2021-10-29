@@ -71,6 +71,7 @@ export enum eContractid {
   LendPoolLoanImpl = "LendPoolLoanImpl",
   BNFTRegistry = "BNFTRegistry",
   BNFTRegistryImpl = "BNFTRegistryImpl",
+  MockBNFTMinter = "MockBNFTMinter",
 }
 
 /*

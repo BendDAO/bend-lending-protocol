@@ -26,8 +26,8 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   bytes32 private constant RESERVE_ORACLE = "RESERVE_ORACLE";
   bytes32 private constant NFT_ORACLE = "NFT_ORACLE";
   bytes32 private constant BEND_ORACLE = "BEND_ORACLE";
-  bytes32 private constant NFT_LOAN = "NFT_LOAN";
-  bytes32 private constant BNFT_FACTORY = "BNFT_FACTORY";
+  bytes32 private constant LEND_POOL_LOAN = "LEND_POOL_LOAN";
+  bytes32 private constant BNFT_REGISTRY = "BNFT_REGISTRY";
 
   constructor(string memory marketId) {
     _setMarketId(marketId);
@@ -169,20 +169,20 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   }
 
   function getLendPoolLoan() external view override returns (address) {
-    return getAddress(NFT_LOAN);
+    return getAddress(LEND_POOL_LOAN);
   }
 
   function setLendPoolLoanImpl(address loanAddress) external override onlyOwner {
-    _updateImpl(NFT_LOAN, loanAddress);
+    _updateImpl(LEND_POOL_LOAN, loanAddress);
     emit LendPoolLoanUpdated(loanAddress);
   }
 
   function getBNFTRegistry() external view override returns (address) {
-    return getAddress(BNFT_FACTORY);
+    return getAddress(BNFT_REGISTRY);
   }
 
   function setBNFTRegistry(address factory) external override onlyOwner {
-    _addresses[BNFT_FACTORY] = factory;
+    _addresses[BNFT_REGISTRY] = factory;
     emit BNFTRegistryUpdated(factory);
   }
 
