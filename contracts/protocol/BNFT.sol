@@ -45,11 +45,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
    **/
   function mint(address to, uint256 tokenId) external override {
     require(AddressUpgradeable.isContract(_msgSender()), "BNFT: caller is not contract");
-    require(
-      IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) == _msgSender(),
-      "BNFT: caller is not underlying asset owner"
-    );
-    require(!_exists(tokenId), "BNFT: exist token");
+    require(IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) == _msgSender(), "BNFT: caller is not owner");
 
     // Receive NFT Tokens
     IERC721Upgradeable(_underlyingAsset).transferFrom(_msgSender(), address(this), tokenId);

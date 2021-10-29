@@ -19,4 +19,8 @@ contract MintableERC721 is ERC721 {
     _mint(_msgSender(), tokenId);
     return true;
   }
+
+  function _baseURI() internal view virtual override returns (string memory) {
+    return "https://MintableERC721";
+  }
 }

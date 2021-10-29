@@ -261,3 +261,9 @@ export const getWalletProvider = async (address?: tEthereumAddress) =>
 
 export const getAddressById = async (id: string): Promise<tEthereumAddress | undefined> =>
   (await getDb().get(`${id}.${DRE.network.name}`).value())?.address || undefined;
+
+export const getMockBNFTMinter = async (address?: tEthereumAddress) =>
+  await MockBTokenFactory.connect(
+    address || (await getDb().get(`${eContractid.MockBNFTMinter}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );

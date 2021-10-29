@@ -37,7 +37,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
     expect(bNftProxy).to.not.equal(bNftImpl);
 
     const token = await getIErc721Detailed(bNftProxy);
-    expect("bTNFT1").to.not.equal(token.symbol());
+    expect("bTNFT1").to.equal(await token.symbol());
   });
 
   it("Creates the BNFT with implement for nonexistent NFT asset", async () => {
@@ -62,7 +62,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
     expect(bNftProxy).to.not.equal(bNftImpl);
 
     const token = await getIErc721Detailed(bNftProxy);
-    expect("bTNFT2").to.not.equal(token.symbol());
+    expect("bTNFT2").to.equal(await token.symbol());
   });
 
   it("Creates the BNFT with implement for duplicate NFT asset", async () => {

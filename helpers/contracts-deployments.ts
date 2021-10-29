@@ -25,6 +25,7 @@ import {
   BTokenFactory,
   BNFTFactory,
   BNFTRegistryFactory,
+  MockBNFTMinterFactory,
   InterestRateFactory,
   LendPoolConfiguratorFactory,
   LendPoolFactory,
@@ -445,3 +446,11 @@ export const deployRateStrategy = async (
       ).address;
   }
 };
+
+export const deployMockBNFTMinter = async (args: [tEthereumAddress, tEthereumAddress], verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockBNFTMinterFactory(await getFirstSigner()).deploy(...args),
+    eContractid.MockBNFTMinter,
+    args,
+    verify
+  );

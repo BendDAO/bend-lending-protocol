@@ -15,6 +15,7 @@ import {
   getWETHGateway,
   getBNFTRegistryProxy,
   getBendOracle,
+  getLendPoolLoanProxy,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -39,7 +40,7 @@ import { WETHGateway } from "../../types/WETHGateway";
 import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BendOracle, BNFTRegistry } from "../../types";
+import { BendOracle, BNFTRegistry, LendPoolLoan } from "../../types";
 
 chai.use(bignumberChai());
 chai.use(almostEqual());
@@ -54,6 +55,7 @@ export interface TestEnv {
   users: SignerWithAddress[];
   bnftRegistry: BNFTRegistry;
   pool: LendPool;
+  loan: LendPoolLoan;
   configurator: LendPoolConfigurator;
   reserveOracle: ReserveOracle;
   nftOracle: NFTOracle;
@@ -84,6 +86,7 @@ const testEnv: TestEnv = {
   users: [] as SignerWithAddress[],
   bnftRegistry: {} as BNFTRegistry,
   pool: {} as LendPool,
+  loan: {} as LendPoolLoan,
   configurator: {} as LendPoolConfigurator,
   dataProvider: {} as BendProtocolDataProvider,
   reserveOracle: {} as ReserveOracle,
@@ -123,6 +126,8 @@ export async function initializeMakeSuite() {
   testEnv.bnftRegistry = await getBNFTRegistryProxy();
 
   testEnv.pool = await getLendPool();
+
+  testEnv.loan = await getLendPoolLoanProxy();
 
   testEnv.configurator = await getLendPoolConfiguratorProxy();
 
