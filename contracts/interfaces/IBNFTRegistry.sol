@@ -9,9 +9,9 @@ interface IBNFTRegistry {
 
   function getBNFTByIndex(uint16 index) external view returns (address bNftProxy, address bNftImpl);
 
-  function getBNFTProxyList() external view returns (address[] memory);
+  function getBNFTAssetList() external view returns (address[] memory);
 
-  function allBNFTProxyLength() external view returns (uint256);
+  function allBNFTAssetLength() external view returns (uint256);
 
   /**
    * @dev Create bNFT proxy and implement, then initialize it

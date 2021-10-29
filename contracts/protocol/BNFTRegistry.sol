@@ -12,7 +12,7 @@ import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/I
 contract BNFTRegistry is IBNFTRegistry, Ownable {
   mapping(address => address) public bNftProxys;
   mapping(address => address) public bNftImpls;
-  address[] public bNftProxyLists;
+  address[] public bNftAssetLists;
   string public namePrefix;
   string public symbolPrefix;
 
@@ -26,16 +26,16 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
   }
 
   function getBNFTByIndex(uint16 index) external view override returns (address bNftProxy, address bNftImpl) {
-    require(index < bNftProxyLists.length, "BNFTRegistry: index range");
-    return (bNftProxyLists[index], bNftImpls[bNftProxyLists[index]]);
+    require(index < bNftAssetLists.length, "BNFTRegistry: index range");
+    return (bNftProxys[bNftAssetLists[index]], bNftImpls[bNftAssetLists[index]]);
   }
 
-  function getBNFTProxyList() external view override returns (address[] memory) {
-    return bNftProxyLists;
+  function getBNFTAssetList() external view override returns (address[] memory) {
+    return bNftAssetLists;
   }
 
-  function allBNFTProxyLength() external view override returns (uint256) {
-    return bNftProxyLists.length;
+  function allBNFTAssetLength() external view override returns (uint256) {
+    return bNftAssetLists.length;
   }
 
   /**
@@ -49,7 +49,7 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
 
     bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftImpl, params);
 
-    emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftProxyLists.length);
+    emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftAssetLists.length);
   }
 
   /**
@@ -66,7 +66,7 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
 
     bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftImpl, params);
 
-    emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftProxyLists.length);
+    emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftAssetLists.length);
   }
 
   /**
@@ -82,11 +82,15 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
 
     InitializableAdminProxy proxy = InitializableAdminProxy(payable(bNftProxy));
 
-    proxy.upgradeToAndCall(bNftImpl, data);
+    if (data.length > 0) {
+      proxy.upgradeToAndCall(bNftImpl, data);
+    } else {
+      proxy.upgradeTo(bNftImpl);
+    }
 
     bNftImpls[nftAsset] = bNftImpl;
 
-    emit BNFTUpgraded(nftAsset, bNftImpl, bNftProxy, bNftProxyLists.length);
+    emit BNFTUpgraded(nftAsset, bNftImpl, bNftProxy, bNftAssetLists.length);
   }
 
   function _createProxyAndInitWithImpl(
@@ -103,7 +107,7 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
 
     bNftImpls[nftAsset] = bNftImpl;
     bNftProxys[nftAsset] = bNftProxy;
-    bNftProxyLists.push(bNftProxy);
+    bNftAssetLists.push(nftAsset);
   }
 
   function _newBNFTImpl() internal returns (address bNftImpl) {
