@@ -35,7 +35,8 @@ interface IPunkGateway {
   function repay(
     address lendPool,
     uint256 punkIndex,
-    uint256 amount
+    uint256 amount,
+    address onBehalfOf
   ) external returns (uint256, bool);
 
   function borrowETH(
@@ -52,6 +53,7 @@ interface IPunkGateway {
     address lendPool,
     address lendPoolLoan,
     uint256 punkIndex,
-    uint256 amount
+    uint256 amount,
+    address onBehalfOf
   ) external payable returns (uint256, bool);
 }

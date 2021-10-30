@@ -167,7 +167,7 @@ export async function initializeMakeSuite() {
   testEnv.dai = await getMintableERC20(daiAddress);
   testEnv.usdc = await getMintableERC20(usdcAddress);
   testEnv.weth = await getWETHMocked(wethAddress);
-  //testEnv.wethGateway = await getWETHGateway();
+  testEnv.wethGateway = await getWETHGateway();
 
   // NFT Tokens
   const allBNftTokens = await testEnv.dataProvider.getAllBNfts();

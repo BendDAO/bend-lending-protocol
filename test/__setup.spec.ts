@@ -24,6 +24,7 @@ import {
   deployWETHGateway,
   deployWETHMocked,
   authorizeWETHGateway,
+  authorizeWETHGatewayNFT,
   deployBNFTRegistry,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
@@ -64,6 +65,7 @@ import {
   getPairsTokenAggregator,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
+import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
 
 const MOCK_USD_PRICE_IN_WEI = BendConfig.ProtocolGlobalParams.MockUsdPriceInWei;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -348,9 +350,10 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await deployWalletBalancerProvider();
 
   //////////////////////////////////////////////////////////////////////////////
-  //console.log("-> Prepare WETH gateway...");
-  //const wethGateway = await deployWETHGateway([mockTokens.WETH.address]);
-  //await authorizeWETHGateway(wethGateway.address, lendPoolAddress);
+  console.log("-> Prepare WETH gateway...");
+  const wethGateway = await deployWETHGateway([mockTokens.WETH.address]);
+  await authorizeWETHGateway(wethGateway.address, lendPoolAddress);
+  await authorizeWETHGatewayNFT(wethGateway.address, lendPoolAddress, await getNftAddressFromSymbol("BAYC"));
 
   //console.log("-> Prepare PUNK gateway...");
   //const punkGateway = await deployWPUNKSGateway([mockNFTs.WPUNKS.address]);

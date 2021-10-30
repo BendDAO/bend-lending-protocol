@@ -62,9 +62,15 @@ contract PunkGateway is Initializable, Ownable, IPunkGateway {
   function repay(
     address lendPool,
     uint256 punkIndex,
-    uint256 amount
+    uint256 amount,
+    address onBehalfOf
   ) external override returns (uint256, bool) {
-    (uint256 paybackAmount, bool isUpdate) = ILendPool(lendPool).repay(address(wrappedPunks), punkIndex, amount);
+    (uint256 paybackAmount, bool isUpdate) = ILendPool(lendPool).repay(
+      address(wrappedPunks),
+      punkIndex,
+      amount,
+      onBehalfOf
+    );
 
     if (!isUpdate) {
       _withdrawPunk(punkIndex);
@@ -90,14 +96,16 @@ contract PunkGateway is Initializable, Ownable, IPunkGateway {
     address lendPool,
     address lendPoolLoan,
     uint256 punkIndex,
-    uint256 amount
+    uint256 amount,
+    address onBehalfOf
   ) external payable override returns (uint256, bool) {
     (uint256 paybackAmount, bool isUpdate) = IWETHGateway(wethGateway).repayETH{value: msg.value}(
       lendPool,
       lendPoolLoan,
       address(wrappedPunks),
       punkIndex,
-      amount
+      amount,
+      onBehalfOf
     );
 
     if (!isUpdate) {
