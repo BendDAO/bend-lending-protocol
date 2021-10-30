@@ -28,6 +28,7 @@ interface IWETHGateway {
     address lendPoolLoan,
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    address onBehalfOf
   ) external payable returns (uint256, bool);
 }

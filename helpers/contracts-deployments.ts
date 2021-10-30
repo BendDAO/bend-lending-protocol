@@ -332,7 +332,13 @@ export const deployWETHGateway = async (args: [tEthereumAddress], verify?: boole
   );
 
 export const authorizeWETHGateway = async (wethGateWay: tEthereumAddress, lendPool: tEthereumAddress) =>
-  await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendingPool(lendPool);
+  await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendPool(lendPool);
+
+export const authorizeWETHGatewayNFT = async (
+  wethGateWay: tEthereumAddress,
+  lendPool: tEthereumAddress,
+  nftAsset: string
+) => await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendPoolNFT(lendPool, nftAsset);
 
 export const deployWETHMocked = async (verify?: boolean) =>
   withSaveAndVerify(await new WETH9MockedFactory(await getFirstSigner()).deploy(), eContractid.WETHMocked, [], verify);

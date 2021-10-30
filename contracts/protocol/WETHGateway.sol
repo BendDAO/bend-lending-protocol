@@ -2,16 +2,18 @@
 pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
-contract WETHGateway is Initializable, Ownable, IWETHGateway {
+contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
   IWETH internal immutable WETH;
 
   /**
@@ -24,6 +26,10 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
 
   function authorizeLendPool(address lendPool) external onlyOwner {
     WETH.approve(lendPool, type(uint256).max);
+  }
+
+  function authorizeLendPoolNFT(address lendPool, address nftAsset) external onlyOwner {
+    IERC721Upgradeable(nftAsset).setApprovalForAll(lendPool, true);
   }
 
   function depositETH(
@@ -65,6 +71,8 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
     uint16 referralCode
   ) external override {
     require(address(onBehalfOf) != address(0), "WETHGateway: `onBehalfOf` should not be zero");
+
+    IERC721Upgradeable(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
     ILendPool(lendPool).borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
     WETH.withdraw(amount);
     _safeTransferETH(onBehalfOf, amount);
@@ -75,7 +83,8 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
     address lendPoolLoan,
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    address onBehalfOf
   ) external payable override returns (uint256, bool) {
     uint256 loanId = ILendPoolLoan(lendPoolLoan).getCollateralLoanId(nftAsset, nftTokenId);
 
@@ -87,14 +96,23 @@ contract WETHGateway is Initializable, Ownable, IWETHGateway {
     require(msg.value >= repayDebtAmount, "msg.value is less than repayment amount");
 
     WETH.deposit{value: repayDebtAmount}();
-    (uint256 paybackAmount, bool isUpdate) = ILendPool(lendPool).repay(nftAsset, nftTokenId, amount);
+    (uint256 paybackAmount, bool isUpdate) = ILendPool(lendPool).repay(nftAsset, nftTokenId, amount, onBehalfOf);
 
     // refund remaining dust eth
-    if (msg.value > paybackAmount) {
-      _safeTransferETH(msg.sender, msg.value - paybackAmount);
+    if (msg.value > repayDebtAmount) {
+      _safeTransferETH(msg.sender, msg.value - repayDebtAmount);
     }
 
     return (paybackAmount, isUpdate);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external pure override returns (bytes4) {
+    return IERC721Receiver.onERC721Received.selector;
   }
 
   /**
