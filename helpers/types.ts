@@ -73,6 +73,9 @@ export enum eContractid {
   BNFTRegistryImpl = "BNFTRegistryImpl",
   MockBNFTMinter = "MockBNFTMinter",
   MockFlashLoanReceiver = "MockFlashLoanReceiver",
+  CryptoPunksMarket = "CryptoPunksMarket",
+  WrappedPunk = "WrappedPunk",
+  PunkGateway = "PunkGateway",
 }
 
 /*

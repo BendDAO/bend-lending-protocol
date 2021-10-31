@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
@@ -11,7 +12,6 @@ import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
   IWETH internal immutable WETH;
@@ -96,14 +96,14 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     require(msg.value >= repayDebtAmount, "msg.value is less than repayment amount");
 
     WETH.deposit{value: repayDebtAmount}();
-    (uint256 paybackAmount, bool isUpdate) = ILendPool(lendPool).repay(nftAsset, nftTokenId, amount, onBehalfOf);
+    (uint256 paybackAmount, bool burn) = ILendPool(lendPool).repay(nftAsset, nftTokenId, amount, onBehalfOf);
 
     // refund remaining dust eth
     if (msg.value > repayDebtAmount) {
       _safeTransferETH(msg.sender, msg.value - repayDebtAmount);
     }
 
-    return (paybackAmount, isUpdate);
+    return (paybackAmount, burn);
   }
 
   function onERC721Received(

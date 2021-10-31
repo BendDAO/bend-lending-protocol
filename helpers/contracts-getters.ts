@@ -24,6 +24,9 @@ import {
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
   WETHGatewayFactory,
+  CryptoPunksMarketFactory,
+  WrappedPunkFactory,
+  PunkGatewayFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -265,5 +268,23 @@ export const getAddressById = async (id: string): Promise<tEthereumAddress | und
 export const getMockBNFTMinter = async (address?: tEthereumAddress) =>
   await MockBTokenFactory.connect(
     address || (await getDb().get(`${eContractid.MockBNFTMinter}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getCryptoPunksMarket = async (address?: tEthereumAddress) =>
+  await CryptoPunksMarketFactory.connect(
+    address || (await getDb().get(`${eContractid.CryptoPunksMarket}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getWrappedPunk = async (address?: tEthereumAddress) =>
+  await WrappedPunkFactory.connect(
+    address || (await getDb().get(`${eContractid.WrappedPunk}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getPunkGateway = async (address?: tEthereumAddress) =>
+  await PunkGatewayFactory.connect(
+    address || (await getDb().get(`${eContractid.PunkGateway}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );

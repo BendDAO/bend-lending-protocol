@@ -34,6 +34,7 @@ interface IPunkGateway {
    **/
   function repay(
     address lendPool,
+    address lendPoolLoan,
     uint256 punkIndex,
     uint256 amount,
     address onBehalfOf
