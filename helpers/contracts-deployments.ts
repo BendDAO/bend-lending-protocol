@@ -44,6 +44,9 @@ import {
   WETHGatewayFactory,
   ChainlinkMockFactory,
   MockFlashLoanReceiverFactory,
+  CryptoPunksMarketFactory,
+  WrappedPunkFactory,
+  PunkGatewayFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -337,7 +340,7 @@ export const authorizeWETHGateway = async (wethGateWay: tEthereumAddress, lendPo
 export const authorizeWETHGatewayNFT = async (
   wethGateWay: tEthereumAddress,
   lendPool: tEthereumAddress,
-  nftAsset: string
+  nftAsset: tEthereumAddress
 ) => await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendPoolNFT(lendPool, nftAsset);
 
 export const deployWETHMocked = async (verify?: boolean) =>
@@ -469,3 +472,42 @@ export const deployMockFlashLoanReceiver = async (args: [tEthereumAddress], veri
     args,
     verify
   );
+export const deployCryptoPunksMarket = async (args: [], verify?: boolean) =>
+  withSaveAndVerify(
+    await new CryptoPunksMarketFactory(await getFirstSigner()).deploy(...args),
+    eContractid.CryptoPunksMarket,
+    args,
+    verify
+  );
+
+export const deployWrappedPunk = async (args: [tEthereumAddress], verify?: boolean) =>
+  withSaveAndVerify(
+    await new WrappedPunkFactory(await getFirstSigner()).deploy(...args),
+    eContractid.WrappedPunk,
+    args,
+    verify
+  );
+
+export const deployPunkGateway = async (args: [tEthereumAddress, tEthereumAddress], verify?: boolean) =>
+  withSaveAndVerify(
+    await new PunkGatewayFactory(await getFirstSigner()).deploy(...args),
+    eContractid.PunkGateway,
+    args,
+    verify
+  );
+
+export const authorizePunkGateway = async (
+  punkGateway: tEthereumAddress,
+  lendPool: tEthereumAddress,
+  wethGateway: tEthereumAddress
+) =>
+  await Promise.all([
+    new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeLendPool(lendPool),
+    new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeWETHGateway(wethGateway),
+  ]);
+
+export const authorizePunkGatewayERC20 = async (
+  punkGateway: tEthereumAddress,
+  lendPool: tEthereumAddress,
+  token: tEthereumAddress
+) => await new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeLendPoolERC20(lendPool, token);
