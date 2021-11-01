@@ -43,6 +43,7 @@ import {
   WETH9MockedFactory,
   WETHGatewayFactory,
   ChainlinkMockFactory,
+  MockFlashLoanReceiverFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -451,6 +452,14 @@ export const deployMockBNFTMinter = async (args: [tEthereumAddress, tEthereumAdd
   withSaveAndVerify(
     await new MockBNFTMinterFactory(await getFirstSigner()).deploy(...args),
     eContractid.MockBNFTMinter,
+    args,
+    verify
+  );
+
+export const deployMockFlashLoanReceiver = async (args: [tEthereumAddress], verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockFlashLoanReceiverFactory(await getFirstSigner()).deploy(...args),
+    eContractid.MockFlashLoanReceiver,
     args,
     verify
   );

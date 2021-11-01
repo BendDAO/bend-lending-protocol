@@ -69,13 +69,27 @@ makeSuite("BNFT", (testEnv: TestEnv) => {
     await expect(mockMinterInstance1.burn(tokenId)).to.be.revertedWith("BNFT: nonexist token");
   });
 
-  it("Check BAYC burn caller must be minter", async () => {
+  it("Check BAYC mint correctly", async () => {
     const { bayc, bBYAC, users, pool } = testEnv;
 
     expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
     const tokenId = cachedTokenId;
 
     await mockMinterInstance1.mint(users[0].address, tokenId);
+
+    const minter = await bBYAC.minterOf(tokenId);
+    expect(minter).to.be.equal(mockMinterInstance1.address);
+
+    const tokenUri = await bayc.tokenURI(tokenId);
+    const tokenUriB = await bBYAC.tokenURI(tokenId);
+    expect(tokenUriB).to.be.equal(tokenUri);
+  });
+
+  it("Check BAYC burn caller must be minter", async () => {
+    const { bayc, bBYAC, users, pool } = testEnv;
+
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
+    const tokenId = cachedTokenId;
 
     await expect(mockMinterInstance2.burn(tokenId)).to.be.revertedWith("BNFT: caller is not minter");
   });
