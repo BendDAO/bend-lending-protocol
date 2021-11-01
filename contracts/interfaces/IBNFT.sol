@@ -30,6 +30,14 @@ interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
   event Burn(address indexed user, address indexed nftAsset, uint256 nftTokenId, address indexed owner);
 
   /**
+   * @dev Emitted on flashLoan
+   * @param target The address of the flash loan receiver contract
+   * @param initiator The address initiating the flash loan
+   * @param tokenId The token id of the asset being flash borrowed
+   **/
+  event FlashLoan(address indexed target, address indexed initiator, uint256 tokenId);
+
+  /**
    * @dev Initializes the bNFT
    * @param underlyingAsset The address of the underlying asset of this bNFT (E.g. PUNK for bPUNK)
    */
@@ -62,6 +70,22 @@ interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
    * @param tokenId token id of the underlying asset of NFT
    **/
   function burn(uint256 tokenId) external;
+
+  /**
+   * @dev Allows smartcontracts to access the tokens within one transaction, as long as the tokens taken is returned.
+   *
+   * Requirements:
+   *  - `nftTokenIds` must exist.
+   *
+   * @param receiverAddress The address of the contract receiving the tokens, implementing the IFlashLoanReceiver interface
+   * @param nftTokenIds token ids of the underlying asset
+   * @param params Variadic packed params to pass to the receiver as extra information
+   */
+  function flashLoan(
+    address receiverAddress,
+    uint256[] calldata nftTokenIds,
+    bytes calldata params
+  ) external;
 
   /**
    * @dev Returns the owner of the `nftTokenId` token.

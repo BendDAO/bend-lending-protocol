@@ -36,7 +36,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
     expect(nftAddrByAddr.bNftImpl).to.not.equal(ZERO_ADDRESS);
     expect(nftAddrByAddr.bNftProxy).to.not.equal(nftAddrByAddr.bNftImpl);
 
-    const nftAddrByidx = await bnftRegistry.getBNFTByIndex(allProxyLenAfter - 1);
+    const nftAddrByidx = await bnftRegistry.getBNFTByIndex(Number(allProxyLenAfter) - 1);
     expect(nftAddrByidx.bNftProxy).to.equal(nftAddrByAddr.bNftProxy);
     expect(nftAddrByidx.bNftImpl).to.equal(nftAddrByAddr.bNftImpl);
 
