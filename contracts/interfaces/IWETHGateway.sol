@@ -2,22 +2,33 @@
 pragma solidity ^0.8.0;
 
 interface IWETHGateway {
-  function depositETH(address lendPool) external payable;
-
-  function withdrawETH(address lendPool, uint256 amount) external;
-
-  function repayETH(
+  function depositETH(
     address lendPool,
-    uint256 loanId,
-    uint256 amount
+    address onBehalfOf,
+    uint16 referralCode
   ) external payable;
+
+  function withdrawETH(
+    address lendPool,
+    uint256 amount,
+    address to
+  ) external;
 
   function borrowETH(
     address lendPool,
     uint256 amount,
     address nftAsset,
     uint256 nftTokenId,
-    uint256 loanId,
+    address onBehalfOf,
     uint16 referralCode
   ) external;
+
+  function repayETH(
+    address lendPool,
+    address lendPoolLoan,
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount,
+    address onBehalfOf
+  ) external payable returns (uint256, bool);
 }
