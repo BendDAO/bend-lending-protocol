@@ -16,6 +16,9 @@ import {
   getBNFTRegistryProxy,
   getBendOracle,
   getLendPoolLoanProxy,
+  getCryptoPunksMarket,
+  getWrappedPunk,
+  getPunkGateway,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -40,7 +43,7 @@ import { WETHGateway } from "../../types/WETHGateway";
 import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BendOracle, BNFTRegistry, LendPoolLoan } from "../../types";
+import { BendOracle, BNFTRegistry, LendPoolLoan, CryptoPunksMarket, WrappedPunk, PunkGateway } from "../../types";
 
 chai.use(bignumberChai());
 chai.use(almostEqual());
@@ -74,6 +77,11 @@ export interface TestEnv {
   addressesProvider: LendPoolAddressesProvider;
   wethGateway: WETHGateway;
   tokenIdTracker: number;
+
+  cryptoPunksMarket: CryptoPunksMarket;
+  punkIndexTracker: number;
+  wrappedPunk: WrappedPunk;
+  punkGateway: PunkGateway;
 }
 
 let buidlerevmSnapshotId: string = "0x1";
@@ -167,7 +175,7 @@ export async function initializeMakeSuite() {
   testEnv.dai = await getMintableERC20(daiAddress);
   testEnv.usdc = await getMintableERC20(usdcAddress);
   testEnv.weth = await getWETHMocked(wethAddress);
-  //testEnv.wethGateway = await getWETHGateway();
+  testEnv.wethGateway = await getWETHGateway();
 
   // NFT Tokens
   const allBNftTokens = await testEnv.dataProvider.getAllBNfts();
@@ -194,10 +202,13 @@ export async function initializeMakeSuite() {
   testEnv.bPUNK = await getBNFT(bPunkAddress);
 
   testEnv.bayc = await getMintableERC721(baycAddress);
-  //testEnv.wpunks = await getWPUNKSMocked(wpunksAddress);
-  //testEnv.wpunksGateway = await getWPUNKSGateway();
+
+  testEnv.cryptoPunksMarket = await getCryptoPunksMarket();
+  testEnv.wrappedPunk = await getWrappedPunk();
+  testEnv.punkGateway = await getPunkGateway();
 
   testEnv.tokenIdTracker = 100;
+  testEnv.punkIndexTracker = 0;
 }
 
 const setSnapshot = async () => {

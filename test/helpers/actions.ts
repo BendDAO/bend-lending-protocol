@@ -124,6 +124,15 @@ export const approveERC20 = async (testEnv: TestEnv, user: SignerWithAddress, re
   await waitForTx(await token.connect(user.signer).approve(pool.address, "100000000000000000000000000000"));
 };
 
+export const approveERC20PunkGateway = async (testEnv: TestEnv, user: SignerWithAddress, reserveSymbol: string) => {
+  const { punkGateway } = testEnv;
+  const reserve = await getReserveAddressFromSymbol(reserveSymbol);
+
+  const token = await getMintableERC20(reserve);
+
+  await waitForTx(await token.connect(user.signer).approve(punkGateway.address, MAX_UINT_AMOUNT));
+};
+
 export const approveERC721 = async (testEnv: TestEnv, user: SignerWithAddress, nftSymbol: string, tokenId: string) => {
   const { pool } = testEnv;
   const reserve = await getNftAddressFromSymbol(nftSymbol);
@@ -140,6 +149,15 @@ export const setApprovalForAll = async (testEnv: TestEnv, user: SignerWithAddres
   const token = await getMintableERC721(nftAsset);
 
   await waitForTx(await token.connect(user.signer).setApprovalForAll(pool.address, true));
+};
+
+export const setApprovalForAllWETHGateway = async (testEnv: TestEnv, user: SignerWithAddress, nftSymbol: string) => {
+  const { wethGateway } = testEnv;
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const token = await getMintableERC721(nftAsset);
+
+  await waitForTx(await token.connect(user.signer).setApprovalForAll(wethGateway.address, true));
 };
 
 export const deposit = async (
@@ -397,7 +415,7 @@ export const repay = async (
 
   if (expectedResult === "success") {
     const txResult = await waitForTx(
-      await pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions)
+      await pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, user.address, txOptions)
     );
 
     const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
@@ -445,8 +463,10 @@ export const repay = async (
     expectEqual(userDataAfter, expectedUserData);
     expectEqual(loanDataAfter, expectedLoanData);
   } else if (expectedResult === "revert") {
-    await expect(pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions), revertMessage).to.be
-      .reverted;
+    await expect(
+      pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, user.address, txOptions),
+      revertMessage
+    ).to.be.reverted;
   }
 };
 
