@@ -19,6 +19,8 @@ import {
   deployBendOracle,
   deployReserveOracle,
   deployNFTOracle,
+  deployMockNFTOracle,
+  deployMockReserveOracle,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   deployWETHGateway,
@@ -71,7 +73,7 @@ import {
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
-import { WrappedPunk } from "../types";
+import { WrappedPunk } from "../types/WrappedPunk";
 
 const MOCK_USD_PRICE_IN_WEI = BendConfig.ProtocolGlobalParams.MockUsdPriceInWei;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -262,6 +264,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await setAggregatorsInReserveOracle(allTokenAddresses, allAggregatorsAddresses, reserveOracleImpl);
 
   //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare mock reserve oracle...");
+  const mockReserveOracleImpl = await deployMockReserveOracle([]);
+  await waitForTx(await mockReserveOracleImpl.initialize(mockTokens.WETH.address));
+
+  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock NFT token aggregators...");
   const allNftAddresses = Object.entries(mockNfts).reduce(
     (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, tokenContract]) => ({
@@ -284,6 +291,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
   await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
   await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare mock nft oracle...");
+  const mockNftOracleImpl = await deployMockNFTOracle();
+  await waitForTx(await mockNftOracleImpl.initialize(await addressesProvider.getPoolAdmin()));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bend oracle...");

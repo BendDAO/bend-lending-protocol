@@ -18,7 +18,10 @@ import {
   BTokensAndBNFTsHelperFactory,
   BendOracleFactory,
   ReserveOracleFactory,
+  MockChainlinkOracleFactory,
+  MockReserveOracleFactory,
   NFTOracleFactory,
+  MockNFTOracleFactory,
   ReserveLogicFactory,
   SelfdestructTransferFactory,
   WalletBalanceProviderFactory,
@@ -27,9 +30,11 @@ import {
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
+  MockReserveOracle,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
+import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
 import { getEthersSigners, MockTokenMap } from "./contracts-helpers";
 import { DRE, getDb, notFalsyOrZeroAddress, omit } from "./misc-utils";
 import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId } from "./types";
@@ -82,9 +87,27 @@ export const getReserveOracle = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
+export const getMockChainlinkOracle = async (address?: tEthereumAddress) =>
+  await MockChainlinkOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.MockChainlinkOracle}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
 export const getNFTOracle = async (address?: tEthereumAddress) =>
   await NFTOracleFactory.connect(
     address || (await getDb().get(`${eContractid.NFTOracle}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getMockReserveOracle = async (address?: tEthereumAddress) =>
+  await MockReserveOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.MockReserveOracle}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getMockNFTOracle = async (address?: tEthereumAddress) =>
+  await MockNFTOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.MockNFTOracle}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 

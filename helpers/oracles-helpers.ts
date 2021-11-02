@@ -4,15 +4,15 @@ import { tEthereumAddress, iAssetBase, iAssetAggregatorBase, iNftBase, iNftAggre
 import { ReserveOracle } from "../types/ReserveOracle";
 import { NFTOracle } from "../types/NFTOracle";
 import { BendOracle } from "../types/BendOracle";
-import { ChainlinkMock } from "../types/ChainlinkMock";
-import { deployChainlinkMock } from "./contracts-deployments";
+import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
+import { deployMockChainlinkOracle } from "./contracts-deployments";
 import { chunk, waitForTx } from "./misc-utils";
-import { ChainlinkMockFactory } from "../types";
+import { MockChainlinkOracleFactory } from "../types";
 
 export const setPricesInChainlinkMockAggregator = async (
   prices: SymbolMap<string>,
   assetsAddresses: SymbolMap<tEthereumAddress>,
-  reserveAggregatorInstance: ChainlinkMock
+  reserveAggregatorInstance: MockChainlinkOracle
 ) => {
   for (const [assetSymbol, price] of Object.entries(prices) as [string, string][]) {
     const assetAddressIndex = Object.keys(assetsAddresses).findIndex((value) => value === assetSymbol);
@@ -76,7 +76,7 @@ export const deployAllChainlinkMockAggregators = async (
   initialPrices: iAssetAggregatorBase<string>,
   verify?: boolean
 ) => {
-  const aggregators: { [tokenSymbol: string]: ChainlinkMock } = {};
+  const aggregators: { [tokenSymbol: string]: MockChainlinkOracle } = {};
   for (const tokenContractName of Object.keys(initialPrices)) {
     if (tokenContractName !== "ETH") {
       const priceIndex = Object.keys(initialPrices).findIndex((value) => value === tokenContractName);
@@ -84,7 +84,7 @@ export const deployAllChainlinkMockAggregators = async (
       //all reserves price must be ETH based, so aggregtaor decimals is 18
       //const decimals = allTokenDecimals[tokenContractName];
       const decimals = "18";
-      aggregators[tokenContractName] = await deployChainlinkMock(decimals, verify);
+      aggregators[tokenContractName] = await deployMockChainlinkOracle(decimals, verify);
       console.log(
         "ChainlinkMockAggregator,",
         tokenContractName,

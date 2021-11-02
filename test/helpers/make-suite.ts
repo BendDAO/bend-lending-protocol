@@ -19,6 +19,9 @@ import {
   getCryptoPunksMarket,
   getWrappedPunk,
   getPunkGateway,
+  getMockChainlinkOracle,
+  getMockNFTOracle,
+  getMockReserveOracle,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -35,6 +38,8 @@ import bignumberChai from "chai-bignumber";
 import { almostEqual } from "./almost-equal";
 import { ReserveOracle } from "../../types/ReserveOracle";
 import { NFTOracle } from "../../types/NFTOracle";
+import { MockNFTOracle } from "../../types/MockNFTOracle";
+import { MockReserveOracle } from "../../types/MockReserveOracle";
 import { LendPoolAddressesProvider } from "../../types/LendPoolAddressesProvider";
 import { getEthersSigners } from "../../helpers/contracts-helpers";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
@@ -44,6 +49,7 @@ import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { BendOracle, BNFTRegistry, LendPoolLoan, CryptoPunksMarket, WrappedPunk, PunkGateway } from "../../types";
+import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
 
 chai.use(bignumberChai());
 chai.use(almostEqual());
@@ -61,7 +67,10 @@ export interface TestEnv {
   loan: LendPoolLoan;
   configurator: LendPoolConfigurator;
   reserveOracle: ReserveOracle;
+  mockChainlinkOracle: MockChainlinkOracle;
+  mockReserveOracle: MockReserveOracle;
   nftOracle: NFTOracle;
+  mockNftOracle: MockNFTOracle;
   bendOracle: BendOracle;
   dataProvider: BendProtocolDataProvider;
   weth: WETH9Mocked;
@@ -98,7 +107,10 @@ const testEnv: TestEnv = {
   configurator: {} as LendPoolConfigurator,
   dataProvider: {} as BendProtocolDataProvider,
   reserveOracle: {} as ReserveOracle,
+  mockReserveOracle: {} as MockReserveOracle,
+  mockNftOracle: {} as MockNFTOracle,
   nftOracle: {} as NFTOracle,
+  mockChainlinkOracle: {} as MockChainlinkOracle,
   bendOracle: {} as BendOracle,
   weth: {} as WETH9Mocked,
   bWETH: {} as BToken,
@@ -142,7 +154,10 @@ export async function initializeMakeSuite() {
   testEnv.addressesProvider = await getLendPoolAddressesProvider();
 
   testEnv.reserveOracle = await getReserveOracle();
+  testEnv.mockChainlinkOracle = await getMockChainlinkOracle();
+  testEnv.mockReserveOracle = await getMockReserveOracle();
   testEnv.nftOracle = await getNFTOracle();
+  testEnv.mockNftOracle = await getMockNFTOracle();
   testEnv.bendOracle = await getBendOracle();
 
   testEnv.dataProvider = await getBendProtocolDataProvider();
