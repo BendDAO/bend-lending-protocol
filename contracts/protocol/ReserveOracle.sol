@@ -25,6 +25,7 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
   }
 
   function addAggregator(address _priceFeedKey, address _aggregator) external onlyOwner {
+    requireNonEmptyAddress(_priceFeedKey);
     requireNonEmptyAddress(_aggregator);
     if (address(priceFeedMap[_priceFeedKey]) == address(0)) {
       priceFeedKeys.push(_priceFeedKey);
@@ -92,14 +93,14 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
 
     require(roundId >= 0, "ReserveOracle: Not enough history");
     uint256 latestTimestamp = timestamp;
-    uint256 baseTimestamp = block.timestamp - _interval;
+    uint256 baseTimestamp = _blockTimestamp() - _interval;
     // if latest updated timestamp is earlier than target timestamp, return the latest price.
     if (latestTimestamp < baseTimestamp || roundId == 0) {
       return latestPrice;
     }
 
     // rounds are like snapshots, latestRound means the latest price snapshot. follow chainlink naming
-    uint256 cumulativeTime = block.timestamp - latestTimestamp;
+    uint256 cumulativeTime = _blockTimestamp() - latestTimestamp;
     uint256 previousTimestamp = latestTimestamp;
     uint256 weightedPrice = latestPrice * cumulativeTime;
     while (true) {
@@ -141,14 +142,6 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
       }
     }
     return false;
-  }
-
-  function requireKeyExisted(address _key, bool _existed) private view {
-    if (_existed) {
-      require(isExistedKey(_key), "ReserveOracle: key not existed");
-    } else {
-      require(!isExistedKey(_key), "ReserveOracle: key existed");
-    }
   }
 
   function requireNonEmptyAddress(address _addr) internal pure {

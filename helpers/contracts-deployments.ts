@@ -36,6 +36,8 @@ import {
   BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
+  MockNFTOracleFactory,
+  MockReserveOracleFactory,
   ReserveLogicFactory,
   //NftLogicFactory,
   SelfdestructTransferFactory,
@@ -47,6 +49,7 @@ import {
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
+  MockChainlinkOracleFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -186,14 +189,30 @@ export const deployReserveOracle = async (args: [], verify?: boolean) =>
     verify
   );
 
+export const deployMockReserveOracle = async (args: [], verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockReserveOracleFactory(await getFirstSigner()).deploy(...args),
+    eContractid.MockReserveOracle,
+    args,
+    verify
+  );
+
+export const deployMockChainlinkOracle = async (decimals: string, verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockChainlinkOracleFactory(await getFirstSigner()).deploy(decimals),
+    eContractid.MockChainlinkOracle,
+    [decimals],
+    verify
+  );
+
 export const deployNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(await new NFTOracleFactory(await getFirstSigner()).deploy(), eContractid.NFTOracle, [], verify);
 
-export const deployChainlinkMock = async (decimals: string, verify?: boolean) =>
+export const deployMockNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new ChainlinkMockFactory(await getFirstSigner()).deploy(decimals),
-    eContractid.ChainlinkMock,
-    [decimals],
+    await new MockNFTOracleFactory(await getFirstSigner()).deploy(),
+    eContractid.MockNFTOracle,
+    [],
     verify
   );
 

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract ChainlinkMock is AggregatorV3Interface {
+contract MockChainlinkOracle is AggregatorV3Interface {
   uint80[] roundIdArray;
   int256[] answerArray;
   uint256[] decimalsArray;
@@ -38,7 +38,11 @@ contract ChainlinkMock is AggregatorV3Interface {
       uint256 updatedAt,
       uint80 answeredInRound
     )
-  {}
+  {
+    uint256 maxIndex = roundIdArray.length - 1;
+    uint256 index = maxIndex + _roundId - roundIdArray[maxIndex];
+    return (roundIdArray[index], answerArray[index], decimalsArray[index], timestampArray[index], versionArray[index]);
+  }
 
   function latestRoundData()
     external
