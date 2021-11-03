@@ -45,7 +45,6 @@ import {
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
   WETHGatewayFactory,
-  ChainlinkMockFactory,
   MockFlashLoanReceiverFactory,
   CryptoPunksMarketFactory,
   WrappedPunkFactory,

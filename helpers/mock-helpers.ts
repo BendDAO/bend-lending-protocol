@@ -1,5 +1,5 @@
 import { tEthereumAddress } from "./types";
-import { ChainlinkMock } from "../types/ChainlinkMock";
+import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
 import { MockTokenMap, MockNftMap } from "./contracts-helpers";
 
 export const getAllTokenAddresses = (mockTokens: MockTokenMap) =>
@@ -20,7 +20,7 @@ export const getAllNftAddresses = (mockNfts: MockNftMap) =>
     {}
   );
 
-export const getAllAggregatorsAddresses = (mockAggregators: { [tokenSymbol: string]: ChainlinkMock }) =>
+export const getAllAggregatorsAddresses = (mockAggregators: { [tokenSymbol: string]: MockChainlinkOracle }) =>
   Object.entries(mockAggregators).reduce(
     (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, aggregator]) => ({
       ...accum,

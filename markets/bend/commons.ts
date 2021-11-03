@@ -203,24 +203,18 @@ export const CommonsConfig: ICommonConfiguration = {
   },
   NftsConfig: {},
   BTokenDomainSeparator: {
-    [eEthereumNetwork.coverage]:
-      '0x95b73a72c6ecf4ccbbba5178800023260bad8e75cdccdb8e4827a2977a37c820',
-    [eEthereumNetwork.hardhat]:
-      '0xbae024d959c6a022dc5ed37294cd39c141034b2ae5f02a955cce75c930a81bf5',
-    [eEthereumNetwork.buidlerevm]:
-      '0xbae024d959c6a022dc5ed37294cd39c141034b2ae5f02a955cce75c930a81bf5',
+    [eEthereumNetwork.coverage]: '',
+    [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.buidlerevm]: '',
     [eEthereumNetwork.rikeyby]: '',
     [eEthereumNetwork.kovan]: '',
     [eEthereumNetwork.ropsten]: '',
     [eEthereumNetwork.main]: '',
   },
   BNftDomainSeparator: {
-    [eEthereumNetwork.coverage]:
-      '0x95b73a72c6ecf4ccbbba5178800023260bad8e75cdccdb8e4827a2977a37c820',
-    [eEthereumNetwork.hardhat]:
-      '0xbae024d959c6a022dc5ed37294cd39c141034b2ae5f02a955cce75c930a81bf5',
-    [eEthereumNetwork.buidlerevm]:
-      '0xbae024d959c6a022dc5ed37294cd39c141034b2ae5f02a955cce75c930a81bf5',
+    [eEthereumNetwork.coverage]: '',
+    [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.buidlerevm]: '',
     [eEthereumNetwork.rikeyby]: '',
     [eEthereumNetwork.kovan]: '',
     [eEthereumNetwork.ropsten]: '',

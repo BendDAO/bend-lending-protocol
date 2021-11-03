@@ -24,7 +24,7 @@ task("verify:nfts", "Verify nfts contracts at Etherscan")
 
     const lendPoolProxy = LendPoolFactory.connect(await addressesProvider.getLendPool(), await getFirstSigner());
 
-    const bnftRegistry = BNFTRegistryFactory.connect(await addressesProvider.getBNFTFactory(), await getFirstSigner());
+    const bnftRegistry = BNFTRegistryFactory.connect(await addressesProvider.getBNFTRegistry(), await getFirstSigner());
 
     const configs = Object.entries(NftsConfig) as [string, IReserveParams][];
     for (const entry of Object.entries(getParamPerNetwork(NftsAssets, network))) {

@@ -14,11 +14,9 @@ task("dev:deploy-bnft-tokens", "Deploy bnft tokens for dev enviroment")
   .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
 
-    const addressesProvider = await getLendPoolAddressesProvider();
     const poolConfig = loadPoolConfig(pool);
 
-    const bnftRegistryAddr = await addressesProvider.getBNFTFactory();
-    const bnftRegistryProxy = await getBNFTRegistryProxy(bnftRegistryAddr);
+    const bnftRegistryProxy = await getBNFTRegistryProxy();
 
     const mockedNfts = await getConfigMockedNfts(poolConfig);
 
