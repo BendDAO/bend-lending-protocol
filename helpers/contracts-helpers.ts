@@ -17,6 +17,7 @@ import {
   iEthereumParamsPerNetwork,
 } from "./types";
 import { MintableERC20 } from "../types/MintableERC20";
+import { MintableERC721 } from "../types/MintableERC721";
 import { Artifact } from "hardhat/types";
 import { verifyEtherscanContract } from "./etherscan-verification";
 import { getFirstSigner, getIErc20Detailed } from "./contracts-getters";
@@ -24,6 +25,7 @@ import { ConfigNames, loadPoolConfig } from "./configuration";
 import { string } from "hardhat/internal/core/params/argumentTypes";
 
 export type MockTokenMap = { [symbol: string]: MintableERC20 };
+export type MockNftMap = { [symbol: string]: MintableERC721 };
 
 export const registerContractInJsonDb = async (contractId: string, contractInstance: Contract) => {
   const currentNetwork = DRE.network.name;

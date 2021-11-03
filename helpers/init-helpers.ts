@@ -16,6 +16,7 @@ import {
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
   getBNFTRegistryProxy,
+  getIErc20Detailed,
 } from "./contracts-getters";
 import { getEthersSigner, getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
 import { BigNumberish } from "ethers";
@@ -99,8 +100,9 @@ export const initReservesByHelper = async (
     }
     // Prepare input parameters
     reserveSymbols.push(symbol);
+    const bTokenImplContractAddr = await getContractAddressWithJsonFallback(bTokenImpl, poolName);
     const initParam = {
-      bTokenImpl: await getContractAddressWithJsonFallback(bTokenImpl, poolName),
+      bTokenImpl: bTokenImplContractAddr,
       underlyingAssetDecimals: reserveDecimals,
       interestRateAddress: strategyAddresses[strategy.name],
       underlyingAsset: tokenAddresses[symbol],
@@ -161,43 +163,19 @@ export const initNftsByHelper = async (
   let nftSymbols: string[] = [];
 
   let initInputParams: {
-    // bNftProxy: string;
-    // bNftImpl: string;
     underlyingAsset: string;
-    // underlyingAssetName: string;
-    // bNftName: string;
-    // bNftSymbol: string;
-    // params: string;
   }[] = [];
 
   const nfts = Object.entries(nftsParams);
 
-  console.log(`- BNFTRegistry create proxy in ${nfts.length} txs`);
   for (let [symbol, params] of nfts) {
     if (!nftAddresses[symbol]) {
       console.log(`- Skipping init of ${symbol} due nft address is not set at markets config`);
       continue;
     }
-    const { bNftImpl } = params; // just for name
-    const bNftImplAddress = await getContractAddressWithJsonFallback(bNftImpl, poolName);
-    const extraParams = await getBNftExtraParams(bNftImpl, nftAddresses[symbol]);
-
-    // create bnft proxy via factory
-    const tx3 = await waitForTx(
-      await bnftRegistry.createBNFTWithImpl(nftAddresses[symbol], bNftImplAddress, extraParams)
-    );
-    //const bnftAddresses = await bnftRegistry.getBNFT(nftAddresses[symbol]);
-    console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);
-    console.log("    * gasUsed", tx3.gasUsed.toString());
 
     const initParam = {
-      // bNftProxy: bnftAddresses.bNftProxy,
-      // bNftImpl: bnftAddresses.bNftImpl,
       underlyingAsset: nftAddresses[symbol],
-      // underlyingAssetName: symbol,
-      // bNftName: `${bNftNamePrefix} ${symbol}`,
-      // bNftSymbol: `${bNftSymbolPrefix}${symbol}`,
-      // params: extraParams,
     };
 
     // Prepare input parameters

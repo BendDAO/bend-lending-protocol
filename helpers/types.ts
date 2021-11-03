@@ -47,7 +47,7 @@ export enum eContractid {
   Proxy = "Proxy",
   ChainlinkMock = "ChainlinkMock",
   InterestRate = "InterestRate",
-  InitializableAdminUpgradeabilityProxy = "InitializableAdminUpgradeabilityProxy",
+  InitializableAdminProxy = "InitializableAdminProxy",
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   MockBToken = "MockBToken",
@@ -57,7 +57,6 @@ export enum eContractid {
   IERC20Detailed = "IERC20Detailed",
   IERC721Detailed = "IERC721Detailed",
   FeeProvider = "FeeProvider",
-  TokenDistributor = "TokenDistributor",
   BTokensAndBNFTsHelper = "BTokensAndBNFTsHelper",
   WETHGateway = "WETHGateway",
   WETH = "WETH",
@@ -277,10 +276,6 @@ export interface IInterestRateStrategyParams {
 }
 
 export interface IReserveBorrowParams {
-  // optimalUtilizationRate: string;
-  // baseVariableBorrowRate: string;
-  // variableRateSlope1: string;
-  // variableRateSlope2: string;
   borrowingEnabled: boolean;
   reserveDecimals: string;
 }
@@ -295,10 +290,6 @@ export interface INftCollateralParams {
   baseLTVAsCollateral: string;
   liquidationThreshold: string;
   liquidationBonus: string;
-}
-
-export interface IMarketRates {
-  borrowRate: string;
 }
 
 export type iParamsPerNetwork<T> = iEthereumParamsPerNetwork<T>;
@@ -329,7 +320,6 @@ export interface ObjectString {
 }
 
 export interface IProtocolGlobalConfig {
-  TokenDistributorPercentageBase: string;
   MockUsdPriceInWei: string;
   UsdAddress: tEthereumAddress;
   NilAddress: tEthereumAddress;
@@ -355,7 +345,7 @@ export interface ICommonConfiguration {
   ProviderRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   LendPoolConfigurator: iParamsPerNetwork<tEthereumAddress>;
   LendPool: iParamsPerNetwork<tEthereumAddress>;
-  TokenDistributor: iParamsPerNetwork<tEthereumAddress>;
+  LendPoolLoan: iParamsPerNetwork<tEthereumAddress>;
   ReserveOracle: iParamsPerNetwork<tEthereumAddress>;
   NFTOracle: iParamsPerNetwork<tEthereumAddress>;
   FallbackOracle: iParamsPerNetwork<tEthereumAddress>;
@@ -367,12 +357,15 @@ export interface ICommonConfiguration {
   EmergencyAdminIndex: number;
   ReserveAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   ReservesConfig: iMultiPoolsAssets<IReserveParams>;
+  NftsAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   NftsConfig: iMultiPoolsNfts<INftParams>;
   BTokenDomainSeparator: iParamsPerNetwork<string>;
   BNftDomainSeparator: iParamsPerNetwork<string>;
+
   WETH: iParamsPerNetwork<tEthereumAddress>;
   WrappedNativeToken: iParamsPerNetwork<tEthereumAddress>;
   WethGateway: iParamsPerNetwork<tEthereumAddress>;
+
   ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;
   OracleQuoteCurrency: string;

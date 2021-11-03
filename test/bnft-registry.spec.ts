@@ -14,7 +14,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
   it("Creates the BNFT for duplicate NFT asset", async () => {
     const { bnftRegistry, bayc } = testEnv;
 
-    await expect(bnftRegistry.createBNFT(bayc.address, extraParams)).to.be.revertedWith("BNFTRegistry: asset exist");
+    await expect(bnftRegistry.createBNFT(bayc.address, extraParams)).to.be.revertedWith("BNFTR: asset exist");
   });
 
   it("Creates the BNFT for nonexistent NFT asset", async () => {
@@ -30,13 +30,15 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
 
     expect(Number(allProxyLenAfter)).to.be.equal(Number(allProxyLenBefore) + 1);
 
-    const nftAddrByAddr = await bnftRegistry.getBNFT(testNftAsset.address);
-
+    const nftAddrByAddr = await bnftRegistry.getBNFTAddresses(testNftAsset.address);
+    expect(nftAddrByAddr).to.not.equal(undefined);
+    expect(nftAddrByAddr.bNftProxy).to.not.equal(undefined);
+    expect(nftAddrByAddr.bNftImpl).to.not.equal(undefined);
     expect(nftAddrByAddr.bNftProxy).to.not.equal(ZERO_ADDRESS);
     expect(nftAddrByAddr.bNftImpl).to.not.equal(ZERO_ADDRESS);
     expect(nftAddrByAddr.bNftProxy).to.not.equal(nftAddrByAddr.bNftImpl);
 
-    const nftAddrByidx = await bnftRegistry.getBNFTByIndex(Number(allProxyLenAfter) - 1);
+    const nftAddrByidx = await bnftRegistry.getBNFTAddressesByIndex(Number(allProxyLenAfter) - 1);
     expect(nftAddrByidx.bNftProxy).to.equal(nftAddrByAddr.bNftProxy);
     expect(nftAddrByidx.bNftImpl).to.equal(nftAddrByAddr.bNftImpl);
 
@@ -64,7 +66,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
 
     expect(Number(allProxyLenAfter)).to.be.equal(Number(allProxyLenBefore) + 1);
 
-    const { bNftProxy, bNftImpl } = await bnftRegistry.getBNFT(testNftAsset.address);
+    const { bNftProxy, bNftImpl } = await bnftRegistry.getBNFTAddresses(testNftAsset.address);
 
     expect(bNftProxy).to.not.equal(ZERO_ADDRESS);
     expect(bNftImpl).to.be.equal(testBNFTImpl.address);
@@ -85,7 +87,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
     const testBNFTImpl = await deployGenericBNFTImpl(false);
 
     await expect(bnftRegistry.createBNFTWithImpl(bayc.address, testBNFTImpl.address, extraParams)).to.be.revertedWith(
-      "BNFTRegistry: asset exist"
+      "BNFTR: asset exist"
     );
   });
 
@@ -96,7 +98,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
 
     await waitForTx(await bnftRegistry.upgradeBNFTWithImpl(bayc.address, testBNFTImpl.address, []));
 
-    const { bNftProxy, bNftImpl } = await bnftRegistry.getBNFT(bayc.address);
+    const { bNftProxy, bNftImpl } = await bnftRegistry.getBNFTAddresses(bayc.address);
 
     expect(bNftImpl).to.be.equal(testBNFTImpl.address);
   });
@@ -109,7 +111,7 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
     const testBNFTImpl = await deployGenericBNFTImpl(false);
 
     await expect(bnftRegistry.upgradeBNFTWithImpl(testNftAsset.address, testBNFTImpl.address, [])).to.be.revertedWith(
-      "BNFTRegistry: asset nonexist"
+      "BNFTR: asset nonexist"
     );
   });
 });

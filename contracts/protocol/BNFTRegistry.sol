@@ -6,28 +6,27 @@ import {IBNFT} from "../interfaces/IBNFT.sol";
 import {BNFT} from "./BNFT.sol";
 import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC721Metadata} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 
-contract BNFTRegistry is IBNFTRegistry, Ownable {
+contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   mapping(address => address) public bNftProxys;
   mapping(address => address) public bNftImpls;
   address[] public bNftAssetLists;
   string public namePrefix;
   string public symbolPrefix;
 
-  constructor(string memory namePrefix_, string memory symbolPrefix_) {
-    namePrefix = namePrefix_;
-    symbolPrefix = symbolPrefix_;
+  function getBNFTAddresses(address nftAsset) external view override returns (address bNftProxy, address bNftImpl) {
+    require(bNftProxys[nftAsset] != address(0), "BNFTR: asset nonexist");
+    bNftProxy = bNftProxys[nftAsset];
+    bNftImpl = bNftImpls[nftAsset];
   }
 
-  function getBNFT(address nftAsset) external view override returns (address bNftProxy, address bNftImpl) {
-    return (bNftProxys[nftAsset], bNftImpls[nftAsset]);
-  }
-
-  function getBNFTByIndex(uint16 index) external view override returns (address bNftProxy, address bNftImpl) {
-    require(index < bNftAssetLists.length, "BNFTRegistry: index range");
-    return (bNftProxys[bNftAssetLists[index]], bNftImpls[bNftAssetLists[index]]);
+  function getBNFTAddressesByIndex(uint16 index) external view override returns (address bNftProxy, address bNftImpl) {
+    require(index < bNftAssetLists.length, "BNFTR: invalid index");
+    bNftProxy = bNftProxys[bNftAssetLists[index]];
+    bNftImpl = bNftImpls[bNftAssetLists[index]];
   }
 
   function getBNFTAssetList() external view override returns (address[] memory) {
@@ -38,12 +37,21 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
     return bNftAssetLists.length;
   }
 
+  function initialize(string memory namePrefix_, string memory symbolPrefix_) external override initializer {
+    __Ownable_init();
+
+    namePrefix = namePrefix_;
+    symbolPrefix = symbolPrefix_;
+
+    emit Initialized(namePrefix, symbolPrefix);
+  }
+
   /**
    * @dev See {IBNFTRegistry-createBNFT}.
    */
   function createBNFT(address nftAsset, bytes memory params) external override returns (address bNftProxy) {
-    require(nftAsset != address(0), "BNFTRegistry: asset is zero address");
-    require(bNftProxys[nftAsset] == address(0), "BNFTRegistry: asset exist");
+    require(nftAsset != address(0), "BNFTR: asset is zero address");
+    require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
 
     address bNftImpl = _newBNFTImpl();
 
@@ -60,9 +68,9 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
     address bNftImpl,
     bytes memory params
   ) external override onlyOwner returns (address bNftProxy) {
-    require(nftAsset != address(0), "BNFTRegistry: asset is zero address");
-    require(bNftImpl != address(0), "BNFTRegistry: implement is zero address");
-    require(bNftProxys[nftAsset] == address(0), "BNFTRegistry: asset exist");
+    require(nftAsset != address(0), "BNFTR: asset is zero address");
+    require(bNftImpl != address(0), "BNFTR: implement is zero address");
+    require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
 
     bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftImpl, params);
 
@@ -78,7 +86,7 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
     bytes memory data
   ) external override onlyOwner {
     address bNftProxy = bNftProxys[nftAsset];
-    require(bNftProxy != address(0), "BNFTRegistry: asset nonexist");
+    require(bNftProxy != address(0), "BNFTR: asset nonexist");
 
     InitializableAdminProxy proxy = InitializableAdminProxy(payable(bNftProxy));
 
@@ -115,8 +123,8 @@ contract BNFTRegistry is IBNFTRegistry, Ownable {
   }
 
   function _buildInitParams(address nftAsset, bytes memory params) internal view returns (bytes memory initParams) {
-    string memory bNftName = string(abi.encodePacked(namePrefix, " ", IERC721Metadata(nftAsset).name()));
-    string memory bNftSymbol = string(abi.encodePacked(symbolPrefix, IERC721Metadata(nftAsset).symbol()));
+    string memory bNftName = string(abi.encodePacked(namePrefix, " ", IERC721MetadataUpgradeable(nftAsset).name()));
+    string memory bNftSymbol = string(abi.encodePacked(symbolPrefix, IERC721MetadataUpgradeable(nftAsset).symbol()));
 
     initParams = abi.encodeWithSelector(IBNFT.initialize.selector, nftAsset, bNftName, bNftSymbol, params);
   }

@@ -182,7 +182,7 @@ export async function initializeMakeSuite() {
   const baycAddress = nftsTokens.find((token) => token.symbol === "BAYC")?.nftAddress;
 
   if (!bByacAddress || !bPunkAddress) {
-    console.error("Invalid BNFTs", bByacAddress, bPunkAddress);
+    console.error("Invalid BNFT Tokens", bByacAddress, bPunkAddress);
     process.exit(1);
   }
   if (!baycAddress || !wpunksAddress) {

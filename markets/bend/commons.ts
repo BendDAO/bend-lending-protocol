@@ -15,15 +15,14 @@ import { ICommonConfiguration, eEthereumNetwork } from '../../helpers/types';
 
 export const CommonsConfig: ICommonConfiguration = {
   MarketId: 'Commons',
-  BTokenNamePrefix: 'Bend Interest Bearing',
+  BTokenNamePrefix: 'Bend interest bearing',
   BTokenSymbolPrefix: 'b',
-  BNftNamePrefix: 'Bend Wrapped',
+  BNftNamePrefix: 'Bend promissory note',
   BNftSymbolPrefix: 'b',
   ProviderId: 0, // Overriden in index.ts
   OracleQuoteCurrency: 'ETH',
   OracleQuoteUnit: oneEther.toString(),
   ProtocolGlobalParams: {
-    TokenDistributorPercentageBase: '10000',
     MockUsdPriceInWei: '5848466240000000',
     UsdAddress: '0x10F7Fc1F91Ba351f9C629c5947AD69bD03C05b96',
     NilAddress: '0x0000000000000000000000000000000000000000',
@@ -105,7 +104,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.ropsten]: '',
     [eEthereumNetwork.main]: '',
   },
-  WethGateway: {
+  LendPoolLoan: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.buidlerevm]: '',
@@ -114,14 +113,14 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.ropsten]: '',
     [eEthereumNetwork.main]: '',
   },
-  TokenDistributor: {
+  WethGateway: {
     [eEthereumNetwork.coverage]: '',
-    [eEthereumNetwork.buidlerevm]: '',
     [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.buidlerevm]: '',
     [eEthereumNetwork.rikeyby]: '',
-    [eEthereumNetwork.kovan]: '0x971efe90088f21dc6a36f610ffed77fc19710708',
-    [eEthereumNetwork.ropsten]: '0xeba2ea67942b8250d870b12750b594696d02fc9c',
-    [eEthereumNetwork.main]: '0xe3d9988f676457123c5fd01297605efdd0cba1ae',
+    [eEthereumNetwork.kovan]: '',
+    [eEthereumNetwork.ropsten]: '',
+    [eEthereumNetwork.main]: '',
   },
   ReserveOracle: {
     [eEthereumNetwork.coverage]: '',
@@ -193,6 +192,15 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.ropsten]: {},
   },
   ReservesConfig: {},
+  NftsAssets: {
+    [eEthereumNetwork.coverage]: {},
+    [eEthereumNetwork.hardhat]: {},
+    [eEthereumNetwork.buidlerevm]: {},
+    [eEthereumNetwork.main]: {},
+    [eEthereumNetwork.rikeyby]: {},
+    [eEthereumNetwork.kovan]: {},
+    [eEthereumNetwork.ropsten]: {},
+  },
   NftsConfig: {},
   BTokenDomainSeparator: {
     [eEthereumNetwork.coverage]:
