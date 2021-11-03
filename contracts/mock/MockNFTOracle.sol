@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 import {NFTOracle} from "../protocol/NFTOracle.sol";
 
-contract NFTOracleFake is NFTOracle {
+contract MockNFTOracle is NFTOracle {
   uint256 private timestamp = 1444004400;
   uint256 private number = 10001;
 

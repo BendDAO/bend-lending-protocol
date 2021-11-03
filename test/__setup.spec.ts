@@ -19,12 +19,20 @@ import {
   deployBendOracle,
   deployReserveOracle,
   deployNFTOracle,
+  deployMockNFTOracle,
+  deployMockReserveOracle,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   deployWETHGateway,
   deployWETHMocked,
   authorizeWETHGateway,
+  authorizeWETHGatewayNFT,
   deployBNFTRegistry,
+  deployCryptoPunksMarket,
+  deployWrappedPunk,
+  deployPunkGateway,
+  authorizePunkGateway,
+  authorizePunkGatewayERC20,
   deployInitializableAdminProxy,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
@@ -65,6 +73,8 @@ import {
   getPairsTokenAggregator,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
+import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
+import { WrappedPunk } from "../types/WrappedPunk";
 
 const MOCK_USD_PRICE_IN_WEI = BendConfig.ProtocolGlobalParams.MockUsdPriceInWei;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -149,10 +159,13 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   };
 
   console.log("-> Prepare mock external ERC721 NFTs, such as WPUNKS, BAYC...");
+  const cryptoPunksMarket = await deployCryptoPunksMarket([]);
+  const wrappedPunk = await deployWrappedPunk([cryptoPunksMarket.address]);
   const mockNfts: {
-    [symbol: string]: MockContract | MintableERC721;
+    [symbol: string]: MockContract | MintableERC721 | WrappedPunk;
   } = {
     ...(await deployAllMockNfts(deployer)),
+    WPUNKS: wrappedPunk,
   };
 
   //////////////////////////////////////////////////////////////////////////////
@@ -268,6 +281,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await setAggregatorsInReserveOracle(allTokenAddresses, allAggregatorsAddresses, reserveOracleImpl);
 
   //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare mock reserve oracle...");
+  const mockReserveOracleImpl = await deployMockReserveOracle([]);
+  await waitForTx(await mockReserveOracleImpl.initialize(mockTokens.WETH.address));
+
+  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock NFT token aggregators...");
   const allNftAddresses = Object.entries(mockNfts).reduce(
     (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, tokenContract]) => ({
@@ -290,6 +308,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
   await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
   await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare mock nft oracle...");
+  const mockNftOracleImpl = await deployMockNFTOracle();
+  await waitForTx(await mockNftOracleImpl.initialize(await addressesProvider.getPoolAdmin()));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bend oracle...");
@@ -362,13 +385,19 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await deployWalletBalancerProvider();
 
   //////////////////////////////////////////////////////////////////////////////
-  //console.log("-> Prepare WETH gateway...");
-  //const wethGateway = await deployWETHGateway([mockTokens.WETH.address]);
-  //await authorizeWETHGateway(wethGateway.address, lendPoolAddress);
+  console.log("-> Prepare WETH gateway...");
+  const wethGateway = await deployWETHGateway([mockTokens.WETH.address]);
+  await authorizeWETHGateway(wethGateway.address, lendPoolAddress);
+  await authorizeWETHGatewayNFT(wethGateway.address, lendPoolAddress, await getNftAddressFromSymbol("BAYC"));
+  await authorizeWETHGatewayNFT(wethGateway.address, lendPoolAddress, wrappedPunk.address);
 
-  //console.log("-> Prepare PUNK gateway...");
-  //const punkGateway = await deployWPUNKSGateway([mockNFTs.WPUNKS.address]);
-  //await authorizePunkGateway(punkGateWay.address, lendPoolAddress);
+  console.log("-> Prepare PUNK gateway...");
+  const punkGateway = await deployPunkGateway([cryptoPunksMarket.address, wrappedPunk.address]);
+  console.log(`Deploy PunkGateway at ${punkGateway.address}`);
+  await authorizePunkGateway(punkGateway.address, lendPoolAddress, wethGateway.address);
+  console.log(`Authorzie PunkGateway with LendPool and WETHGateway`);
+  await waitForTx(await cryptoPunksMarket.allInitialOwnersAssigned());
+  await authorizePunkGatewayERC20(punkGateway.address, lendPoolAddress, allReservesAddresses.USDC);
 
   console.timeEnd("setup");
 };

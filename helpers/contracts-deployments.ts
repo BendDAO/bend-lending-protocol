@@ -37,6 +37,8 @@ import {
   BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
+  MockNFTOracleFactory,
+  MockReserveOracleFactory,
   ReserveLogicFactory,
   //NftLogicFactory,
   SelfdestructTransferFactory,
@@ -45,6 +47,10 @@ import {
   WETHGatewayFactory,
   ChainlinkMockFactory,
   MockFlashLoanReceiverFactory,
+  CryptoPunksMarketFactory,
+  WrappedPunkFactory,
+  PunkGatewayFactory,
+  MockChainlinkOracleFactory,
   InitializableAdminProxyFactory,
 } from "../types";
 import {
@@ -185,14 +191,30 @@ export const deployReserveOracle = async (args: [], verify?: boolean) =>
     verify
   );
 
+export const deployMockReserveOracle = async (args: [], verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockReserveOracleFactory(await getFirstSigner()).deploy(...args),
+    eContractid.MockReserveOracle,
+    args,
+    verify
+  );
+
+export const deployMockChainlinkOracle = async (decimals: string, verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockChainlinkOracleFactory(await getFirstSigner()).deploy(decimals),
+    eContractid.MockChainlinkOracle,
+    [decimals],
+    verify
+  );
+
 export const deployNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(await new NFTOracleFactory(await getFirstSigner()).deploy(), eContractid.NFTOracle, [], verify);
 
-export const deployChainlinkMock = async (decimals: string, verify?: boolean) =>
+export const deployMockNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new ChainlinkMockFactory(await getFirstSigner()).deploy(decimals),
-    eContractid.ChainlinkMock,
-    [decimals],
+    await new MockNFTOracleFactory(await getFirstSigner()).deploy(),
+    eContractid.MockNFTOracle,
+    [],
     verify
   );
 
@@ -347,7 +369,13 @@ export const deployWETHGateway = async (args: [tEthereumAddress], verify?: boole
   );
 
 export const authorizeWETHGateway = async (wethGateWay: tEthereumAddress, lendPool: tEthereumAddress) =>
-  await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendingPool(lendPool);
+  await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendPool(lendPool);
+
+export const authorizeWETHGatewayNFT = async (
+  wethGateWay: tEthereumAddress,
+  lendPool: tEthereumAddress,
+  nftAsset: tEthereumAddress
+) => await new WETHGatewayFactory(await getFirstSigner()).attach(wethGateWay).authorizeLendPoolNFT(lendPool, nftAsset);
 
 export const deployWETHMocked = async (verify?: boolean) =>
   withSaveAndVerify(await new WETH9MockedFactory(await getFirstSigner()).deploy(), eContractid.WETHMocked, [], verify);
@@ -478,6 +506,45 @@ export const deployMockFlashLoanReceiver = async (args: [tEthereumAddress], veri
     args,
     verify
   );
+export const deployCryptoPunksMarket = async (args: [], verify?: boolean) =>
+  withSaveAndVerify(
+    await new CryptoPunksMarketFactory(await getFirstSigner()).deploy(...args),
+    eContractid.CryptoPunksMarket,
+    args,
+    verify
+  );
+
+export const deployWrappedPunk = async (args: [tEthereumAddress], verify?: boolean) =>
+  withSaveAndVerify(
+    await new WrappedPunkFactory(await getFirstSigner()).deploy(...args),
+    eContractid.WrappedPunk,
+    args,
+    verify
+  );
+
+export const deployPunkGateway = async (args: [tEthereumAddress, tEthereumAddress], verify?: boolean) =>
+  withSaveAndVerify(
+    await new PunkGatewayFactory(await getFirstSigner()).deploy(...args),
+    eContractid.PunkGateway,
+    args,
+    verify
+  );
+
+export const authorizePunkGateway = async (
+  punkGateway: tEthereumAddress,
+  lendPool: tEthereumAddress,
+  wethGateway: tEthereumAddress
+) =>
+  await Promise.all([
+    new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeLendPool(lendPool),
+    new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeWETHGateway(wethGateway),
+  ]);
+
+export const authorizePunkGatewayERC20 = async (
+  punkGateway: tEthereumAddress,
+  lendPool: tEthereumAddress,
+  token: tEthereumAddress
+) => await new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeLendPoolERC20(lendPool, token);
 
 export const deployInitializableAdminProxy = async (id: string, admin: tEthereumAddress, verify?: boolean) =>
   withSaveAndVerify(
