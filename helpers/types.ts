@@ -45,7 +45,9 @@ export enum eContractid {
   ReserveOracle = "ReserveOracle",
   NFTOracle = "NFTOracle",
   Proxy = "Proxy",
-  ChainlinkMock = "ChainlinkMock",
+  MockChainlinkOracle = "MockChainlinkOracle",
+  MockNFTOracle = "MockNFTOracle",
+  MockReserveOracle = "MockReserveOracle",
   InterestRate = "InterestRate",
   InitializableAdminProxy = "InitializableAdminProxy",
   WalletBalanceProvider = "WalletBalanceProvider",
@@ -72,6 +74,9 @@ export enum eContractid {
   BNFTRegistryImpl = "BNFTRegistryImpl",
   MockBNFTMinter = "MockBNFTMinter",
   MockFlashLoanReceiver = "MockFlashLoanReceiver",
+  CryptoPunksMarket = "CryptoPunksMarket",
+  WrappedPunk = "WrappedPunk",
+  PunkGateway = "PunkGateway",
 }
 
 /*

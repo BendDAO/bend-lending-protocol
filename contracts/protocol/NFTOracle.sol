@@ -160,7 +160,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     return nftPriceFeedMap[_nftContract].nftPriceData.length;
   }
 
-  function getLatestRoundId(address _nftContract) internal view returns (uint256) {
+  function getLatestRoundId(address _nftContract) public view returns (uint256) {
     uint256 len = getPriceFeedLength(_nftContract);
     if (len == 0) {
       return 0;

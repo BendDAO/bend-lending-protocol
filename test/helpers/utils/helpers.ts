@@ -6,11 +6,14 @@ import {
   getMintableERC721,
   getBToken,
   getLendPoolLoanProxy,
+  getFirstSigner,
 } from "../../../helpers/contracts-getters";
 import { tEthereumAddress } from "../../../helpers/types";
 import BigNumber from "bignumber.js";
 import { getDb, DRE } from "../../../helpers/misc-utils";
 import { BendProtocolDataProvider } from "../../../types/BendProtocolDataProvider";
+import { ERC20Factory } from "../../../types";
+import { SignerWithAddress } from "../make-suite";
 
 export const getReserveData = async (
   helper: BendProtocolDataProvider,
@@ -126,4 +129,10 @@ const getBTokenUserData = async (reserve: string, user: string, dataProvider: Be
 
   const scaledBalance = await bToken.scaledBalanceOf(user);
   return scaledBalance.toString();
+};
+
+export const getERC20TokenBalance = async (reserve: string, user: tEthereumAddress) => {
+  const token = await ERC20Factory.connect(reserve, await getFirstSigner()).balanceOf(user);
+
+  return token;
 };
