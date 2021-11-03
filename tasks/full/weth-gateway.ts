@@ -4,7 +4,7 @@ import { deployWETHGateway } from "../../helpers/contracts-deployments";
 
 const CONTRACT_NAME = "WETHGateway";
 
-task(`full-deploy-weth-gateway`, `Deploys the ${CONTRACT_NAME} contract`)
+task(`full:deploy-weth-gateway`, `Deploys the ${CONTRACT_NAME} contract`)
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("verify", `Verify ${CONTRACT_NAME} contract via Etherscan API.`)
   .setAction(async ({ verify, pool }, localBRE) => {

@@ -8,7 +8,7 @@ export type eNetwork = eEthereumNetwork;
 
 export enum eEthereumNetwork {
   buidlerevm = "buidlerevm",
-  rikeyby = "rikeyby",
+  rinkeby = "rinkeby",
   kovan = "kovan",
   ropsten = "ropsten",
   main = "main",
@@ -17,7 +17,7 @@ export enum eEthereumNetwork {
 }
 
 export enum EthereumNetworkNames {
-  rikeyby = "rikeyby",
+  rinkeby = "rinkeby",
   kovan = "kovan",
   ropsten = "ropsten",
   main = "main",
@@ -304,7 +304,7 @@ export interface iParamsPerNetworkAll<T> extends iEthereumParamsPerNetwork<T> {}
 export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.coverage]: T;
   [eEthereumNetwork.buidlerevm]: T;
-  [eEthereumNetwork.rikeyby]: T;
+  [eEthereumNetwork.rinkeby]: T;
   [eEthereumNetwork.kovan]: T;
   [eEthereumNetwork.ropsten]: T;
   [eEthereumNetwork.main]: T;
@@ -353,7 +353,6 @@ export interface ICommonConfiguration {
   LendPoolLoan: iParamsPerNetwork<tEthereumAddress>;
   ReserveOracle: iParamsPerNetwork<tEthereumAddress>;
   NFTOracle: iParamsPerNetwork<tEthereumAddress>;
-  FallbackOracle: iParamsPerNetwork<tEthereumAddress>;
   ReserveAggregator: iParamsPerNetwork<ITokenAddress>;
   NftAggregator: iParamsPerNetwork<ITokenAddress>;
   PoolAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;

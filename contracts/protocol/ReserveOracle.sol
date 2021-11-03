@@ -24,7 +24,18 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
     weth = _weth;
   }
 
+  function setAggregators(address[] calldata _priceFeedKeys, address[] calldata _aggregators) external onlyOwner {
+    require(_priceFeedKeys.length == _aggregators.length, "ReserveOracle: INCONSISTENT_PARAMS_LENGTH");
+    for (uint256 i = 0; i < _priceFeedKeys.length; i++) {
+      _addAggregator(_priceFeedKeys[i], _aggregators[i]);
+    }
+  }
+
   function addAggregator(address _priceFeedKey, address _aggregator) external onlyOwner {
+    _addAggregator(_priceFeedKey, _aggregator);
+  }
+
+  function _addAggregator(address _priceFeedKey, address _aggregator) internal {
     requireNonEmptyAddress(_priceFeedKey);
     requireNonEmptyAddress(_aggregator);
     if (address(priceFeedMap[_priceFeedKey]) == address(0)) {

@@ -34,7 +34,8 @@ task("dev:deploy-oracle-reserve", "Deploy reserve oracle for dev environment")
 
     const mockAggregators = await deployAllChainlinkMockAggregators(
       allTokenDecimals,
-      poolConfig.Mocks.AllAssetsInitialPrices
+      poolConfig.Mocks.AllAssetsInitialPrices,
+      verify
     );
 
     const allAggregatorsAddresses = Object.entries(mockAggregators).reduce(
@@ -45,7 +46,7 @@ task("dev:deploy-oracle-reserve", "Deploy reserve oracle for dev environment")
       {}
     );
 
-    const reserveOracleImpl = await deployReserveOracle([]);
+    const reserveOracleImpl = await deployReserveOracle([], verify);
     await waitForTx(await reserveOracleImpl.initialize(mockTokens.WETH.address));
     await waitForTx(await addressesProvider.setReserveOracle(reserveOracleImpl.address));
     await setAggregatorsInReserveOracle(allTokenAddresses, allAggregatorsAddresses, reserveOracleImpl);

@@ -26,9 +26,9 @@ export const buildForkConfig = (): HardhatNetworkForkingUserConfig | undefined =
 };
 
 export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
-  [eEthereumNetwork.rikeyby]: ALCHEMY_KEY
-    ? `https://eth-rinkey.alchemyapi.io/v2/${ALCHEMY_KEY}`
-    : `https://rinkey.infura.io/v3/${INFURA_KEY}`,
+  [eEthereumNetwork.rinkeby]: ALCHEMY_KEY
+    ? `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_KEY}`
+    : `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
   [eEthereumNetwork.kovan]: ALCHEMY_KEY
     ? `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_KEY}`
     : `https://kovan.infura.io/v3/${INFURA_KEY}`,
@@ -44,7 +44,7 @@ export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
 };
 
 export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
-  [eEthereumNetwork.rikeyby]: 65 * GWEI,
+  [eEthereumNetwork.rinkeby]: 65 * GWEI,
   [eEthereumNetwork.kovan]: 1 * GWEI,
   [eEthereumNetwork.ropsten]: 65 * GWEI,
   [eEthereumNetwork.main]: 65 * GWEI,
@@ -55,7 +55,7 @@ export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
 
 export const BLOCK_TO_FORK: iParamsPerNetwork<number | undefined> = {
   [eEthereumNetwork.main]: 12406069,
-  [eEthereumNetwork.rikeyby]: undefined,
+  [eEthereumNetwork.rinkeby]: undefined,
   [eEthereumNetwork.kovan]: undefined,
   [eEthereumNetwork.ropsten]: undefined,
   [eEthereumNetwork.coverage]: undefined,

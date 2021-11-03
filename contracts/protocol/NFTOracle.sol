@@ -40,7 +40,17 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     priceFeedAdmin = _admin;
   }
 
+  function setAssets(address[] calldata _nftContracts) external onlyOwner {
+    for (uint256 i = 0; i < _nftContracts.length; i++) {
+      _addAsset(_nftContracts[i]);
+    }
+  }
+
   function addAsset(address _nftContract) external onlyOwner {
+    _addAsset(_nftContract);
+  }
+
+  function _addAsset(address _nftContract) internal {
     requireKeyExisted(_nftContract, false);
     nftPriceFeedMap[_nftContract].registered = true;
     nftPriceFeedKeys.push(_nftContract);

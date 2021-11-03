@@ -33,7 +33,7 @@ task("dev:deploy-oracle-nft", "Deploy nft oracle for dev environment")
       {}
     );
 
-    const nftOracleImpl = await deployNFTOracle();
+    const nftOracleImpl = await deployNFTOracle(verify);
     await waitForTx(await nftOracleImpl.initialize(await addressesProvider.getPoolAdmin()));
     await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
     await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
