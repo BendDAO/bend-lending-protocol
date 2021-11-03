@@ -106,7 +106,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     InitNftInput calldata input
   ) internal {
     // BNFT proxy and implementation are created in BNFTRegistry
-    (address bNftProxy, ) = registry_.getBNFT(input.underlyingAsset);
+    (address bNftProxy, ) = registry_.getBNFTAddresses(input.underlyingAsset);
     require(bNftProxy != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
 
     pool_.initNft(input.underlyingAsset, bNftProxy);

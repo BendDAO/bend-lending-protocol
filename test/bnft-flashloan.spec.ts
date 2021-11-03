@@ -8,6 +8,7 @@ import { MockFlashLoanReceiver } from "../types/MockFlashLoanReceiver";
 import { MockBNFTMinter } from "../types/MockBNFTMinter";
 import { ProtocolErrors, eContractid } from "../helpers/types";
 import { deployMockBNFTMinter, deployMockFlashLoanReceiver } from "../helpers/contracts-deployments";
+import { getBNFTRegistryProxy } from "../helpers/contracts-getters";
 
 const { expect } = require("chai");
 
@@ -19,10 +20,10 @@ makeSuite("BNFT: FlashLoan function", (testEnv: TestEnv) => {
   let user1TokenId1 = {} as string;
 
   before(async () => {
-    const { bBYAC } = testEnv;
+    const { bayc, bBYAC, bnftRegistry } = testEnv;
 
-    _mockFlashLoanReceiver = await deployMockFlashLoanReceiver([bBYAC.address]);
-    _mockBNFTMinter = await deployMockBNFTMinter([testEnv.bayc.address, testEnv.bBYAC.address]);
+    _mockFlashLoanReceiver = await deployMockFlashLoanReceiver([bnftRegistry.address]);
+    _mockBNFTMinter = await deployMockBNFTMinter([bayc.address, bBYAC.address]);
   });
 
   afterEach(async () => {

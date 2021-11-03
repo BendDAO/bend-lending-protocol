@@ -65,6 +65,21 @@ export const BendConfig: IBendConfiguration = {
       WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     },
   },
+  NftsAssets: {
+    [eEthereumNetwork.buidlerevm]: {},
+    [eEthereumNetwork.hardhat]: {},
+    [eEthereumNetwork.coverage]: {},
+    [eEthereumNetwork.rikeyby]: {
+      WPUNKS: '',
+      BYAC: '',
+    },
+    [eEthereumNetwork.kovan]: {},
+    [eEthereumNetwork.ropsten]: {},
+    [eEthereumNetwork.main]: {
+      WPUNKS: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
+      BYAC: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
+    },
+  },
 };
 
 export default BendConfig;

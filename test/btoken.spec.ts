@@ -15,13 +15,13 @@ makeSuite("BToken", (testEnv: TestEnv) => {
   it("Check DAI basic parameters", async () => {
     const { dai, bDai, pool } = testEnv;
 
-    const name = await dai.name();
-    const bWETHName = await bDai.name();
-    expect(bWETHName).to.be.equal(CommonsConfig.BTokenNamePrefix + " " + name);
-
     const symbol = await dai.symbol();
     const bSymbol = await bDai.symbol();
     expect(bSymbol).to.be.equal(CommonsConfig.BTokenSymbolPrefix + symbol);
+
+    //const name = await dai.name();
+    const bName = await bDai.name();
+    expect(bName).to.be.equal(CommonsConfig.BTokenNamePrefix + " " + symbol);
 
     const decimals = await dai.decimals();
     const bDecimals = await bDai.decimals();

@@ -6,7 +6,6 @@ import {
   BNFTRegistryFactory,
   InterestRateFactory,
   GenericLogicFactory,
-  //InitializableAdminUpgradeabilityProxyFactory,
   LendPoolAddressesProviderFactory,
   //LendPoolAddressesProviderRegistryFactory,
   LendPoolConfiguratorFactory,
@@ -24,10 +23,11 @@ import {
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
   WETHGatewayFactory,
+  InitializableAdminProxyFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
-import { getEthersSigners, MockTokenMap } from "./contracts-helpers";
+import { getEthersSigners, MockTokenMap, MockNftMap } from "./contracts-helpers";
 import { DRE, getDb, notFalsyOrZeroAddress, omit } from "./misc-utils";
 import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId } from "./types";
 
@@ -159,6 +159,32 @@ export const getAllMockedTokens = async () => {
   return tokens;
 };
 
+export const getConfigMockedNfts = async (config: PoolConfiguration) => {
+  const tokenSymbols = Object.keys(config.NftsConfig);
+  const db = getDb();
+  const tokens: MockNftMap = await tokenSymbols.reduce<Promise<MockNftMap>>(async (acc, tokenSymbol) => {
+    const accumulator = await acc;
+    const address = db.get(`${tokenSymbol.toUpperCase()}.${DRE.network.name}`).value().address;
+    accumulator[tokenSymbol] = await getMintableERC721(address);
+    return Promise.resolve(acc);
+  }, Promise.resolve({}));
+  return tokens;
+};
+
+export const getAllMockedNfts = async () => {
+  const db = getDb();
+  const tokens: MockNftMap = await Object.keys(TokenContractId).reduce<Promise<MockNftMap>>(
+    async (acc, tokenSymbol) => {
+      const accumulator = await acc;
+      const address = db.get(`${tokenSymbol.toUpperCase()}.${DRE.network.name}`).value().address;
+      accumulator[tokenSymbol] = await getMintableERC721(address);
+      return Promise.resolve(acc);
+    },
+    Promise.resolve({})
+  );
+  return tokens;
+};
+
 export const getQuoteCurrencies = (oracleQuoteCurrency: string): string[] => {
   switch (oracleQuoteCurrency) {
     case "ETH":
@@ -234,6 +260,9 @@ export const getSelfdestructTransferMock = async (address?: tEthereumAddress) =>
     address || (await getDb().get(`${eContractid.SelfdestructTransferMock}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
+
+export const getProxy = async (address: tEthereumAddress) =>
+  await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
 
 export const getLendPoolImpl = async (address?: tEthereumAddress) =>
   await LendPoolFactory.connect(

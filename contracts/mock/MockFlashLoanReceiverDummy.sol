@@ -7,6 +7,12 @@ import {IBNFT} from "../interfaces/IBNFT.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract MockFlashLoanReceiverDummy is IFlashLoanReceiver {
+  address _bnftRegistry;
+
+  constructor(address bnftRegistry_) {
+    _bnftRegistry = bnftRegistry_;
+  }
+
   function executeOperation(
     address asset,
     uint256[] memory tokenIds,
