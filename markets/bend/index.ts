@@ -36,7 +36,7 @@ export const BendConfig: IBendConfiguration = {
     [eEthereumNetwork.buidlerevm]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
-    [eEthereumNetwork.rikeyby]: {
+    [eEthereumNetwork.rinkeby]: {
       BUSD: '',
       DAI: '0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea',
       USDC: '',
@@ -69,7 +69,7 @@ export const BendConfig: IBendConfiguration = {
     [eEthereumNetwork.buidlerevm]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
-    [eEthereumNetwork.rikeyby]: {
+    [eEthereumNetwork.rinkeby]: {
       WPUNKS: '',
       BYAC: '',
     },

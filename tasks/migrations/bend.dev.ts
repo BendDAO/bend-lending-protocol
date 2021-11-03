@@ -42,10 +42,10 @@ task("bend:dev", "Deploy development enviroment")
     await localBRE.run("dev:deploy-oracle-nft", { verify, pool: POOL_NAME });
 
     console.log("Deploy WETH Gateway");
-    await localBRE.run("full-deploy-weth-gateway", { verify, pool: POOL_NAME });
+    await localBRE.run("full:deploy-weth-gateway", { verify, pool: POOL_NAME });
 
     console.log("Deploy WPUNKS Gateway");
-    await localBRE.run("full-deploy-punk-gateway", { verify, pool: POOL_NAME });
+    await localBRE.run("full:deploy-punk-gateway", { verify, pool: POOL_NAME });
 
     console.log("Initialize lend pool");
     await localBRE.run("dev:initialize-lend-pool", { verify, pool: POOL_NAME });

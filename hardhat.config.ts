@@ -91,7 +91,7 @@ const buidlerConfig: HardhatUserConfig = {
       url: "http://localhost:8555",
       chainId: COVERAGE_CHAINID,
     },
-    rinkeby: getCommonNetworkConfig(eEthereumNetwork.ropsten, 4),
+    rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     hardhat: {
       hardfork: "berlin",

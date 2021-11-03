@@ -16,14 +16,14 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
 
     const poolConfig = loadPoolConfig(pool);
 
-    const bnftRegistryImpl = await deployBNFTRegistry();
+    const bnftRegistryImpl = await deployBNFTRegistry(verify);
 
     const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
       poolConfig.BNftNamePrefix,
       poolConfig.BNftSymbolPrefix,
     ]);
 
-    const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, admin);
+    const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, admin, verify);
     await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
 
     const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
