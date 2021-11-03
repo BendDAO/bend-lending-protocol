@@ -35,9 +35,9 @@ import {
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
 import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
-import { getEthersSigners, MockTokenMap } from "./contracts-helpers";
+import { getEthersSigners, MockTokenMap, MockNftMap } from "./contracts-helpers";
 import { DRE, getDb, notFalsyOrZeroAddress, omit } from "./misc-utils";
-import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId } from "./types";
+import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId, NftContractId } from "./types";
 
 export const getFirstSigner = async () => (await getEthersSigners())[0];
 
@@ -199,15 +199,12 @@ export const getConfigMockedNfts = async (config: PoolConfiguration) => {
 
 export const getAllMockedNfts = async () => {
   const db = getDb();
-  const tokens: MockNftMap = await Object.keys(TokenContractId).reduce<Promise<MockNftMap>>(
-    async (acc, tokenSymbol) => {
-      const accumulator = await acc;
-      const address = db.get(`${tokenSymbol.toUpperCase()}.${DRE.network.name}`).value().address;
-      accumulator[tokenSymbol] = await getMintableERC721(address);
-      return Promise.resolve(acc);
-    },
-    Promise.resolve({})
-  );
+  const tokens: MockNftMap = await Object.keys(NftContractId).reduce<Promise<MockNftMap>>(async (acc, tokenSymbol) => {
+    const accumulator = await acc;
+    const address = db.get(`${tokenSymbol.toUpperCase()}.${DRE.network.name}`).value().address;
+    accumulator[tokenSymbol] = await getMintableERC721(address);
+    return Promise.resolve(acc);
+  }, Promise.resolve({}));
   return tokens;
 };
 

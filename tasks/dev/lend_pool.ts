@@ -10,6 +10,7 @@ import {
 import { eContractid } from "../../helpers/types";
 import { waitForTx } from "../../helpers/misc-utils";
 import {
+  getBNFTRegistryProxy,
   getLendPoolAddressesProvider,
   getLendPool,
   getLendPoolConfiguratorProxy,
@@ -25,6 +26,9 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
     await localBRE.run("set-DRE");
     const addressesProvider = await getLendPoolAddressesProvider();
     const poolConfig = loadPoolConfig(pool);
+
+    const bnftRegistryProxy = await getBNFTRegistryProxy();
+    addressesProvider.setBNFTRegistry(bnftRegistryProxy.address);
 
     ////////////////////////////////////////////////////////////////////////////
     // deploy lend pool

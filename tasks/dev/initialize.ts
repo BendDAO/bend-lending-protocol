@@ -84,7 +84,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     await configureNftsByHelper(NftsConfig, allNftAddresses, dataProvider, admin);
 
     ////////////////////////////////////////////////////////////////////////////
-    const bnftRegistry = await addressesProvider.getBNFTFactory();
+    const bnftRegistry = await addressesProvider.getBNFTRegistry();
     const mockFlashLoanReceiver = await deployMockFlashLoanReceiver([bnftRegistry], verify);
     await insertContractAddressInDb(eContractid.MockFlashLoanReceiver, mockFlashLoanReceiver.address);
 
