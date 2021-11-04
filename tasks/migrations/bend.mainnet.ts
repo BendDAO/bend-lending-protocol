@@ -2,6 +2,8 @@ import { task } from "hardhat/config";
 import { checkVerification } from "../../helpers/etherscan-verification";
 import { ConfigNames } from "../../helpers/configuration";
 import { printContracts } from "../../helpers/misc-utils";
+import { getFirstSigner } from "../../helpers/contracts-getters";
+import { formatEther } from "@ethersproject/units";
 
 task("bend:mainnet", "Deploy full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -9,6 +11,10 @@ task("bend:mainnet", "Deploy full enviroment")
   .setAction(async ({ verify, skipRegistry }, DRE) => {
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
+
+    const signer = await getFirstSigner();
+
+    console.log("Deployer:", await signer.getAddress(), "Balance:", formatEther(await signer.getBalance()));
 
     // Prevent loss of gas verifying all the needed ENVs for Etherscan verification
     if (verify) {
@@ -43,7 +49,7 @@ task("bend:mainnet", "Deploy full enviroment")
     console.log("Deploy WETH Gateway");
     await DRE.run("full:deploy-weth-gateway", { pool: POOL_NAME });
 
-    console.log("Deploy WPUNKS Gateway");
+    console.log("Deploy PUNK Gateway");
     await DRE.run("full:deploy-punk-gateway", { pool: POOL_NAME });
 
     console.log("Initialize lend pool");

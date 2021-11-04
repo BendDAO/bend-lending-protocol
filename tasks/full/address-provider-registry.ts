@@ -14,9 +14,6 @@ task("full:deploy-address-provider-registry", "Deploy address provider registry"
     await DRE.run("set-DRE");
     const poolConfig = loadPoolConfig(pool);
     const network = <eNetwork>DRE.network.name;
-    const signer = await getFirstSigner();
-
-    console.log("Deployer:", await signer.getAddress(), "Balance:", formatEther(await signer.getBalance()));
 
     const providerRegistryAddress = getParamPerNetwork(poolConfig.ProviderRegistry, network);
 
