@@ -3,8 +3,9 @@ import { checkVerification } from "../../helpers/etherscan-verification";
 import { ConfigNames } from "../../helpers/configuration";
 import { printContracts } from "../../helpers/misc-utils";
 
-task("bend:mainnet", "Deploy development enviroment")
+task("bend:mainnet", "Deploy full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
+  .addFlag("skipRegistry", "Skip addresses provider registration at Addresses Provider Registry")
   .setAction(async ({ verify, skipRegistry }, DRE) => {
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
@@ -17,7 +18,7 @@ task("bend:mainnet", "Deploy development enviroment")
     console.log("Migration started\n");
 
     console.log("Deploy address provider");
-    await DRE.run("full:deploy-address-provider", { pool: POOL_NAME });
+    await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry });
 
     console.log("Deploy lend pool");
     await DRE.run("full:deploy-lend-pool", { pool: POOL_NAME });

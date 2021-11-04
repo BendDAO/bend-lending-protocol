@@ -18,6 +18,7 @@ import { ConfigNames, getReservesConfigByPool, getNftsConfigByPool, loadPoolConf
 import { getFirstSigner } from "./contracts-getters";
 import { ZERO_ADDRESS } from "./constants";
 import {
+  LendPoolAddressesProviderRegistryFactory,
   BendProtocolDataProviderFactory,
   MintableERC20,
   MintableERC20Factory,
@@ -68,6 +69,14 @@ import { eNetwork } from "./types";
 const readArtifact = async (id: string) => {
   return (DRE as HardhatRuntimeEnvironment).artifacts.readArtifact(id);
 };
+
+export const deployLendPoolAddressesProviderRegistry = async (verify?: boolean) =>
+  withSaveAndVerify(
+    await new LendPoolAddressesProviderRegistryFactory(await getFirstSigner()).deploy(),
+    eContractid.LendPoolAddressesProviderRegistry,
+    [],
+    verify
+  );
 
 export const deployLendPoolAddressesProvider = async (marketId: string, verify?: boolean) =>
   withSaveAndVerify(

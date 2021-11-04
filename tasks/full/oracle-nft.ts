@@ -7,7 +7,7 @@ import { ConfigNames, loadPoolConfig, getGenesisPoolAdmin } from "../../helpers/
 import { getNFTOracle, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 import { NFTOracle } from "../../types";
 
-task("full:deploy-oracle-nft", "Deploy nft oracle for dev enviroment")
+task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ verify, pool }, DRE) => {

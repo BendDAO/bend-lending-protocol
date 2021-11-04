@@ -346,6 +346,8 @@ export interface ICommonConfiguration {
   ProviderId: number;
   ProtocolGlobalParams: IProtocolGlobalConfig;
   Mocks: IMocksConfig;
+  BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
+  BNFTRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   LendPoolConfigurator: iParamsPerNetwork<tEthereumAddress>;

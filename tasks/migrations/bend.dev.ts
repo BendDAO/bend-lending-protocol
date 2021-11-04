@@ -30,7 +30,7 @@ task("bend:dev", "Deploy development enviroment")
     await localBRE.run("dev:deploy-bnft-tokens", { verify, pool: POOL_NAME });
 
     console.log("Deploy address provider");
-    await localBRE.run("dev:deploy-address-provider", { verify });
+    await localBRE.run("dev:deploy-address-provider", { verify, pool: POOL_NAME });
 
     console.log("Deploy lend pool");
     await localBRE.run("dev:deploy-lend-pool", { verify, pool: POOL_NAME });
