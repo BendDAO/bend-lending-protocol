@@ -3,7 +3,7 @@ import { waitForTx } from "../../helpers/misc-utils";
 import { eNetwork, eContractid } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { getBNFTRegistryProxy } from "../../helpers/contracts-getters";
-import { getEthersSigners, getParamPerNetwork } from "../../helpers/contracts-helpers";
+import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { ZERO_ADDRESS } from "../../helpers/constants";
 import { deployGenericBNFTImpl } from "../../helpers/contracts-deployments";
 

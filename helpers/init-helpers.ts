@@ -18,7 +18,7 @@ import {
   getBNFTRegistryProxy,
   getIErc20Detailed,
 } from "./contracts-getters";
-import { getEthersSigner, getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
+import { getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
 import { BigNumberish } from "ethers";
 import { ConfigNames } from "./configuration";
 import { deployRateStrategy } from "./contracts-deployments";
