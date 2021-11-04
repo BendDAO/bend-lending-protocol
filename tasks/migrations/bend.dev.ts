@@ -17,18 +17,21 @@ task("bend:dev", "Deploy development enviroment")
 
     console.log("Migration started\n");
 
+    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy mock reserves");
     await localBRE.run("dev:deploy-mock-reserves", { verify });
 
     console.log("Deploy mock nfts");
     await localBRE.run("dev:deploy-mock-nfts", { verify });
 
+    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy bnft registry");
     await localBRE.run("dev:deploy-bnft-registry", { verify, pool: POOL_NAME });
 
     console.log("Deploy bnft tokens");
     await localBRE.run("dev:deploy-bnft-tokens", { verify, pool: POOL_NAME });
 
+    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy address provider");
     await localBRE.run("dev:deploy-address-provider", { verify, pool: POOL_NAME });
 

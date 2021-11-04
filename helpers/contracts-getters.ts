@@ -41,6 +41,8 @@ import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId, NftC
 
 export const getFirstSigner = async () => (await getEthersSigners())[0];
 
+export const getSecondSigner = async () => (await getEthersSigners())[1];
+
 export const getLendPoolAddressesProviderRegistry = async (address?: tEthereumAddress) => {
   return await LendPoolAddressesProviderRegistryFactory.connect(
     address ||
@@ -295,6 +297,9 @@ export const getSelfdestructTransferMock = async (address?: tEthereumAddress) =>
   );
 
 export const getProxy = async (address: tEthereumAddress) =>
+  await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
+
+export const getInitializableAdminProxy = async (address: tEthereumAddress) =>
   await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
 
 export const getLendPoolImpl = async (address?: tEthereumAddress) =>

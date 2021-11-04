@@ -17,6 +17,14 @@ task("bend:mainnet", "Deploy full enviroment")
 
     console.log("Migration started\n");
 
+    //////////////////////////////////////////////////////////////////////////
+    console.log("Deploy bnft registry");
+    await DRE.run("full:deploy-bnft-registry", { verify, pool: POOL_NAME });
+
+    console.log("Deploy bnft tokens");
+    await DRE.run("full:deploy-bnft-tokens", { verify, pool: POOL_NAME });
+
+    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy address provider");
     await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry });
 

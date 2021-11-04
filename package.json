@@ -28,6 +28,10 @@
     "main:verify": "npm run hardhat:main verify:general -- --all --pool Bend",
     "main:verify:reserves": "npm run hardhat:main verify:reserves -- --pool Bend",
     "main:verify:nfts": "npm run hardhat:main verify:nfts -- --pool Bend",
+    "external:deploy-reserve-rinkeby": "npm run compile && hardhat --network rinkeby external:deploy-new-reserve --symbol ${SYMBOL} --verify",
+    "external:deploy-reserve-main": "npm run compile && hardhat --network main external:deploy-new-reserve --symbol ${SYMBOL} --verify",
+    "external:deploy-nft-rinkeby": "npm run compile && hardhat --network rinkeby external:deploy-new-nft --symbol ${SYMBOL} --verify",
+    "external:deploy-nft-main": "npm run compile && hardhat --network main external:deploy-new-nft --symbol ${SYMBOL} --verify",
     "print-contracts:rinkeby": "npm run hardhat:rinkeby -- print-contracts",
     "print-contracts:main": "npm run hardhat:main -- print-contracts",
     "prepublishOnly": "npm run compile"
