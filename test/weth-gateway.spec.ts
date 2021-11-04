@@ -82,7 +82,7 @@ makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) =>
 
     // Approve the bTokens to Gateway so Gateway can withdraw and convert to Ether
     const approveTx = await bWETH.connect(user.signer).approve(wethGateway.address, MAX_UINT_AMOUNT);
-    const { gasUsed: approveGas } = await waitForTx(approveTx);
+    const { gasUsed: approveGas, effectiveGasPrice: approveGasPrice } = await waitForTx(approveTx);
 
     // Partial Withdraw and send native Ether to user
     const { gasUsed: withdrawGas } = await waitForTx(
@@ -91,7 +91,7 @@ makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) =>
 
     const afterPartialEtherBalance = await user.signer.getBalance();
     const afterPartialATokensBalance = await bWETH.balanceOf(user.address);
-    const gasCosts = approveGas.add(withdrawGas).mul(approveTx.gasPrice);
+    const gasCosts = approveGas.add(withdrawGas).mul(approveGasPrice);
 
     expect(afterPartialEtherBalance).to.be.equal(
       priorEthersBalance.add(partialWithdraw).sub(gasCosts),
@@ -114,7 +114,7 @@ makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) =>
 
     // Approve the bTokens to Gateway so Gateway can withdraw and convert to Ether
     const approveTx = await bWETH.connect(user.signer).approve(wethGateway.address, MAX_UINT_AMOUNT);
-    const { gasUsed: approveGas } = await waitForTx(approveTx);
+    const { gasUsed: approveGas, effectiveGasPrice: approveGasPrice } = await waitForTx(approveTx);
 
     // Full withdraw
     const { gasUsed: withdrawGas } = await waitForTx(
@@ -123,7 +123,7 @@ makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) =>
 
     const afterFullEtherBalance = await user.signer.getBalance();
     const afterFullATokensBalance = await bWETH.balanceOf(user.address);
-    const gasCosts = approveGas.add(withdrawGas).mul(approveTx.gasPrice);
+    const gasCosts = approveGas.add(withdrawGas).mul(approveGasPrice);
 
     expect(afterFullEtherBalance).to.be.eq(
       priorEthersBalance.add(bTokensBalance).sub(gasCosts),
@@ -348,8 +348,8 @@ makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) =>
     const callTx = await selfdestructContract
       .connect(user.signer)
       .destroyAndTransfer(wethGateway.address, { value: amount });
-    const { gasUsed } = await waitForTx(callTx);
-    const gasFees = gasUsed.mul(callTx.gasPrice);
+    const { gasUsed, effectiveGasPrice } = await waitForTx(callTx);
+    const gasFees = gasUsed.mul(effectiveGasPrice);
     const userBalanceAfterCall = await user.signer.getBalance();
 
     expect(userBalanceAfterCall).to.be.eq(userBalancePriorCall.sub(amount).sub(gasFees), "");
