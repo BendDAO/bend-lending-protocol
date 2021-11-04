@@ -1,10 +1,9 @@
 import { task } from "hardhat/config";
 import { waitForTx } from "../../helpers/misc-utils";
-import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../../helpers/types";
+import { eContractid, tEthereumAddress, BendPools } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { deployBNFTRegistry, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
-import { getBNFTRegistryProxy } from "../../helpers/contracts-getters";
-import { getEthersSigners } from "../../helpers/contracts-helpers";
+import { getBNFTRegistryProxy, getFirstSigner, getSecondSigner } from "../../helpers/contracts-getters";
 
 task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -12,7 +11,8 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
   .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
 
-    const admin = await (await getEthersSigners())[1].getAddress();
+    const signer = await getSecondSigner();
+    const admin = await signer.getAddress();
 
     const poolConfig = loadPoolConfig(pool);
 

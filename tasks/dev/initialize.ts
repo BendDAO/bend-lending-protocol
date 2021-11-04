@@ -51,6 +51,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     await insertContractAddressInDb(eContractid.BendProtocolDataProvider, dataProvider.address);
 
     ////////////////////////////////////////////////////////////////////////////
+    // Init & Config Reserve assets
     const mockTokens = await getAllMockedTokens();
     const allTokenAddresses = getAllTokenAddresses(mockTokens);
 
@@ -68,6 +69,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     await configureReservesByHelper(ReservesConfig, allTokenAddresses, dataProvider, admin);
 
     ////////////////////////////////////////////////////////////////////////////
+    // Init & Config NFT assets
     const mockNfts = await getAllMockedNfts();
     const allNftAddresses = getAllNftAddresses(mockNfts);
 

@@ -9,7 +9,12 @@ import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/c
 import { getWETHGateway } from "../../helpers/contracts-getters";
 import { eNetwork, ICommonConfiguration } from "../../helpers/types";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { initReservesByHelper, configureReservesByHelper } from "../../helpers/init-helpers";
+import {
+  initReservesByHelper,
+  configureReservesByHelper,
+  initNftsByHelper,
+  configureNftsByHelper,
+} from "../../helpers/init-helpers";
 import { exit } from "process";
 import { getBendProtocolDataProvider, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 import { ZERO_ADDRESS } from "../../helpers/constants";
@@ -22,37 +27,55 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       await localBRE.run("set-DRE");
       const network = <eNetwork>localBRE.network.name;
       const poolConfig = loadPoolConfig(pool);
-      const { BTokenNamePrefix, BTokenSymbolPrefix, ReserveAssets, ReservesConfig, WethGateway, IncentivesController } =
-        poolConfig as ICommonConfiguration;
 
-      //////////////////////////////////////////////////////////////////////////
-      const reserveAssets = await getParamPerNetwork(ReserveAssets, network);
-      const incentivesController = await getParamPerNetwork(IncentivesController, network);
+      const incentivesController = getParamPerNetwork(poolConfig.IncentivesController, network);
       const addressesProvider = await getLendPoolAddressesProvider();
 
       const dataProvider = await getBendProtocolDataProvider();
 
       const admin = await addressesProvider.getPoolAdmin();
       const reserveOracle = await addressesProvider.getReserveOracle();
+      const nftOracle = await addressesProvider.getNftOracle();
 
+      const treasuryAddress = await getTreasuryAddress(poolConfig);
+
+      //////////////////////////////////////////////////////////////////////////
+      // Init & Config Reserve assets
+      const reserveAssets = getParamPerNetwork(poolConfig.ReserveAssets, network);
       if (!reserveAssets) {
         throw "Reserve assets is undefined. Check ReserveAssets configuration at config directory";
       }
 
-      const treasuryAddress = await getTreasuryAddress(poolConfig);
-
       await initReservesByHelper(
-        ReservesConfig,
+        poolConfig.ReservesConfig,
         reserveAssets,
-        BTokenNamePrefix,
-        BTokenSymbolPrefix,
+        poolConfig.BTokenNamePrefix,
+        poolConfig.BTokenSymbolPrefix,
         admin,
         treasuryAddress,
         incentivesController,
         pool,
         verify
       );
-      await configureReservesByHelper(ReservesConfig, reserveAssets, dataProvider, admin);
+      await configureReservesByHelper(poolConfig.ReservesConfig, reserveAssets, dataProvider, admin);
+
+      //////////////////////////////////////////////////////////////////////////
+      // Init & Config NFT assets
+      const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
+      if (!nftsAssets) {
+        throw "NFT assets is undefined. Check NftsAssets configuration at config directory";
+      }
+
+      await initNftsByHelper(
+        poolConfig.NftsConfig,
+        nftsAssets,
+        poolConfig.BNftNamePrefix,
+        poolConfig.BNftSymbolPrefix,
+        admin,
+        pool,
+        verify
+      );
+      await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, dataProvider, admin);
 
       //////////////////////////////////////////////////////////////////////////
       const bendProtocolDataProvider = await getBendProtocolDataProvider();
@@ -74,9 +97,10 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       */
 
       //////////////////////////////////////////////////////////////////////////
+      // Init & Config Gateways
       const lendPoolAddress = await addressesProvider.getLendPool();
 
-      let gateWay = getParamPerNetwork(WethGateway, network);
+      let gateWay = getParamPerNetwork(poolConfig.WethGateway, network);
       if (!notFalsyOrZeroAddress(gateWay)) {
         gateWay = (await getWETHGateway()).address;
       }
