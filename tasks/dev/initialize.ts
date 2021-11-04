@@ -4,6 +4,9 @@ import {
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   authorizeWETHGateway,
+  authorizeWETHGatewayNFT,
+  authorizePunkGateway,
+  authorizePunkGatewayERC20,
 } from "../../helpers/contracts-deployments";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { eNetwork } from "../../helpers/types";
@@ -24,6 +27,7 @@ import {
   getAllMockedNfts,
   getLendPoolAddressesProvider,
   getWETHGateway,
+  getPunkGateway,
 } from "../../helpers/contracts-getters";
 import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
 
@@ -40,6 +44,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       BNftNamePrefix,
       BNftSymbolPrefix,
       WethGateway,
+      PunkGateway,
       ReservesConfig,
       NftsConfig,
     } = poolConfig;
@@ -92,11 +97,26 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
 
     await deployWalletBalancerProvider(verify);
 
+    ////////////////////////////////////////////////////////////////////////////
     const lendPoolAddress = await addressesProvider.getLendPool();
 
-    let gateway = getParamPerNetwork(WethGateway, network);
-    if (!notFalsyOrZeroAddress(gateway)) {
-      gateway = (await getWETHGateway()).address;
+    ////////////////////////////////////////////////////////////////////////////
+    let wethGatewayAddress = getParamPerNetwork(WethGateway, network);
+    if (!notFalsyOrZeroAddress(wethGatewayAddress)) {
+      wethGatewayAddress = (await getWETHGateway()).address;
     }
-    await authorizeWETHGateway(gateway, lendPoolAddress);
+    await authorizeWETHGateway(wethGatewayAddress, lendPoolAddress);
+    for (const [assetSymbol, assetAddress] of Object.entries(allNftAddresses) as [string, string][]) {
+      await authorizeWETHGatewayNFT(wethGatewayAddress, lendPoolAddress, assetAddress);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    let punkGatewayAddress = getParamPerNetwork(PunkGateway, network);
+    if (!notFalsyOrZeroAddress(punkGatewayAddress)) {
+      punkGatewayAddress = (await getPunkGateway()).address;
+    }
+    await authorizePunkGateway(punkGatewayAddress, lendPoolAddress, wethGatewayAddress);
+    for (const [assetSymbol, assetAddress] of Object.entries(allTokenAddresses) as [string, string][]) {
+      await authorizePunkGatewayERC20(punkGatewayAddress, lendPoolAddress, assetAddress);
+    }
   });

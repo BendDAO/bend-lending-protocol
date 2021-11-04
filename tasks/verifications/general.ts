@@ -4,6 +4,7 @@ import {
   ConfigNames,
   getTreasuryAddress,
   getWrappedNativeTokenAddress,
+  getWrappedPunkTokenAddress,
 } from "../../helpers/configuration";
 import { ZERO_ADDRESS } from "../../helpers/constants";
 import {
@@ -19,6 +20,7 @@ import {
   getProxy,
   getWalletProvider,
   getWETHGateway,
+  getPunkGateway,
 } from "../../helpers/contracts-getters";
 import { verifyContract, getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -40,6 +42,8 @@ task("verify:general", "Verify general contracts at Etherscan")
       LendPoolConfigurator,
       LendPool,
       WethGateway,
+      CryptoPunksMarket,
+      PunkGateway,
     } = poolConfig as ICommonConfiguration;
     const treasuryAddress = await getTreasuryAddress(poolConfig);
 
@@ -52,6 +56,8 @@ task("verify:general", "Verify general contracts at Etherscan")
     const lendPoolProxy = await getProxy(lendPoolAddress);
     const lendPoolConfiguratorProxy = await getProxy(lendPoolConfiguratorAddress);
     const lendPoolLoanProxy = await getProxy(lendPoolLoanAddress);
+
+    const punkAddress = getParamPerNetwork(CryptoPunksMarket, network);
 
     if (all) {
       const lendPoolImplAddress = getParamPerNetwork(LendPool, network);
@@ -76,6 +82,11 @@ task("verify:general", "Verify general contracts at Etherscan")
       const wethGateway = notFalsyOrZeroAddress(wethGatewayAddress)
         ? await getWETHGateway(wethGatewayAddress)
         : await getWETHGateway();
+
+      const punkGatewayAddress = getParamPerNetwork(PunkGateway, network);
+      const punkGateway = notFalsyOrZeroAddress(punkGatewayAddress)
+        ? await getPunkGateway(punkGatewayAddress)
+        : await getPunkGateway();
 
       // Address Provider
       console.log("\n- Verifying address provider...\n");
@@ -104,6 +115,12 @@ task("verify:general", "Verify general contracts at Etherscan")
       // WETHGateway
       console.log("\n- Verifying WETHGateway...\n");
       await verifyContract(eContractid.WETHGateway, wethGateway, [await getWrappedNativeTokenAddress(poolConfig)]);
+
+      // PunkGateway
+      console.log("\n- Verifying PunkGateway...\n");
+      await verifyContract(eContractid.PunkGateway, punkGateway, [
+        await getWrappedPunkTokenAddress(poolConfig, punkAddress),
+      ]);
     }
 
     // Lend Pool proxy

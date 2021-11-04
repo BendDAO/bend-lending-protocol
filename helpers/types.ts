@@ -368,9 +368,12 @@ export interface ICommonConfiguration {
   BTokenDomainSeparator: iParamsPerNetwork<string>;
   BNftDomainSeparator: iParamsPerNetwork<string>;
 
-  WETH: iParamsPerNetwork<tEthereumAddress>;
   WrappedNativeToken: iParamsPerNetwork<tEthereumAddress>;
   WethGateway: iParamsPerNetwork<tEthereumAddress>;
+
+  CryptoPunksMarket: iParamsPerNetwork<tEthereumAddress>;
+  WrappedPunkToken: iParamsPerNetwork<tEthereumAddress>;
+  PunkGateway: iParamsPerNetwork<tEthereumAddress>;
 
   ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;
