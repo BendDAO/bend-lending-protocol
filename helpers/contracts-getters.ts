@@ -7,7 +7,7 @@ import {
   InterestRateFactory,
   GenericLogicFactory,
   LendPoolAddressesProviderFactory,
-  //LendPoolAddressesProviderRegistryFactory,
+  LendPoolAddressesProviderRegistryFactory,
   LendPoolConfiguratorFactory,
   LendPoolFactory,
   LendPoolLoanFactory,
@@ -40,6 +40,16 @@ import { DRE, getDb, notFalsyOrZeroAddress, omit } from "./misc-utils";
 import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId, NftContractId } from "./types";
 
 export const getFirstSigner = async () => (await getEthersSigners())[0];
+
+export const getLendPoolAddressesProviderRegistry = async (address?: tEthereumAddress) => {
+  return await LendPoolAddressesProviderRegistryFactory.connect(
+    address ||
+      (
+        await getDb().get(`${eContractid.LendPoolAddressesProviderRegistry}.${DRE.network.name}`).value()
+      ).address,
+    await getFirstSigner()
+  );
+};
 
 export const getLendPoolAddressesProvider = async (address?: tEthereumAddress) => {
   return await LendPoolAddressesProviderFactory.connect(

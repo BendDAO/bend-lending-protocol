@@ -1,17 +1,27 @@
 import { task } from "hardhat/config";
-import { deployLendPoolAddressesProvider } from "../../helpers/contracts-deployments";
-import { getEthersSigners } from "../../helpers/contracts-helpers";
+import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
+import {
+  deployLendPoolAddressesProvider,
+  deployLendPoolAddressesProviderRegistry,
+} from "../../helpers/contracts-deployments";
+import { getFirstSigner } from "../../helpers/contracts-getters";
 import { waitForTx } from "../../helpers/misc-utils";
-import { BendConfig } from "../../markets/bend";
 
 task("dev:deploy-address-provider", "Deploy address provider for dev enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
-  .setAction(async ({ verify }, localBRE) => {
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
+    const poolConfig = loadPoolConfig(pool);
+    const signer = await getFirstSigner();
+    const admin = await signer.getAddress();
 
-    const admin = await (await getEthersSigners())[0].getAddress();
-
-    const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId, verify);
+    const addressesProvider = await deployLendPoolAddressesProvider(poolConfig.MarketId, verify);
     await waitForTx(await addressesProvider.setPoolAdmin(admin));
     await waitForTx(await addressesProvider.setEmergencyAdmin(admin));
+
+    const addressesProviderRegistry = await deployLendPoolAddressesProviderRegistry(verify);
+    await waitForTx(
+      await addressesProviderRegistry.registerAddressesProvider(addressesProvider.address, poolConfig.ProviderId)
+    );
   });

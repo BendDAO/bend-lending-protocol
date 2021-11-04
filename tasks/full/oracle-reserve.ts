@@ -11,7 +11,7 @@ import {
 } from "../../helpers/contracts-getters";
 import { ReserveOracle } from "../../types";
 
-task("full:deploy-oracle-reserve", "Deploy reserve oracle for dev enviroment")
+task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ verify, pool }, DRE) => {

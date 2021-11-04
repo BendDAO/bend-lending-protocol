@@ -18,7 +18,7 @@ import {
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { loadPoolConfig, ConfigNames, getGenesisPoolAdmin, getEmergencyAdmin } from "../../helpers/configuration";
 
-task("full:deploy-lend-pool", "Deploy lend pool for dev enviroment")
+task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ verify, pool }, DRE: HardhatRuntimeEnvironment) => {
@@ -37,7 +37,6 @@ task("full:deploy-lend-pool", "Deploy lend pool for dev enviroment")
         console.log("\tDeploying new lend pool implementation & libraries...");
         const lendPoolImpl = await deployLendPool(verify);
         lendPoolImplAddress = lendPoolImpl.address;
-        await lendPoolImpl.initialize(addressesProvider.address);
       }
       console.log("\tSetting lend pool implementation with address:", lendPoolImplAddress);
       // Set lending pool impl to Address provider
