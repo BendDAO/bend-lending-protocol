@@ -9,13 +9,15 @@ task(`full:deploy-weth-gateway`, `Deploys the ${CONTRACT_NAME} contract`)
   .addFlag("verify", `Verify ${CONTRACT_NAME} contract via Etherscan API.`)
   .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
-    const poolConfig = loadPoolConfig(pool);
-    const Weth = await getWrappedNativeTokenAddress(poolConfig);
 
     if (!localBRE.network.config.chainId) {
       throw new Error("INVALID_CHAIN_ID");
     }
-    const wethGateWay = await deployWETHGateway([Weth], verify);
+
+    const poolConfig = loadPoolConfig(pool);
+    const weth = await getWrappedNativeTokenAddress(poolConfig);
+
+    const wethGateWay = await deployWETHGateway([weth], verify);
     console.log(`${CONTRACT_NAME}.address`, wethGateWay.address);
     console.log(`\tFinished ${CONTRACT_NAME} deployment`);
   });

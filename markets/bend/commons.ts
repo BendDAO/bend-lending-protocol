@@ -140,6 +140,15 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.ropsten]: '',
     [eEthereumNetwork.main]: '',
   },
+  PunkGateway: {
+    [eEthereumNetwork.coverage]: '',
+    [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.buidlerevm]: '',
+    [eEthereumNetwork.rinkeby]: '',
+    [eEthereumNetwork.kovan]: '',
+    [eEthereumNetwork.ropsten]: '',
+    [eEthereumNetwork.main]: '',
+  },
   ReserveOracle: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
@@ -234,16 +243,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.ropsten]: '',
     [eEthereumNetwork.main]: '',
   },
-  WETH: {
-    [eEthereumNetwork.coverage]: '', // deployed in local evm
-    [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.buidlerevm]: '', // deployed in local evm
-    [eEthereumNetwork.rinkeby]: '0xdf032bc4b9dc2782bb09352007d4c57b75160b15',
-    [eEthereumNetwork.kovan]: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
-    [eEthereumNetwork.ropsten]: '0xc778417e063141139fce010982780140aa0cd5ab',
-    [eEthereumNetwork.main]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-  },
-  WrappedNativeToken: {
+  WrappedNativeToken: { // ETH, BNB, MATIC
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.buidlerevm]: '', // deployed in local evm
@@ -251,6 +251,24 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.kovan]: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
     [eEthereumNetwork.ropsten]: '0xc778417e063141139fce010982780140aa0cd5ab',
     [eEthereumNetwork.main]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  },
+  CryptoPunksMarket: {
+    [eEthereumNetwork.coverage]: '', // deployed in local evm
+    [eEthereumNetwork.hardhat]: '', // deployed in local evm
+    [eEthereumNetwork.buidlerevm]: '', // deployed in local evm
+    [eEthereumNetwork.rinkeby]: '',
+    [eEthereumNetwork.kovan]: '',
+    [eEthereumNetwork.ropsten]: '',
+    [eEthereumNetwork.main]: '',
+  },
+  WrappedPunkToken: {
+    [eEthereumNetwork.coverage]: '', // deployed in local evm
+    [eEthereumNetwork.hardhat]: '', // deployed in local evm
+    [eEthereumNetwork.buidlerevm]: '', // deployed in local evm
+    [eEthereumNetwork.rinkeby]: '',
+    [eEthereumNetwork.kovan]: '',
+    [eEthereumNetwork.ropsten]: '',
+    [eEthereumNetwork.main]: '',
   },
   ReserveFactorTreasuryAddress: {
     [eEthereumNetwork.coverage]: '0x464c71f6c2f760dda6093dcb91c24c39e5d6e18c',

@@ -3,10 +3,13 @@ import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import {
   deployWalletBalancerProvider,
   authorizeWETHGateway,
+  authorizeWETHGatewayNFT,
+  authorizePunkGateway,
+  authorizePunkGatewayERC20,
   //deployUiPoolDataProvider,
 } from "../../helpers/contracts-deployments";
 import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
-import { getWETHGateway } from "../../helpers/contracts-getters";
+import { getWETHGateway, getPunkGateway } from "../../helpers/contracts-getters";
 import { eNetwork, ICommonConfiguration } from "../../helpers/types";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import {
@@ -100,11 +103,23 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       // Init & Config Gateways
       const lendPoolAddress = await addressesProvider.getLendPool();
 
-      let gateWay = getParamPerNetwork(poolConfig.WethGateway, network);
-      if (!notFalsyOrZeroAddress(gateWay)) {
-        gateWay = (await getWETHGateway()).address;
+      let wethGatewayAddress = getParamPerNetwork(poolConfig.WethGateway, network);
+      if (!notFalsyOrZeroAddress(wethGatewayAddress)) {
+        wethGatewayAddress = (await getWETHGateway()).address;
       }
-      await authorizeWETHGateway(gateWay, lendPoolAddress);
+      await authorizeWETHGateway(wethGatewayAddress, lendPoolAddress);
+      for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
+        await authorizeWETHGatewayNFT(wethGatewayAddress, lendPoolAddress, assetAddress);
+      }
+
+      let punkGatewayAddress = getParamPerNetwork(poolConfig.PunkGateway, network);
+      if (!notFalsyOrZeroAddress(punkGatewayAddress)) {
+        punkGatewayAddress = (await getPunkGateway()).address;
+      }
+      await authorizePunkGateway(punkGatewayAddress, lendPoolAddress, wethGatewayAddress);
+      for (const [assetSymbol, assetAddress] of Object.entries(reserveAssets) as [string, string][]) {
+        await authorizePunkGatewayERC20(punkGatewayAddress, lendPoolAddress, assetAddress);
+      }
     } catch (err) {
       console.error(err);
       exit(1);
