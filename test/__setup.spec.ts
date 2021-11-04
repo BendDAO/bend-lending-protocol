@@ -1,11 +1,6 @@
 import rawBRE from "hardhat";
 import { MockContract } from "ethereum-waffle";
-import {
-  insertContractAddressInDb,
-  getEthersSigners,
-  registerContractInJsonDb,
-  getEthersSignersAddresses,
-} from "../helpers/contracts-helpers";
+import { insertContractAddressInDb, registerContractInJsonDb } from "../helpers/contracts-helpers";
 import {
   deployLendPoolAddressesProvider,
   deployMintableERC20,
@@ -66,6 +61,12 @@ import {
 import BendConfig from "../markets/bend";
 import { oneEther, ZERO_ADDRESS } from "../helpers/constants";
 import {
+  getSecondSigner,
+  getDeploySigner,
+  getPoolAdminSigner,
+  getEmergencyAdminSigner,
+  getProxyAdminSigner,
+  getPoolOwnerSigner,
   getLendPool,
   getLendPoolConfiguratorProxy,
   getLendPoolLoanProxy,
@@ -143,11 +144,13 @@ const deployAllMockNfts = async (deployer: Signer) => {
 
 const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   console.time("setup");
-  const addressList = await getEthersSignersAddresses();
 
-  const bendAdmin = await deployer.getAddress();
-  const emergencyAdmin = addressList[2];
-  const proxyAdmin = addressList[2];
+  const poolAdmin = await (await getPoolAdminSigner()).getAddress();
+  const emergencyAdmin = await (await getEmergencyAdminSigner()).getAddress();
+  const proxyAdmin = await (await getProxyAdminSigner()).getAddress();
+  const poolOwner = await (await getPoolOwnerSigner()).getAddress();
+  console.log("Admin", poolAdmin, emergencyAdmin, proxyAdmin, poolOwner);
+
   const config = loadPoolConfig(ConfigNames.Bend);
 
   //////////////////////////////////////////////////////////////////////////////
@@ -182,7 +185,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
 
-  await waitForTx(await bnftRegistry.transferOwnership(bendAdmin));
+  await waitForTx(await bnftRegistry.transferOwnership(poolOwner));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bnft tokens...");
@@ -195,7 +198,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare address provider...");
   const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId);
-  await waitForTx(await addressesProvider.setPoolAdmin(bendAdmin));
+  await waitForTx(await addressesProvider.setPoolAdmin(poolAdmin));
 
   //setting users[1] as emergency admin, which is in position 2 in the DRE addresses list
   await waitForTx(await addressesProvider.setEmergencyAdmin(emergencyAdmin));
@@ -345,14 +348,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     allReservesAddresses,
     BTokenNamePrefix,
     BTokenSymbolPrefix,
-    bendAdmin,
+    poolAdmin,
     treasuryAddress,
     ZERO_ADDRESS,
     ConfigNames.Bend,
     false
   );
 
-  await configureReservesByHelper(reservesParams, allReservesAddresses, dataProvider, bendAdmin);
+  await configureReservesByHelper(reservesParams, allReservesAddresses, dataProvider, poolAdmin);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare NFT pools...");
@@ -373,12 +376,12 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     allNftsAddresses,
     BNftNamePrefix,
     BNftSymbolPrefix,
-    bendAdmin,
+    poolAdmin,
     ConfigNames.Bend,
     false
   );
 
-  await configureNftsByHelper(nftsParams, allNftsAddresses, dataProvider, bendAdmin);
+  await configureNftsByHelper(nftsParams, allNftsAddresses, dataProvider, poolAdmin);
 
   //////////////////////////////////////////////////////////////////////////////
   // prepapre wallet
@@ -404,7 +407,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
 before(async () => {
   await rawBRE.run("set-DRE");
-  const [deployer, secondaryWallet] = await getEthersSigners();
+  const deployer = await getDeploySigner();
+  const secondaryWallet = await getSecondSigner();
   const FORK = process.env.FORK;
 
   if (FORK) {
