@@ -47,7 +47,7 @@ task("bend:dev", "Deploy development enviroment")
     console.log("Deploy WETH Gateway");
     await localBRE.run("full:deploy-weth-gateway", { verify, pool: POOL_NAME });
 
-    console.log("Deploy WPUNKS Gateway");
+    console.log("Deploy PUNK Gateway");
     await localBRE.run("full:deploy-punk-gateway", { verify, pool: POOL_NAME });
 
     console.log("Initialize lend pool");
