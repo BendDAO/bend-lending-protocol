@@ -351,7 +351,6 @@ makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) =>
       .connect(user.signer)
       .destroyAndTransfer(wethGateway.address, { value: amount });
     const { gasUsed } = await waitForTx(callTx);
-    console.log({ GAS_PRICE });
     const gasFees = gasUsed.mul(GAS_PRICE);
     const userBalanceAfterCall = await user.signer.getBalance();
 
