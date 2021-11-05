@@ -1,11 +1,9 @@
-import { formatEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { deployLendPoolAddressesProviderRegistry } from "../../helpers/contracts-deployments";
-import { getFirstSigner } from "../../helpers/contracts-getters";
-import { getParamPerNetwork } from "../../helpers/contracts-helpers";
+import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
-import { eNetwork } from "../../helpers/types";
+import { eNetwork, eContractid } from "../../helpers/types";
 
 task("full:deploy-address-provider-registry", "Deploy address provider registry")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -17,8 +15,9 @@ task("full:deploy-address-provider-registry", "Deploy address provider registry"
 
     const providerRegistryAddress = getParamPerNetwork(poolConfig.ProviderRegistry, network);
 
-    if (notFalsyOrZeroAddress(providerRegistryAddress)) {
+    if (providerRegistryAddress != undefined && notFalsyOrZeroAddress(providerRegistryAddress)) {
       console.log("Already deployed Provider Registry Address at", providerRegistryAddress);
+      await insertContractAddressInDb(eContractid.LendPoolAddressesProviderRegistry, providerRegistryAddress);
     } else {
       const contract = await deployLendPoolAddressesProviderRegistry(verify);
       console.log("Deployed Registry Address:", contract.address);

@@ -23,6 +23,7 @@ task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
     const wpunk = await getWrappedPunkTokenAddress(poolConfig, punk);
     console.log("WPUNKS.address", wpunk);
 
+    // this contract is not support upgrade, just deploy new contract
     const punkGateWay = await deployPunkGateway([punk, wpunk], verify);
     console.log("PunkGateway.address", punkGateWay.address);
     console.log("Finished PunkGateway deployment");

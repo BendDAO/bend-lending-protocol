@@ -1,15 +1,11 @@
 import { task } from "hardhat/config";
 import { checkVerification } from "../../helpers/etherscan-verification";
-import { ConfigNames } from "../../helpers/configuration";
+import { ConfigNames, getEmergencyAdmin, getGenesisPoolAdmin } from "../../helpers/configuration";
 import { printContracts } from "../../helpers/misc-utils";
-import {
-  getDeploySigner,
-  getEmergencyAdminSigner,
-  getPoolAdminSigner,
-  getProxyAdminSigner,
-  getPoolOwnerSigner,
-} from "../../helpers/contracts-getters";
+import { getDeploySigner } from "../../helpers/contracts-getters";
 import { formatEther } from "@ethersproject/units";
+import { loadPoolConfig } from "../../helpers/configuration";
+import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 
 task("bend:mainnet", "Deploy full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -17,12 +13,11 @@ task("bend:mainnet", "Deploy full enviroment")
   .setAction(async ({ verify, skipRegistry }, DRE) => {
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
+    const poolConfig = loadPoolConfig(POOL_NAME);
 
     const deployerSigner = await getDeploySigner();
-    const poolAdminSigner = await getPoolAdminSigner();
-    const emergencyAdminSigner = await getEmergencyAdminSigner();
-    const proxyAdminSigner = await getProxyAdminSigner();
-    const poolOwnerSigner = await getPoolOwnerSigner();
+    const poolAdminSigner = await getEthersSignerByAddress(await getGenesisPoolAdmin(poolConfig));
+    const emergencyAdminSigner = await getEthersSignerByAddress(await getEmergencyAdmin(poolConfig));
 
     console.log(
       "Deployer:",
@@ -42,18 +37,6 @@ task("bend:mainnet", "Deploy full enviroment")
       "Balance:",
       formatEther(await emergencyAdminSigner.getBalance())
     );
-    console.log(
-      "ProxyAdmin:",
-      await proxyAdminSigner.getAddress(),
-      "Balance:",
-      formatEther(await proxyAdminSigner.getBalance())
-    );
-    console.log(
-      "PoolOnwer:",
-      await poolOwnerSigner.getAddress(),
-      "Balance:",
-      formatEther(await poolOwnerSigner.getBalance())
-    );
 
     // Prevent loss of gas verifying all the needed ENVs for Etherscan verification
     if (verify) {
@@ -61,6 +44,10 @@ task("bend:mainnet", "Deploy full enviroment")
     }
 
     console.log("Migration started\n");
+
+    //////////////////////////////////////////////////////////////////////////
+    console.log("Deploy proxy admin");
+    await DRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("Deploy bnft registry");

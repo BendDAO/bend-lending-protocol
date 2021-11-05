@@ -25,6 +25,10 @@ task("bend:dev", "Deploy development enviroment")
     await localBRE.run("dev:deploy-mock-nfts", { verify });
 
     //////////////////////////////////////////////////////////////////////////
+    console.log("Deploy proxy admin");
+    await localBRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
+
+    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy bnft registry");
     await localBRE.run("dev:deploy-bnft-registry", { verify, pool: POOL_NAME });
 
