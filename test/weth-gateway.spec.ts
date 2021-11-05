@@ -22,7 +22,7 @@ import { configuration as calculationsConfiguration } from "./helpers/utils/calc
 import { getLoanData, getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
 
-makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) => {
+makeSuite("WETHGateway", (testEnv: TestEnv) => {
   let cachedTokenId;
 
   const zero = BN.from(0);
