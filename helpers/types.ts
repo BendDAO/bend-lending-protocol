@@ -304,10 +304,7 @@ export interface iParamsPerNetworkAll<T> extends iEthereumParamsPerNetwork<T> {}
 
 export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.coverage]: T;
-  [eEthereumNetwork.buidlerevm]: T;
   [eEthereumNetwork.rinkeby]: T;
-  [eEthereumNetwork.kovan]: T;
-  [eEthereumNetwork.ropsten]: T;
   [eEthereumNetwork.main]: T;
   [eEthereumNetwork.hardhat]: T;
 }

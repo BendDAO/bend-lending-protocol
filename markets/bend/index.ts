@@ -29,22 +29,11 @@ export const BendConfig: IBendConfiguration = {
     BAYC: strategyBAYC,
   },
   ReserveAssets: {
-    [eEthereumNetwork.buidlerevm]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.rinkeby]: {
       DAI: '0x19063932dF866BbA02Eef150e9371d168253243C',
       USDC: '0xAC4aDe046140E9D45D47BB2B2eB40c23D167ed92',
-      WETH: '0xc778417e063141139fce010982780140aa0cd5ab',
-    },
-    [eEthereumNetwork.kovan]: {
-      DAI: '0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD',
-      USDC: '0xe22da380ee6B445bb8273C81944ADEB6E8450422',
-      WETH: '0xd0a1e359811322d97991e03f863a0c30c2cf029c',
-    },
-    [eEthereumNetwork.ropsten]: {
-      DAI: '0xf80A32A835F79D7787E8a8ee5721D0fEaFd78108',
-      USDC: '0x851dEf71f0e6A903375C1e536Bd9ff1684BAD802',
       WETH: '0xc778417e063141139fce010982780140aa0cd5ab',
     },
     [eEthereumNetwork.main]: {
@@ -54,15 +43,12 @@ export const BendConfig: IBendConfiguration = {
     },
   },
   NftsAssets: {
-    [eEthereumNetwork.buidlerevm]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.rinkeby]: {
       WPUNKS: '0xd51fC3376F6D7C86D8639d5ec238327ab0EE69e3',
       BYAC: '0x2e308F03bFd57B1b36570aDC710C6A130C27366E',
     },
-    [eEthereumNetwork.kovan]: {},
-    [eEthereumNetwork.ropsten]: {},
     [eEthereumNetwork.main]: {
       WPUNKS: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
       BYAC: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
