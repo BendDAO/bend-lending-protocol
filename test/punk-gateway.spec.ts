@@ -20,7 +20,7 @@ import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import { getERC20TokenBalance, getLoanData, getReserveAddressFromSymbol } from "./helpers/utils/helpers";
 
-makeSuite("Use native ETH at LendingPool via WETHGateway", (testEnv: TestEnv) => {
+makeSuite("PunkGateway", (testEnv: TestEnv) => {
   let cachedTokenId;
 
   const zero = BN.from(0);
