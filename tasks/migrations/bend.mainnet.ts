@@ -2,7 +2,13 @@ import { task } from "hardhat/config";
 import { checkVerification } from "../../helpers/etherscan-verification";
 import { ConfigNames } from "../../helpers/configuration";
 import { printContracts } from "../../helpers/misc-utils";
-import { getFirstSigner } from "../../helpers/contracts-getters";
+import {
+  getDeploySigner,
+  getEmergencyAdminSigner,
+  getPoolAdminSigner,
+  getProxyAdminSigner,
+  getPoolOwnerSigner,
+} from "../../helpers/contracts-getters";
 import { formatEther } from "@ethersproject/units";
 
 task("bend:mainnet", "Deploy full enviroment")
@@ -12,9 +18,42 @@ task("bend:mainnet", "Deploy full enviroment")
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
 
-    const signer = await getFirstSigner();
+    const deployerSigner = await getDeploySigner();
+    const poolAdminSigner = await getPoolAdminSigner();
+    const emergencyAdminSigner = await getEmergencyAdminSigner();
+    const proxyAdminSigner = await getProxyAdminSigner();
+    const poolOwnerSigner = await getPoolOwnerSigner();
 
-    console.log("Deployer:", await signer.getAddress(), "Balance:", formatEther(await signer.getBalance()));
+    console.log(
+      "Deployer:",
+      await deployerSigner.getAddress(),
+      "Balance:",
+      formatEther(await deployerSigner.getBalance())
+    );
+    console.log(
+      "PoolAdmin:",
+      await poolAdminSigner.getAddress(),
+      "Balance:",
+      formatEther(await poolAdminSigner.getBalance())
+    );
+    console.log(
+      "EmergencyAdmin:",
+      await emergencyAdminSigner.getAddress(),
+      "Balance:",
+      formatEther(await emergencyAdminSigner.getBalance())
+    );
+    console.log(
+      "ProxyAdmin:",
+      await proxyAdminSigner.getAddress(),
+      "Balance:",
+      formatEther(await proxyAdminSigner.getBalance())
+    );
+    console.log(
+      "PoolOnwer:",
+      await poolOwnerSigner.getAddress(),
+      "Balance:",
+      formatEther(await poolOwnerSigner.getBalance())
+    );
 
     // Prevent loss of gas verifying all the needed ENVs for Etherscan verification
     if (verify) {

@@ -18,7 +18,6 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   string public symbolPrefix;
 
   function getBNFTAddresses(address nftAsset) external view override returns (address bNftProxy, address bNftImpl) {
-    require(bNftProxys[nftAsset] != address(0), "BNFTR: asset nonexist");
     bNftProxy = bNftProxys[nftAsset];
     bNftImpl = bNftImpls[nftAsset];
   }

@@ -198,11 +198,11 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   function _updateImpl(bytes32 id, address newAddress) internal {
     address payable proxyAddress = payable(_addresses[id]);
 
-    bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
-
     if (proxyAddress == address(0)) {
       // create proxy, then init proxy & implementation
       InitializableAdminProxy proxy = new InitializableAdminProxy(address(this));
+
+      bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
       proxy.initialize(newAddress, params);
 
@@ -211,6 +211,8 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     } else {
       // upgrade & init implementation
       InitializableAdminProxy proxy = InitializableAdminProxy(proxyAddress);
+
+      bytes memory params = abi.encodeWithSignature("initializeAfterUpgrade(address)", address(this));
 
       proxy.upgradeToAndCall(newAddress, params);
     }

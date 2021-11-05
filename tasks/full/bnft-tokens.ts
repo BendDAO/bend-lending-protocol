@@ -1,11 +1,12 @@
 import { task } from "hardhat/config";
-import { waitForTx } from "../../helpers/misc-utils";
+import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { eNetwork, eContractid } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { getBNFTRegistryProxy } from "../../helpers/contracts-getters";
+import { getPoolOwnerSigner, getBNFTRegistryProxy } from "../../helpers/contracts-getters";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { ZERO_ADDRESS } from "../../helpers/constants";
 import { deployGenericBNFTImpl } from "../../helpers/contracts-deployments";
+import { BNFTRegistry } from "../../types";
 
 task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -13,23 +14,41 @@ task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
   .setAction(async ({ verify, pool }, DRE) => {
     await DRE.run("set-DRE");
     const network = <eNetwork>DRE.network.name;
+    const ownerSigner = await getPoolOwnerSigner();
+    const ownerAddress = await ownerSigner.getAddress();
 
     const poolConfig = loadPoolConfig(pool);
 
-    const bnftRegistryProxy = await getBNFTRegistryProxy();
+    let bnftRegistryProxy: BNFTRegistry;
+    // try to get from config
+    let bnftRegistryProxyAddress = getParamPerNetwork(poolConfig.BNFTRegistry, network);
+    if (bnftRegistryProxyAddress != undefined && notFalsyOrZeroAddress(bnftRegistryProxyAddress)) {
+      bnftRegistryProxy = await getBNFTRegistryProxy(bnftRegistryProxyAddress);
+    } else {
+      // get from db
+      bnftRegistryProxy = await getBNFTRegistryProxy();
+    }
 
     const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
 
-    const bnftGenericImpl = await deployGenericBNFTImpl(verify);
-
     for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
-      const bnftAddresses = await bnftRegistryProxy.getBNFTAddresses(assetAddress);
-      if (bnftAddresses.bNftProxy != undefined && bnftAddresses.bNftProxy != ZERO_ADDRESS) {
-        console.log("\tDeploying new %s implementation...", assetSymbol);
+      let bnftAddresses = await bnftRegistryProxy.getBNFTAddresses(assetAddress);
+      if (bnftAddresses.bNftProxy == undefined || !notFalsyOrZeroAddress(bnftAddresses.bNftProxy)) {
+        console.log("Deploying new BNFT implementation for %s...", assetSymbol);
         await waitForTx(await bnftRegistryProxy.createBNFT(assetAddress, []));
       } else {
-        console.log("\tUpgrading exist %s implementation...", assetSymbol);
-        await waitForTx(await bnftRegistryProxy.upgradeBNFTWithImpl(assetAddress, bnftGenericImpl.address, []));
+        console.log("Upgrading exist BNFT implementation for %s", assetSymbol);
+        const bnftGenericImpl = await deployGenericBNFTImpl(verify);
+        await waitForTx(
+          await bnftRegistryProxy.connect(ownerAddress).upgradeBNFTWithImpl(assetAddress, bnftGenericImpl.address, [])
+        );
       }
+      bnftAddresses = await bnftRegistryProxy.getBNFTAddresses(assetAddress);
+      console.log(
+        "BNFT %s: proxy.address: %s, implementation.address: %s",
+        assetSymbol,
+        bnftAddresses.bNftProxy,
+        bnftAddresses.bNftImpl
+      );
     }
   });

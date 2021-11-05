@@ -15,10 +15,7 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
-      const {
-        ProtocolGlobalParams: { UsdAddress },
-        NftsAssets,
-      } = poolConfig as ICommonConfiguration;
+      const { NftsAssets } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
       const admin = await getGenesisPoolAdmin(poolConfig);
