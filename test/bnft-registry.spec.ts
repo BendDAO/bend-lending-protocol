@@ -114,4 +114,24 @@ makeSuite("BNFTRegistry", (testEnv: TestEnv) => {
       "BNFTR: asset nonexist"
     );
   });
+
+  it("Update the generic BNFT implement and create new BNFT", async () => {
+    const { bnftRegistry, bayc } = testEnv;
+
+    const testNftAsset = await deployMintableERC721(["testNftAsset", "TNFT"]);
+
+    const testBNFTImplNew = await deployGenericBNFTImpl(false);
+    bnftRegistry.setBNFTGenericImpl(testBNFTImplNew.address);
+
+    await waitForTx(await bnftRegistry.createBNFT(testNftAsset.address, extraParams));
+
+    const nftAddrByAddr = await bnftRegistry.getBNFTAddresses(testNftAsset.address);
+    expect(nftAddrByAddr).to.not.equal(undefined);
+    expect(nftAddrByAddr.bNftProxy).to.not.equal(undefined);
+    expect(nftAddrByAddr.bNftImpl).to.not.equal(undefined);
+    expect(nftAddrByAddr.bNftProxy).to.not.equal(ZERO_ADDRESS);
+    expect(nftAddrByAddr.bNftImpl).to.not.equal(ZERO_ADDRESS);
+    expect(nftAddrByAddr.bNftProxy).to.not.equal(nftAddrByAddr.bNftImpl);
+    expect(nftAddrByAddr.bNftImpl).to.be.equal(testBNFTImplNew.address);
+  });
 });

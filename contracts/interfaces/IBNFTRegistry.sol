@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IBNFTRegistry {
-  event Initialized(string namePrefix, string symbolPrefix);
+  event Initialized(address genericImpl, string namePrefix, string symbolPrefix);
   event BNFTCreated(address indexed nftAsset, address bNftImpl, address bNftProxy, uint256 totals);
   event BNFTUpgraded(address indexed nftAsset, address bNftImpl, address bNftProxy, uint256 totals);
 
@@ -14,7 +14,13 @@ interface IBNFTRegistry {
 
   function allBNFTAssetLength() external view returns (uint256);
 
-  function initialize(string memory namePrefix_, string memory symbolPrefix_) external;
+  function initialize(
+    address genericImpl,
+    string memory namePrefix_,
+    string memory symbolPrefix_
+  ) external;
+
+  function setBNFTGenericImpl(address genericImpl) external;
 
   /**
    * @dev Create bNFT proxy and implement, then initialize it

@@ -2,7 +2,11 @@ import { task } from "hardhat/config";
 import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { eNetwork, eContractid } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { deployBNFTRegistry, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
+import {
+  deployBNFTRegistry,
+  deployInitializableAdminProxy,
+  deployGenericBNFTImpl,
+} from "../../helpers/contracts-deployments";
 import { getBNFTRegistryProxy, getInitializableAdminProxy, getBendProxyAdmin } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { BNFTRegistry, InitializableAdminProxy } from "../../types";
@@ -19,8 +23,11 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
     const proxyAdmin = await getBendProxyAdmin();
     const proxyOwnerAddress = await proxyAdmin.owner();
 
+    const bnftGenericImpl = await deployGenericBNFTImpl(verify);
+
     const bnftRegistryImpl = await deployBNFTRegistry(verify);
     const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
+      bnftGenericImpl.address,
       poolConfig.BNftNamePrefix,
       poolConfig.BNftSymbolPrefix,
     ]);
