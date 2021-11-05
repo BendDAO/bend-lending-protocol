@@ -31,6 +31,8 @@ task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
 
     const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
 
+    const bnftGenericImpl = await deployGenericBNFTImpl(verify);
+
     for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
       let bnftAddresses = await bnftRegistryProxy.getBNFTAddresses(assetAddress);
       if (bnftAddresses.bNftProxy == undefined || !notFalsyOrZeroAddress(bnftAddresses.bNftProxy)) {
@@ -38,7 +40,6 @@ task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
         await waitForTx(await bnftRegistryProxy.createBNFT(assetAddress, []));
       } else {
         console.log("Upgrading exist BNFT implementation for %s", assetSymbol);
-        const bnftGenericImpl = await deployGenericBNFTImpl(verify);
         await waitForTx(
           await bnftRegistryProxy.connect(ownerSigner).upgradeBNFTWithImpl(assetAddress, bnftGenericImpl.address, [])
         );

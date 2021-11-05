@@ -30,6 +30,7 @@ import {
   authorizePunkGatewayERC20,
   deployInitializableAdminProxy,
   deployBendProxyAdmin,
+  deployGenericBNFTImpl,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -178,8 +179,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
   console.log("-> Prepare bnft registry...");
+  const bnftGenericImpl = await deployGenericBNFTImpl(false);
+
   const bnftRegistryImpl = await deployBNFTRegistry();
   const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
+    bnftGenericImpl.address,
     config.BNftNamePrefix,
     config.BNftSymbolPrefix,
   ]);

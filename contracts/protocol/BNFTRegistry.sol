@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
-import {BNFT} from "./BNFT.sol";
 import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -16,6 +15,7 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   address[] public bNftAssetLists;
   string public namePrefix;
   string public symbolPrefix;
+  address public bNftGenericImpl;
 
   function getBNFTAddresses(address nftAsset) external view override returns (address bNftProxy, address bNftImpl) {
     bNftProxy = bNftProxys[nftAsset];
@@ -36,13 +36,21 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     return bNftAssetLists.length;
   }
 
-  function initialize(string memory namePrefix_, string memory symbolPrefix_) external override initializer {
+  function initialize(
+    address genericImpl,
+    string memory namePrefix_,
+    string memory symbolPrefix_
+  ) external override initializer {
+    require(genericImpl != address(0), "BNFTR: impl is zero address");
+
     __Ownable_init();
+
+    bNftGenericImpl = genericImpl;
 
     namePrefix = namePrefix_;
     symbolPrefix = symbolPrefix_;
 
-    emit Initialized(namePrefix, symbolPrefix);
+    emit Initialized(genericImpl, namePrefix, symbolPrefix);
   }
 
   /**
@@ -51,12 +59,19 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   function createBNFT(address nftAsset, bytes memory params) external override returns (address bNftProxy) {
     require(nftAsset != address(0), "BNFTR: asset is zero address");
     require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
+    require(bNftGenericImpl != address(0), "BNFTR: impl is zero address");
 
-    address bNftImpl = _newBNFTImpl();
-
-    bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftImpl, params);
+    bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftGenericImpl, params);
 
     emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftAssetLists.length);
+  }
+
+  /**
+   * @dev See {IBNFTRegistry-setBNFTGenericImpl}.
+   */
+  function setBNFTGenericImpl(address genericImpl) external override onlyOwner {
+    require(genericImpl != address(0), "BNFTR: impl is zero address");
+    bNftGenericImpl = genericImpl;
   }
 
   /**
@@ -115,10 +130,6 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     bNftImpls[nftAsset] = bNftImpl;
     bNftProxys[nftAsset] = bNftProxy;
     bNftAssetLists.push(nftAsset);
-  }
-
-  function _newBNFTImpl() internal returns (address bNftImpl) {
-    bNftImpl = address(new BNFT());
   }
 
   function _buildInitParams(address nftAsset, bytes memory params) internal view returns (bytes memory initParams) {

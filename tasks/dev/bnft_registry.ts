@@ -2,7 +2,11 @@ import { task } from "hardhat/config";
 import { waitForTx } from "../../helpers/misc-utils";
 import { eContractid, tEthereumAddress, BendPools } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { deployBNFTRegistry, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
+import {
+  deployBNFTRegistry,
+  deployGenericBNFTImpl,
+  deployInitializableAdminProxy,
+} from "../../helpers/contracts-deployments";
 import {
   getBendProxyAdmin,
   getBNFTRegistryProxy,
@@ -20,9 +24,12 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
 
     const poolConfig = loadPoolConfig(pool);
 
+    const bnftGenericImpl = await deployGenericBNFTImpl(verify);
+
     const bnftRegistryImpl = await deployBNFTRegistry(verify);
 
     const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
+      bnftGenericImpl.address,
       poolConfig.BNftNamePrefix,
       poolConfig.BNftSymbolPrefix,
     ]);
