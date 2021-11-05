@@ -25,5 +25,5 @@ task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
 
     const punkGateWay = await deployPunkGateway([punk, wpunk], verify);
     console.log("PunkGateway.address", punkGateWay.address);
-    console.log("\tFinished PunkGateway deployment");
+    console.log("Finished PunkGateway deployment");
   });

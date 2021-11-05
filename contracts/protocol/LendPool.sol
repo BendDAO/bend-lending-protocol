@@ -73,6 +73,11 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     );
   }
 
+  modifier onlyAddressProvider() {
+    require(address(_addressesProvider) == msg.sender, Errors.CALLER_NOT_ADDRESS_PROVIDER);
+    _;
+  }
+
   /**
    * @dev Function is invoked by the proxy contract when the LendPool contract is added to the
    * LendPoolAddressesProvider of the market.
@@ -81,9 +86,17 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param provider The address of the LendPoolAddressesProvider
    **/
   function initialize(ILendPoolAddressesProvider provider) public initializer {
-    _addressesProvider = provider;
+    _setAddressProvider(provider);
     _maxNumberOfReserves = 128;
     _maxNumberOfNfts = 128;
+  }
+
+  function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
+    _setAddressProvider(provider);
+  }
+
+  function _setAddressProvider(ILendPoolAddressesProvider provider) internal {
+    _addressesProvider = provider;
   }
 
   /**

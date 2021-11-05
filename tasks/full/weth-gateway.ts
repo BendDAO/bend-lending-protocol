@@ -18,5 +18,5 @@ task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
 
     const wethGateWay = await deployWETHGateway([weth], verify);
     console.log("WETHGateway.address", wethGateWay.address);
-    console.log("\tFinished WETHGateway deployment");
+    console.log("Finished WETHGateway deployment");
   });

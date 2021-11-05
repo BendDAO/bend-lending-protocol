@@ -117,6 +117,8 @@ library Errors {
   string public constant LPL_NFT_IS_NOT_USED_AS_COLLATERAL = "103";
   string public constant LPL_NFT_IS_ALREADY_USED_AS_COLLATERAL = "104";
   string public constant LPL_LOAN_IS_NOT_EXIST = "105";
+  string public constant CALLER_NOT_ADDRESS_PROVIDER = "106";
+  string public constant CALLER_NOT_BNFT_REGISTRY = "107";
 
   enum CollateralManagerErrors {
     NO_ERROR,

@@ -22,6 +22,7 @@ import {
   NFTOracleFactory,
   MockNFTOracleFactory,
   ReserveLogicFactory,
+  //NftLogicFactory,
   SelfdestructTransferFactory,
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
@@ -265,6 +266,14 @@ export const getPairsTokenAggregator = (
 
   return [mappedPairs, mappedAggregators];
 };
+
+/*
+export const getNftLogic = async (address?: tEthereumAddress) =>
+  await NftLogicFactory.connect(
+    address || (await getDb().get(`${eContractid.NftLogic}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+*/
 
 export const getReserveLogic = async (address?: tEthereumAddress) =>
   await ReserveLogicFactory.connect(

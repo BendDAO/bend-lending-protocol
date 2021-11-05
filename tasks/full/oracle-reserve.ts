@@ -19,11 +19,7 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
-      const {
-        ProtocolGlobalParams: { UsdAddress },
-        ReserveAssets,
-        ReserveAggregator,
-      } = poolConfig as ICommonConfiguration;
+      const { ReserveAssets, ReserveAggregator } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
       const admin = await getGenesisPoolAdmin(poolConfig);

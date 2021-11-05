@@ -122,7 +122,7 @@ export const deployNftLogicLibrary = async (verify?: boolean) => {
 
   const nftLogic = await (await nftLogicFactory.connect(await getFirstSigner()).deploy()).deployed();
 
-  return withSaveAndVerify(nftLogic, eContractid.GenericLogic, [], verify);
+  return withSaveAndVerify(nftLogic, eContractid.NftLogic, [], verify);
 };
 
 export const deployGenericLogic = async (reserveLogic: Contract, verify?: boolean) => {
