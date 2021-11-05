@@ -82,7 +82,7 @@ export interface TestEnv {
   //wpunks: WPUNKSMocked;
   bPUNK: BNFT;
   bayc: MintableERC721;
-  bBYAC: BNFT;
+  bBAYC: BNFT;
   addressesProvider: LendPoolAddressesProvider;
   wethGateway: WETHGateway;
   tokenIdTracker: number;
@@ -121,7 +121,7 @@ const testEnv: TestEnv = {
   //wpunks: WPUNKSMocked,
   bPUNK: {} as BNFT,
   bayc: {} as MintableERC721,
-  bBYAC: {} as BNFT,
+  bBAYC: {} as BNFT,
   addressesProvider: {} as LendPoolAddressesProvider,
   wethGateway: {} as WETHGateway,
   //wpunksGateway: {} as WPUNKSGateway,
@@ -213,7 +213,7 @@ export async function initializeMakeSuite() {
     process.exit(1);
   }
 
-  testEnv.bBYAC = await getBNFT(bByacAddress);
+  testEnv.bBAYC = await getBNFT(bByacAddress);
   testEnv.bPUNK = await getBNFT(bPunkAddress);
 
   testEnv.bayc = await getMintableERC721(baycAddress);

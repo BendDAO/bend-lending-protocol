@@ -47,11 +47,11 @@ export const BendConfig: IBendConfiguration = {
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.rinkeby]: {
       WPUNKS: '0xd51fC3376F6D7C86D8639d5ec238327ab0EE69e3',
-      BYAC: '0x2e308F03bFd57B1b36570aDC710C6A130C27366E',
+      BAYC: '0x2e308F03bFd57B1b36570aDC710C6A130C27366E',
     },
     [eEthereumNetwork.main]: {
       WPUNKS: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
-      BYAC: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
+      BAYC: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
     },
   },
 };
