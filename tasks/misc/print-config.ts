@@ -34,8 +34,9 @@ task("print-config", "Inits the DRE, to have access to all the plugins")
 
     const reserveFields = ["decimals", "reserveFactor", "borrowingEnabled", "isActive", "isFrozen"];
     const reserveTokensFields = ["bTokenAddress"];
-    for (const [symbol, address] of Object.entries(getParamPerNetwork(poolConfig.ReserveAssets, network as eNetwork))) {
-      console.log(`- ${symbol} asset config`);
+    const reserveAssets = getParamPerNetwork(poolConfig.ReserveAssets, network as eNetwork);
+    for (const [symbol, address] of Object.entries(reserveAssets)) {
+      console.log(`- ${symbol} reserve config`);
       console.log(`  - reserve address: ${address}`);
 
       const reserveData = await protocolDataProvider.getReserveConfigurationData(address);
@@ -50,8 +51,9 @@ task("print-config", "Inits the DRE, to have access to all the plugins")
 
     const nftFields = ["ltv", "liquidationThreshold", "liquidationBonus", "isActive", "isFrozen"];
     const nftTokensFields = ["bNftAddress"];
-    for (const [symbol, address] of Object.entries(getParamPerNetwork(poolConfig.ReserveAssets, network as eNetwork))) {
-      console.log(`- ${symbol} collateral config`);
+    const nftsAsset = getParamPerNetwork(poolConfig.NftsAssets, network as eNetwork);
+    for (const [symbol, address] of Object.entries(nftsAsset)) {
+      console.log(`- ${symbol} nft config`);
       console.log(`  - nft address: ${address}`);
 
       const nftData = await protocolDataProvider.getNftConfigurationData(address);

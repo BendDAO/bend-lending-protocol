@@ -170,6 +170,8 @@ export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNet
     case eEthereumNetwork.main:
       return main;
   }
+
+  return hardhat;
 };
 
 export const getOptionalParamAddressPerNetwork = (
