@@ -29,6 +29,7 @@ import {
   authorizePunkGateway,
   authorizePunkGatewayERC20,
   deployInitializableAdminProxy,
+  deployBendProxyAdmin,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -147,11 +148,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   const poolAdmin = await (await getPoolAdminSigner()).getAddress();
   const emergencyAdmin = await (await getEmergencyAdminSigner()).getAddress();
-  const proxyAdmin = await (await getProxyAdminSigner()).getAddress();
-  const poolOwner = await (await getPoolOwnerSigner()).getAddress();
-  console.log("Admin", poolAdmin, emergencyAdmin, proxyAdmin, poolOwner);
+  console.log("Admin accounts:", "poolAdmin:", poolAdmin, "emergencyAdmin:", emergencyAdmin);
 
   const config = loadPoolConfig(ConfigNames.Bend);
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare proxy admin...");
+  const bendProxyAdmin = await deployBendProxyAdmin();
+  console.log("bendProxyAdmin:", bendProxyAdmin.address);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock external ERC20 Tokens, such as WETH, DAI...");
@@ -180,12 +184,12 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     config.BNftSymbolPrefix,
   ]);
 
-  const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, proxyAdmin);
+  const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, bendProxyAdmin.address);
   await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
 
   const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
 
-  await waitForTx(await bnftRegistry.transferOwnership(poolOwner));
+  await waitForTx(await bnftRegistry.transferOwnership(poolAdmin));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bnft tokens...");

@@ -30,12 +30,11 @@ import {
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
-  MockReserveOracle,
   InitializableAdminProxyFactory,
+  BendProxyAdminFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
-import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
 import { getEthersSigners, MockTokenMap, MockNftMap } from "./contracts-helpers";
 import { DRE, getDb, notFalsyOrZeroAddress, omit } from "./misc-utils";
 import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId, NftContractId } from "./types";
@@ -52,9 +51,9 @@ export const getPoolAdminSigner = async () => (await getEthersSigners())[0];
 
 export const getPoolOwnerSigner = async () => (await getEthersSigners())[0];
 
-export const getProxyAdminSigner = async () => (await getEthersSigners())[1];
+export const getEmergencyAdminSigner = async () => (await getEthersSigners())[1];
 
-export const getEmergencyAdminSigner = async () => (await getEthersSigners())[2];
+export const getProxyAdminSigner = async () => (await getEthersSigners())[2];
 
 export const getLendPoolAddressesProviderRegistry = async (address?: tEthereumAddress) => {
   return await LendPoolAddressesProviderRegistryFactory.connect(
@@ -322,6 +321,12 @@ export const getProxy = async (address: tEthereumAddress) =>
 
 export const getInitializableAdminProxy = async (address: tEthereumAddress) =>
   await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
+
+export const getBendProxyAdmin = async (address?: tEthereumAddress) =>
+  await BendProxyAdminFactory.connect(
+    address || (await getDb().get(`${eContractid.LendPoolImpl}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
 
 export const getLendPoolImpl = async (address?: tEthereumAddress) =>
   await LendPoolFactory.connect(

@@ -3,13 +3,8 @@ import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { eNetwork, eContractid } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { deployBNFTRegistry, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
-import {
-  getProxyAdminSigner,
-  getPoolOwnerSigner,
-  getBNFTRegistryProxy,
-  getInitializableAdminProxy,
-} from "../../helpers/contracts-getters";
-import { getParamPerNetwork } from "../../helpers/contracts-helpers";
+import { getBNFTRegistryProxy, getInitializableAdminProxy, getBendProxyAdmin } from "../../helpers/contracts-getters";
+import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { BNFTRegistry, InitializableAdminProxy } from "../../types";
 
 task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
@@ -18,12 +13,11 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
   .setAction(async ({ verify, pool }, DRE) => {
     await DRE.run("set-DRE");
     const network = <eNetwork>DRE.network.name;
-    const proxyAdminSigner = await getProxyAdminSigner();
-    const proxyAdminAddress = await proxyAdminSigner.getAddress();
-    const proxyOwnerSigner = await getPoolOwnerSigner();
-    const proxyOwnerAddress = await proxyOwnerSigner.getAddress();
 
     const poolConfig = loadPoolConfig(pool);
+
+    const proxyAdmin = await getBendProxyAdmin();
+    const proxyOwnerAddress = await proxyAdmin.owner();
 
     const bnftRegistryImpl = await deployBNFTRegistry(verify);
     const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
@@ -38,18 +32,22 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
     if (bnftRegistryProxyAddress == undefined || !notFalsyOrZeroAddress(bnftRegistryProxyAddress)) {
       console.log("Deploying new bnft registry proxy & implementation...");
 
-      bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, proxyAdminAddress, verify);
+      bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, proxyAdmin.address, verify);
 
       await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
 
       bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
-
-      await waitForTx(await bnftRegistry.transferOwnership(proxyOwnerAddress));
     } else {
       console.log("Upgrading exist bnft registry proxy to new implementation...");
+      await insertContractAddressInDb(eContractid.BNFTRegistry, bnftRegistryProxyAddress);
 
       bnftRegistryProxy = await getInitializableAdminProxy(bnftRegistryProxyAddress);
-      await waitForTx(await bnftRegistryProxy.connect(proxyAdminAddress).upgradeTo(bnftRegistryImpl.address));
+
+      // only proxy admin can do upgrading
+      const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);
+      await waitForTx(
+        await proxyAdmin.connect(ownerSigner).upgrade(bnftRegistryProxy.address, bnftRegistryImpl.address)
+      );
 
       bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
     }

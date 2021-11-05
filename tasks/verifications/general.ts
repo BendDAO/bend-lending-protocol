@@ -133,7 +133,7 @@ task("verify:general", "Verify general contracts at Etherscan")
 
     // LendPool loan manager
     console.log("\n- Verifying Lend Pool Loan Manager Proxy...\n");
-    await verifyContract(eContractid.InitializableAdminProxy, lendPoolLoanProxy, []);
+    await verifyContract(eContractid.InitializableAdminProxy, lendPoolLoanProxy, [addressesProvider.address]);
 
     console.log("Finished verifications.");
   });

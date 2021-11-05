@@ -1,11 +1,16 @@
 import { task } from "hardhat/config";
-import { getParamPerNetwork } from "../../helpers/contracts-helpers";
-import { deployNFTOracle } from "../../helpers/contracts-deployments";
-import { ICommonConfiguration, eNetwork, SymbolMap } from "../../helpers/types";
+import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import { deployInitializableAdminProxy, deployNFTOracle } from "../../helpers/contracts-deployments";
+import { ICommonConfiguration, eNetwork, eContractid } from "../../helpers/types";
 import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig, getGenesisPoolAdmin } from "../../helpers/configuration";
-import { getNFTOracle, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
-import { NFTOracle } from "../../types";
+import {
+  getNFTOracle,
+  getLendPoolAddressesProvider,
+  getInitializableAdminProxy,
+  getBendProxyAdmin,
+} from "../../helpers/contracts-getters";
+import { NFTOracle, InitializableAdminProxy } from "../../types";
 
 task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -18,7 +23,10 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       const { NftsAssets } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
-      const admin = await getGenesisPoolAdmin(poolConfig);
+      const poolAdmin = await getGenesisPoolAdmin(poolConfig);
+      const proxyAdmin = await getBendProxyAdmin();
+      const proxyOwnerAddress = await proxyAdmin.owner();
+
       const nftOracleAddress = getParamPerNetwork(poolConfig.NFTOracle, network);
       const nftsAssets = await getParamPerNetwork(NftsAssets, network);
 
@@ -26,20 +34,41 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
         return tokenAddress;
       }) as string[];
 
+      const nftOracleImpl = await deployNFTOracle(verify);
+      const initEncodedData = nftOracleImpl.interface.encodeFunctionData("initialize", [poolAdmin]);
+
       let nftOracle: NFTOracle;
+      let nftOracleProxy: InitializableAdminProxy;
 
       if (notFalsyOrZeroAddress(nftOracleAddress)) {
-        nftOracle = await getNFTOracle(nftOracleAddress);
-        await waitForTx(await nftOracle.setAssets(tokens));
-      } else {
-        nftOracle = await deployNFTOracle(verify);
-        await waitForTx(await nftOracle.setAssets(tokens));
-      }
+        console.log("Upgrading exist nft oracle proxy to new implementation...");
 
-      console.log("NFT Oracle: %s", nftOracle.address);
+        await insertContractAddressInDb(eContractid.NFTOracle, nftOracleAddress);
+
+        nftOracleProxy = await getInitializableAdminProxy(nftOracleAddress);
+
+        // only proxy admin can do upgrading
+        const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);
+        await waitForTx(await proxyAdmin.connect(ownerSigner).upgrade(nftOracleProxy.address, nftOracleImpl.address));
+
+        nftOracle = await getNFTOracle(nftOracleProxy.address);
+      } else {
+        console.log("Deploying new nft oracle proxy & implementation...");
+
+        nftOracleProxy = await deployInitializableAdminProxy(eContractid.NFTOracle, proxyAdmin.address, verify);
+
+        await waitForTx(await nftOracleProxy.initialize(nftOracleImpl.address, initEncodedData));
+
+        nftOracle = await getNFTOracle(nftOracleProxy.address);
+
+        const poolAdminSigner = DRE.ethers.provider.getSigner(poolAdmin);
+        await waitForTx(await nftOracle.connect(poolAdminSigner).setAssets(tokens));
+      }
 
       // Register the proxy oracle on the addressesProvider
       await waitForTx(await addressesProvider.setNFTOracle(nftOracle.address));
+
+      console.log("NFT Oracle: proxy %s, implementation %s", nftOracle.address, nftOracleImpl.address);
     } catch (error) {
       throw error;
     }

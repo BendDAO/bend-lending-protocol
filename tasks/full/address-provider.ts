@@ -17,6 +17,7 @@ task("full:deploy-address-provider", "Deploy address provider for full enviromen
     const poolConfig = loadPoolConfig(pool);
     const signer = await getFirstSigner();
 
+    // this contract is not support upgrade, just deploy new contract
     // Deploy address provider and set genesis manager
     const addressesProvider = await deployLendPoolAddressesProvider(poolConfig.MarketId, verify);
 

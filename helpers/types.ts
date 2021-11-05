@@ -50,6 +50,7 @@ export enum eContractid {
   MockReserveOracle = "MockReserveOracle",
   InterestRate = "InterestRate",
   InitializableAdminProxy = "InitializableAdminProxy",
+  BendProxyAdmin = "BendProxyAdmin",
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   MockBToken = "MockBToken",
@@ -346,6 +347,7 @@ export interface ICommonConfiguration {
   ProviderId: number;
   ProtocolGlobalParams: IProtocolGlobalConfig;
   Mocks: IMocksConfig;
+  ProxyAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
   BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   BNFTRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;

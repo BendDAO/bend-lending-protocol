@@ -3,7 +3,12 @@ import { waitForTx } from "../../helpers/misc-utils";
 import { eContractid, tEthereumAddress, BendPools } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { deployBNFTRegistry, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
-import { getBNFTRegistryProxy, getFirstSigner, getSecondSigner } from "../../helpers/contracts-getters";
+import {
+  getBendProxyAdmin,
+  getBNFTRegistryProxy,
+  getFirstSigner,
+  getSecondSigner,
+} from "../../helpers/contracts-getters";
 
 task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -11,8 +16,7 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
   .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
 
-    const signer = await getSecondSigner();
-    const admin = await signer.getAddress();
+    const proxyAdmin = await getBendProxyAdmin();
 
     const poolConfig = loadPoolConfig(pool);
 
@@ -23,10 +27,8 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
       poolConfig.BNftSymbolPrefix,
     ]);
 
-    const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, admin, verify);
+    const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, proxyAdmin.address, verify);
     await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
 
     const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
-
-    await waitForTx(await bnftRegistry.transferOwnership(admin));
   });

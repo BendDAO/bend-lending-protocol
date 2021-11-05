@@ -16,6 +16,7 @@ task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
     const weth = await getWrappedNativeTokenAddress(poolConfig);
     console.log("WETH.address", weth);
 
+    // this contract is not support upgrade, just deploy new contract
     const wethGateWay = await deployWETHGateway([weth], verify);
     console.log("WETHGateway.address", wethGateWay.address);
     console.log("Finished WETHGateway deployment");

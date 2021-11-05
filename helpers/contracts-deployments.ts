@@ -52,6 +52,7 @@ import {
   PunkGatewayFactory,
   MockChainlinkOracleFactory,
   InitializableAdminProxyFactory,
+  BendProxyAdminFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -559,5 +560,13 @@ export const deployInitializableAdminProxy = async (id: string, admin: tEthereum
     await new InitializableAdminProxyFactory(await getFirstSigner()).deploy(admin),
     id,
     [admin],
+    verify
+  );
+
+export const deployBendProxyAdmin = async (verify?: boolean) =>
+  withSaveAndVerify(
+    await new BendProxyAdminFactory(await getFirstSigner()).deploy(),
+    eContractid.BendProxyAdmin,
+    [],
     verify
   );

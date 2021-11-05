@@ -83,7 +83,7 @@ export const getEthersSigners = async (): Promise<Signer[]> => {
   return ethersSigners;
 };
 
-export const getEthersSigner = async (address: string): Promise<Signer> => {
+export const getEthersSignerByAddress = async (address: string): Promise<Signer> => {
   const ethersSigner = await DRE.ethers.getSigner(address);
   return ethersSigner;
 };
