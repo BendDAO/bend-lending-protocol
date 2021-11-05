@@ -7,16 +7,12 @@ import {
   INftParams,
   tEthereumAddress,
 } from "./types";
-import { BendProtocolDataProvider } from "../types/BendProtocolDataProvider";
-import { chunk, getDb, waitForTx } from "./misc-utils";
+import { chunk, waitForTx } from "./misc-utils";
 import {
-  getBToken,
-  getBNFT,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
   getBNFTRegistryProxy,
-  getIErc20Detailed,
 } from "./contracts-getters";
 import { getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
 import { BigNumberish } from "ethers";
@@ -228,7 +224,6 @@ export const getPairsTokenAggregator = (
 export const configureReservesByHelper = async (
   reservesParams: iMultiPoolsAssets<IReserveParams>,
   tokenAddresses: { [symbol: string]: tEthereumAddress },
-  dataHelpers: BendProtocolDataProvider,
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
@@ -242,15 +237,14 @@ export const configureReservesByHelper = async (
     borrowingEnabled: boolean;
   }[] = [];
 
-  for (const [
-    assetSymbol,
-    { baseLTVAsCollateral, liquidationBonus, liquidationThreshold, reserveFactor, borrowingEnabled },
-  ] of Object.entries(reservesParams) as [string, IReserveParams][]) {
+  for (const [assetSymbol, { reserveFactor, borrowingEnabled }] of Object.entries(reservesParams) as [
+    string,
+    IReserveParams
+  ][]) {
     if (!tokenAddresses[assetSymbol]) {
       console.log(`- Skipping init of ${assetSymbol} due token address is not set at markets config`);
       continue;
     }
-    if (baseLTVAsCollateral === "-1") continue;
 
     const assetAddressIndex = Object.keys(tokenAddresses).findIndex((value) => value === assetSymbol);
     const [, tokenAddress] = (Object.entries(tokenAddresses) as [string, string][])[assetAddressIndex];
@@ -287,7 +281,6 @@ export const configureReservesByHelper = async (
 export const configureNftsByHelper = async (
   nftsParams: iMultiPoolsNfts<INftParams>,
   nftAddresses: { [symbol: string]: tEthereumAddress },
-  dataHelpers: BendProtocolDataProvider,
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
@@ -343,21 +336,4 @@ export const configureNftsByHelper = async (
     // Set deployer back as admin
     await waitForTx(await addressProvider.setPoolAdmin(admin));
   }
-};
-
-const getAddressById = async (id: string, network: eNetwork): Promise<tEthereumAddress | undefined> =>
-  (await getDb().get(`${id}.${network}`).value())?.address || undefined;
-
-// Function deprecated
-const isErc20SymbolCorrect = async (token: tEthereumAddress, symbol: string) => {
-  const erc20 = await getBToken(token); // using bToken for ERC20 interface
-  const erc20Symbol = await erc20.symbol();
-  return symbol === erc20Symbol;
-};
-
-// Function deprecated
-const isErc721SymbolCorrect = async (token: tEthereumAddress, symbol: string) => {
-  const erc721 = await getBNFT(token); // using bNFT for ERC721 interface
-  const erc721Symbol = await erc721.symbol();
-  return symbol === erc721Symbol;
 };

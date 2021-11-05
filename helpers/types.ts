@@ -7,20 +7,10 @@ export interface SymbolMap<T> {
 export type eNetwork = eEthereumNetwork;
 
 export enum eEthereumNetwork {
-  buidlerevm = "buidlerevm",
   rinkeby = "rinkeby",
-  kovan = "kovan",
-  ropsten = "ropsten",
   main = "main",
   coverage = "coverage",
   hardhat = "hardhat",
-}
-
-export enum EthereumNetworkNames {
-  rinkeby = "rinkeby",
-  kovan = "kovan",
-  ropsten = "ropsten",
-  main = "main",
 }
 
 export enum BendPools {

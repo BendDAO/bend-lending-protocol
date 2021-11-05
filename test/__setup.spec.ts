@@ -247,8 +247,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     lendPoolConfiguratorProxy.address,
   ]);
 
-  const dataProvider = await deployBendProtocolDataProvider(addressesProvider.address);
-
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock reserve token aggregators...");
   const allTokenDecimals = Object.entries(config.ReservesConfig).reduce(
@@ -272,11 +270,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
       [tokenSymbol]: aggregator.address,
     }),
     {}
-  );
-  const [tokens, aggregators] = getPairsTokenAggregator(
-    allTokenAddresses,
-    allAggregatorsAddresses,
-    config.OracleQuoteCurrency
   );
 
   console.log("-> Prepare reserve oracle...");
@@ -359,7 +352,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     false
   );
 
-  await configureReservesByHelper(reservesParams, allReservesAddresses, dataProvider, poolAdmin);
+  await configureReservesByHelper(reservesParams, allReservesAddresses, poolAdmin);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare NFT pools...");
@@ -385,11 +378,18 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     false
   );
 
-  await configureNftsByHelper(nftsParams, allNftsAddresses, dataProvider, poolAdmin);
+  await configureNftsByHelper(nftsParams, allNftsAddresses, poolAdmin);
 
   //////////////////////////////////////////////////////////////////////////////
-  // prepapre wallet
+  console.log("-> Prepare wallet & data & ui provider...");
   await deployWalletBalancerProvider();
+  await deployBendProtocolDataProvider(addressesProvider.address);
+  /*
+  await deployUiPoolDataProvider(
+    [incentivesController, reserveOracle, nftOracle],
+    verify
+  );
+  */
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare WETH gateway...");

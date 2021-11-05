@@ -69,15 +69,14 @@ task("bend:mainnet", "Deploy full enviroment")
     console.log("Deploy nft oracle");
     await DRE.run("full:deploy-oracle-nft", { pool: POOL_NAME });
 
-    console.log("Deploy Data Provider");
-    await DRE.run("full:data-provider", { pool: POOL_NAME });
-
+    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy WETH Gateway");
     await DRE.run("full:deploy-weth-gateway", { pool: POOL_NAME });
 
     console.log("Deploy PUNK Gateway");
     await DRE.run("full:deploy-punk-gateway", { pool: POOL_NAME });
 
+    //////////////////////////////////////////////////////////////////////////
     console.log("Initialize lend pool");
     await DRE.run("full:initialize-lend-pool", { pool: POOL_NAME });
 

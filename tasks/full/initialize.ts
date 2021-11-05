@@ -1,12 +1,13 @@
 import { task } from "hardhat/config";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import {
+  deployBendProtocolDataProvider,
   deployWalletBalancerProvider,
+  //deployUiPoolDataProvider,
   authorizeWETHGateway,
   authorizeWETHGatewayNFT,
   authorizePunkGateway,
   authorizePunkGatewayERC20,
-  //deployUiPoolDataProvider,
 } from "../../helpers/contracts-deployments";
 import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
 import { getWETHGateway, getPunkGateway } from "../../helpers/contracts-getters";
@@ -19,8 +20,7 @@ import {
   configureNftsByHelper,
 } from "../../helpers/init-helpers";
 import { exit } from "process";
-import { getBendProtocolDataProvider, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
-import { ZERO_ADDRESS } from "../../helpers/constants";
+import { getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 
 task("full:initialize-lend-pool", "Initialize lend pool configuration.")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -34,11 +34,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       const incentivesController = getParamPerNetwork(poolConfig.IncentivesController, network);
       const addressesProvider = await getLendPoolAddressesProvider();
 
-      const dataProvider = await getBendProtocolDataProvider();
-
       const admin = await addressesProvider.getPoolAdmin();
-      const reserveOracle = await addressesProvider.getReserveOracle();
-      const nftOracle = await addressesProvider.getNftOracle();
 
       const treasuryAddress = await getTreasuryAddress(poolConfig);
 
@@ -60,7 +56,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
         pool,
         verify
       );
-      await configureReservesByHelper(poolConfig.ReservesConfig, reserveAssets, dataProvider, admin);
+      await configureReservesByHelper(poolConfig.ReservesConfig, reserveAssets, admin);
 
       //////////////////////////////////////////////////////////////////////////
       // Init & Config NFT assets
@@ -78,22 +74,23 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
         pool,
         verify
       );
-      await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, dataProvider, admin);
+      await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, admin);
 
       //////////////////////////////////////////////////////////////////////////
-      const bendProtocolDataProvider = await getBendProtocolDataProvider();
-      await waitForTx(
-        await addressesProvider.setAddress(
-          "0x0100000000000000000000000000000000000000000000000000000000000000",
-          bendProtocolDataProvider.address
-        )
-      );
+      // Deploy wallet & data & ui provider for backend
+      const reserveOracle = await addressesProvider.getReserveOracle();
+      const nftOracle = await addressesProvider.getNFTOracle();
 
-      await deployWalletBalancerProvider(verify);
+      const walletBalanceProvider = await deployWalletBalancerProvider(verify);
+      console.log("WalletBalancerProvider deployed at:", walletBalanceProvider.address);
+
+      // this contract is not support upgrade, just deploy new contract
+      const bendProtocolDataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
+      console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
 
       /*
       const uiPoolDataProvider = await deployUiPoolDataProvider(
-        [incentivesController, oracle],
+        [incentivesController, reserveOracle, nftOracle],
         verify
       );
       console.log('UiPoolDataProvider deployed at:', uiPoolDataProvider.address);

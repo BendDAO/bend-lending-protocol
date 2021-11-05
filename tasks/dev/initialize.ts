@@ -71,7 +71,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       pool,
       verify
     );
-    await configureReservesByHelper(ReservesConfig, allTokenAddresses, dataProvider, admin);
+    await configureReservesByHelper(ReservesConfig, allTokenAddresses, admin);
 
     ////////////////////////////////////////////////////////////////////////////
     // Init & Config NFT assets
@@ -88,14 +88,27 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       verify
     );
 
-    await configureNftsByHelper(NftsConfig, allNftAddresses, dataProvider, admin);
+    await configureNftsByHelper(NftsConfig, allNftAddresses, admin);
 
-    ////////////////////////////////////////////////////////////////////////////
-    const bnftRegistry = await addressesProvider.getBNFTRegistry();
-    const mockFlashLoanReceiver = await deployMockFlashLoanReceiver([bnftRegistry], verify);
-    await insertContractAddressInDb(eContractid.MockFlashLoanReceiver, mockFlashLoanReceiver.address);
+    //////////////////////////////////////////////////////////////////////////
+    // Deploy some data provider for backend
+    const reserveOracle = await addressesProvider.getReserveOracle();
+    const nftOracle = await addressesProvider.getNFTOracle();
 
-    await deployWalletBalancerProvider(verify);
+    const walletBalanceProvider = await deployWalletBalancerProvider(verify);
+    console.log("WalletBalancerProvider deployed at:", walletBalanceProvider.address);
+
+    // this contract is not support upgrade, just deploy new contract
+    const bendProtocolDataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
+    console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
+
+    /*
+      const uiPoolDataProvider = await deployUiPoolDataProvider(
+        [incentivesController, reserveOracle, nftOracle],
+        verify
+      );
+      console.log('UiPoolDataProvider deployed at:', uiPoolDataProvider.address);
+      */
 
     ////////////////////////////////////////////////////////////////////////////
     const lendPoolAddress = await addressesProvider.getLendPool();
@@ -119,4 +132,9 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     for (const [assetSymbol, assetAddress] of Object.entries(allTokenAddresses) as [string, string][]) {
       await authorizePunkGatewayERC20(punkGatewayAddress, lendPoolAddress, assetAddress);
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    const bnftRegistry = await addressesProvider.getBNFTRegistry();
+    const mockFlashLoanReceiver = await deployMockFlashLoanReceiver([bnftRegistry], verify);
+    await insertContractAddressInDb(eContractid.MockFlashLoanReceiver, mockFlashLoanReceiver.address);
   });
