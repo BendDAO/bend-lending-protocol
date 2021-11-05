@@ -99,7 +99,7 @@ const buidlerConfig: HardhatUserConfig = {
       hardfork: "berlin",
       blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
       gas: DEFAULT_BLOCK_GAS_LIMIT,
-      gasPrice: 8000000000,
+      gasPrice: NETWORKS_DEFAULT_GAS[eEthereumNetwork.hardhat],
       allowUnlimitedContractSize: UNLIMITED_BYTECODE_SIZE,
       chainId: BUIDLEREVM_CHAINID,
       throwOnTransactionFailures: true,
