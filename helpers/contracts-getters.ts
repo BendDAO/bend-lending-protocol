@@ -6,9 +6,8 @@ import {
   BNFTRegistryFactory,
   InterestRateFactory,
   GenericLogicFactory,
-  //InitializableAdminUpgradeabilityProxyFactory,
   LendPoolAddressesProviderFactory,
-  //LendPoolAddressesProviderRegistryFactory,
+  LendPoolAddressesProviderRegistryFactory,
   LendPoolConfiguratorFactory,
   LendPoolFactory,
   LendPoolLoanFactory,
@@ -23,6 +22,7 @@ import {
   NFTOracleFactory,
   MockNFTOracleFactory,
   ReserveLogicFactory,
+  //NftLogicFactory,
   SelfdestructTransferFactory,
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
@@ -30,16 +30,40 @@ import {
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
-  MockReserveOracle,
+  InitializableAdminProxyFactory,
+  BendProxyAdminFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
-import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
-import { getEthersSigners, MockTokenMap } from "./contracts-helpers";
+import { getEthersSigners, MockTokenMap, MockNftMap } from "./contracts-helpers";
 import { DRE, getDb, notFalsyOrZeroAddress, omit } from "./misc-utils";
-import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId } from "./types";
+import { eContractid, PoolConfiguration, tEthereumAddress, TokenContractId, NftContractId } from "./types";
 
 export const getFirstSigner = async () => (await getEthersSigners())[0];
+
+export const getSecondSigner = async () => (await getEthersSigners())[1];
+
+export const getThirdSigner = async () => (await getEthersSigners())[2];
+
+export const getDeploySigner = async () => (await getEthersSigners())[0];
+
+export const getPoolAdminSigner = async () => (await getEthersSigners())[0];
+
+export const getPoolOwnerSigner = async () => (await getEthersSigners())[0];
+
+export const getEmergencyAdminSigner = async () => (await getEthersSigners())[1];
+
+export const getProxyAdminSigner = async () => (await getEthersSigners())[2];
+
+export const getLendPoolAddressesProviderRegistry = async (address?: tEthereumAddress) => {
+  return await LendPoolAddressesProviderRegistryFactory.connect(
+    address ||
+      (
+        await getDb().get(`${eContractid.LendPoolAddressesProviderRegistry}.${DRE.network.name}`).value()
+      ).address,
+    await getFirstSigner()
+  );
+};
 
 export const getLendPoolAddressesProvider = async (address?: tEthereumAddress) => {
   return await LendPoolAddressesProviderFactory.connect(
@@ -87,6 +111,12 @@ export const getReserveOracle = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
+export const getReserveOracleImpl = async (address?: tEthereumAddress) =>
+  await ReserveOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.ReserveOracleImpl}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
 export const getMockChainlinkOracle = async (address?: tEthereumAddress) =>
   await MockChainlinkOracleFactory.connect(
     address || (await getDb().get(`${eContractid.MockChainlinkOracle}.${DRE.network.name}`).value()).address,
@@ -96,6 +126,12 @@ export const getMockChainlinkOracle = async (address?: tEthereumAddress) =>
 export const getNFTOracle = async (address?: tEthereumAddress) =>
   await NFTOracleFactory.connect(
     address || (await getDb().get(`${eContractid.NFTOracle}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getNFTOracleImpl = async (address?: tEthereumAddress) =>
+  await NFTOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.NFTOracleImpl}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 
@@ -185,6 +221,29 @@ export const getAllMockedTokens = async () => {
   return tokens;
 };
 
+export const getConfigMockedNfts = async (config: PoolConfiguration) => {
+  const tokenSymbols = Object.keys(config.NftsConfig);
+  const db = getDb();
+  const tokens: MockNftMap = await tokenSymbols.reduce<Promise<MockNftMap>>(async (acc, tokenSymbol) => {
+    const accumulator = await acc;
+    const address = db.get(`${tokenSymbol.toUpperCase()}.${DRE.network.name}`).value().address;
+    accumulator[tokenSymbol] = await getMintableERC721(address);
+    return Promise.resolve(acc);
+  }, Promise.resolve({}));
+  return tokens;
+};
+
+export const getAllMockedNfts = async () => {
+  const db = getDb();
+  const tokens: MockNftMap = await Object.keys(NftContractId).reduce<Promise<MockNftMap>>(async (acc, tokenSymbol) => {
+    const accumulator = await acc;
+    const address = db.get(`${tokenSymbol.toUpperCase()}.${DRE.network.name}`).value().address;
+    accumulator[tokenSymbol] = await getMintableERC721(address);
+    return Promise.resolve(acc);
+  }, Promise.resolve({}));
+  return tokens;
+};
+
 export const getQuoteCurrencies = (oracleQuoteCurrency: string): string[] => {
   switch (oracleQuoteCurrency) {
     case "ETH":
@@ -218,6 +277,14 @@ export const getPairsTokenAggregator = (
 
   return [mappedPairs, mappedAggregators];
 };
+
+/*
+export const getNftLogic = async (address?: tEthereumAddress) =>
+  await NftLogicFactory.connect(
+    address || (await getDb().get(`${eContractid.NftLogic}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+*/
 
 export const getReserveLogic = async (address?: tEthereumAddress) =>
   await ReserveLogicFactory.connect(
@@ -258,6 +325,18 @@ export const getMockBToken = async (address?: tEthereumAddress) =>
 export const getSelfdestructTransferMock = async (address?: tEthereumAddress) =>
   await SelfdestructTransferFactory.connect(
     address || (await getDb().get(`${eContractid.SelfdestructTransferMock}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getProxy = async (address: tEthereumAddress) =>
+  await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
+
+export const getInitializableAdminProxy = async (address: tEthereumAddress) =>
+  await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
+
+export const getBendProxyAdmin = async (address?: tEthereumAddress) =>
+  await BendProxyAdminFactory.connect(
+    address || (await getDb().get(`${eContractid.LendPoolImpl}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 

@@ -41,15 +41,28 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     _;
   }
 
+  modifier onlyAddressProvider() {
+    require(address(_addressesProvider) == msg.sender, Errors.CALLER_NOT_ADDRESS_PROVIDER);
+    _;
+  }
+
   // called once by the factory at time of deployment
   function initialize(ILendPoolAddressesProvider provider) external initializer {
     __Context_init();
 
-    _addressesProvider = provider;
-    _pool = ILendPool(_addressesProvider.getLendPool());
+    _setAddressProvider(provider);
 
     // Avoid having loanId = 0
     _loanIdTracker.increment();
+  }
+
+  function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
+    _setAddressProvider(provider);
+  }
+
+  function _setAddressProvider(ILendPoolAddressesProvider provider) internal {
+    _addressesProvider = provider;
+    _pool = ILendPool(_addressesProvider.getLendPool());
   }
 
   function initNft(address nftAsset, address bNftAddress) external override onlyLendPool {

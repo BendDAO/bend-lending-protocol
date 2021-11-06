@@ -10,12 +10,9 @@ pragma solidity ^0.8.0;
  * need to send a transaction, and thus is not required to hold Ether at all.
  */
 interface IPunks {
-    function punkIndexToAddress(uint256 punkIndex)
-        external
-        view
-        returns (address owner);
+  function punkIndexToAddress(uint256 punkIndex) external view returns (address owner);
 
-    function buyPunk(uint256 punkIndex) external;
+  function buyPunk(uint256 punkIndex) external;
 
-    function transferPunk(address to, uint256 punkIndex) external;
+  function transferPunk(address to, uint256 punkIndex) external;
 }

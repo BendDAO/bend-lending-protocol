@@ -40,12 +40,25 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     _;
   }
 
+  modifier onlyAddressProvider() {
+    require(address(_addressesProvider) == msg.sender, Errors.CALLER_NOT_ADDRESS_PROVIDER);
+    _;
+  }
+
   modifier onlyEmergencyAdmin() {
     require(_addressesProvider.getEmergencyAdmin() == msg.sender, Errors.LPC_CALLER_NOT_EMERGENCY_ADMIN);
     _;
   }
 
   function initialize(ILendPoolAddressesProvider provider) public initializer {
+    _setAddressProvider(provider);
+  }
+
+  function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
+    _setAddressProvider(provider);
+  }
+
+  function _setAddressProvider(ILendPoolAddressesProvider provider) internal {
     _addressesProvider = provider;
     _pool = ILendPool(_addressesProvider.getLendPool());
     _bnftRegistry = IBNFTRegistry(_addressesProvider.getBNFTRegistry());
@@ -66,7 +79,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       input.bTokenImpl,
       abi.encodeWithSelector(
         IBToken.initialize.selector,
-        pool_,
+        _addressesProvider,
         input.treasury,
         input.underlyingAsset,
         IIncentivesController(input.incentivesController),
@@ -106,7 +119,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     InitNftInput calldata input
   ) internal {
     // BNFT proxy and implementation are created in BNFTRegistry
-    (address bNftProxy, ) = registry_.getBNFT(input.underlyingAsset);
+    (address bNftProxy, ) = registry_.getBNFTAddresses(input.underlyingAsset);
     require(bNftProxy != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
 
     pool_.initNft(input.underlyingAsset, bNftProxy);
@@ -132,8 +145,8 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     (, , , uint256 decimals, ) = cachedPool.getReserveConfiguration(input.asset).getParamsMemory();
 
     bytes memory encodedCall = abi.encodeWithSelector(
-      IBToken.initialize.selector,
-      cachedPool,
+      IBToken.initializeAfterUpgrade.selector,
+      _addressesProvider,
       input.treasury,
       input.asset,
       input.incentivesController,

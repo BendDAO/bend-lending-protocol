@@ -7,20 +7,10 @@ export interface SymbolMap<T> {
 export type eNetwork = eEthereumNetwork;
 
 export enum eEthereumNetwork {
-  buidlerevm = "buidlerevm",
-  rikeyby = "rikeyby",
-  kovan = "kovan",
-  ropsten = "ropsten",
+  rinkeby = "rinkeby",
   main = "main",
   coverage = "coverage",
   hardhat = "hardhat",
-}
-
-export enum EthereumNetworkNames {
-  rikeyby = "rikeyby",
-  kovan = "kovan",
-  ropsten = "ropsten",
-  main = "main",
 }
 
 export enum BendPools {
@@ -43,13 +33,16 @@ export enum eContractid {
   BendOracle = "BendOracle",
   MockBendOracle = "MockBendOracle",
   ReserveOracle = "ReserveOracle",
+  ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
+  NFTOracleImpl = "NFTOracleImpl",
   Proxy = "Proxy",
   MockChainlinkOracle = "MockChainlinkOracle",
   MockNFTOracle = "MockNFTOracle",
   MockReserveOracle = "MockReserveOracle",
   InterestRate = "InterestRate",
-  InitializableAdminUpgradeabilityProxy = "InitializableAdminUpgradeabilityProxy",
+  InitializableAdminProxy = "InitializableAdminProxy",
+  BendProxyAdmin = "BendProxyAdmin",
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   MockBToken = "MockBToken",
@@ -59,7 +52,6 @@ export enum eContractid {
   IERC20Detailed = "IERC20Detailed",
   IERC721Detailed = "IERC721Detailed",
   FeeProvider = "FeeProvider",
-  TokenDistributor = "TokenDistributor",
   BTokensAndBNFTsHelper = "BTokensAndBNFTsHelper",
   WETHGateway = "WETHGateway",
   WETH = "WETH",
@@ -282,10 +274,6 @@ export interface IInterestRateStrategyParams {
 }
 
 export interface IReserveBorrowParams {
-  // optimalUtilizationRate: string;
-  // baseVariableBorrowRate: string;
-  // variableRateSlope1: string;
-  // variableRateSlope2: string;
   borrowingEnabled: boolean;
   reserveDecimals: string;
 }
@@ -302,20 +290,13 @@ export interface INftCollateralParams {
   liquidationBonus: string;
 }
 
-export interface IMarketRates {
-  borrowRate: string;
-}
-
 export type iParamsPerNetwork<T> = iEthereumParamsPerNetwork<T>;
 
 export interface iParamsPerNetworkAll<T> extends iEthereumParamsPerNetwork<T> {}
 
 export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.coverage]: T;
-  [eEthereumNetwork.buidlerevm]: T;
-  [eEthereumNetwork.rikeyby]: T;
-  [eEthereumNetwork.kovan]: T;
-  [eEthereumNetwork.ropsten]: T;
+  [eEthereumNetwork.rinkeby]: T;
   [eEthereumNetwork.main]: T;
   [eEthereumNetwork.hardhat]: T;
 }
@@ -334,7 +315,6 @@ export interface ObjectString {
 }
 
 export interface IProtocolGlobalConfig {
-  TokenDistributorPercentageBase: string;
   MockUsdPriceInWei: string;
   UsdAddress: tEthereumAddress;
   NilAddress: tEthereumAddress;
@@ -356,14 +336,16 @@ export interface ICommonConfiguration {
   ProviderId: number;
   ProtocolGlobalParams: IProtocolGlobalConfig;
   Mocks: IMocksConfig;
+  ProxyAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
+  BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
+  BNFTRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   LendPoolConfigurator: iParamsPerNetwork<tEthereumAddress>;
   LendPool: iParamsPerNetwork<tEthereumAddress>;
-  TokenDistributor: iParamsPerNetwork<tEthereumAddress>;
+  LendPoolLoan: iParamsPerNetwork<tEthereumAddress>;
   ReserveOracle: iParamsPerNetwork<tEthereumAddress>;
   NFTOracle: iParamsPerNetwork<tEthereumAddress>;
-  FallbackOracle: iParamsPerNetwork<tEthereumAddress>;
   ReserveAggregator: iParamsPerNetwork<ITokenAddress>;
   NftAggregator: iParamsPerNetwork<ITokenAddress>;
   PoolAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
@@ -372,12 +354,18 @@ export interface ICommonConfiguration {
   EmergencyAdminIndex: number;
   ReserveAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   ReservesConfig: iMultiPoolsAssets<IReserveParams>;
+  NftsAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   NftsConfig: iMultiPoolsNfts<INftParams>;
   BTokenDomainSeparator: iParamsPerNetwork<string>;
   BNftDomainSeparator: iParamsPerNetwork<string>;
-  WETH: iParamsPerNetwork<tEthereumAddress>;
+
   WrappedNativeToken: iParamsPerNetwork<tEthereumAddress>;
   WethGateway: iParamsPerNetwork<tEthereumAddress>;
+
+  CryptoPunksMarket: iParamsPerNetwork<tEthereumAddress>;
+  WrappedPunkToken: iParamsPerNetwork<tEthereumAddress>;
+  PunkGateway: iParamsPerNetwork<tEthereumAddress>;
+
   ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;
   OracleQuoteCurrency: string;

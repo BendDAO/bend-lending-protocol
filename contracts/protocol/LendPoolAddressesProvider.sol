@@ -28,6 +28,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   bytes32 private constant BEND_ORACLE = "BEND_ORACLE";
   bytes32 private constant LEND_POOL_LOAN = "LEND_POOL_LOAN";
   bytes32 private constant BNFT_REGISTRY = "BNFT_REGISTRY";
+  bytes32 private constant PROXY_ADMIN = "PROXY_ADMIN";
 
   constructor(string memory marketId) {
     _setMarketId(marketId);
@@ -186,6 +187,15 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     emit BNFTRegistryUpdated(factory);
   }
 
+  function getProxyAdmin() external view override returns (address) {
+    return getAddress(PROXY_ADMIN);
+  }
+
+  function setProxyAdmin(address admin) external override onlyOwner {
+    _addresses[PROXY_ADMIN] = admin;
+    emit ProxyAdminUpdated(admin);
+  }
+
   /**
    * @dev Internal function to update the implementation of a specific proxied component of the protocol
    * - If there is no proxy registered in the given `id`, it creates the proxy setting `newAdress`
@@ -198,11 +208,11 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   function _updateImpl(bytes32 id, address newAddress) internal {
     address payable proxyAddress = payable(_addresses[id]);
 
-    bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
-
     if (proxyAddress == address(0)) {
       // create proxy, then init proxy & implementation
       InitializableAdminProxy proxy = new InitializableAdminProxy(address(this));
+
+      bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
       proxy.initialize(newAddress, params);
 
@@ -211,6 +221,8 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     } else {
       // upgrade & init implementation
       InitializableAdminProxy proxy = InitializableAdminProxy(proxyAddress);
+
+      bytes memory params = abi.encodeWithSignature("initializeAfterUpgrade(address)", address(this));
 
       proxy.upgradeToAndCall(newAddress, params);
     }

@@ -6,6 +6,7 @@ import {
   tStringTokenSmallUnits,
   BendPools,
   TokenContractId,
+  NftContractId,
   iMultiPoolsAssets,
   IReserveParams,
   INftParams,
@@ -13,10 +14,11 @@ import {
   eEthereumNetwork,
 } from "./types";
 import { MockContract } from "ethereum-waffle";
-import { ConfigNames, getReservesConfigByPool, loadPoolConfig } from "./configuration";
+import { ConfigNames, getReservesConfigByPool, getNftsConfigByPool, loadPoolConfig } from "./configuration";
 import { getFirstSigner } from "./contracts-getters";
 import { ZERO_ADDRESS } from "./constants";
 import {
+  LendPoolAddressesProviderRegistryFactory,
   BendProtocolDataProviderFactory,
   MintableERC20,
   MintableERC20Factory,
@@ -44,12 +46,13 @@ import {
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
   WETHGatewayFactory,
-  ChainlinkMockFactory,
   MockFlashLoanReceiverFactory,
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
   MockChainlinkOracleFactory,
+  InitializableAdminProxyFactory,
+  BendProxyAdminFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -67,6 +70,14 @@ import { eNetwork } from "./types";
 const readArtifact = async (id: string) => {
   return (DRE as HardhatRuntimeEnvironment).artifacts.readArtifact(id);
 };
+
+export const deployLendPoolAddressesProviderRegistry = async (verify?: boolean) =>
+  withSaveAndVerify(
+    await new LendPoolAddressesProviderRegistryFactory(await getFirstSigner()).deploy(),
+    eContractid.LendPoolAddressesProviderRegistry,
+    [],
+    verify
+  );
 
 export const deployLendPoolAddressesProvider = async (marketId: string, verify?: boolean) =>
   withSaveAndVerify(
@@ -88,8 +99,8 @@ export const deployLendPoolLoan = async (verify?: boolean) => {
   return withSaveAndVerify(lendPoolLoanImpl, eContractid.LendPoolLoan, [], verify);
 };
 
-export const deployBNFTRegistry = async (args: [string, string], verify?: boolean) => {
-  const bnftRegistryImpl = await new BNFTRegistryFactory(await getFirstSigner()).deploy(...args);
+export const deployBNFTRegistry = async (verify?: boolean) => {
+  const bnftRegistryImpl = await new BNFTRegistryFactory(await getFirstSigner()).deploy();
   await insertContractAddressInDb(eContractid.BNFTRegistryImpl, bnftRegistryImpl.address);
   return withSaveAndVerify(bnftRegistryImpl, eContractid.BNFTRegistry, [], verify);
 };
@@ -112,7 +123,7 @@ export const deployNftLogicLibrary = async (verify?: boolean) => {
 
   const nftLogic = await (await nftLogicFactory.connect(await getFirstSigner()).deploy()).deployed();
 
-  return withSaveAndVerify(nftLogic, eContractid.GenericLogic, [], verify);
+  return withSaveAndVerify(nftLogic, eContractid.NftLogic, [], verify);
 };
 
 export const deployGenericLogic = async (reserveLogic: Contract, verify?: boolean) => {
@@ -181,13 +192,11 @@ export const deployLendPool = async (verify?: boolean) => {
 export const deployBendOracle = async (verify?: boolean) =>
   withSaveAndVerify(await new BendOracleFactory(await getFirstSigner()).deploy(), eContractid.BendOracle, [], verify);
 
-export const deployReserveOracle = async (args: [], verify?: boolean) =>
-  withSaveAndVerify(
-    await new ReserveOracleFactory(await getFirstSigner()).deploy(...args),
-    eContractid.ReserveOracle,
-    args,
-    verify
-  );
+export const deployReserveOracle = async (args: [], verify?: boolean) => {
+  const oracleImpl = await new ReserveOracleFactory(await getFirstSigner()).deploy();
+  await insertContractAddressInDb(eContractid.ReserveOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.ReserveOracle, [], verify);
+};
 
 export const deployMockReserveOracle = async (args: [], verify?: boolean) =>
   withSaveAndVerify(
@@ -205,8 +214,11 @@ export const deployMockChainlinkOracle = async (decimals: string, verify?: boole
     verify
   );
 
-export const deployNFTOracle = async (verify?: boolean) =>
-  withSaveAndVerify(await new NFTOracleFactory(await getFirstSigner()).deploy(), eContractid.NFTOracle, [], verify);
+export const deployNFTOracle = async (verify?: boolean) => {
+  const oracleImpl = await new NFTOracleFactory(await getFirstSigner()).deploy();
+  await insertContractAddressInDb(eContractid.NFTOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.NFTOracle, [], verify);
+};
 
 export const deployMockNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(
@@ -300,12 +312,13 @@ export const deployAllMockTokens = async (verify?: boolean) => {
   const protoConfigData = getReservesConfigByPool(BendPools.proto);
 
   for (const tokenSymbol of Object.keys(TokenContractId)) {
+    const tokenName = "Bend Mock " + tokenSymbol;
     let decimals = "18";
 
     let configData = (<any>protoConfigData)[tokenSymbol];
 
     tokens[tokenSymbol] = await deployMintableERC20(
-      [tokenSymbol, tokenSymbol, configData ? configData.reserveDecimals : decimals],
+      [tokenName, tokenSymbol, configData ? configData.reserveDecimals : decimals],
       verify
     );
     await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
@@ -320,15 +333,27 @@ export const deployMockTokens = async (config: PoolConfiguration, verify?: boole
   const configData = config.ReservesConfig;
 
   for (const tokenSymbol of Object.keys(configData)) {
+    const tokenName = "Bend Mock " + tokenSymbol;
     tokens[tokenSymbol] = await deployMintableERC20(
       [
-        tokenSymbol,
+        tokenName,
         tokenSymbol,
         configData[tokenSymbol as keyof iMultiPoolsAssets<IReserveParams>].reserveDecimals ||
           defaultDecimals.toString(),
       ],
       verify
     );
+    await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
+  }
+  return tokens;
+};
+
+export const deployAllMockNfts = async (verify?: boolean) => {
+  const tokens: { [symbol: string]: MockContract | MintableERC721 } = {};
+
+  for (const tokenSymbol of Object.keys(NftContractId)) {
+    const tokenName = "Bend Mock " + tokenSymbol;
+    tokens[tokenSymbol] = await deployMintableERC721([tokenName, tokenSymbol], verify);
     await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
   }
   return tokens;
@@ -530,3 +555,19 @@ export const authorizePunkGatewayERC20 = async (
   lendPool: tEthereumAddress,
   token: tEthereumAddress
 ) => await new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeLendPoolERC20(lendPool, token);
+
+export const deployInitializableAdminProxy = async (id: string, admin: tEthereumAddress, verify?: boolean) =>
+  withSaveAndVerify(
+    await new InitializableAdminProxyFactory(await getFirstSigner()).deploy(admin),
+    id,
+    [admin],
+    verify
+  );
+
+export const deployBendProxyAdmin = async (verify?: boolean) =>
+  withSaveAndVerify(
+    await new BendProxyAdminFactory(await getFirstSigner()).deploy(),
+    eContractid.BendProxyAdmin,
+    [],
+    verify
+  );
