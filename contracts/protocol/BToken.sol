@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
@@ -22,8 +24,11 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
   using WadRayMath for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  uint8 private _decimals;
+  string private _bTokenName;
+  string private _bTokenSymbol;
+  uint8 private _bTokenDecimals;
 
+  ILendPoolAddressesProvider internal _addressProvider;
   ILendPool internal _pool;
   address internal _treasury;
   address internal _underlyingAsset;
@@ -34,19 +39,42 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     _;
   }
 
+  modifier onlyLendPoolConfigurator() {
+    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR);
+    _;
+  }
+
+  /**
+   * @dev Returns the name of the token.
+   */
+  function name() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (string memory) {
+    return _bTokenName;
+  }
+
+  /**
+   * @dev Returns the symbol of the token, usually a shorter version of the
+   * name.
+   */
+  function symbol() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (string memory) {
+    return _bTokenSymbol;
+  }
+
+  /**
+   * @dev Returns the decimals of the token.
+   */
   function decimals() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (uint8) {
-    return _decimals;
+    return _bTokenDecimals;
   }
 
   /**
    * @dev Initializes the bToken
-   * @param pool The address of the lending pool where this bToken will be used
+   * @param addressProvider The address of the address provider where this bToken will be used
    * @param treasury The address of the Aave treasury, receiving the fees on this bToken
    * @param underlyingAsset The address of the underlying asset of this bToken (E.g. WETH for wWETH)
    * @param incentivesController The smart contract managing potential incentives distribution
    */
   function initialize(
-    ILendPool pool,
+    ILendPoolAddressesProvider addressProvider,
     address treasury,
     address underlyingAsset,
     IIncentivesController incentivesController,
@@ -55,15 +83,63 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     string calldata bTokenSymbol,
     bytes calldata params
   ) external override initializer {
-    __ERC20_init(bTokenName, bTokenSymbol);
-    _decimals = bTokenDecimals;
+    __ERC20_init("BToken", "BToken");
 
-    _pool = pool;
+    _initialize(
+      addressProvider,
+      treasury,
+      underlyingAsset,
+      incentivesController,
+      bTokenDecimals,
+      bTokenName,
+      bTokenSymbol,
+      params
+    );
+  }
+
+  function initializeAfterUpgrade(
+    ILendPoolAddressesProvider addressProvider,
+    address treasury,
+    address underlyingAsset,
+    IIncentivesController incentivesController,
+    uint8 bTokenDecimals,
+    string calldata bTokenName,
+    string calldata bTokenSymbol,
+    bytes calldata params
+  ) external override onlyLendPoolConfigurator {
+    _initialize(
+      addressProvider,
+      treasury,
+      underlyingAsset,
+      incentivesController,
+      bTokenDecimals,
+      bTokenName,
+      bTokenSymbol,
+      params
+    );
+  }
+
+  function _initialize(
+    ILendPoolAddressesProvider addressProvider,
+    address treasury,
+    address underlyingAsset,
+    IIncentivesController incentivesController,
+    uint8 bTokenDecimals,
+    string calldata bTokenName,
+    string calldata bTokenSymbol,
+    bytes calldata params
+  ) internal {
+    _bTokenName = bTokenName;
+    _bTokenSymbol = bTokenSymbol;
+    _bTokenDecimals = bTokenDecimals;
+
+    _addressProvider = addressProvider;
+    _pool = ILendPool(addressProvider.getLendPool());
     _treasury = treasury;
     _underlyingAsset = underlyingAsset;
     _incentivesController = incentivesController;
 
-    emit Initialized(underlyingAsset, address(pool), treasury, address(incentivesController), params);
+    emit Initialized(underlyingAsset, address(_pool), treasury, address(incentivesController), params);
   }
 
   /**

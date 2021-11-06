@@ -7,17 +7,14 @@ import {
   INftParams,
   tEthereumAddress,
 } from "./types";
-import { BendProtocolDataProvider } from "../types/BendProtocolDataProvider";
-import { chunk, getDb, waitForTx } from "./misc-utils";
+import { chunk, waitForTx } from "./misc-utils";
 import {
-  getBToken,
-  getBNFT,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
   getBTokensAndBNFTsHelper,
   getBNFTRegistryProxy,
 } from "./contracts-getters";
-import { getEthersSigner, getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
+import { getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
 import { BigNumberish } from "ethers";
 import { ConfigNames } from "./configuration";
 import { deployRateStrategy } from "./contracts-deployments";
@@ -99,8 +96,9 @@ export const initReservesByHelper = async (
     }
     // Prepare input parameters
     reserveSymbols.push(symbol);
+    const bTokenImplContractAddr = await getContractAddressWithJsonFallback(bTokenImpl, poolName);
     const initParam = {
-      bTokenImpl: await getContractAddressWithJsonFallback(bTokenImpl, poolName),
+      bTokenImpl: bTokenImplContractAddr,
       underlyingAssetDecimals: reserveDecimals,
       interestRateAddress: strategyAddresses[strategy.name],
       underlyingAsset: tokenAddresses[symbol],
@@ -161,43 +159,19 @@ export const initNftsByHelper = async (
   let nftSymbols: string[] = [];
 
   let initInputParams: {
-    // bNftProxy: string;
-    // bNftImpl: string;
     underlyingAsset: string;
-    // underlyingAssetName: string;
-    // bNftName: string;
-    // bNftSymbol: string;
-    // params: string;
   }[] = [];
 
   const nfts = Object.entries(nftsParams);
 
-  console.log(`- BNFTRegistry create proxy in ${nfts.length} txs`);
   for (let [symbol, params] of nfts) {
     if (!nftAddresses[symbol]) {
       console.log(`- Skipping init of ${symbol} due nft address is not set at markets config`);
       continue;
     }
-    const { bNftImpl } = params; // just for name
-    const bNftImplAddress = await getContractAddressWithJsonFallback(bNftImpl, poolName);
-    const extraParams = await getBNftExtraParams(bNftImpl, nftAddresses[symbol]);
-
-    // create bnft proxy via factory
-    const tx3 = await waitForTx(
-      await bnftRegistry.createBNFTWithImpl(nftAddresses[symbol], bNftImplAddress, extraParams)
-    );
-    //const bnftAddresses = await bnftRegistry.getBNFT(nftAddresses[symbol]);
-    console.log("  - BNFT proxy ready for:", symbol, bNftImplAddress);
-    console.log("    * gasUsed", tx3.gasUsed.toString());
 
     const initParam = {
-      // bNftProxy: bnftAddresses.bNftProxy,
-      // bNftImpl: bnftAddresses.bNftImpl,
       underlyingAsset: nftAddresses[symbol],
-      // underlyingAssetName: symbol,
-      // bNftName: `${bNftNamePrefix} ${symbol}`,
-      // bNftSymbol: `${bNftSymbolPrefix}${symbol}`,
-      // params: extraParams,
     };
 
     // Prepare input parameters
@@ -250,7 +224,6 @@ export const getPairsTokenAggregator = (
 export const configureReservesByHelper = async (
   reservesParams: iMultiPoolsAssets<IReserveParams>,
   tokenAddresses: { [symbol: string]: tEthereumAddress },
-  dataHelpers: BendProtocolDataProvider,
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
@@ -264,15 +237,14 @@ export const configureReservesByHelper = async (
     borrowingEnabled: boolean;
   }[] = [];
 
-  for (const [
-    assetSymbol,
-    { baseLTVAsCollateral, liquidationBonus, liquidationThreshold, reserveFactor, borrowingEnabled },
-  ] of Object.entries(reservesParams) as [string, IReserveParams][]) {
+  for (const [assetSymbol, { reserveFactor, borrowingEnabled }] of Object.entries(reservesParams) as [
+    string,
+    IReserveParams
+  ][]) {
     if (!tokenAddresses[assetSymbol]) {
       console.log(`- Skipping init of ${assetSymbol} due token address is not set at markets config`);
       continue;
     }
-    if (baseLTVAsCollateral === "-1") continue;
 
     const assetAddressIndex = Object.keys(tokenAddresses).findIndex((value) => value === assetSymbol);
     const [, tokenAddress] = (Object.entries(tokenAddresses) as [string, string][])[assetAddressIndex];
@@ -309,7 +281,6 @@ export const configureReservesByHelper = async (
 export const configureNftsByHelper = async (
   nftsParams: iMultiPoolsNfts<INftParams>,
   nftAddresses: { [symbol: string]: tEthereumAddress },
-  dataHelpers: BendProtocolDataProvider,
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
@@ -365,21 +336,4 @@ export const configureNftsByHelper = async (
     // Set deployer back as admin
     await waitForTx(await addressProvider.setPoolAdmin(admin));
   }
-};
-
-const getAddressById = async (id: string, network: eNetwork): Promise<tEthereumAddress | undefined> =>
-  (await getDb().get(`${id}.${network}`).value())?.address || undefined;
-
-// Function deprecated
-const isErc20SymbolCorrect = async (token: tEthereumAddress, symbol: string) => {
-  const erc20 = await getBToken(token); // using bToken for ERC20 interface
-  const erc20Symbol = await erc20.symbol();
-  return symbol === erc20Symbol;
-};
-
-// Function deprecated
-const isErc721SymbolCorrect = async (token: tEthereumAddress, symbol: string) => {
-  const erc721 = await getBNFT(token); // using bNFT for ERC721 interface
-  const erc721Symbol = await erc721.symbol();
-  return symbol === erc721Symbol;
 };

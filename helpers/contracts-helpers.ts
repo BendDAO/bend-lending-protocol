@@ -17,6 +17,7 @@ import {
   iEthereumParamsPerNetwork,
 } from "./types";
 import { MintableERC20 } from "../types/MintableERC20";
+import { MintableERC721 } from "../types/MintableERC721";
 import { Artifact } from "hardhat/types";
 import { verifyEtherscanContract } from "./etherscan-verification";
 import { getFirstSigner, getIErc20Detailed } from "./contracts-getters";
@@ -24,6 +25,7 @@ import { ConfigNames, loadPoolConfig } from "./configuration";
 import { string } from "hardhat/internal/core/params/argumentTypes";
 
 export type MockTokenMap = { [symbol: string]: MintableERC20 };
+export type MockNftMap = { [symbol: string]: MintableERC721 };
 
 export const registerContractInJsonDb = async (contractId: string, contractInstance: Contract) => {
   const currentNetwork = DRE.network.name;
@@ -81,7 +83,7 @@ export const getEthersSigners = async (): Promise<Signer[]> => {
   return ethersSigners;
 };
 
-export const getEthersSigner = async (address: string): Promise<Signer> => {
+export const getEthersSignerByAddress = async (address: string): Promise<Signer> => {
   const ethersSigner = await DRE.ethers.getSigner(address);
   return ethersSigner;
 };
@@ -153,7 +155,7 @@ export const linkBytecode = (artifact: Artifact, libraries: any) => {
 };
 
 export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNetwork) => {
-  const { main, rikeyby, ropsten, kovan, coverage, buidlerevm } = param as iEthereumParamsPerNetwork<T>;
+  const { main, rinkeby, hardhat, coverage } = param as iEthereumParamsPerNetwork<T>;
   if (process.env.FORK) {
     return param[process.env.FORK as eNetwork] as T;
   }
@@ -161,19 +163,15 @@ export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNet
   switch (network) {
     case eEthereumNetwork.coverage:
       return coverage;
-    case eEthereumNetwork.buidlerevm:
-      return buidlerevm;
     case eEthereumNetwork.hardhat:
-      return buidlerevm;
-    case eEthereumNetwork.rikeyby:
-      return rikeyby;
-    case eEthereumNetwork.kovan:
-      return kovan;
-    case eEthereumNetwork.ropsten:
-      return ropsten;
+      return hardhat;
+    case eEthereumNetwork.rinkeby:
+      return rinkeby;
     case eEthereumNetwork.main:
       return main;
   }
+
+  return hardhat;
 };
 
 export const getOptionalParamAddressPerNetwork = (

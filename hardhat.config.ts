@@ -28,8 +28,7 @@ const UNLIMITED_BYTECODE_SIZE = process.env.UNLIMITED_BYTECODE_SIZE === "true";
 
 // Prevent to load scripts before compilation and typechain
 if (!SKIP_LOAD) {
-  //['misc', 'migrations', 'dev', 'full', 'verifications', 'deployments', 'helpers']
-  ["misc"].forEach((folder) => {
+  ["misc", "migrations", "dev", "full", "verifications", "deployments", "helpers"].forEach((folder) => {
     const tasksPath = path.join(__dirname, "tasks", folder);
     fs.readdirSync(tasksPath)
       .filter((pth) => pth.includes(".ts"))
@@ -92,8 +91,7 @@ const buidlerConfig: HardhatUserConfig = {
       url: "http://localhost:8555",
       chainId: COVERAGE_CHAINID,
     },
-    kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, 42),
-    ropsten: getCommonNetworkConfig(eEthereumNetwork.ropsten, 3),
+    rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     hardhat: {
       hardfork: "berlin",

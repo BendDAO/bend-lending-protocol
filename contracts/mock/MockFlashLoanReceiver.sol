@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IFlashLoanReceiver} from "../interfaces/IFlashLoanReceiver.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
+import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
@@ -12,7 +13,7 @@ contract MockFlashLoanReceiver is IFlashLoanReceiver {
   event ExecutedWithFail(address _asset, uint256[] _tokenIds);
   event ExecutedWithSuccess(address _asset, uint256[] _tokenIds);
 
-  address _bNftAddress;
+  address _bnftRegistry;
 
   bool _failExecution;
   uint8 _simulateBNFTCall;
@@ -20,8 +21,8 @@ contract MockFlashLoanReceiver is IFlashLoanReceiver {
   mapping(uint256 => bool) _tokenIdNotToApproves;
   uint256[] _tokenIdList;
 
-  constructor(address bNftAddress_) {
-    _bNftAddress = bNftAddress_;
+  constructor(address bnftRegistry_) {
+    _bnftRegistry = bnftRegistry_;
   }
 
   function setFailExecution(bool fail) public {
@@ -60,6 +61,9 @@ contract MockFlashLoanReceiver is IFlashLoanReceiver {
     params;
     initiator;
 
+    (address bNftProxy, ) = IBNFTRegistry(_bnftRegistry).getBNFTAddresses(asset);
+    address _bNftAddress = bNftProxy;
+
     if (_failExecution) {
       emit ExecutedWithFail(asset, tokenIds);
       return false;
@@ -93,7 +97,7 @@ contract MockFlashLoanReceiver is IFlashLoanReceiver {
 
       //simulate reentry into BNFT, revert expected
       if (_simulateBNFTCall == 4) {
-        address simReceiver = address(new MockFlashLoanReceiverDummy());
+        address simReceiver = address(new MockFlashLoanReceiverDummy(_bnftRegistry));
         uint256[] memory simTokenIds = new uint256[](1);
         simTokenIds[0] = _simulateBNFTCallTokenId;
         IBNFT(_bNftAddress).flashLoan(simReceiver, simTokenIds, new bytes(0));

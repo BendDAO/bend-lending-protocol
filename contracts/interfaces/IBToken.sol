@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {ILendPool} from "./ILendPool.sol";
 import {IIncentivesController} from "./IIncentivesController.sol";
 
@@ -26,13 +27,24 @@ interface IBToken is IERC20Upgradeable, IERC20MetadataUpgradeable {
 
   /**
    * @dev Initializes the bToken
-   * @param pool The address of the lending pool where this bToken will be used
+   * @param addressProvider The address of the address provider where this bToken will be used
    * @param treasury The address of the Aave treasury, receiving the fees on this bToken
    * @param underlyingAsset The address of the underlying asset of this bToken (E.g. WETH for wWETH)
    * @param incentivesController The smart contract managing potential incentives distribution
    */
   function initialize(
-    ILendPool pool,
+    ILendPoolAddressesProvider addressProvider,
+    address treasury,
+    address underlyingAsset,
+    IIncentivesController incentivesController,
+    uint8 bTokenDecimals,
+    string calldata bTokenName,
+    string calldata bTokenSymbol,
+    bytes calldata params
+  ) external;
+
+  function initializeAfterUpgrade(
+    ILendPoolAddressesProvider addressProvider,
     address treasury,
     address underlyingAsset,
     IIncentivesController incentivesController,
