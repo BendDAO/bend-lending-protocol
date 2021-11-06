@@ -37,6 +37,8 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
         console.log("Deploying new lend pool implementation & libraries...");
         const lendPoolImpl = await deployLendPool(verify);
         lendPoolImplAddress = lendPoolImpl.address;
+      } else {
+        await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImplAddress);
       }
       console.log("Setting lend pool implementation with address:", lendPoolImplAddress);
       // Set lending pool impl to Address provider
@@ -54,6 +56,8 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
         console.log("Deploying new loan implementation...");
         const lendPoolLoanImpl = await deployLendPoolLoan(verify);
         lendPoolLoanImplAddress = lendPoolLoanImpl.address;
+      } else {
+        await insertContractAddressInDb(eContractid.LendPoolLoanImpl, lendPoolLoanImplAddress);
       }
       console.log("Setting lend pool loan implementation with address:", lendPoolLoanImplAddress);
       // Set lend pool conf impl to Address Provider
@@ -70,6 +74,8 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
         console.log("Deploying new configurator implementation...");
         const lendPoolConfiguratorImpl = await deployLendPoolConfigurator(verify);
         lendPoolConfiguratorImplAddress = lendPoolConfiguratorImpl.address;
+      } else {
+        await insertContractAddressInDb(eContractid.LendPoolConfiguratorImpl, lendPoolConfiguratorImplAddress);
       }
       console.log("Setting lend pool configurator implementation with address:", lendPoolConfiguratorImplAddress);
       // Set lend pool conf impl to Address Provider

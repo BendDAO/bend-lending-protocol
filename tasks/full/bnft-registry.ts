@@ -7,7 +7,12 @@ import {
   deployInitializableAdminProxy,
   deployGenericBNFTImpl,
 } from "../../helpers/contracts-deployments";
-import { getBNFTRegistryProxy, getInitializableAdminProxy, getBendProxyAdmin } from "../../helpers/contracts-getters";
+import {
+  getLendPoolAddressesProvider,
+  getBNFTRegistryProxy,
+  getInitializableAdminProxy,
+  getBendProxyAdmin,
+} from "../../helpers/contracts-getters";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { BNFTRegistry, InitializableAdminProxy } from "../../types";
 
@@ -19,8 +24,9 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
     const network = <eNetwork>DRE.network.name;
 
     const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
 
-    const proxyAdmin = await getBendProxyAdmin();
+    const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
     const proxyOwnerAddress = await proxyAdmin.owner();
 
     const bnftGenericImpl = await deployGenericBNFTImpl(verify);
@@ -58,6 +64,8 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
 
       bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
     }
+
+    await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
 
     console.log("BNFT Registry: proxy %s, implementation %s", bnftRegistry.address, bnftRegistryImpl.address);
   });

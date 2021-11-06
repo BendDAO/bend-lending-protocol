@@ -1,8 +1,9 @@
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { deployBendProxyAdmin } from "../../helpers/contracts-deployments";
+import { getBendProxyAdmin, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
-import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
+import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eNetwork, eContractid } from "../../helpers/types";
 
 task("full:deploy-proxy-admin", "Deploy proxy admin contract")
@@ -12,14 +13,19 @@ task("full:deploy-proxy-admin", "Deploy proxy admin contract")
     await DRE.run("set-DRE");
     const poolConfig = loadPoolConfig(pool);
     const network = <eNetwork>DRE.network.name;
+    const addressesProvider = await getLendPoolAddressesProvider();
 
-    const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdmin, network);
+    let proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdmin, network);
 
     if (proxyAdminAddress != undefined && notFalsyOrZeroAddress(proxyAdminAddress)) {
-      console.log("Already deployed Proxy Admin Address:", proxyAdminAddress);
       await insertContractAddressInDb(eContractid.BendProxyAdmin, proxyAdminAddress);
+      const contract = await getBendProxyAdmin(proxyAdminAddress);
+      console.log("Already deployed Proxy Admin Address:", proxyAdminAddress, "Owner Address:", await contract.owner());
     } else {
       const contract = await deployBendProxyAdmin(verify);
-      console.log("Deployed Proxy Admin Address:", contract.address);
+      proxyAdminAddress = contract.address;
+      console.log("Deployed Proxy Admin Address:", contract.address, "Owner Address:", await contract.owner());
     }
+
+    await waitForTx(await addressesProvider.setProxyAdmin(proxyAdminAddress));
   });

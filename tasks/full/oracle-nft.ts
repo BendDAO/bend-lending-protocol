@@ -24,11 +24,11 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
 
       const addressesProvider = await getLendPoolAddressesProvider();
       const poolAdmin = await getGenesisPoolAdmin(poolConfig);
-      const proxyAdmin = await getBendProxyAdmin();
+      const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
       const proxyOwnerAddress = await proxyAdmin.owner();
 
       const nftOracleAddress = getParamPerNetwork(poolConfig.NFTOracle, network);
-      const nftsAssets = await getParamPerNetwork(NftsAssets, network);
+      const nftsAssets = getParamPerNetwork(NftsAssets, network);
 
       const tokens = Object.entries(nftsAssets).map(([tokenSymbol, tokenAddress]) => {
         return tokenAddress;

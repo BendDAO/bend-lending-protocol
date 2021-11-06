@@ -21,6 +21,7 @@ interface ILendPoolAddressesProvider {
   event ProxyCreated(bytes32 id, address indexed newAddress);
   event AddressSet(bytes32 id, address indexed newAddress, bool hasProxy);
   event BNFTRegistryUpdated(address indexed newAddress);
+  event ProxyAdminUpdated(address indexed newAddress);
 
   function getMarketId() external view returns (string memory);
 
@@ -67,4 +68,8 @@ interface ILendPoolAddressesProvider {
   function getBNFTRegistry() external view returns (address);
 
   function setBNFTRegistry(address factory) external;
+
+  function getProxyAdmin() external view returns (address);
+
+  function setProxyAdmin(address admin) external;
 }

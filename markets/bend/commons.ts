@@ -64,11 +64,11 @@ export const CommonsConfig: ICommonConfiguration = {
   ProxyAdmin: {
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.coverage]: undefined,
-    [eEthereumNetwork.rinkeby]: undefined,
+    [eEthereumNetwork.rinkeby]: '0xA713dC63450F8EBC6AeEF888e81b6A5BaA370dee',
     [eEthereumNetwork.main]: undefined,
   },
   BNFTRegistry: {
-    [eEthereumNetwork.rinkeby]: '',
+    [eEthereumNetwork.rinkeby]: '0x55C44d8dDCEaceD2d9a40a1e68Ca3F8bE5E96b91',
     [eEthereumNetwork.main]: '',
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
@@ -124,13 +124,13 @@ export const CommonsConfig: ICommonConfiguration = {
   ReserveOracle: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.rinkeby]: '',
+    [eEthereumNetwork.rinkeby]: '0xe391312B83b0CdF967dC9968dcad0b170c911a68',
     [eEthereumNetwork.main]: '',
   },
   NFTOracle: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.rinkeby]: '',
+    [eEthereumNetwork.rinkeby]: '0x553Dc0d3beB4cFAB1215eD6afc576f3bd8BD5cc5',
     [eEthereumNetwork.main]: '',
   },
   ReserveAggregator: {

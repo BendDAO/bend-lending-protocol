@@ -38,12 +38,12 @@ task("verify:nfts", "Verify nfts contracts at Etherscan")
       }
 
       // Proxy bNFT
-      console.log("\n- Verifying bNFT proxy...\n");
+      console.log("\n- Verifying BNFT proxy...\n");
       await verifyContract(eContractid.InitializableAdminProxy, await getProxy(bNftAddress), [bnftRegistry.address]);
 
       const bNFT = await getAddressById(`b${token}`);
       if (bNFT) {
-        console.log("\n- Verifying bNFT...\n");
+        console.log("\n- Verifying BNFT...\n");
         await verifyContract(eContractid.BNFT, await getBNFT(bNFT), [
           bnftRegistry.address,
           tokenAddress,
@@ -52,7 +52,7 @@ task("verify:nfts", "Verify nfts contracts at Etherscan")
           [],
         ]);
       } else {
-        console.error(`Skipping bNFT verify for ${token}. Missing address at JSON DB.`);
+        console.error(`Skipping BNFT verify for ${token}. Missing address at JSON DB.`);
       }
     }
   });
