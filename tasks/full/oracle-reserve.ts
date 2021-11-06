@@ -1,5 +1,9 @@
 import { task } from "hardhat/config";
-import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import {
+  getEthersSignerByAddress,
+  getParamPerNetwork,
+  insertContractAddressInDb,
+} from "../../helpers/contracts-helpers";
 import { deployReserveOracle, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
 import { ICommonConfiguration, eNetwork, eContractid } from "../../helpers/types";
 import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -24,12 +28,12 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       const { ReserveAssets, ReserveAggregator } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
-      const proxyAdmin = await getBendProxyAdmin();
+      const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
       const proxyOwnerAddress = await proxyAdmin.owner();
 
       const reserveOracleAddress = getParamPerNetwork(poolConfig.ReserveOracle, network);
-      const reserveAssets = await getParamPerNetwork(ReserveAssets, network);
-      const reserveAggregators = await getParamPerNetwork(ReserveAggregator, network);
+      const reserveAssets = getParamPerNetwork(ReserveAssets, network);
+      const reserveAggregators = getParamPerNetwork(ReserveAggregator, network);
 
       const [tokens, aggregators] = getPairsTokenAggregator(
         reserveAssets,
@@ -67,7 +71,8 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
 
         reserveOracle = await getReserveOracle(reserveOracleProxy.address);
 
-        await waitForTx(await reserveOracleImpl.setAggregators(tokens, aggregators));
+        const oracleOwnerSigner = await getEthersSignerByAddress(await reserveOracle.owner());
+        await waitForTx(await reserveOracle.connect(oracleOwnerSigner).setAggregators(tokens, aggregators));
       }
 
       // Register the proxy oracle on the addressesProvider

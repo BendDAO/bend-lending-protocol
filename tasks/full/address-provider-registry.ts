@@ -20,6 +20,6 @@ task("full:deploy-address-provider-registry", "Deploy address provider registry"
       await insertContractAddressInDb(eContractid.LendPoolAddressesProviderRegistry, providerRegistryAddress);
     } else {
       const contract = await deployLendPoolAddressesProviderRegistry(verify);
-      console.log("Deployed Registry Address:", contract.address);
+      console.log("Deployed Registry Address:", contract.address, "Owner Address:", await contract.owner());
     }
   });

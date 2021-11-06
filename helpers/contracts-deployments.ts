@@ -192,13 +192,11 @@ export const deployLendPool = async (verify?: boolean) => {
 export const deployBendOracle = async (verify?: boolean) =>
   withSaveAndVerify(await new BendOracleFactory(await getFirstSigner()).deploy(), eContractid.BendOracle, [], verify);
 
-export const deployReserveOracle = async (args: [], verify?: boolean) =>
-  withSaveAndVerify(
-    await new ReserveOracleFactory(await getFirstSigner()).deploy(...args),
-    eContractid.ReserveOracle,
-    args,
-    verify
-  );
+export const deployReserveOracle = async (args: [], verify?: boolean) => {
+  const oracleImpl = await new ReserveOracleFactory(await getFirstSigner()).deploy();
+  await insertContractAddressInDb(eContractid.ReserveOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.ReserveOracle, [], verify);
+};
 
 export const deployMockReserveOracle = async (args: [], verify?: boolean) =>
   withSaveAndVerify(
@@ -216,8 +214,11 @@ export const deployMockChainlinkOracle = async (decimals: string, verify?: boole
     verify
   );
 
-export const deployNFTOracle = async (verify?: boolean) =>
-  withSaveAndVerify(await new NFTOracleFactory(await getFirstSigner()).deploy(), eContractid.NFTOracle, [], verify);
+export const deployNFTOracle = async (verify?: boolean) => {
+  const oracleImpl = await new NFTOracleFactory(await getFirstSigner()).deploy();
+  await insertContractAddressInDb(eContractid.NFTOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.NFTOracle, [], verify);
+};
 
 export const deployMockNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(

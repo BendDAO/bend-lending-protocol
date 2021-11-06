@@ -111,6 +111,12 @@ export const getReserveOracle = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
+export const getReserveOracleImpl = async (address?: tEthereumAddress) =>
+  await ReserveOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.ReserveOracleImpl}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
 export const getMockChainlinkOracle = async (address?: tEthereumAddress) =>
   await MockChainlinkOracleFactory.connect(
     address || (await getDb().get(`${eContractid.MockChainlinkOracle}.${DRE.network.name}`).value()).address,
@@ -120,6 +126,12 @@ export const getMockChainlinkOracle = async (address?: tEthereumAddress) =>
 export const getNFTOracle = async (address?: tEthereumAddress) =>
   await NFTOracleFactory.connect(
     address || (await getDb().get(`${eContractid.NFTOracle}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getNFTOracleImpl = async (address?: tEthereumAddress) =>
+  await NFTOracleFactory.connect(
+    address || (await getDb().get(`${eContractid.NFTOracleImpl}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 

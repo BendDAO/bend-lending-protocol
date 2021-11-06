@@ -15,7 +15,6 @@ task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
     await DRE.run("set-DRE");
     const network = <eNetwork>DRE.network.name;
     const ownerSigner = await getPoolOwnerSigner();
-    const ownerAddress = await ownerSigner.getAddress();
 
     const poolConfig = loadPoolConfig(pool);
 
@@ -46,8 +45,9 @@ task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
       }
       bnftAddresses = await bnftRegistryProxy.getBNFTAddresses(assetAddress);
       console.log(
-        "BNFT %s: proxy.address: %s, implementation.address: %s",
+        "BNFT %s: , asset.address:%s, proxy.address: %s, implementation.address: %s",
         assetSymbol,
+        assetAddress,
         bnftAddresses.bNftProxy,
         bnftAddresses.bNftImpl
       );

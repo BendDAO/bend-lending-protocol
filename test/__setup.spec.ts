@@ -31,6 +31,7 @@ import {
   deployInitializableAdminProxy,
   deployBendProxyAdmin,
   deployGenericBNFTImpl,
+  deployLendPoolAddressesProviderRegistry,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -154,11 +155,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const config = loadPoolConfig(ConfigNames.Bend);
 
   //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare proxy admin...");
-  const bendProxyAdmin = await deployBendProxyAdmin();
-  console.log("bendProxyAdmin:", bendProxyAdmin.address);
-
-  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock external ERC20 Tokens, such as WETH, DAI...");
   const mockTokens: {
     [symbol: string]: MockContract | MintableERC20 | WETH9Mocked;
@@ -175,6 +171,24 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     ...(await deployAllMockNfts(deployer)),
     WPUNKS: wrappedPunk,
   };
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare address provider...");
+  const addressesProviderRegistry = await deployLendPoolAddressesProviderRegistry();
+
+  const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId);
+  await waitForTx(await addressesProvider.setPoolAdmin(poolAdmin));
+  await waitForTx(await addressesProvider.setEmergencyAdmin(emergencyAdmin));
+
+  await waitForTx(
+    await addressesProviderRegistry.registerAddressesProvider(addressesProvider.address, BendConfig.ProviderId)
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare proxy admin...");
+  const bendProxyAdmin = await deployBendProxyAdmin();
+  console.log("bendProxyAdmin:", bendProxyAdmin.address);
+  await waitForTx(await addressesProvider.setProxyAdmin(bendProxyAdmin.address));
 
   //////////////////////////////////////////////////////////////////////////////
   // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
@@ -196,24 +210,16 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(await bnftRegistry.transferOwnership(poolAdmin));
 
   //////////////////////////////////////////////////////////////////////////////
+  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
+  await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
+
+  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bnft tokens...");
   for (const [nftSymbol, mockedNft] of Object.entries(mockNfts) as [string, MintableERC721][]) {
     await waitForTx(await bnftRegistry.createBNFT(mockedNft.address, []));
     const bnftAddresses = await bnftRegistry.getBNFTAddresses(mockedNft.address);
     console.log("createBNFT:", nftSymbol, bnftAddresses.bNftProxy, bnftAddresses.bNftImpl);
   }
-
-  //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare address provider...");
-  const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId);
-  await waitForTx(await addressesProvider.setPoolAdmin(poolAdmin));
-
-  //setting users[1] as emergency admin, which is in position 2 in the DRE addresses list
-  await waitForTx(await addressesProvider.setEmergencyAdmin(emergencyAdmin));
-
-  //////////////////////////////////////////////////////////////////////////////
-  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
-  await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare lend pool...");
