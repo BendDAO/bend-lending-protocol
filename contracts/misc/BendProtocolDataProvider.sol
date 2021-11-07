@@ -19,14 +19,18 @@ contract BendProtocolDataProvider {
 
   address constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-  struct TokenData {
-    string symbol;
+  struct ReserveTokenData {
+    string tokenSymbol;
     address tokenAddress;
+    string bTokenSymbol;
+    address bTokenAddress;
   }
 
-  struct NftData {
-    string symbol;
+  struct NftTokenData {
+    string nftSymbol;
     address nftAddress;
+    string bNftSymbol;
+    address bNftAddress;
   }
 
   ILendPoolAddressesProvider public immutable ADDRESSES_PROVIDER;
@@ -35,53 +39,60 @@ contract BendProtocolDataProvider {
     ADDRESSES_PROVIDER = addressesProvider;
   }
 
-  function getAllReservesTokens() external view returns (TokenData[] memory) {
+  function getAllReservesTokenDatas() external view returns (ReserveTokenData[] memory) {
     ILendPool pool = ILendPool(ADDRESSES_PROVIDER.getLendPool());
     address[] memory reserves = pool.getReservesList();
-    TokenData[] memory reservesTokens = new TokenData[](reserves.length);
+    ReserveTokenData[] memory reservesTokens = new ReserveTokenData[](reserves.length);
     for (uint256 i = 0; i < reserves.length; i++) {
-      if (reserves[i] == ETH) {
-        reservesTokens[i] = TokenData({symbol: "ETH", tokenAddress: reserves[i]});
-        continue;
-      }
-      reservesTokens[i] = TokenData({symbol: IERC20Detailed(reserves[i]).symbol(), tokenAddress: reserves[i]});
+      DataTypes.ReserveData memory reserveData = pool.getReserveData(reserves[i]);
+      reservesTokens[i] = ReserveTokenData({
+        tokenSymbol: IERC20Detailed(reserves[i]).symbol(),
+        tokenAddress: reserves[i],
+        bTokenSymbol: IERC20Detailed(reserveData.bTokenAddress).symbol(),
+        bTokenAddress: reserveData.bTokenAddress
+      });
     }
     return reservesTokens;
   }
 
-  function getAllNftsTokens() external view returns (NftData[] memory) {
+  function getReserveTokenData(address asset) external view returns (ReserveTokenData memory) {
+    ILendPool pool = ILendPool(ADDRESSES_PROVIDER.getLendPool());
+    DataTypes.ReserveData memory reserveData = pool.getReserveData(asset);
+    return
+      ReserveTokenData({
+        tokenSymbol: IERC20Detailed(asset).symbol(),
+        tokenAddress: asset,
+        bTokenSymbol: IERC20Detailed(reserveData.bTokenAddress).symbol(),
+        bTokenAddress: reserveData.bTokenAddress
+      });
+  }
+
+  function getAllNftsTokenDatas() external view returns (NftTokenData[] memory) {
     ILendPool pool = ILendPool(ADDRESSES_PROVIDER.getLendPool());
     address[] memory nfts = pool.getNftsList();
-    NftData[] memory nftTokens = new NftData[](nfts.length);
+    NftTokenData[] memory nftTokens = new NftTokenData[](nfts.length);
     for (uint256 i = 0; i < nfts.length; i++) {
-      nftTokens[i] = NftData({symbol: IERC721Detailed(nfts[i]).symbol(), nftAddress: nfts[i]});
+      DataTypes.NftData memory nftData = pool.getNftData(nfts[i]);
+      nftTokens[i] = NftTokenData({
+        nftSymbol: IERC721Detailed(nfts[i]).symbol(),
+        nftAddress: nfts[i],
+        bNftSymbol: IERC721Detailed(nftData.bNftAddress).symbol(),
+        bNftAddress: nftData.bNftAddress
+      });
     }
     return nftTokens;
   }
 
-  function getAllBTokens() external view returns (TokenData[] memory) {
+  function getNftTokenData(address nftAsset) external view returns (NftTokenData memory) {
     ILendPool pool = ILendPool(ADDRESSES_PROVIDER.getLendPool());
-    address[] memory reserves = pool.getReservesList();
-    TokenData[] memory bTokens = new TokenData[](reserves.length);
-    for (uint256 i = 0; i < reserves.length; i++) {
-      DataTypes.ReserveData memory reserveData = pool.getReserveData(reserves[i]);
-      bTokens[i] = TokenData({
-        symbol: IERC20Detailed(reserveData.bTokenAddress).symbol(),
-        tokenAddress: reserveData.bTokenAddress
+    DataTypes.NftData memory nftData = pool.getNftData(nftAsset);
+    return
+      NftTokenData({
+        nftSymbol: IERC20Detailed(nftAsset).symbol(),
+        nftAddress: nftAsset,
+        bNftSymbol: IERC20Detailed(nftData.bNftAddress).symbol(),
+        bNftAddress: nftData.bNftAddress
       });
-    }
-    return bTokens;
-  }
-
-  function getAllBNfts() external view returns (NftData[] memory) {
-    ILendPool pool = ILendPool(ADDRESSES_PROVIDER.getLendPool());
-    address[] memory nfts = pool.getNftsList();
-    NftData[] memory bNfts = new NftData[](nfts.length);
-    for (uint256 i = 0; i < nfts.length; i++) {
-      DataTypes.NftData memory nftData = pool.getNftData(nfts[i]);
-      bNfts[i] = NftData({symbol: IERC721Detailed(nftData.bNftAddress).symbol(), nftAddress: nftData.bNftAddress});
-    }
-    return bNfts;
   }
 
   function getReserveConfigurationData(address asset)
@@ -167,18 +178,6 @@ contract BendProtocolDataProvider {
       asset
     );
     liquidityRate = reserve.currentLiquidityRate;
-  }
-
-  function getReserveTokensAddresses(address asset) external view returns (address bTokenAddress) {
-    DataTypes.ReserveData memory reserve = ILendPool(ADDRESSES_PROVIDER.getLendPool()).getReserveData(asset);
-
-    return (reserve.bTokenAddress);
-  }
-
-  function getNftTokensAddresses(address asset) external view returns (address bNftAddress) {
-    DataTypes.NftData memory reserve = ILendPool(ADDRESSES_PROVIDER.getLendPool()).getNftData(asset);
-
-    return (reserve.bNftAddress);
   }
 
   struct LoanData {

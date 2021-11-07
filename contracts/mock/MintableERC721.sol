@@ -8,7 +8,11 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
  * @dev ERC721 minting logic
  */
 contract MintableERC721 is ERC721 {
-  constructor(string memory name, string memory symbol) ERC721(name, symbol) {}
+  string public baseURI;
+
+  constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+    baseURI = "https://MintableERC721/";
+  }
 
   /**
    * @dev Function to mint tokens
@@ -21,6 +25,10 @@ contract MintableERC721 is ERC721 {
   }
 
   function _baseURI() internal view virtual override returns (string memory) {
-    return "https://MintableERC721";
+    return baseURI;
+  }
+
+  function setBaseURI(string memory baseURI_) public {
+    baseURI = baseURI_;
   }
 }

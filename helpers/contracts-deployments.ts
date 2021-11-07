@@ -268,38 +268,6 @@ export const deployInterestRate = async (args: [tEthereumAddress, string, string
     verify
   );
 
-export const deployGenericBToken = async (
-  [poolAddress, underlyingAssetAddress, treasuryAddress, incentivesController, name, symbol]: [
-    tEthereumAddress,
-    tEthereumAddress,
-    tEthereumAddress,
-    tEthereumAddress,
-    string,
-    string
-  ],
-  verify: boolean
-) => {
-  const instance = await withSaveAndVerify(
-    await new BTokenFactory(await getFirstSigner()).deploy(),
-    eContractid.BToken,
-    [],
-    verify
-  );
-
-  await instance.initialize(
-    poolAddress,
-    treasuryAddress,
-    underlyingAssetAddress,
-    incentivesController,
-    "18",
-    name,
-    symbol,
-    "0x10"
-  );
-
-  return instance;
-};
-
 export const deployGenericBTokenImpl = async (verify: boolean) =>
   withSaveAndVerify(await new BTokenFactory(await getFirstSigner()).deploy(), eContractid.BToken, [], verify);
 
