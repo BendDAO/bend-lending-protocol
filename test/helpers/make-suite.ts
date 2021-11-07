@@ -163,16 +163,14 @@ export async function initializeMakeSuite() {
   testEnv.dataProvider = await getBendProtocolDataProvider();
 
   // Reserve Tokens
-  const allTokens = await testEnv.dataProvider.getAllBTokens();
-  const bDaiAddress = allTokens.find((bToken) => bToken.symbol === "bDAI")?.tokenAddress;
-  const bUsdcAddress = allTokens.find((bToken) => bToken.symbol === "bUSDC")?.tokenAddress;
-  const bWEthAddress = allTokens.find((bToken) => bToken.symbol === "bWETH")?.tokenAddress;
+  const allReserveTokens = await testEnv.dataProvider.getAllReservesTokenDatas();
+  const bDaiAddress = allReserveTokens.find((tokenData) => tokenData.bTokenSymbol === "bDAI")?.bTokenAddress;
+  const bUsdcAddress = allReserveTokens.find((tokenData) => tokenData.bTokenSymbol === "bUSDC")?.bTokenAddress;
+  const bWEthAddress = allReserveTokens.find((tokenData) => tokenData.bTokenSymbol === "bWETH")?.bTokenAddress;
 
-  const reservesTokens = await testEnv.dataProvider.getAllReservesTokens();
-
-  const daiAddress = reservesTokens.find((token) => token.symbol === "DAI")?.tokenAddress;
-  const usdcAddress = reservesTokens.find((token) => token.symbol === "USDC")?.tokenAddress;
-  const wethAddress = reservesTokens.find((token) => token.symbol === "WETH")?.tokenAddress;
+  const daiAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "DAI")?.tokenAddress;
+  const usdcAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "USDC")?.tokenAddress;
+  const wethAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "WETH")?.tokenAddress;
 
   if (!bDaiAddress || !bUsdcAddress || !bWEthAddress) {
     console.error("Invalid BTokens", bDaiAddress, bUsdcAddress, bWEthAddress);
@@ -193,16 +191,13 @@ export async function initializeMakeSuite() {
   testEnv.wethGateway = await getWETHGateway();
 
   // NFT Tokens
-  const allBNftTokens = await testEnv.dataProvider.getAllBNfts();
+  const allBNftTokens = await testEnv.dataProvider.getAllNftsTokenDatas();
   //console.log("allBNftTokens", allBNftTokens);
-  const bPunkAddress = allBNftTokens.find((bNFT) => bNFT.symbol === "bWPUNKS")?.nftAddress;
+  const bPunkAddress = allBNftTokens.find((tokenData) => tokenData.bNftSymbol === "bWPUNKS")?.bNftAddress;
+  const bByacAddress = allBNftTokens.find((tokenData) => tokenData.bNftSymbol === "bBAYC")?.bNftAddress;
 
-  const bByacAddress = allBNftTokens.find((bNFT) => bNFT.symbol === "bBAYC")?.nftAddress;
-
-  const nftsTokens = await testEnv.dataProvider.getAllNftsTokens();
-  //console.log("nftsTokens", nftsTokens);
-  const wpunksAddress = nftsTokens.find((token) => token.symbol === "WPUNKS")?.nftAddress;
-  const baycAddress = nftsTokens.find((token) => token.symbol === "BAYC")?.nftAddress;
+  const wpunksAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WPUNKS")?.nftAddress;
+  const baycAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "BAYC")?.nftAddress;
 
   if (!bByacAddress || !bPunkAddress) {
     console.error("Invalid BNFT Tokens", bByacAddress, bPunkAddress);
