@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {ILendPool} from "./ILendPool.sol";
 import {IIncentivesController} from "./IIncentivesController.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
