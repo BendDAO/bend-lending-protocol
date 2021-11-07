@@ -21,7 +21,7 @@ export const getReserveData = async (
 ): Promise<ReserveData> => {
   const [reserveData, tokenAddresses, token] = await Promise.all([
     helper.getReserveData(reserve),
-    helper.getReserveTokensAddresses(reserve),
+    helper.getReserveTokenData(reserve),
     getIErc20Detailed(reserve),
   ]);
 
@@ -52,7 +52,7 @@ export const getReserveData = async (
     lastUpdateTimestamp: new BigNumber(reserveData.lastUpdateTimestamp),
     scaledVariableDebt: new BigNumber(scaledVariableDebt.toString()),
     address: reserve,
-    bTokenAddress: tokenAddresses,
+    bTokenAddress: tokenAddresses.bTokenAddress,
     symbol,
     decimals,
   };
@@ -123,9 +123,9 @@ export const getNftAddressFromSymbol = async (symbol: string) => {
 };
 
 const getBTokenUserData = async (reserve: string, user: string, dataProvider: BendProtocolDataProvider) => {
-  const tokenAddress: string = await dataProvider.getReserveTokensAddresses(reserve);
+  const { bTokenAddress } = await dataProvider.getReserveTokenData(reserve);
 
-  const bToken = await getBToken(tokenAddress);
+  const bToken = await getBToken(bTokenAddress);
 
   const scaledBalance = await bToken.scaledBalanceOf(user);
   return scaledBalance.toString();
