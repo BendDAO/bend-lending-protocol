@@ -5,7 +5,7 @@ import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import {
   deployBNFTRegistry,
   deployGenericBNFTImpl,
-  deployInitializableAdminProxy,
+  deployBendUpgradeableProxy,
 } from "../../helpers/contracts-deployments";
 import { getLendPoolAddressesProvider, getBendProxyAdmin, getBNFTRegistryProxy } from "../../helpers/contracts-getters";
 
@@ -31,8 +31,13 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
       poolConfig.BNftSymbolPrefix,
     ]);
 
-    const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, proxyAdmin.address, verify);
-    await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
+    const bnftRegistryProxy = await deployBendUpgradeableProxy(
+      eContractid.BNFTRegistry,
+      proxyAdmin.address,
+      bnftRegistryImpl.address,
+      initEncodedData,
+      verify
+    );
 
     const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
 

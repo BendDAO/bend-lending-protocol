@@ -17,7 +17,7 @@ import {
   getLendPoolLoanProxy,
   getLendPoolConfiguratorImpl,
   getLendPoolConfiguratorProxy,
-  getProxy,
+  getBendUpgradeableProxy,
   getWalletProvider,
   getWETHGateway,
   getPunkGateway,
@@ -53,9 +53,9 @@ task("verify:general", "Verify general contracts at Etherscan")
     const lendPoolConfiguratorAddress = await addressesProvider.getLendPoolConfigurator();
     const lendPoolLoanAddress = await addressesProvider.getLendPoolLoan();
 
-    const lendPoolProxy = await getProxy(lendPoolAddress);
-    const lendPoolConfiguratorProxy = await getProxy(lendPoolConfiguratorAddress);
-    const lendPoolLoanProxy = await getProxy(lendPoolLoanAddress);
+    const lendPoolProxy = await getBendUpgradeableProxy(lendPoolAddress);
+    const lendPoolConfiguratorProxy = await getBendUpgradeableProxy(lendPoolConfiguratorAddress);
+    const lendPoolLoanProxy = await getBendUpgradeableProxy(lendPoolLoanAddress);
 
     const punkAddress = getParamPerNetwork(CryptoPunksMarket, network);
 
@@ -125,15 +125,15 @@ task("verify:general", "Verify general contracts at Etherscan")
 
     // Lend Pool proxy
     console.log("\n- Verifying Lend Pool Proxy...\n");
-    await verifyContract(eContractid.InitializableAdminProxy, lendPoolProxy, [addressesProvider.address]);
+    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolProxy, [addressesProvider.address]);
 
     // LendPool Conf proxy
     console.log("\n- Verifying Lend Pool Configurator Proxy...\n");
-    await verifyContract(eContractid.InitializableAdminProxy, lendPoolConfiguratorProxy, [addressesProvider.address]);
+    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolConfiguratorProxy, [addressesProvider.address]);
 
     // LendPool loan manager
     console.log("\n- Verifying Lend Pool Loan Manager Proxy...\n");
-    await verifyContract(eContractid.InitializableAdminProxy, lendPoolLoanProxy, [addressesProvider.address]);
+    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolLoanProxy, [addressesProvider.address]);
 
     console.log("Finished verifications.");
   });

@@ -23,6 +23,7 @@ import {
   getMockNFTOracle,
   getMockReserveOracle,
   getMockIncentivesController,
+  getDebtToken,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -177,9 +178,9 @@ export async function initializeMakeSuite() {
 
   // Reserve Tokens
   const allReserveTokens = await testEnv.dataProvider.getAllReservesTokenDatas();
-  const bDaiAddress = allReserveTokens.find((tokenData) => tokenData.bTokenSymbol === "bDAI")?.bTokenAddress;
-  const bUsdcAddress = allReserveTokens.find((tokenData) => tokenData.bTokenSymbol === "bUSDC")?.bTokenAddress;
-  const bWEthAddress = allReserveTokens.find((tokenData) => tokenData.bTokenSymbol === "bWETH")?.bTokenAddress;
+  const bDaiAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "DAI")?.bTokenAddress;
+  const bUsdcAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "USDC")?.bTokenAddress;
+  const bWEthAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "WETH")?.bTokenAddress;
 
   const daiAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "DAI")?.tokenAddress;
   const usdcAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "USDC")?.tokenAddress;
@@ -206,8 +207,8 @@ export async function initializeMakeSuite() {
   // NFT Tokens
   const allBNftTokens = await testEnv.dataProvider.getAllNftsTokenDatas();
   //console.log("allBNftTokens", allBNftTokens);
-  const bPunkAddress = allBNftTokens.find((tokenData) => tokenData.bNftSymbol === "bWPUNKS")?.bNftAddress;
-  const bByacAddress = allBNftTokens.find((tokenData) => tokenData.bNftSymbol === "bBAYC")?.bNftAddress;
+  const bPunkAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WPUNKS")?.bNftAddress;
+  const bByacAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "BAYC")?.bNftAddress;
 
   const wpunksAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WPUNKS")?.nftAddress;
   const baycAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "BAYC")?.nftAddress;

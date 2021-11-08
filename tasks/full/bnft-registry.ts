@@ -4,17 +4,17 @@ import { eNetwork, eContractid } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import {
   deployBNFTRegistry,
-  deployInitializableAdminProxy,
+  deployBendUpgradeableProxy,
   deployGenericBNFTImpl,
 } from "../../helpers/contracts-deployments";
 import {
   getLendPoolAddressesProvider,
   getBNFTRegistryProxy,
-  getInitializableAdminProxy,
+  getBendUpgradeableProxy,
   getBendProxyAdmin,
 } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
-import { BNFTRegistry, InitializableAdminProxy } from "../../types";
+import { BNFTRegistry, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -39,22 +39,26 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
     ]);
 
     let bnftRegistry: BNFTRegistry;
-    let bnftRegistryProxy: InitializableAdminProxy;
+    let bnftRegistryProxy: BendUpgradeableProxy;
 
     let bnftRegistryProxyAddress = getParamPerNetwork(poolConfig.BNFTRegistry, network);
     if (bnftRegistryProxyAddress == undefined || !notFalsyOrZeroAddress(bnftRegistryProxyAddress)) {
       console.log("Deploying new bnft registry proxy & implementation...");
 
-      bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, proxyAdmin.address, verify);
-
-      await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
+      bnftRegistryProxy = await deployBendUpgradeableProxy(
+        eContractid.BNFTRegistry,
+        proxyAdmin.address,
+        bnftRegistryImpl.address,
+        initEncodedData,
+        verify
+      );
 
       bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
     } else {
       console.log("Upgrading exist bnft registry proxy to new implementation...");
       await insertContractAddressInDb(eContractid.BNFTRegistry, bnftRegistryProxyAddress);
 
-      bnftRegistryProxy = await getInitializableAdminProxy(bnftRegistryProxyAddress);
+      bnftRegistryProxy = await getBendUpgradeableProxy(bnftRegistryProxyAddress);
 
       // only proxy admin can do upgrading
       const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);

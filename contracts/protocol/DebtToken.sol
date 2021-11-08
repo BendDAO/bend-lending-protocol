@@ -29,6 +29,11 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
     _;
   }
 
+  modifier onlyLendPoolConfigurator() {
+    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR);
+    _;
+  }
+
   /**
    * @dev Initializes the debt token.
    * @param addressProvider The address of the lend pool
@@ -68,7 +73,7 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
     string memory debtTokenName,
     string memory debtTokenSymbol,
     bytes calldata params
-  ) public override {
+  ) public override onlyLendPoolConfigurator {
     _initialize(
       addressProvider,
       underlyingAsset,

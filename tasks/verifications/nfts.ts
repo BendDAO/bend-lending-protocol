@@ -6,7 +6,7 @@ import {
   getBNFT,
   getFirstSigner,
   getLendPoolAddressesProvider,
-  getProxy,
+  getBendUpgradeableProxy,
 } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, verifyContract } from "../../helpers/contracts-helpers";
 import { eContractid, eNetwork, ICommonConfiguration, IReserveParams } from "../../helpers/types";
@@ -39,7 +39,9 @@ task("verify:nfts", "Verify nfts contracts at Etherscan")
 
       // Proxy bNFT
       console.log("\n- Verifying BNFT proxy...\n");
-      await verifyContract(eContractid.InitializableAdminProxy, await getProxy(bNftAddress), [bnftRegistry.address]);
+      await verifyContract(eContractid.BendUpgradeableProxy, await getBendUpgradeableProxy(bNftAddress), [
+        bnftRegistry.address,
+      ]);
 
       const bNFT = await getAddressById(`b${token}`);
       if (bNFT) {

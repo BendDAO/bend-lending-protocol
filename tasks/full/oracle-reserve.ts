@@ -4,7 +4,7 @@ import {
   getParamPerNetwork,
   insertContractAddressInDb,
 } from "../../helpers/contracts-helpers";
-import { deployReserveOracle, deployInitializableAdminProxy } from "../../helpers/contracts-deployments";
+import { deployReserveOracle, deployBendUpgradeableProxy } from "../../helpers/contracts-deployments";
 import { ICommonConfiguration, eNetwork, eContractid } from "../../helpers/types";
 import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig, getWrappedNativeTokenAddress } from "../../helpers/configuration";
@@ -13,9 +13,9 @@ import {
   getLendPoolAddressesProvider,
   getPairsTokenAggregator,
   getBendProxyAdmin,
-  getInitializableAdminProxy,
+  getBendUpgradeableProxy,
 } from "../../helpers/contracts-getters";
-import { ReserveOracle, InitializableAdminProxy } from "../../types";
+import { ReserveOracle, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -47,14 +47,14 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       const initEncodedData = reserveOracleImpl.interface.encodeFunctionData("initialize", [weth]);
 
       let reserveOracle: ReserveOracle;
-      let reserveOracleProxy: InitializableAdminProxy;
+      let reserveOracleProxy: BendUpgradeableProxy;
 
       if (notFalsyOrZeroAddress(reserveOracleAddress)) {
         console.log("Upgrading exist reserve oracle proxy to new implementation...");
 
         await insertContractAddressInDb(eContractid.ReserveOracle, reserveOracleAddress);
 
-        reserveOracleProxy = await getInitializableAdminProxy(reserveOracleAddress);
+        reserveOracleProxy = await getBendUpgradeableProxy(reserveOracleAddress);
         // only proxy admin can do upgrading
         const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);
         await waitForTx(
@@ -65,9 +65,13 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       } else {
         console.log("Deploying new reserve oracle proxy & implementation...");
 
-        reserveOracleProxy = await deployInitializableAdminProxy(eContractid.ReserveOracle, proxyAdmin.address, verify);
-
-        await waitForTx(await reserveOracleProxy.initialize(reserveOracleImpl.address, initEncodedData));
+        reserveOracleProxy = await deployBendUpgradeableProxy(
+          eContractid.ReserveOracle,
+          proxyAdmin.address,
+          reserveOracleImpl.address,
+          initEncodedData,
+          verify
+        );
 
         reserveOracle = await getReserveOracle(reserveOracleProxy.address);
 
