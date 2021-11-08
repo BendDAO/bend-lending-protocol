@@ -2,7 +2,7 @@ import { TestEnv, makeSuite } from "./helpers/make-suite";
 import { ZERO_ADDRESS, RAY } from "../helpers/constants";
 import { APPROVAL_AMOUNT_LENDING_POOL, oneEther } from "../helpers/constants";
 import { deployMintableERC721, deployMockBNFTMinter } from "../helpers/contracts-deployments";
-import { getIErc721Detailed, getMockBNFTMinter } from "../helpers/contracts-getters";
+import { getIErc721Detailed } from "../helpers/contracts-getters";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { waitForTx } from "../helpers/misc-utils";
 import { CommonsConfig } from "../markets/bend/commons";

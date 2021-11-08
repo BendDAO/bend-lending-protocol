@@ -16,6 +16,7 @@ import BigNumber from "bignumber.js";
 import { getReservesConfigByPool } from "../helpers/configuration";
 import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
 import { string } from "hardhat/internal/core/params/argumentTypes";
+import { waitForTx } from "../helpers/misc-utils";
 
 const { expect } = require("chai");
 
@@ -63,7 +64,13 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
 
     await approveERC20(testEnv, user0, "WETH");
 
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+
     await deposit(testEnv, user0, "", "WETH", "100", user0.address, "success", "");
+
+    const checkResult1 = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult1).to.be.equal(true, "IncentivesController not called");
 
     const tokenIdNum = testEnv.tokenIdTracker++;
     const tokenId = tokenIdNum.toString();
@@ -71,7 +78,13 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
 
     await setApprovalForAll(testEnv, user1, "BAYC");
 
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+
     await borrow(testEnv, user1, "WETH", "1", "BAYC", tokenId, user1.address, "365", "success", "");
+
+    const checkResult2 = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult2).to.be.equal(true, "IncentivesController not called");
 
     cachedTokenId = tokenId;
   });
@@ -84,6 +97,10 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
     const tokenId = cachedTokenId;
 
     await borrow(testEnv, user1, "WETH", "2", "BAYC", tokenId, user1.address, "365", "success", "");
+
+    const checkResult = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult).to.be.equal(true, "IncentivesController not called");
   });
 
   it("User 1 tries to borrow the rest of the WETH liquidity (revert expected)", async () => {
@@ -126,7 +143,13 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
 
     await approveERC20(testEnv, user1, "WETH");
 
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+
     await repay(testEnv, user1, "", "BAYC", tokenId, "0.5", user1, "success", "");
+
+    const checkResult = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult).to.be.equal(true, "IncentivesController not called");
   });
 
   it("User 1 repays all WETH borrow after one year", async () => {
@@ -140,7 +163,13 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
 
     await approveERC20(testEnv, user1, "WETH");
 
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+
     await repay(testEnv, user1, "", "BAYC", tokenId, "-1", user1, "success", "");
+
+    const checkResult = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult).to.be.equal(true, "IncentivesController not called");
   });
 
   it("User 0 withdraws the deposited WETH plus interest", async () => {

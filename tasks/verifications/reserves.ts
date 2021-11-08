@@ -4,6 +4,7 @@ import { ZERO_ADDRESS } from "../../helpers/constants";
 import {
   getAddressById,
   getBToken,
+  getDebtToken,
   getFirstSigner,
   getInterestRate,
   getLendPoolAddressesProvider,
@@ -73,6 +74,20 @@ task("verify:reserves", "Verify reserves contracts at Etherscan")
         ]);
       } else {
         console.error(`Skipping bToken verify for ${token}. Missing address at JSON DB.`);
+      }
+
+      const debtToken = await getAddressById(`bDebt${token}`);
+      if (debtToken) {
+        console.log("\n- Verifying debtToken...\n");
+        await verifyContract(eContractid.BToken, await getDebtToken(debtToken), [
+          lendPoolProxy.address,
+          tokenAddress,
+          poolConfig.DebtTokenNamePrefix + " " + token,
+          poolConfig.DebtTokenSymbolPrefix + token,
+          ZERO_ADDRESS,
+        ]);
+      } else {
+        console.error(`Skipping debtToken verify for ${token}. Missing address at JSON DB.`);
       }
     }
   });

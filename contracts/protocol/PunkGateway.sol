@@ -81,7 +81,7 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
   ) external override returns (uint256, bool) {
     uint256 loanId = ILendPoolLoan(lendPoolLoan).getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
-    address reserve = ILendPoolLoan(lendPoolLoan).getLoanReserve(loanId);
+    (, , address reserve, ) = ILendPoolLoan(lendPoolLoan).getLoanCollateralAndReserve(loanId);
     uint256 debt = ILendPoolLoan(lendPoolLoan).getLoanReserveBorrowAmount(loanId);
 
     if (amount > debt) {

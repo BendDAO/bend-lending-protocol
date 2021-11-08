@@ -2,18 +2,17 @@ import { expect } from "chai";
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { ProtocolErrors, eContractid } from "../helpers/types";
 import { deployContract, getContract } from "../helpers/contracts-helpers";
-import { MockBToken } from "../types/MockBToken";
 import { ZERO_ADDRESS } from "../helpers/constants";
 import { getFirstSigner, getBToken, getLendPoolLoanProxy } from "../helpers/contracts-getters";
-import { MockBTokenFactory, LendPoolLoanFactory, LendPoolLoan } from "../types";
+import { BTokenFactory, LendPoolLoanFactory, LendPoolLoan, BToken } from "../types";
 
 makeSuite("Upgradeability", (testEnv: TestEnv) => {
   const { CALLER_NOT_POOL_ADMIN } = ProtocolErrors;
-  let newBTokenInstance: MockBToken;
+  let newBTokenInstance: BToken;
   let newLoanInstance: LendPoolLoan;
 
   before("deploying instances", async () => {
-    newBTokenInstance = await new MockBTokenFactory(await getFirstSigner()).deploy();
+    newBTokenInstance = await new BTokenFactory(await getFirstSigner()).deploy();
 
     newLoanInstance = await new LendPoolLoanFactory(await getFirstSigner()).deploy();
   });

@@ -27,10 +27,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
   // nftAsset + nftTokenId => loanId
   mapping(address => mapping(uint256 => uint256)) private _nftToLoanIds;
 
-  // scaled total borrow amount. Expressed in ray
-  mapping(address => uint256) _reserveBorrowScaledAmount;
-  // scaled total borrow amount. Expressed in ray
-  mapping(address => mapping(address => uint256)) private _userReserveBorrowScaledAmounts;
   mapping(address => mapping(address => uint256)) private _userNftCollateralAmounts;
 
   /**
@@ -105,10 +101,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
       scaledAmount: amountScaled
     });
 
-    _reserveBorrowScaledAmount[reserveAsset] += _loans[loanId].scaledAmount;
-
-    _userReserveBorrowScaledAmounts[onBehalfOf][reserveAsset] += _loans[loanId].scaledAmount;
-
     _userNftCollateralAmounts[onBehalfOf][nftAsset] += 1;
 
     emit LoanCreated(user, onBehalfOf, loanId, nftAsset, nftTokenId, reserveAsset, amount, borrowIndex);
@@ -138,10 +130,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
       require(amountScaled != 0, "LendPoolLoan: invalid added amount");
 
       loan.scaledAmount += amountScaled;
-
-      _reserveBorrowScaledAmount[loan.reserveAsset] += amountScaled;
-
-      _userReserveBorrowScaledAmounts[loan.borrower][loan.reserveAsset] += amountScaled;
     }
 
     if (amountTaken > 0) {
@@ -150,18 +138,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
       require(loan.scaledAmount >= amountScaled, "LendPoolLoan: taken amount exceeds");
       loan.scaledAmount -= amountScaled;
-
-      require(
-        _reserveBorrowScaledAmount[loan.reserveAsset] >= amountScaled,
-        Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
-      );
-      _reserveBorrowScaledAmount[loan.reserveAsset] -= amountScaled;
-
-      require(
-        _userReserveBorrowScaledAmounts[loan.borrower][loan.reserveAsset] >= amountScaled,
-        Errors.LP_INVALIED_USER_SCALED_AMOUNT
-      );
-      _userReserveBorrowScaledAmounts[loan.borrower][loan.reserveAsset] -= amountScaled;
     }
 
     emit LoanUpdated(user, loanId, loan.reserveAsset, amountAdded, amountTaken, borrowIndex);
@@ -208,14 +184,16 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     returns (
       address nftAsset,
       uint256 nftTokenId,
-      address reserve
+      address reserveAsset,
+      uint256 scaledAmount
     )
   {
-    return (_loans[loanId].nftAsset, _loans[loanId].nftTokenId, _loans[loanId].reserveAsset);
-  }
-
-  function getLoanReserve(uint256 loanId) external view override returns (address) {
-    return _loans[loanId].reserveAsset;
+    return (
+      _loans[loanId].nftAsset,
+      _loans[loanId].nftTokenId,
+      _loans[loanId].reserveAsset,
+      _loans[loanId].scaledAmount
+    );
   }
 
   function getLoanReserveBorrowAmount(uint256 loanId) external view override returns (uint256) {
@@ -229,36 +207,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
   function getLoanReserveBorrowScaledAmount(uint256 loanId) external view override returns (uint256) {
     return _loans[loanId].scaledAmount;
-  }
-
-  function getLoanCollateral(uint256 loanId) external view override returns (address, uint256) {
-    return (_loans[loanId].nftAsset, _loans[loanId].nftTokenId);
-  }
-
-  function getReserveBorrowScaledAmount(address reserve) external view override returns (uint256) {
-    return _reserveBorrowScaledAmount[reserve];
-  }
-
-  function getReserveBorrowAmount(address reserve) external view override returns (uint256) {
-    uint256 scaledAmount = _reserveBorrowScaledAmount[reserve];
-    if (scaledAmount == 0) {
-      return 0;
-    }
-
-    return scaledAmount.rayMul(_pool.getReserveNormalizedVariableDebt(reserve));
-  }
-
-  function getUserReserveBorrowScaledAmount(address user, address reserve) external view override returns (uint256) {
-    return _userReserveBorrowScaledAmounts[user][reserve];
-  }
-
-  function getUserReserveBorrowAmount(address user, address reserve) external view override returns (uint256) {
-    uint256 scaledAmount = _userReserveBorrowScaledAmounts[user][reserve];
-    if (scaledAmount == 0) {
-      return 0;
-    }
-
-    return scaledAmount.rayMul(_pool.getReserveNormalizedVariableDebt(reserve));
   }
 
   function getUserNftCollateralAmount(address user, address nftAsset) external view override returns (uint256) {
@@ -289,19 +237,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     }
 
     _nftToLoanIds[loan.nftAsset][loan.nftTokenId] = 0;
-
-    // Ensure scaled amount is valid
-    require(
-      _reserveBorrowScaledAmount[loan.reserveAsset] >= loan.scaledAmount,
-      Errors.LP_INVALIED_SCALED_TOTAL_BORROW_AMOUNT
-    );
-    _reserveBorrowScaledAmount[loan.reserveAsset] -= loan.scaledAmount;
-
-    require(
-      _userReserveBorrowScaledAmounts[loan.borrower][loan.reserveAsset] >= loan.scaledAmount,
-      Errors.LP_INVALIED_USER_SCALED_AMOUNT
-    );
-    _userReserveBorrowScaledAmounts[loan.borrower][loan.reserveAsset] -= loan.scaledAmount;
 
     require(_userNftCollateralAmounts[loan.borrower][loan.nftAsset] >= 1, Errors.LP_INVALIED_USER_NFT_AMOUNT);
     _userNftCollateralAmounts[loan.borrower][loan.nftAsset] -= 1;

@@ -33,6 +33,8 @@ export const initReservesByHelper = async (
   tokenAddresses: { [symbol: string]: tEthereumAddress },
   bTokenNamePrefix: string,
   bTokenSymbolPrefix: string,
+  debtTokenNamePrefix: string,
+  debtTokenSymbolPrefix: string,
   admin: tEthereumAddress,
   treasuryAddress: tEthereumAddress,
   incentivesController: tEthereumAddress,
@@ -49,6 +51,7 @@ export const initReservesByHelper = async (
 
   let initInputParams: {
     bTokenImpl: string;
+    debtTokenImpl: string;
     underlyingAssetDecimals: BigNumberish;
     interestRateAddress: string;
     underlyingAsset: string;
@@ -57,6 +60,8 @@ export const initReservesByHelper = async (
     underlyingAssetName: string;
     bTokenName: string;
     bTokenSymbol: string;
+    debtTokenName: string;
+    debtTokenSymbol: string;
     params: string;
   }[] = [];
 
@@ -97,8 +102,10 @@ export const initReservesByHelper = async (
     // Prepare input parameters
     reserveSymbols.push(symbol);
     const bTokenImplContractAddr = await getContractAddressWithJsonFallback(bTokenImpl, poolName);
+    const debtTokenImplContractAddr = await getContractAddressWithJsonFallback(eContractid.DebtToken, poolName);
     const initParam = {
       bTokenImpl: bTokenImplContractAddr,
+      debtTokenImpl: debtTokenImplContractAddr,
       underlyingAssetDecimals: reserveDecimals,
       interestRateAddress: strategyAddresses[strategy.name],
       underlyingAsset: tokenAddresses[symbol],
@@ -107,6 +114,8 @@ export const initReservesByHelper = async (
       underlyingAssetName: symbol,
       bTokenName: `${bTokenNamePrefix} ${symbol}`,
       bTokenSymbol: `${bTokenSymbolPrefix}${symbol}`,
+      debtTokenName: `${debtTokenNamePrefix} ${symbol}`,
+      debtTokenSymbol: `${debtTokenSymbolPrefix}${symbol}`,
       params: await getBTokenExtraParams(bTokenImpl, tokenAddresses[symbol]),
     };
     initInputParams.push(initParam);

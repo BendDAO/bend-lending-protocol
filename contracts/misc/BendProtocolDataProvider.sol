@@ -7,6 +7,7 @@ import {IERC721Detailed} from "../interfaces/IERC721Detailed.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
+import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
@@ -24,6 +25,8 @@ contract BendProtocolDataProvider {
     address tokenAddress;
     string bTokenSymbol;
     address bTokenAddress;
+    string debtTokenSymbol;
+    address debtTokenAddress;
   }
 
   struct NftTokenData {
@@ -49,7 +52,9 @@ contract BendProtocolDataProvider {
         tokenSymbol: IERC20Detailed(reserves[i]).symbol(),
         tokenAddress: reserves[i],
         bTokenSymbol: IERC20Detailed(reserveData.bTokenAddress).symbol(),
-        bTokenAddress: reserveData.bTokenAddress
+        bTokenAddress: reserveData.bTokenAddress,
+        debtTokenSymbol: IERC20Detailed(reserveData.debtTokenAddress).symbol(),
+        debtTokenAddress: reserveData.debtTokenAddress
       });
     }
     return reservesTokens;
@@ -63,7 +68,9 @@ contract BendProtocolDataProvider {
         tokenSymbol: IERC20Detailed(asset).symbol(),
         tokenAddress: asset,
         bTokenSymbol: IERC20Detailed(reserveData.bTokenAddress).symbol(),
-        bTokenAddress: reserveData.bTokenAddress
+        bTokenAddress: reserveData.bTokenAddress,
+        debtTokenSymbol: IERC20Detailed(reserveData.debtTokenAddress).symbol(),
+        debtTokenAddress: reserveData.debtTokenAddress
       });
   }
 
@@ -150,7 +157,7 @@ contract BendProtocolDataProvider {
 
     return (
       IERC20Detailed(asset).balanceOf(reserve.bTokenAddress),
-      ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getReserveBorrowAmount(asset),
+      IERC20Detailed(reserve.debtTokenAddress).totalSupply(),
       reserve.currentLiquidityRate,
       reserve.currentVariableBorrowRate,
       reserve.liquidityIndex,
@@ -172,11 +179,8 @@ contract BendProtocolDataProvider {
     DataTypes.ReserveData memory reserve = ILendPool(ADDRESSES_PROVIDER.getLendPool()).getReserveData(asset);
 
     currentBTokenBalance = IERC20Detailed(reserve.bTokenAddress).balanceOf(user);
-    currentVariableDebt = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getUserReserveBorrowAmount(user, asset);
-    scaledVariableDebt = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getUserReserveBorrowScaledAmount(
-      user,
-      asset
-    );
+    currentVariableDebt = IERC20Detailed(reserve.debtTokenAddress).balanceOf(user);
+    scaledVariableDebt = IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(user);
     liquidityRate = reserve.currentLiquidityRate;
   }
 

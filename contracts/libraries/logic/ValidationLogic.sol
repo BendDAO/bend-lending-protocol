@@ -180,13 +180,14 @@ library ValidationLogic {
 
   /**
    * @dev Validates a repay action
-   * @param user The address of the user msg.sender is repaying for
+   * @param onBehalfOf The address of the user msg.sender is repaying for
+   * @param borrower The owner address of loan
    * @param reserve The reserve state from which the user is repaying
    * @param amountSent The amount sent for the repayment. Can be an actual value or uint(-1)
    * @param variableDebt The borrow balance of the user
    */
   function validateRepay(
-    address user,
+    address onBehalfOf,
     address borrower,
     DataTypes.ReserveData storage reserve,
     uint256 amountSent,
@@ -200,7 +201,7 @@ library ValidationLogic {
 
     require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
 
-    require(user == borrower, Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
+    require(onBehalfOf == borrower, Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
   }
 
   /**
@@ -218,7 +219,7 @@ library ValidationLogic {
 
     require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
-    require(paybackAmount > 0, Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
+    require(paybackAmount > 0, Errors.VL_INVALID_AMOUNT);
   }
 
   /**

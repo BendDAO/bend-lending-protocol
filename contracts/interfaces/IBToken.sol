@@ -2,13 +2,13 @@
 pragma solidity ^0.8.0;
 
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {ILendPool} from "./ILendPool.sol";
 import {IIncentivesController} from "./IIncentivesController.sol";
+import {IScaledBalanceToken} from "./IScaledBalanceToken.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 
-interface IBToken is IERC20Upgradeable, IERC20MetadataUpgradeable {
+interface IBToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgradeable {
   /**
    * @dev Emitted when an bToken is initialized
    * @param underlyingAsset The address of the underlying asset

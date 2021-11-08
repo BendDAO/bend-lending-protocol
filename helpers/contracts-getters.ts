@@ -2,6 +2,7 @@ import { Signer, ethers } from "ethers";
 import {
   BendProtocolDataProviderFactory,
   BTokenFactory,
+  DebtTokenFactory,
   BNFTFactory,
   BNFTRegistryFactory,
   InterestRateFactory,
@@ -13,7 +14,6 @@ import {
   LendPoolLoanFactory,
   MintableERC20Factory,
   MintableERC721Factory,
-  MockBTokenFactory,
   BTokensAndBNFTsHelperFactory,
   BendOracleFactory,
   ReserveOracleFactory,
@@ -32,6 +32,7 @@ import {
   PunkGatewayFactory,
   InitializableAdminProxyFactory,
   BendProxyAdminFactory,
+  MockIncentivesControllerFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -150,6 +151,12 @@ export const getMockNFTOracle = async (address?: tEthereumAddress) =>
 export const getBToken = async (address?: tEthereumAddress) =>
   await BTokenFactory.connect(
     address || (await getDb().get(`${eContractid.BToken}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getDebtToken = async (address?: tEthereumAddress) =>
+  await DebtTokenFactory.connect(
+    address || (await getDb().get(`${eContractid.DebtToken}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 
@@ -316,12 +323,6 @@ export const getWETHMocked = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
-export const getMockBToken = async (address?: tEthereumAddress) =>
-  await MockBTokenFactory.connect(
-    address || (await getDb().get(`${eContractid.MockBToken}.${DRE.network.name}`).value()).address,
-    await getFirstSigner()
-  );
-
 export const getSelfdestructTransferMock = async (address?: tEthereumAddress) =>
   await SelfdestructTransferFactory.connect(
     address || (await getDb().get(`${eContractid.SelfdestructTransferMock}.${DRE.network.name}`).value()).address,
@@ -367,12 +368,6 @@ export const getWalletProvider = async (address?: tEthereumAddress) =>
 export const getAddressById = async (id: string): Promise<tEthereumAddress | undefined> =>
   (await getDb().get(`${id}.${DRE.network.name}`).value())?.address || undefined;
 
-export const getMockBNFTMinter = async (address?: tEthereumAddress) =>
-  await MockBTokenFactory.connect(
-    address || (await getDb().get(`${eContractid.MockBNFTMinter}.${DRE.network.name}`).value()).address,
-    await getFirstSigner()
-  );
-
 export const getCryptoPunksMarket = async (address?: tEthereumAddress) =>
   await CryptoPunksMarketFactory.connect(
     address || (await getDb().get(`${eContractid.CryptoPunksMarket}.${DRE.network.name}`).value()).address,
@@ -388,5 +383,11 @@ export const getWrappedPunk = async (address?: tEthereumAddress) =>
 export const getPunkGateway = async (address?: tEthereumAddress) =>
   await PunkGatewayFactory.connect(
     address || (await getDb().get(`${eContractid.PunkGateway}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getMockIncentivesController = async (address?: tEthereumAddress) =>
+  await MockIncentivesControllerFactory.connect(
+    address || (await getDb().get(`${eContractid.MockIncentivesController}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );

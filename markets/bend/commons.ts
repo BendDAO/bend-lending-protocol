@@ -17,6 +17,8 @@ export const CommonsConfig: ICommonConfiguration = {
   MarketId: 'Commons',
   BTokenNamePrefix: 'Bend interest bearing',
   BTokenSymbolPrefix: 'b',
+  DebtTokenNamePrefix: 'Bend debt bearing',
+  DebtTokenSymbolPrefix: "bDebt",
   BNftNamePrefix: 'Bend promissory note',
   BNftSymbolPrefix: 'b',
   ProviderId: 0, // Overriden in index.ts
