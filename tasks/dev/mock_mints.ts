@@ -45,15 +45,12 @@ task("dev:mint-mock-nfts", "Mint mock nfts for dev enviroment")
     }
     console.log("PUNK Balances:", (await cryptoPunksMarket.balanceOf(user)).toString());
 
-    //const wpunk = await getWrappedPunk(MockAddresses.WPUNK);
-    //await waitForTx(await wpunk.registerProxy());
-
-    //const wpunk = await getMintableERC721(MockAddresses.WPUNK);
-    //await waitForTx(await wpunk.setBaseURI("https://wrappedpunks.com:3000/api/punks/metadata/"));
+    const wpunk = await getWrappedPunk(MockAddresses.WPUNK);
+    await waitForTx(await wpunk.registerProxy());
 
     // BAYC
     const bayc = await getMintableERC721(MockAddresses.BAYC);
-    //await waitForTx(await bayc.setBaseURI("ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/"));
+    await waitForTx(await bayc.setBaseURI("ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/"));
     for (let tokenIndex = 0; tokenIndex < index + amount; tokenIndex++) {
       console.log("Mint BAYC:", tokenIndex);
       await waitForTx(await bayc.mint(tokenIndex));

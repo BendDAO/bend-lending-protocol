@@ -33,6 +33,8 @@ import {
   deployGenericBNFTImpl,
   deployLendPoolAddressesProviderRegistry,
   deployMockIncentivesController,
+  deployAllMockTokens,
+  deployAllMockNfts,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -77,6 +79,8 @@ import {
   getBNFTRegistryProxy,
   getPairsTokenAggregator,
   getMockIncentivesController,
+  getCryptoPunksMarket,
+  getWrappedPunk,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
@@ -87,65 +91,6 @@ const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
 const USD_ADDRESS = BendConfig.ProtocolGlobalParams.UsdAddress;
 
 const ALL_NFTS_INITIAL_PRICES = BendConfig.Mocks.AllNftsInitialPrices;
-
-const deployAllMockTokens = async (deployer: Signer) => {
-  const tokens: {
-    [symbol: string]: MockContract | MintableERC20 | WETH9Mocked;
-  } = {};
-
-  const protoConfigData = getReservesConfigByPool(BendPools.proto);
-
-  for (const tokenSymbol of Object.keys(TokenContractId)) {
-    const tokenName = "Bend Mock " + tokenSymbol;
-    if (tokenSymbol === "WETH") {
-      tokens[tokenSymbol] = await deployWETHMocked();
-      await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
-      continue;
-    }
-    let decimals = 18;
-
-    let configData = (<any>protoConfigData)[tokenSymbol];
-
-    if (configData) {
-      decimals = configData.reserveDecimals;
-    }
-
-    tokens[tokenSymbol] = await deployMintableERC20([tokenName, tokenSymbol, decimals.toString()]);
-    //console.log("deployAllMockTokens", tokenSymbol, decimals, await tokens[tokenSymbol].decimals());
-    await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
-  }
-
-  return tokens;
-};
-
-const deployAllMockNfts = async (deployer: Signer) => {
-  const tokens: {
-    [symbol: string]: MockContract | MintableERC721;
-  } = {};
-
-  const protoConfigData = getNftsConfigByPool(BendPools.proto);
-
-  for (const tokenSymbol of Object.keys(NftContractId)) {
-    const tokenName = "Bend Mock " + tokenSymbol;
-    /*
-    if (tokenSymbol === "WPUNKS") {
-      tokens[tokenSymbol] = await deployWPUNKSMocked();
-      await registerContractInJsonDb(
-        tokenSymbol.toUpperCase(),
-        tokens[tokenSymbol]
-      );
-      continue;
-    }
-    */
-
-    let configData = (<any>protoConfigData)[tokenSymbol];
-
-    tokens[tokenSymbol] = await deployMintableERC721([tokenName, tokenSymbol]);
-    await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
-  }
-
-  return tokens;
-};
 
 const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   console.time("setup");
@@ -161,18 +106,17 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const mockTokens: {
     [symbol: string]: MockContract | MintableERC20 | WETH9Mocked;
   } = {
-    ...(await deployAllMockTokens(deployer)),
+    ...(await deployAllMockTokens(false)),
   };
 
   console.log("-> Prepare mock external ERC721 NFTs, such as WPUNKS, BAYC...");
-  const cryptoPunksMarket = await deployCryptoPunksMarket([]);
-  const wrappedPunk = await deployWrappedPunk([cryptoPunksMarket.address]);
   const mockNfts: {
     [symbol: string]: MockContract | MintableERC721 | WrappedPunk;
   } = {
-    ...(await deployAllMockNfts(deployer)),
-    WPUNKS: wrappedPunk,
+    ...(await deployAllMockNfts(false)),
   };
+  const cryptoPunksMarket = await getCryptoPunksMarket();
+  const wrappedPunk = await getWrappedPunk();
 
   console.log("-> Prepare mock external IncentivesController...");
   const mockIncentivesController = await deployMockIncentivesController();
