@@ -72,4 +72,8 @@ contract WrappedPunk is IWrappedPunks, Ownable, ERC721, Pausable {
     // Transfers ownership of punk on original cryptopunk smart contract to caller
     _punkContract.transferPunk(sender, punkIndex);
   }
+
+  function _baseURI() internal view virtual override returns (string memory) {
+    return "https://wrappedpunks.com:3000/api/punks/metadata/";
+  }
 }
