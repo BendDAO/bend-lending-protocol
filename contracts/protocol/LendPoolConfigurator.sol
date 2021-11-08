@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
+import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
 import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
@@ -90,7 +91,21 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       )
     );
 
-    pool_.initReserve(input.underlyingAsset, bTokenProxyAddress, input.interestRateAddress);
+    address debtTokenProxyAddress = _initTokenWithProxy(
+      input.debtTokenImpl,
+      abi.encodeWithSelector(
+        IDebtToken.initialize.selector,
+        _addressesProvider,
+        input.underlyingAsset,
+        IIncentivesController(input.incentivesController),
+        input.underlyingAssetDecimals,
+        input.debtTokenName,
+        input.debtTokenSymbol,
+        input.params
+      )
+    );
+
+    pool_.initReserve(input.underlyingAsset, bTokenProxyAddress, debtTokenProxyAddress, input.interestRateAddress);
 
     DataTypes.ReserveConfigurationMap memory currentConfig = pool_.getReserveConfiguration(input.underlyingAsset);
 
@@ -101,7 +116,12 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
     pool_.setReserveConfiguration(input.underlyingAsset, currentConfig.data);
 
-    emit ReserveInitialized(input.underlyingAsset, bTokenProxyAddress, input.interestRateAddress);
+    emit ReserveInitialized(
+      input.underlyingAsset,
+      bTokenProxyAddress,
+      debtTokenProxyAddress,
+      input.interestRateAddress
+    );
   }
 
   function batchInitNft(InitNftInput[] calldata input) external onlyPoolAdmin {
@@ -159,6 +179,32 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     _upgradeTokenImplementation(reserveData.bTokenAddress, input.implementation, encodedCall);
 
     emit BTokenUpgraded(input.asset, reserveData.bTokenAddress, input.implementation);
+  }
+
+  /**
+   * @dev Updates the debt token implementation for the asset
+   **/
+  function updateDebtToken(UpdateDebtTokenInput calldata input) external onlyPoolAdmin {
+    ILendPool cachedPool = _pool;
+
+    DataTypes.ReserveData memory reserveData = cachedPool.getReserveData(input.asset);
+
+    (, , , uint256 decimals, ) = cachedPool.getReserveConfiguration(input.asset).getParamsMemory();
+
+    bytes memory encodedCall = abi.encodeWithSelector(
+      IDebtToken.initializeAfterUpgrade.selector,
+      _addressesProvider,
+      input.asset,
+      input.incentivesController,
+      decimals,
+      input.name,
+      input.symbol,
+      input.params
+    );
+
+    _upgradeTokenImplementation(reserveData.debtTokenAddress, input.implementation, encodedCall);
+
+    emit DebtTokenUpgraded(input.asset, reserveData.debtTokenAddress, input.implementation);
   }
 
   /**

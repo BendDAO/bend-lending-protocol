@@ -15,6 +15,7 @@ import { configuration as calculationsConfiguration } from "./helpers/utils/calc
 import BigNumber from "bignumber.js";
 import { getReservesConfigByPool } from "../helpers/configuration";
 import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
+import { waitForTx } from "../helpers/misc-utils";
 
 const { expect } = require("chai");
 
@@ -55,7 +56,13 @@ makeSuite("LendPool: Withdraw", (testEnv: TestEnv) => {
     const { users } = testEnv;
     const user0 = users[0];
 
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+
     await withdraw(testEnv, user0, "DAI", "500", "success", "");
+
+    const checkResult = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult).to.be.equal(true, "IncentivesController not called");
   });
 
   it("User 0 withdraws remaining half of the deposited DAI", async () => {

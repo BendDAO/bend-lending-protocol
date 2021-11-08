@@ -32,6 +32,7 @@ import {
   deployBendProxyAdmin,
   deployGenericBNFTImpl,
   deployLendPoolAddressesProviderRegistry,
+  deployMockIncentivesController,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -75,6 +76,7 @@ import {
   getLendPoolLoanProxy,
   getBNFTRegistryProxy,
   getPairsTokenAggregator,
+  getMockIncentivesController,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
@@ -171,6 +173,10 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     ...(await deployAllMockNfts(deployer)),
     WPUNKS: wrappedPunk,
   };
+
+  console.log("-> Prepare mock external IncentivesController...");
+  const mockIncentivesController = await deployMockIncentivesController();
+  const incentivesControllerAddress = mockIncentivesController.address;
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare address provider...");
@@ -347,7 +353,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await deployBTokenImplementations(ConfigNames.Bend, reservesParams, false);
 
   console.log("-> Prepare Reserve init and configure...");
-  const { BTokenNamePrefix, BTokenSymbolPrefix } = config;
+  const { BTokenNamePrefix, BTokenSymbolPrefix, DebtTokenNamePrefix, DebtTokenSymbolPrefix } = config;
   const treasuryAddress = await getTreasuryAddress(config);
 
   await initReservesByHelper(
@@ -355,9 +361,11 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     allReservesAddresses,
     BTokenNamePrefix,
     BTokenSymbolPrefix,
+    DebtTokenNamePrefix,
+    DebtTokenSymbolPrefix,
     poolAdmin,
     treasuryAddress,
-    ZERO_ADDRESS,
+    incentivesControllerAddress,
     ConfigNames.Bend,
     false
   );

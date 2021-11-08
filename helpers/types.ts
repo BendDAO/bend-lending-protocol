@@ -45,7 +45,7 @@ export enum eContractid {
   BendProxyAdmin = "BendProxyAdmin",
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
-  MockBToken = "MockBToken",
+  DebtToken = "DebtToken",
   BNFT = "BNFT",
   MockBNFT = "MockBNFT",
   BendProtocolDataProvider = "BendProtocolDataProvider",
@@ -70,6 +70,7 @@ export enum eContractid {
   CryptoPunksMarket = "CryptoPunksMarket",
   WrappedPunk = "WrappedPunk",
   PunkGateway = "PunkGateway",
+  MockIncentivesController = "MockIncentivesController",
 }
 
 /*
@@ -331,6 +332,8 @@ export interface ICommonConfiguration {
   MarketId: string;
   BTokenNamePrefix: string;
   BTokenSymbolPrefix: string;
+  DebtTokenNamePrefix: string;
+  DebtTokenSymbolPrefix: string;
   BNftNamePrefix: string;
   BNftSymbolPrefix: string;
   ProviderId: number;
@@ -368,6 +371,7 @@ export interface ICommonConfiguration {
 
   ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;
+  DebtTokenImplementation?: iParamsPerNetwork<tEthereumAddress>;
   OracleQuoteCurrency: string;
   OracleQuoteUnit: string;
 }

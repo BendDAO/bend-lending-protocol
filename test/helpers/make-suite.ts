@@ -22,6 +22,7 @@ import {
   getMockChainlinkOracle,
   getMockNFTOracle,
   getMockReserveOracle,
+  getMockIncentivesController,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -48,7 +49,15 @@ import { WETHGateway } from "../../types/WETHGateway";
 import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BendOracle, BNFTRegistry, LendPoolLoan, CryptoPunksMarket, WrappedPunk, PunkGateway } from "../../types";
+import {
+  BendOracle,
+  BNFTRegistry,
+  LendPoolLoan,
+  CryptoPunksMarket,
+  WrappedPunk,
+  PunkGateway,
+  MockIncentivesController,
+} from "../../types";
 import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
 
 chai.use(bignumberChai());
@@ -73,6 +82,7 @@ export interface TestEnv {
   mockNftOracle: MockNFTOracle;
   bendOracle: BendOracle;
   dataProvider: BendProtocolDataProvider;
+  mockIncentivesController: MockIncentivesController;
   weth: WETH9Mocked;
   bWETH: BToken;
   dai: MintableERC20;
@@ -106,6 +116,7 @@ const testEnv: TestEnv = {
   loan: {} as LendPoolLoan,
   configurator: {} as LendPoolConfigurator,
   dataProvider: {} as BendProtocolDataProvider,
+  mockIncentivesController: {} as MockIncentivesController,
   reserveOracle: {} as ReserveOracle,
   mockReserveOracle: {} as MockReserveOracle,
   mockNftOracle: {} as MockNFTOracle,
@@ -161,6 +172,8 @@ export async function initializeMakeSuite() {
   testEnv.bendOracle = await getBendOracle();
 
   testEnv.dataProvider = await getBendProtocolDataProvider();
+
+  testEnv.mockIncentivesController = await getMockIncentivesController();
 
   // Reserve Tokens
   const allReserveTokens = await testEnv.dataProvider.getAllReservesTokenDatas();

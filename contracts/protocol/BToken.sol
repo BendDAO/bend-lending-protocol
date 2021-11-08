@@ -6,27 +6,24 @@ import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
+import {IncentivizedERC20} from "./IncentivizedERC20.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+
+import "hardhat/console.sol";
 
 /**
  * @title NFTLend ERC20 BToken
  * @dev Implementation of the interest bearing token for the NFTLend protocol
  * @author NFTLend
  */
-contract BToken is Initializable, IBToken, ERC20Upgradeable {
+contract BToken is Initializable, IBToken, IncentivizedERC20 {
   using WadRayMath for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
-
-  string private _bTokenName;
-  string private _bTokenSymbol;
-  uint8 private _bTokenDecimals;
 
   ILendPoolAddressesProvider internal _addressProvider;
   ILendPool internal _pool;
@@ -42,28 +39,6 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
   modifier onlyLendPoolConfigurator() {
     require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR);
     _;
-  }
-
-  /**
-   * @dev Returns the name of the token.
-   */
-  function name() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (string memory) {
-    return _bTokenName;
-  }
-
-  /**
-   * @dev Returns the symbol of the token, usually a shorter version of the
-   * name.
-   */
-  function symbol() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (string memory) {
-    return _bTokenSymbol;
-  }
-
-  /**
-   * @dev Returns the decimals of the token.
-   */
-  function decimals() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (uint8) {
-    return _bTokenDecimals;
   }
 
   /**
@@ -83,7 +58,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     string calldata bTokenSymbol,
     bytes calldata params
   ) external override initializer {
-    __ERC20_init("BToken", "BToken");
+    __IncentivizedERC20_init(bTokenName, bTokenSymbol, bTokenDecimals);
 
     _initialize(
       addressProvider,
@@ -129,9 +104,9 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     string calldata bTokenSymbol,
     bytes calldata params
   ) internal {
-    _bTokenName = bTokenName;
-    _bTokenSymbol = bTokenSymbol;
-    _bTokenDecimals = bTokenDecimals;
+    _setName(bTokenName);
+    _setSymbol(bTokenSymbol);
+    _setDecimals(bTokenDecimals);
 
     _addressProvider = addressProvider;
     _pool = ILendPool(addressProvider.getLendPool());
@@ -156,16 +131,9 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     uint256 amount,
     uint256 index
   ) external override onlyLendPool {
-    uint256 oldTotalSupply = super.totalSupply();
-    uint256 oldAccountBalance = super.balanceOf(user);
-
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_BURN_AMOUNT);
     _burn(user, amountScaled);
-
-    if (address(_getIncentivesController()) != address(0)) {
-      _getIncentivesController().handleAction(user, oldTotalSupply, oldAccountBalance);
-    }
 
     IERC20Upgradeable(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
 
@@ -186,16 +154,11 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     uint256 amount,
     uint256 index
   ) external override onlyLendPool returns (bool) {
-    uint256 previousTotal = super.totalSupply();
     uint256 previousBalance = super.balanceOf(user);
 
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);
-
-    if (address(_getIncentivesController()) != address(0)) {
-      _getIncentivesController().handleAction(user, previousTotal, previousBalance);
-    }
 
     emit Transfer(address(0), user, amount);
     emit Mint(user, amount, index);
@@ -231,7 +194,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * @param user The user whose balance is calculated
    * @return The balance of the user
    **/
-  function balanceOf(address user) public view override(IERC20Upgradeable, ERC20Upgradeable) returns (uint256) {
+  function balanceOf(address user) public view override returns (uint256) {
     return super.balanceOf(user).rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
   }
 
@@ -241,7 +204,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * @param user The user whose balance is calculated
    * @return The scaled balance of the user
    **/
-  function scaledBalanceOf(address user) external view returns (uint256) {
+  function scaledBalanceOf(address user) external view override returns (uint256) {
     return super.balanceOf(user);
   }
 
@@ -251,7 +214,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * @return The scaled balance of the user
    * @return The scaled balance and the scaled total supply
    **/
-  function getScaledUserBalanceAndSupply(address user) external view returns (uint256, uint256) {
+  function getScaledUserBalanceAndSupply(address user) external view override returns (uint256, uint256) {
     return (super.balanceOf(user), super.totalSupply());
   }
 
@@ -261,7 +224,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * does that too.
    * @return the current total supply
    **/
-  function totalSupply() public view override(IERC20Upgradeable, ERC20Upgradeable) returns (uint256) {
+  function totalSupply() public view override returns (uint256) {
     uint256 currentSupplyScaled = super.totalSupply();
 
     if (currentSupplyScaled == 0) {
@@ -275,7 +238,7 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
    * @dev Returns the scaled total supply of the variable debt token. Represents sum(debt/index)
    * @return the scaled total supply
    **/
-  function scaledTotalSupply() public view virtual returns (uint256) {
+  function scaledTotalSupply() public view virtual override returns (uint256) {
     return super.totalSupply();
   }
 
@@ -303,8 +266,12 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
   /**
    * @dev For internal usage in the logic of the parent contract IncentivizedERC20
    **/
-  function _getIncentivesController() internal view returns (IIncentivesController) {
+  function _getIncentivesController() internal view override returns (IIncentivesController) {
     return _incentivesController;
+  }
+
+  function _getUnderlyingAssetAddress() internal view override returns (address) {
+    return _underlyingAsset;
   }
 
   /**
@@ -349,14 +316,6 @@ contract BToken is Initializable, IBToken, ERC20Upgradeable {
     uint256 toBalanceBefore = super.balanceOf(to).rayMul(index);
 
     super._transfer(from, to, amount.rayDiv(index));
-
-    if (address(_getIncentivesController()) != address(0)) {
-      uint256 currentTotalSupply = super.totalSupply();
-      _getIncentivesController().handleAction(from, currentTotalSupply, fromBalanceBefore);
-      if (from != to) {
-        _getIncentivesController().handleAction(to, currentTotalSupply, toBalanceBefore);
-      }
-    }
 
     if (validate) {
       pool.finalizeTransfer(underlyingAsset, from, to, amount, fromBalanceBefore, toBalanceBefore);

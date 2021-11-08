@@ -41,6 +41,8 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     const {
       BTokenNamePrefix,
       BTokenSymbolPrefix,
+      DebtTokenNamePrefix,
+      DebtTokenSymbolPrefix,
       BNftNamePrefix,
       BNftSymbolPrefix,
       WethGateway,
@@ -65,6 +67,8 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       allTokenAddresses,
       BTokenNamePrefix,
       BTokenSymbolPrefix,
+      DebtTokenNamePrefix,
+      DebtTokenSymbolPrefix,
       admin,
       treasuryAddress,
       ZERO_ADDRESS,

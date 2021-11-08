@@ -50,6 +50,8 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
         reserveAssets,
         poolConfig.BTokenNamePrefix,
         poolConfig.BTokenSymbolPrefix,
+        poolConfig.DebtTokenNamePrefix,
+        poolConfig.DebtTokenSymbolPrefix,
         admin,
         treasuryAddress,
         incentivesController,

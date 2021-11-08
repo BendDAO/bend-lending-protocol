@@ -25,6 +25,7 @@ import {
   MintableERC721,
   MintableERC721Factory,
   BTokenFactory,
+  DebtTokenFactory,
   BNFTFactory,
   BNFTRegistryFactory,
   MockBNFTMinterFactory,
@@ -34,7 +35,6 @@ import {
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
   BTokensAndBNFTsHelperFactory,
-  MockBTokenFactory,
   BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
@@ -53,6 +53,7 @@ import {
   MockChainlinkOracleFactory,
   InitializableAdminProxyFactory,
   BendProxyAdminFactory,
+  MockIncentivesControllerFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -268,6 +269,9 @@ export const deployInterestRate = async (args: [tEthereumAddress, string, string
     verify
   );
 
+export const deployGenericDebtToken = async (verify?: boolean) =>
+  withSaveAndVerify(await new DebtTokenFactory(await getFirstSigner()).deploy(), eContractid.DebtToken, [], verify);
+
 export const deployGenericBTokenImpl = async (verify: boolean) =>
   withSaveAndVerify(await new BTokenFactory(await getFirstSigner()).deploy(), eContractid.BToken, [], verify);
 
@@ -358,22 +362,6 @@ export const authorizeWETHGatewayNFT = async (
 export const deployWETHMocked = async (verify?: boolean) =>
   withSaveAndVerify(await new WETH9MockedFactory(await getFirstSigner()).deploy(), eContractid.WETHMocked, [], verify);
 
-export const deployMockBToken = async (
-  args: [tEthereumAddress, tEthereumAddress, tEthereumAddress, tEthereumAddress, string, string, string],
-  verify?: boolean
-) => {
-  const instance = await withSaveAndVerify(
-    await new MockBTokenFactory(await getFirstSigner()).deploy(),
-    eContractid.MockBToken,
-    [],
-    verify
-  );
-
-  await instance.initialize(args[0], args[2], args[1], args[3], "18", args[4], args[5], args[6]);
-
-  return instance;
-};
-
 export const deploySelfdestructTransferMock = async (verify?: boolean) =>
   withSaveAndVerify(
     await new SelfdestructTransferFactory(await getFirstSigner()).deploy(),
@@ -416,6 +404,13 @@ export const deployBTokenImplementations = async (
       console.log(`Deploying BToken implementation`, tokenImplementations[x]);
       await deployImplementationMethod(verify);
     }
+  }
+
+  // Debt tokens, for now all Market configs follows same implementations
+  const genericDebtTokenAddress = getOptionalParamAddressPerNetwork(poolConfig.DebtTokenImplementation, network);
+
+  if (!notFalsyOrZeroAddress(genericDebtTokenAddress)) {
+    await deployGenericDebtToken(verify);
   }
 };
 
@@ -536,6 +531,14 @@ export const deployBendProxyAdmin = async (verify?: boolean) =>
   withSaveAndVerify(
     await new BendProxyAdminFactory(await getFirstSigner()).deploy(),
     eContractid.BendProxyAdmin,
+    [],
+    verify
+  );
+
+export const deployMockIncentivesController = async (verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockIncentivesControllerFactory(await getFirstSigner()).deploy(),
+    eContractid.MockIncentivesController,
     [],
     verify
   );

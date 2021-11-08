@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IBToken} from "../interfaces/IBToken.sol";
+import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
@@ -122,8 +123,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     address bToken = reserve.bTokenAddress;
 
-    reserve.updateState(asset, _addressesProvider.getLendPoolLoan());
-    reserve.updateInterestRates(asset, bToken, amount, 0, _addressesProvider.getLendPoolLoan());
+    reserve.updateState();
+    reserve.updateInterestRates(asset, bToken, amount, 0);
 
     IERC20Upgradeable(asset).safeTransferFrom(_msgSender(), bToken, amount);
 
@@ -171,9 +172,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       _addressesProvider.getReserveOracle()
     );
 
-    reserve.updateState(asset, _addressesProvider.getLendPoolLoan());
+    reserve.updateState();
 
-    reserve.updateInterestRates(asset, bToken, 0, amountToWithdraw, _addressesProvider.getLendPoolLoan());
+    reserve.updateInterestRates(asset, bToken, 0, amountToWithdraw);
 
     IBToken(bToken).burn(_msgSender(), to, amountToWithdraw, reserve.liquidityIndex);
 
@@ -263,14 +264,14 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     require(vars.loanId != 0, Errors.LPL_NFT_IS_NOT_USED_AS_COLLATERAL);
 
     vars.repayer = _msgSender();
-    vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(vars.loanId);
+    (, , vars.asset, ) = ILendPoolLoan(loanAddress).getLoanCollateralAndReserve(vars.loanId);
     vars.borrower = ILendPoolLoan(loanAddress).borrowerOf(vars.loanId);
 
     DataTypes.ReserveData storage reserve = _reserves[vars.asset];
     DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
+    reserve.updateState();
 
     vars.variableDebt = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(vars.loanId);
 
@@ -284,21 +285,23 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     }
 
     if (vars.isUpdate) {
-      ILendPoolLoan(loanAddress).updateLoan(vars.borrower, vars.loanId, 0, amount, reserve.variableBorrowIndex);
+      ILendPoolLoan(loanAddress).updateLoan(
+        vars.borrower,
+        vars.loanId,
+        0,
+        vars.paybackAmount,
+        reserve.variableBorrowIndex
+      );
     } else {
       ILendPoolLoan(loanAddress).repayLoan(vars.borrower, vars.loanId, nftData.bNftAddress);
     }
 
-    // update interest rate according latest borrow amount (utilizaton)
-    reserve.updateInterestRates(
-      vars.asset,
-      reserve.bTokenAddress,
-      vars.paybackAmount,
-      0,
-      _addressesProvider.getLendPoolLoan()
-    );
+    IDebtToken(reserve.debtTokenAddress).burn(vars.borrower, vars.paybackAmount, reserve.variableBorrowIndex);
 
-    if (ILendPoolLoan(loanAddress).getUserReserveBorrowScaledAmount(vars.borrower, vars.asset) == 0) {
+    // update interest rate according latest borrow amount (utilizaton)
+    reserve.updateInterestRates(vars.asset, reserve.bTokenAddress, vars.paybackAmount, 0);
+
+    if (IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(vars.borrower) == 0) {
       _usersConfig[vars.borrower].setReserveBorrowing(reserve.id, false);
     }
 
@@ -357,13 +360,13 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     vars.loanId = ILendPoolLoan(loanAddress).getCollateralLoanId(nftAsset, nftTokenId);
     require(vars.loanId != 0, Errors.LPL_NFT_IS_NOT_USED_AS_COLLATERAL);
 
-    vars.asset = ILendPoolLoan(loanAddress).getLoanReserve(vars.loanId);
+    (, , vars.asset, ) = ILendPoolLoan(loanAddress).getLoanCollateralAndReserve(vars.loanId);
 
     DataTypes.ReserveData storage reserve = _reserves[vars.asset];
     DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserve.updateState(vars.asset, _addressesProvider.getLendPoolLoan());
+    reserve.updateState();
 
     vars.paybackAmount = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(vars.loanId);
 
@@ -398,16 +401,12 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     ILendPoolLoan(loanAddress).liquidateLoan(vars.user, vars.loanId, nftData.bNftAddress);
 
-    // update interest rate according latest borrow amount (utilizaton)
-    reserve.updateInterestRates(
-      vars.asset,
-      reserve.bTokenAddress,
-      vars.paybackAmount,
-      0,
-      _addressesProvider.getLendPoolLoan()
-    );
+    IDebtToken(reserve.debtTokenAddress).burn(vars.borrower, vars.paybackAmount, reserve.variableBorrowIndex);
 
-    if (ILendPoolLoan(loanAddress).getUserReserveBorrowScaledAmount(vars.borrower, vars.asset) == 0) {
+    // update interest rate according latest borrow amount (utilizaton)
+    reserve.updateInterestRates(vars.asset, reserve.bTokenAddress, vars.paybackAmount, 0);
+
+    if (IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(vars.borrower) == 0) {
       _usersConfig[vars.borrower].setReserveBorrowing(reserve.id, false);
     }
 
@@ -530,7 +529,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
-      address reserveAsset = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanReserve(loanId);
+      (, , address reserveAsset, ) = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanCollateralAndReserve(
+        loanId
+      );
       DataTypes.ReserveData storage reserveData = _reserves[reserveAsset];
       totalDebtETH = GenericLogic.calculateNftDebtData(
         reserveAsset,
@@ -659,15 +660,17 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * - Only callable by the LendingPoolConfigurator contract
    * @param asset The address of the underlying asset of the reserve
    * @param bTokenAddress The address of the bToken that will be assigned to the reserve
+   * @param debtTokenAddress The address of the debtToken that will be assigned to the reserve
    * @param interestRateAddress The address of the interest rate strategy contract
    **/
   function initReserve(
     address asset,
     address bTokenAddress,
+    address debtTokenAddress,
     address interestRateAddress
   ) external override onlyLendPoolConfigurator {
     require(AddressUpgradeable.isContract(asset), Errors.LP_NOT_CONTRACT);
-    _reserves[asset].init(bTokenAddress, interestRateAddress);
+    _reserves[asset].init(bTokenAddress, debtTokenAddress, interestRateAddress);
     _addReserveToList(asset);
   }
 
@@ -788,7 +791,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     ExecuteBorrowLocalVars memory vars;
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserve.updateState(params.asset, _addressesProvider.getLendPoolLoan());
+    reserve.updateState();
 
     // Convert asset amount to ETH
     vars.reserveOracle = _addressesProvider.getReserveOracle();
@@ -815,7 +818,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     );
 
     vars.isFirstBorrowing = false;
-    if (ILendPoolLoan(vars.loanAddress).getUserReserveBorrowScaledAmount(params.onBehalfOf, params.asset) == 0) {
+    if (IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(params.onBehalfOf) == 0) {
       vars.isFirstBorrowing = true;
     }
 
@@ -855,14 +858,10 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       );
     }
 
+    IDebtToken(reserve.debtTokenAddress).mint(params.onBehalfOf, params.amount, reserve.variableBorrowIndex);
+
     // update interest rate according latest borrow amount (utilizaton)
-    reserve.updateInterestRates(
-      params.asset,
-      params.bTokenAddress,
-      0,
-      params.releaseUnderlying ? params.amount : 0,
-      _addressesProvider.getLendPoolLoan()
-    );
+    reserve.updateInterestRates(params.asset, params.bTokenAddress, 0, params.releaseUnderlying ? params.amount : 0);
 
     if (params.releaseUnderlying) {
       IBToken(params.bTokenAddress).transferUnderlyingTo(params.user, params.amount);

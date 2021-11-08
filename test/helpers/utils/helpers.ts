@@ -7,6 +7,7 @@ import {
   getBToken,
   getLendPoolLoanProxy,
   getFirstSigner,
+  getDebtToken,
 } from "../../../helpers/contracts-getters";
 import { tEthereumAddress } from "../../../helpers/types";
 import BigNumber from "bignumber.js";
@@ -25,9 +26,9 @@ export const getReserveData = async (
     getIErc20Detailed(reserve),
   ]);
 
-  const lendPoolLoan = await getLendPoolLoanProxy();
+  const debtToken = await getDebtToken(tokenAddresses.debtTokenAddress);
 
-  const scaledVariableDebt = await lendPoolLoan.getReserveBorrowScaledAmount(reserve);
+  const scaledVariableDebt = await debtToken.scaledTotalSupply();
 
   const symbol = await token.symbol();
   const decimals = new BigNumber(await token.decimals());

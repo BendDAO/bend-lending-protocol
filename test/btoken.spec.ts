@@ -5,12 +5,17 @@ import { ethers } from "ethers";
 import { ProtocolErrors } from "../helpers/types";
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { CommonsConfig } from "../markets/bend/commons";
+import { waitForTx } from "../helpers/misc-utils";
 
 const BEND_REFERRAL = CommonsConfig.ProtocolGlobalParams.BendReferral;
 
 makeSuite("BToken", (testEnv: TestEnv) => {
   const { INVALID_FROM_BALANCE_AFTER_TRANSFER, INVALID_TO_BALANCE_AFTER_TRANSFER, VL_TRANSFER_NOT_ALLOWED } =
     ProtocolErrors;
+
+  afterEach("Reset", () => {
+    testEnv.mockIncentivesController.resetHandleActionIsCalled();
+  });
 
   it("Check DAI basic parameters", async () => {
     const { dai, bDai, pool } = testEnv;
@@ -49,7 +54,13 @@ makeSuite("BToken", (testEnv: TestEnv) => {
 
     await pool.connect(users[0].signer).deposit(dai.address, amountDeposit, users[0].address, "0");
 
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+
     await bDai.connect(users[0].signer).transfer(users[1].address, amountDeposit);
+
+    const checkResult = await testEnv.mockIncentivesController.checkHandleActionIsCalled();
+    await waitForTx(await testEnv.mockIncentivesController.resetHandleActionIsCalled());
+    expect(checkResult).to.be.equal(true, "IncentivesController not called");
 
     const fromBalance = await bDai.balanceOf(users[0].address);
     const toBalance = await bDai.balanceOf(users[1].address);

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {IBToken} from "../../interfaces/IBToken.sol";
+import {IDebtToken} from "../../interfaces/IDebtToken.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
-import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 import {ReserveConfiguration} from "../configuration/ReserveConfiguration.sol";
 import {MathUtils} from "../math/MathUtils.sol";
 import {WadRayMath} from "../math/WadRayMath.sol";
@@ -93,12 +93,8 @@ library ReserveLogic {
    * @dev Updates the liquidity cumulative index and the variable borrow index.
    * @param reserve the reserve object
    **/
-  function updateState(
-    DataTypes.ReserveData storage reserve,
-    address reserveAddress,
-    address loanAddress
-  ) internal {
-    uint256 scaledVariableDebt = ILendPoolLoan(loanAddress).getReserveBorrowScaledAmount(reserveAddress);
+  function updateState(DataTypes.ReserveData storage reserve) internal {
+    uint256 scaledVariableDebt = IDebtToken(reserve.debtTokenAddress).scaledTotalSupply();
     uint256 previousVariableBorrowIndex = reserve.variableBorrowIndex;
     uint256 previousLiquidityIndex = reserve.liquidityIndex;
     uint40 lastUpdatedTimestamp = reserve.lastUpdateTimestamp;
@@ -147,11 +143,13 @@ library ReserveLogic {
    * @dev Initializes a reserve
    * @param reserve The reserve object
    * @param bTokenAddress The address of the overlying bToken contract
+   * @param debtTokenAddress The address of the overlying debtToken contract
    * @param interestRateAddress The address of the interest rate strategy contract
    **/
   function init(
     DataTypes.ReserveData storage reserve,
     address bTokenAddress,
+    address debtTokenAddress,
     address interestRateAddress
   ) external {
     require(reserve.bTokenAddress == address(0), Errors.RL_RESERVE_ALREADY_INITIALIZED);
@@ -159,6 +157,7 @@ library ReserveLogic {
     reserve.liquidityIndex = uint128(WadRayMath.ray());
     reserve.variableBorrowIndex = uint128(WadRayMath.ray());
     reserve.bTokenAddress = bTokenAddress;
+    reserve.debtTokenAddress = debtTokenAddress;
     reserve.interestRateAddress = interestRateAddress;
   }
 
@@ -180,15 +179,14 @@ library ReserveLogic {
     address reserveAddress,
     address bTokenAddress,
     uint256 liquidityAdded,
-    uint256 liquidityTaken,
-    address loanAddress
+    uint256 liquidityTaken
   ) internal {
     UpdateInterestRatesLocalVars memory vars;
 
     //calculates the total variable debt locally using the scaled borrow amount instead
     //of borrow amount(), as it's noticeably cheaper. Also, the index has been
     //updated by the previous updateState() call
-    vars.totalVariableDebt = ILendPoolLoan(loanAddress).getReserveBorrowScaledAmount(reserveAddress).rayMul(
+    vars.totalVariableDebt = IDebtToken(reserve.debtTokenAddress).scaledTotalSupply().rayMul(
       reserve.variableBorrowIndex
     );
 

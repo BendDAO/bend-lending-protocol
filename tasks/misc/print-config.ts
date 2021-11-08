@@ -39,7 +39,7 @@ task("print-config", "Print config of all reserves and nfts")
     const protocolDataProvider = await getBendProtocolDataProvider(dataProvider);
 
     const reserveFields = ["decimals", "reserveFactor", "borrowingEnabled", "isActive", "isFrozen"];
-    const reserveTokensFields = ["bTokenSymbol", "bTokenAddress"];
+    const reserveTokensFields = ["bTokenSymbol", "bTokenAddress", "debtTokenSymbol", "debtTokenAddress"];
     const reserveAssets = getParamPerNetwork(poolConfig.ReserveAssets, network as eNetwork);
     for (const [symbol, address] of Object.entries(reserveAssets)) {
       console.log(`- ${symbol} reserve config`);

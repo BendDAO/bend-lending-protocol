@@ -16,6 +16,7 @@ library DataTypes {
     uint40 lastUpdateTimestamp;
     //tokens addresses
     address bTokenAddress;
+    address debtTokenAddress;
     //address of the interest rate strategy
     address interestRateAddress;
     //the id of the reserve. Represents the position in the list of the active reserves

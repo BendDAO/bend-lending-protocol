@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 interface ILendPoolConfigurator {
   struct InitReserveInput {
     address bTokenImpl;
+    address debtTokenImpl;
     uint8 underlyingAssetDecimals;
     address interestRateAddress;
     address underlyingAsset;
@@ -13,6 +14,8 @@ interface ILendPoolConfigurator {
     string underlyingAssetName;
     string bTokenName;
     string bTokenSymbol;
+    string debtTokenName;
+    string debtTokenSymbol;
     bytes params;
   }
 
@@ -30,13 +33,28 @@ interface ILendPoolConfigurator {
     bytes params;
   }
 
+  struct UpdateDebtTokenInput {
+    address asset;
+    address incentivesController;
+    string name;
+    string symbol;
+    address implementation;
+    bytes params;
+  }
+
   /**
    * @dev Emitted when a reserve is initialized.
    * @param asset The address of the underlying asset of the reserve
    * @param bToken The address of the associated bToken contract
+   * @param debtToken The address of the associated debtToken contract
    * @param interestRateAddress The address of the interest rate strategy for the reserve
    **/
-  event ReserveInitialized(address indexed asset, address indexed bToken, address interestRateAddress);
+  event ReserveInitialized(
+    address indexed asset,
+    address indexed bToken,
+    address debtToken,
+    address interestRateAddress
+  );
 
   /**
    * @dev Emitted when borrowing is enabled on a reserve
@@ -147,4 +165,12 @@ interface ILendPoolConfigurator {
    * @param implementation The new bToken implementation
    **/
   event BTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
+
+  /**
+   * @dev Emitted when the implementation of a debt token is upgraded
+   * @param asset The address of the underlying asset of the reserve
+   * @param proxy The debt token proxy address
+   * @param implementation The new debtToken implementation
+   **/
+  event DebtTokenUpgraded(address indexed asset, address indexed proxy, address indexed implementation);
 }
