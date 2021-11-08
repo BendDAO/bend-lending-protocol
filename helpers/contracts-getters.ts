@@ -30,7 +30,7 @@ import {
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
-  InitializableAdminProxyFactory,
+  BendUpgradeableProxyFactory,
   BendProxyAdminFactory,
   MockIncentivesControllerFactory,
 } from "../types";
@@ -329,11 +329,8 @@ export const getSelfdestructTransferMock = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
-export const getProxy = async (address: tEthereumAddress) =>
-  await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
-
-export const getInitializableAdminProxy = async (address: tEthereumAddress) =>
-  await InitializableAdminProxyFactory.connect(address, await getFirstSigner());
+export const getBendUpgradeableProxy = async (address: tEthereumAddress) =>
+  await BendUpgradeableProxyFactory.connect(address, await getFirstSigner());
 
 export const getBendProxyAdmin = async (address?: tEthereumAddress) =>
   await BendProxyAdminFactory.connect(

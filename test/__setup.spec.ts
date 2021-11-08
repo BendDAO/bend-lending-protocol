@@ -28,7 +28,7 @@ import {
   deployPunkGateway,
   authorizePunkGateway,
   authorizePunkGatewayERC20,
-  deployInitializableAdminProxy,
+  deployBendUpgradeableProxy,
   deployBendProxyAdmin,
   deployGenericBNFTImpl,
   deployLendPoolAddressesProviderRegistry,
@@ -208,8 +208,12 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     config.BNftSymbolPrefix,
   ]);
 
-  const bnftRegistryProxy = await deployInitializableAdminProxy(eContractid.BNFTRegistry, bendProxyAdmin.address);
-  await waitForTx(await bnftRegistryProxy.initialize(bnftRegistryImpl.address, initEncodedData));
+  const bnftRegistryProxy = await deployBendUpgradeableProxy(
+    eContractid.BNFTRegistry,
+    bendProxyAdmin.address,
+    bnftRegistryImpl.address,
+    initEncodedData
+  );
 
   const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
 

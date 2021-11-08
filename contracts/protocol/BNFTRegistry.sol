@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
-import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
+import {BendUpgradeableProxy} from "../libraries/proxy/BendUpgradeableProxy.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -102,7 +102,7 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     address bNftProxy = bNftProxys[nftAsset];
     require(bNftProxy != address(0), "BNFTR: asset nonexist");
 
-    InitializableAdminProxy proxy = InitializableAdminProxy(payable(bNftProxy));
+    BendUpgradeableProxy proxy = BendUpgradeableProxy(payable(bNftProxy));
 
     if (data.length > 0) {
       proxy.upgradeToAndCall(bNftImpl, data);
@@ -122,8 +122,7 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   ) internal returns (address bNftProxy) {
     bytes memory initParams = _buildInitParams(nftAsset, params);
 
-    InitializableAdminProxy proxy = new InitializableAdminProxy(address(this));
-    proxy.initialize(bNftImpl, initParams);
+    BendUpgradeableProxy proxy = new BendUpgradeableProxy(bNftImpl, address(this), initParams);
 
     bNftProxy = address(proxy);
 

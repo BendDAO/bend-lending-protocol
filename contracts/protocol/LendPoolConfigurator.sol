@@ -11,7 +11,7 @@ import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
-import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
+import {BendUpgradeableProxy} from "../libraries/proxy/BendUpgradeableProxy.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
@@ -169,7 +169,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       _addressesProvider,
       input.treasury,
       input.asset,
-      input.incentivesController,
+      IIncentivesController(input.incentivesController),
       decimals,
       input.name,
       input.symbol,
@@ -195,7 +195,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       IDebtToken.initializeAfterUpgrade.selector,
       _addressesProvider,
       input.asset,
-      input.incentivesController,
+      IIncentivesController(input.incentivesController),
       decimals,
       input.name,
       input.symbol,
@@ -422,9 +422,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
   }
 
   function _initTokenWithProxy(address implementation, bytes memory initParams) internal returns (address) {
-    InitializableAdminProxy proxy = new InitializableAdminProxy(address(this));
-
-    proxy.initialize(implementation, initParams);
+    BendUpgradeableProxy proxy = new BendUpgradeableProxy(implementation, address(this), initParams);
 
     return address(proxy);
   }
@@ -434,7 +432,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     address implementation,
     bytes memory initParams
   ) internal {
-    InitializableAdminProxy proxy = InitializableAdminProxy(payable(proxyAddress));
+    BendUpgradeableProxy proxy = BendUpgradeableProxy(payable(proxyAddress));
 
     proxy.upgradeToAndCall(implementation, initParams);
   }

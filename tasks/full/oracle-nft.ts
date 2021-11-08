@@ -1,16 +1,16 @@
 import { task } from "hardhat/config";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
-import { deployInitializableAdminProxy, deployNFTOracle } from "../../helpers/contracts-deployments";
+import { deployBendUpgradeableProxy, deployNFTOracle } from "../../helpers/contracts-deployments";
 import { ICommonConfiguration, eNetwork, eContractid } from "../../helpers/types";
 import { waitForTx, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig, getGenesisPoolAdmin } from "../../helpers/configuration";
 import {
   getNFTOracle,
   getLendPoolAddressesProvider,
-  getInitializableAdminProxy,
+  getBendUpgradeableProxy,
   getBendProxyAdmin,
 } from "../../helpers/contracts-getters";
-import { NFTOracle, InitializableAdminProxy } from "../../types";
+import { NFTOracle, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -38,14 +38,14 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       const initEncodedData = nftOracleImpl.interface.encodeFunctionData("initialize", [poolAdmin]);
 
       let nftOracle: NFTOracle;
-      let nftOracleProxy: InitializableAdminProxy;
+      let nftOracleProxy: BendUpgradeableProxy;
 
       if (notFalsyOrZeroAddress(nftOracleAddress)) {
         console.log("Upgrading exist nft oracle proxy to new implementation...");
 
         await insertContractAddressInDb(eContractid.NFTOracle, nftOracleAddress);
 
-        nftOracleProxy = await getInitializableAdminProxy(nftOracleAddress);
+        nftOracleProxy = await getBendUpgradeableProxy(nftOracleAddress);
 
         // only proxy admin can do upgrading
         const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);
@@ -55,9 +55,13 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       } else {
         console.log("Deploying new nft oracle proxy & implementation...");
 
-        nftOracleProxy = await deployInitializableAdminProxy(eContractid.NFTOracle, proxyAdmin.address, verify);
-
-        await waitForTx(await nftOracleProxy.initialize(nftOracleImpl.address, initEncodedData));
+        nftOracleProxy = await deployBendUpgradeableProxy(
+          eContractid.NFTOracle,
+          proxyAdmin.address,
+          nftOracleImpl.address,
+          initEncodedData,
+          verify
+        );
 
         nftOracle = await getNFTOracle(nftOracleProxy.address);
 

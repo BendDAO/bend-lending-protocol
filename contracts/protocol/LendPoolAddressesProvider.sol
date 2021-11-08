@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 // Prettier ignore to prevent buidler flatter bug
 // prettier-ignore
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {InitializableAdminProxy} from "../libraries/proxy/InitializableAdminProxy.sol";
+import {BendUpgradeableProxy} from "../libraries/proxy/BendUpgradeableProxy.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -209,20 +209,18 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     address payable proxyAddress = payable(_addresses[id]);
 
     if (proxyAddress == address(0)) {
-      // create proxy, then init proxy & implementation
-      InitializableAdminProxy proxy = new InitializableAdminProxy(address(this));
-
       bytes memory params = abi.encodeWithSignature("initialize(address)", address(this));
 
-      proxy.initialize(newAddress, params);
+      // create proxy, then init proxy & implementation
+      BendUpgradeableProxy proxy = new BendUpgradeableProxy(newAddress, address(this), params);
 
       _addresses[id] = address(proxy);
       emit ProxyCreated(id, address(proxy));
     } else {
-      // upgrade & init implementation
-      InitializableAdminProxy proxy = InitializableAdminProxy(proxyAddress);
-
       bytes memory params = abi.encodeWithSignature("initializeAfterUpgrade(address)", address(this));
+
+      // upgrade & init implementation
+      BendUpgradeableProxy proxy = BendUpgradeableProxy(proxyAddress);
 
       proxy.upgradeToAndCall(newAddress, params);
     }

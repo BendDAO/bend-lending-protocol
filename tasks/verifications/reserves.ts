@@ -8,7 +8,7 @@ import {
   getFirstSigner,
   getInterestRate,
   getLendPoolAddressesProvider,
-  getProxy,
+  getBendUpgradeableProxy,
 } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, verifyContract } from "../../helpers/contracts-helpers";
 import { eContractid, eNetwork, ICommonConfiguration, IReserveParams } from "../../helpers/types";
@@ -47,7 +47,7 @@ task("verify:reserves", "Verify reserves contracts at Etherscan")
 
       // Proxy bToken
       console.log("\n- Verifying bToken proxy...\n");
-      await verifyContract(eContractid.InitializableAdminProxy, await getProxy(bTokenAddress), [
+      await verifyContract(eContractid.BendUpgradeableProxy, await getBendUpgradeableProxy(bTokenAddress), [
         lendPoolConfigurator.address,
       ]);
 

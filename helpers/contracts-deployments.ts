@@ -1,4 +1,5 @@
 import { Contract } from "ethers";
+import { BytesLike } from "@ethersproject/bytes";
 import { DRE, notFalsyOrZeroAddress } from "./misc-utils";
 import {
   tEthereumAddress,
@@ -51,7 +52,7 @@ import {
   WrappedPunkFactory,
   PunkGatewayFactory,
   MockChainlinkOracleFactory,
-  InitializableAdminProxyFactory,
+  BendUpgradeableProxyFactory,
   BendProxyAdminFactory,
   MockIncentivesControllerFactory,
 } from "../types";
@@ -519,11 +520,17 @@ export const authorizePunkGatewayERC20 = async (
   token: tEthereumAddress
 ) => await new PunkGatewayFactory(await getFirstSigner()).attach(punkGateway).authorizeLendPoolERC20(lendPool, token);
 
-export const deployInitializableAdminProxy = async (id: string, admin: tEthereumAddress, verify?: boolean) =>
+export const deployBendUpgradeableProxy = async (
+  id: string,
+  admin: tEthereumAddress,
+  logic: tEthereumAddress,
+  data: BytesLike,
+  verify?: boolean
+) =>
   withSaveAndVerify(
-    await new InitializableAdminProxyFactory(await getFirstSigner()).deploy(admin),
+    await new BendUpgradeableProxyFactory(await getFirstSigner()).deploy(logic, admin, data),
     id,
-    [admin],
+    [logic, admin, DRE.ethers.utils.hexlify(data)],
     verify
   );
 

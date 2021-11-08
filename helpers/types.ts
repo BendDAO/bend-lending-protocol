@@ -41,7 +41,7 @@ export enum eContractid {
   MockNFTOracle = "MockNFTOracle",
   MockReserveOracle = "MockReserveOracle",
   InterestRate = "InterestRate",
-  InitializableAdminProxy = "InitializableAdminProxy",
+  BendUpgradeableProxy = "BendUpgradeableProxy",
   BendProxyAdmin = "BendProxyAdmin",
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
