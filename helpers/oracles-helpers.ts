@@ -1,13 +1,11 @@
 import { ethers } from "ethers";
-import { tEthereumAddress, iAssetBase, iAssetAggregatorBase, iNftBase, iNftAggregatorBase, SymbolMap } from "./types";
+import { tEthereumAddress, iAssetAggregatorBase, SymbolMap } from "./types";
 
 import { ReserveOracle } from "../types/ReserveOracle";
 import { NFTOracle } from "../types/NFTOracle";
-import { BendOracle } from "../types/BendOracle";
 import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
 import { deployMockChainlinkOracle } from "./contracts-deployments";
-import { chunk, waitForTx } from "./misc-utils";
-import { MockChainlinkOracleFactory } from "../types";
+import { waitForTx } from "./misc-utils";
 
 export const setPricesInChainlinkMockAggregator = async (
   prices: SymbolMap<string>,
@@ -57,17 +55,6 @@ export const setPricesInNFTOracle = async (
     const [, assetAddress] = (Object.entries(assetsAddresses) as [string, string][])[assetAddressIndex];
     console.log("setPricesInNFTOracle", assetSymbol, assetAddress, price);
     await waitForTx(await nftOracleInstance.setAssetData(assetAddress, price, "1444004400", "10001"));
-  }
-};
-
-export const setAssetContractsInBendOracle = async (
-  allAssetsAddresses: { [tokenSymbol: string]: tEthereumAddress },
-  oracleContract: tEthereumAddress,
-  bendOracleInstance: BendOracle
-) => {
-  for (const [assetSymbol, assetAddress] of Object.entries(allAssetsAddresses) as [string, tEthereumAddress][]) {
-    console.log("setAssetContractsInBendOracle", assetSymbol, assetAddress);
-    await waitForTx(await bendOracleInstance.setOracleContract(assetAddress, oracleContract));
   }
 };
 

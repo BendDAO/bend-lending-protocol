@@ -11,7 +11,6 @@ import {
   deployLendPool,
   deployLendPoolLoan,
   deployBTokensAndBNFTsHelper,
-  deployBendOracle,
   deployReserveOracle,
   deployNFTOracle,
   deployMockNFTOracle,
@@ -51,8 +50,6 @@ import {
 import { initializeMakeSuite } from "./helpers/make-suite";
 
 import {
-  setAssetContractsInBendOracle,
-  setPricesInChainlinkMockAggregator,
   setAggregatorsInReserveOracle,
   addAssetsInNFTOracle,
   setPricesInNFTOracle,
@@ -278,13 +275,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   console.log("-> Prepare mock nft oracle...");
   const mockNftOracleImpl = await deployMockNFTOracle();
   await waitForTx(await mockNftOracleImpl.initialize(await addressesProvider.getPoolAdmin()));
-
-  //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare bend oracle...");
-  const bendOracleImpl = await deployBendOracle();
-  await waitForTx(await bendOracleImpl.initialize());
-  await setAssetContractsInBendOracle(allTokenAddresses, reserveOracleImpl.address, bendOracleImpl);
-  await setAssetContractsInBendOracle(allNftAddresses, nftOracleImpl.address, bendOracleImpl);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare Reserve pool...");
