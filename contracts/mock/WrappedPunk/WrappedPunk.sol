@@ -25,6 +25,13 @@ contract WrappedPunk is IWrappedPunks, Ownable, ERC721, Pausable {
   }
 
   /**
+   * @dev Gets address of cryptopunk smart contract
+   */
+  function punkContract() public view override returns (address) {
+    return address(_punkContract);
+  }
+
+  /**
    * @dev Registers proxy
    */
   function registerProxy() public override {

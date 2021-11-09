@@ -413,6 +413,20 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     emit NftUnfrozen(asset);
   }
 
+  function setMaxNumberOfReserves(uint256 newVal) external onlyPoolAdmin {
+    //default value is 32
+    uint256 curVal = _pool.MAX_NUMBER_RESERVES();
+    require(newVal > curVal, Errors.LPC_INVALID_CONFIGURATION);
+    _pool.setMaxNumberOfReserves(newVal);
+  }
+
+  function setMaxNumberOfNfts(uint256 newVal) external onlyPoolAdmin {
+    //default value is 256
+    uint256 curVal = _pool.MAX_NUMBER_NFTS();
+    require(newVal > curVal, Errors.LPC_INVALID_CONFIGURATION);
+    _pool.setMaxNumberOfNfts(newVal);
+  }
+
   /**
    * @dev pauses or unpauses all the actions of the protocol, including bToken transfers
    * @param val true if protocol needs to be paused, false otherwise

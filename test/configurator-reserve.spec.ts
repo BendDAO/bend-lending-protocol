@@ -7,15 +7,8 @@ import { strategyWETH } from "../markets/bend/reservesConfigs";
 const { expect } = require("chai");
 
 makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
-  const {
-    CALLER_NOT_POOL_ADMIN,
-    LPC_RESERVE_LIQUIDITY_NOT_0,
-    RC_INVALID_LTV,
-    RC_INVALID_LIQ_THRESHOLD,
-    RC_INVALID_LIQ_BONUS,
-    RC_INVALID_DECIMALS,
-    RC_INVALID_RESERVE_FACTOR,
-  } = ProtocolErrors;
+  const { CALLER_NOT_POOL_ADMIN, LPC_RESERVE_LIQUIDITY_NOT_0, LPC_INVALID_CONFIGURATION, RC_INVALID_RESERVE_FACTOR } =
+    ProtocolErrors;
 
   it("Reverts trying to set an invalid reserve factor", async () => {
     const { configurator, weth } = testEnv;
@@ -184,5 +177,28 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     await expect(configurator.deactivateReserve(dai.address), LPC_RESERVE_LIQUIDITY_NOT_0).to.be.revertedWith(
       LPC_RESERVE_LIQUIDITY_NOT_0
     );
+  });
+
+  it("Config setMaxNumberOfReserves valid value", async () => {
+    const { configurator, users, pool } = testEnv;
+    await configurator.setMaxNumberOfReserves(64);
+
+    const wantVal = await pool.MAX_NUMBER_RESERVES();
+    expect(wantVal).to.be.equal(64);
+  });
+
+  it("Config setMaxNumberOfReserves invalid value", async () => {
+    const { configurator, users, pool } = testEnv;
+    await expect(configurator.setMaxNumberOfReserves(2), LPC_INVALID_CONFIGURATION).to.be.revertedWith(
+      LPC_INVALID_CONFIGURATION
+    );
+  });
+
+  it("Check the onlyAdmin on setMaxNumberOfReserves ", async () => {
+    const { configurator, users, pool } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).setMaxNumberOfReserves(512),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 });

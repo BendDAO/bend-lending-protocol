@@ -7,7 +7,7 @@ import { strategyBAYC } from "../markets/bend/reservesConfigs";
 const { expect } = require("chai");
 
 makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
-  const { CALLER_NOT_POOL_ADMIN, RC_INVALID_LTV, RC_INVALID_LIQ_THRESHOLD, RC_INVALID_LIQ_BONUS } = ProtocolErrors;
+  const { CALLER_NOT_POOL_ADMIN, LPC_INVALID_CONFIGURATION } = ProtocolErrors;
 
   it("Deactivates the BAYC NFT", async () => {
     const { configurator, bayc, dataProvider } = testEnv;
@@ -116,6 +116,29 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).configureNftAsCollateral(bayc.address, "7500", "8000", "500"),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Config setMaxNumberOfNfts valid value", async () => {
+    const { configurator, users, pool } = testEnv;
+    await configurator.setMaxNumberOfNfts(512);
+
+    const wantVal = await pool.MAX_NUMBER_NFTS();
+    expect(wantVal).to.be.equal(512);
+  });
+
+  it("Config setMaxNumberOfNfts invalid value", async () => {
+    const { configurator, users, pool } = testEnv;
+    await expect(configurator.setMaxNumberOfNfts(2), LPC_INVALID_CONFIGURATION).to.be.revertedWith(
+      LPC_INVALID_CONFIGURATION
+    );
+  });
+
+  it("Check the onlyAdmin on setMaxNumberOfNfts ", async () => {
+    const { configurator, users, pool } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).setMaxNumberOfNfts(512),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
