@@ -6,10 +6,11 @@ import {IBNFT} from "../interfaces/IBNFT.sol";
 import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 import {MockFlashLoanReceiverDummy} from "./MockFlashLoanReceiverDummy.sol";
 
-contract MockFlashLoanReceiver is IFlashLoanReceiver {
+contract MockFlashLoanReceiver is IFlashLoanReceiver, IERC721Receiver {
   event ExecutedWithFail(address _asset, uint256[] _tokenIds);
   event ExecutedWithSuccess(address _asset, uint256[] _tokenIds);
 
@@ -111,5 +112,18 @@ contract MockFlashLoanReceiver is IFlashLoanReceiver {
     emit ExecutedWithSuccess(asset, tokenIds);
 
     return true;
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external pure override returns (bytes4) {
+    operator;
+    from;
+    tokenId;
+    data;
+    return IERC721Receiver.onERC721Received.selector;
   }
 }
