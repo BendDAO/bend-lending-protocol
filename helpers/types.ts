@@ -30,8 +30,6 @@ export enum eContractid {
   GenericLogic = "GenericLogic",
   LendPool = "LendPool",
   LendPoolLoan = "LendPoolLoan",
-  BendOracle = "BendOracle",
-  MockBendOracle = "MockBendOracle",
   ReserveOracle = "ReserveOracle",
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",

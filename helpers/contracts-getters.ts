@@ -15,7 +15,6 @@ import {
   MintableERC20Factory,
   MintableERC721Factory,
   BTokensAndBNFTsHelperFactory,
-  BendOracleFactory,
   ReserveOracleFactory,
   MockChainlinkOracleFactory,
   MockReserveOracleFactory,
@@ -98,12 +97,6 @@ export const getLendPoolLoanProxy = async (address?: tEthereumAddress) => {
 export const getLendPool = async (address?: tEthereumAddress) =>
   await LendPoolFactory.connect(
     address || (await getDb().get(`${eContractid.LendPool}.${DRE.network.name}`).value()).address,
-    await getFirstSigner()
-  );
-
-export const getBendOracle = async (address?: tEthereumAddress) =>
-  await BendOracleFactory.connect(
-    address || (await getDb().get(`${eContractid.BendOracle}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 

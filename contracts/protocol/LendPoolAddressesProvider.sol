@@ -142,15 +142,6 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     emit EmergencyAdminUpdated(emergencyAdmin);
   }
 
-  function getBendOracle() external view override returns (address) {
-    return getAddress(BEND_ORACLE);
-  }
-
-  function setBendOracle(address bendOracle) external override onlyOwner {
-    _addresses[BEND_ORACLE] = bendOracle;
-    emit BendOracleUpdated(bendOracle);
-  }
-
   function getReserveOracle() external view override returns (address) {
     return getAddress(RESERVE_ORACLE);
   }

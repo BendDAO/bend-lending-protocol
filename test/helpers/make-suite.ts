@@ -14,7 +14,6 @@ import {
   getWETHMocked,
   getWETHGateway,
   getBNFTRegistryProxy,
-  getBendOracle,
   getLendPoolLoanProxy,
   getCryptoPunksMarket,
   getWrappedPunk,
@@ -53,7 +52,6 @@ import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import {
-  BendOracle,
   BNFTRegistry,
   LendPoolLoan,
   CryptoPunksMarket,
@@ -85,7 +83,6 @@ export interface TestEnv {
   mockReserveOracle: MockReserveOracle;
   nftOracle: NFTOracle;
   mockNftOracle: MockNFTOracle;
-  bendOracle: BendOracle;
   dataProvider: BendProtocolDataProvider;
   uiProvider: UiPoolDataProvider;
   walletProvider: WalletBalanceProvider;
@@ -131,7 +128,6 @@ const testEnv: TestEnv = {
   mockNftOracle: {} as MockNFTOracle,
   nftOracle: {} as NFTOracle,
   mockChainlinkOracle: {} as MockChainlinkOracle,
-  bendOracle: {} as BendOracle,
   weth: {} as WETH9Mocked,
   bWETH: {} as BToken,
   dai: {} as MintableERC20,
@@ -178,7 +174,6 @@ export async function initializeMakeSuite() {
   testEnv.mockReserveOracle = await getMockReserveOracle();
   testEnv.nftOracle = await getNFTOracle();
   testEnv.mockNftOracle = await getMockNFTOracle();
-  testEnv.bendOracle = await getBendOracle();
 
   testEnv.dataProvider = await getBendProtocolDataProvider();
   testEnv.walletProvider = await getWalletProvider();

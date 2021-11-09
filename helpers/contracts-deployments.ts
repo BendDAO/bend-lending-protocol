@@ -36,7 +36,6 @@ import {
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
   BTokensAndBNFTsHelperFactory,
-  BendOracleFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
   MockNFTOracleFactory,
@@ -193,9 +192,6 @@ export const deployLendPool = async (verify?: boolean) => {
   await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImpl.address);
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
 };
-
-export const deployBendOracle = async (verify?: boolean) =>
-  withSaveAndVerify(await new BendOracleFactory(await getFirstSigner()).deploy(), eContractid.BendOracle, [], verify);
 
 export const deployReserveOracle = async (args: [], verify?: boolean) => {
   const oracleImpl = await new ReserveOracleFactory(await getFirstSigner()).deploy();
