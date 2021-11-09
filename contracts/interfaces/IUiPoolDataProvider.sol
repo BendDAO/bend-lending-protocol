@@ -72,6 +72,16 @@ interface IUiPoolDataProvider {
     uint256 emissionEndTimestamp;
   }
 
+  struct AggregatedLoanData {
+    uint256 totalCollateralETH;
+    uint256 totalDebtETH;
+    uint256 availableBorrowsETH;
+    uint256 ltv;
+    uint256 liquidationThreshold;
+    uint256 loanId;
+    uint256 healthFactor;
+  }
+
   function incentivesController() external view returns (IIncentivesController);
 
   function getReservesList(ILendPoolAddressesProvider provider) external view returns (address[] memory);
@@ -116,4 +126,10 @@ interface IUiPoolDataProvider {
     external
     view
     returns (AggregatedNftData[] memory, UserNftData[] memory);
+
+  function getSimpleLoansData(
+    ILendPoolAddressesProvider provider,
+    address[] memory nftAssets,
+    uint256[] memory nftTokenIds
+  ) external view returns (AggregatedLoanData[] memory);
 }
