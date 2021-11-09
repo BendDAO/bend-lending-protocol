@@ -162,6 +162,39 @@ makeSuite("DataProvider", (testEnv) => {
     }
   });
 
+  it("Query UI Loan Data", async () => {
+    const { users, addressesProvider, bayc, uiProvider } = testEnv;
+    const depositor = users[0];
+    const borrower = users[1];
+
+    {
+      const simpleLoansData = await uiProvider.getSimpleLoansData(
+        addressesProvider.address,
+        [bayc.address, bayc.address],
+        ["101", "102"]
+      );
+      //console.log("simpleLoansData", simpleLoansData);
+
+      const loanData4Nft101 = simpleLoansData[0];
+      const loanData4Nft102 = simpleLoansData[1];
+
+      expect(loanData4Nft101.loanId).to.be.gt(0);
+      expect(loanData4Nft101.totalCollateralETH).to.be.gt(0);
+      expect(loanData4Nft101.availableBorrowsETH).to.be.gt(0);
+      expect(loanData4Nft101.totalDebtETH).to.be.gt(0);
+      expect(loanData4Nft101.ltv).to.be.gt(0);
+      expect(loanData4Nft101.liquidationThreshold).to.be.gt(0);
+
+      expect(loanData4Nft102.loanId).to.be.equal(0);
+      expect(loanData4Nft102.totalCollateralETH).to.be.gt(0);
+      expect(loanData4Nft102.availableBorrowsETH).to.be.gt(0);
+      expect(loanData4Nft102.totalDebtETH).to.be.equal(0);
+
+      expect(loanData4Nft101.ltv).to.be.equal(loanData4Nft102.ltv);
+      expect(loanData4Nft101.liquidationThreshold).to.be.equal(loanData4Nft102.liquidationThreshold);
+    }
+  });
+
   it("Query Wallet Reserve Data", async () => {
     const { users, addressesProvider, weth, bWETH, walletProvider, dataProvider } = testEnv;
     const depositor = users[0];

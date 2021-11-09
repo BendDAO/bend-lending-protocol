@@ -17,6 +17,7 @@ import {ReserveConfiguration} from "../libraries/configuration/ReserveConfigurat
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {InterestRate} from "../protocol/InterestRate.sol";
+import {Errors} from "../libraries/helpers/Errors.sol";
 
 contract UiPoolDataProvider is IUiPoolDataProvider {
   using WadRayMath for uint256;
@@ -58,49 +59,10 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
 
     for (uint256 i = 0; i < reserves.length; i++) {
       AggregatedReserveData memory reserveData = reservesData[i];
-      reserveData.underlyingAsset = reserves[i];
 
-      // reserve current state
-      DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserveData.underlyingAsset);
-      reserveData.liquidityIndex = baseData.liquidityIndex;
-      reserveData.variableBorrowIndex = baseData.variableBorrowIndex;
-      reserveData.liquidityRate = baseData.currentLiquidityRate;
-      reserveData.variableBorrowRate = baseData.currentVariableBorrowRate;
-      reserveData.lastUpdateTimestamp = baseData.lastUpdateTimestamp;
-      reserveData.bTokenAddress = baseData.bTokenAddress;
-      reserveData.debtTokenAddress = baseData.debtTokenAddress;
-      reserveData.interestRateAddress = baseData.interestRateAddress;
-      reserveData.priceInEth = reserveOracle.getAssetPrice(reserveData.underlyingAsset);
+      DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserves[i]);
 
-      reserveData.availableLiquidity = IERC20Detailed(reserveData.underlyingAsset).balanceOf(reserveData.bTokenAddress);
-      reserveData.totalScaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledTotalSupply();
-
-      // reserve configuration
-      reserveData.symbol = IERC20Detailed(reserveData.underlyingAsset).symbol();
-      reserveData.name = IERC20Detailed(reserveData.underlyingAsset).name();
-
-      (, , , reserveData.decimals, reserveData.reserveFactor) = baseData.configuration.getParamsMemory();
-      (reserveData.isActive, reserveData.isFrozen, reserveData.borrowingEnabled, ) = baseData
-        .configuration
-        .getFlagsMemory();
-      (reserveData.variableRateSlope1, reserveData.variableRateSlope2) = getInterestRateStrategySlopes(
-        InterestRate(reserveData.interestRateAddress)
-      );
-
-      // incentives
-      if (address(0) != address(incentivesController)) {
-        (
-          reserveData.bTokenIncentivesIndex,
-          reserveData.bEmissionPerSecond,
-          reserveData.bIncentivesLastUpdateTimestamp
-        ) = incentivesController.getAssetData(reserveData.bTokenAddress);
-
-        (
-          reserveData.vTokenIncentivesIndex,
-          reserveData.vEmissionPerSecond,
-          reserveData.vIncentivesLastUpdateTimestamp
-        ) = incentivesController.getAssetData(reserveData.debtTokenAddress);
-      }
+      _fillReserveData(reserveData, reserves[i], baseData);
     }
 
     uint256 emissionEndTimestamp;
@@ -124,21 +86,8 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
 
     for (uint256 i = 0; i < reserves.length; i++) {
       DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserves[i]);
-      // incentives
-      if (address(0) != address(incentivesController)) {
-        userReservesData[i].bTokenincentivesUserIndex = incentivesController.getUserAssetData(
-          user,
-          baseData.bTokenAddress
-        );
-        userReservesData[i].vTokenincentivesUserIndex = incentivesController.getUserAssetData(
-          user,
-          baseData.debtTokenAddress
-        );
-      }
-      // user reserve data
-      userReservesData[i].underlyingAsset = reserves[i];
-      userReservesData[i].scaledBTokenBalance = IBToken(baseData.bTokenAddress).scaledBalanceOf(user);
-      userReservesData[i].scaledVariableDebt = IDebtToken(baseData.debtTokenAddress).scaledBalanceOf(user);
+
+      _fillUserReserveData(userReservesData[i], user, reserves[i], baseData);
     }
 
     uint256 userUnclaimedRewards;
@@ -167,66 +116,12 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
 
     for (uint256 i = 0; i < reserves.length; i++) {
       AggregatedReserveData memory reserveData = reservesData[i];
-      reserveData.underlyingAsset = reserves[i];
 
-      // reserve current state
-      DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserveData.underlyingAsset);
-      reserveData.liquidityIndex = baseData.liquidityIndex;
-      reserveData.variableBorrowIndex = baseData.variableBorrowIndex;
-      reserveData.liquidityRate = baseData.currentLiquidityRate;
-      reserveData.variableBorrowRate = baseData.currentVariableBorrowRate;
-      reserveData.lastUpdateTimestamp = baseData.lastUpdateTimestamp;
-      reserveData.bTokenAddress = baseData.bTokenAddress;
-      reserveData.debtTokenAddress = baseData.debtTokenAddress;
-      reserveData.interestRateAddress = baseData.interestRateAddress;
-      reserveData.priceInEth = reserveOracle.getAssetPrice(reserveData.underlyingAsset);
-
-      reserveData.availableLiquidity = IERC20Detailed(reserveData.underlyingAsset).balanceOf(reserveData.bTokenAddress);
-      reserveData.totalScaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledTotalSupply();
-
-      // reserve configuration
-      reserveData.symbol = IERC20Detailed(reserveData.underlyingAsset).symbol();
-      reserveData.name = IERC20Detailed(reserveData.underlyingAsset).name();
-
-      (, , , reserveData.decimals, reserveData.reserveFactor) = baseData.configuration.getParamsMemory();
-      (reserveData.isActive, reserveData.isFrozen, reserveData.borrowingEnabled, ) = baseData
-        .configuration
-        .getFlagsMemory();
-      (reserveData.variableRateSlope1, reserveData.variableRateSlope2) = getInterestRateStrategySlopes(
-        InterestRate(reserveData.interestRateAddress)
-      );
-
-      // incentives
-      if (address(0) != address(incentivesController)) {
-        (
-          reserveData.bTokenIncentivesIndex,
-          reserveData.bEmissionPerSecond,
-          reserveData.bIncentivesLastUpdateTimestamp
-        ) = incentivesController.getAssetData(reserveData.bTokenAddress);
-
-        (
-          reserveData.vTokenIncentivesIndex,
-          reserveData.vEmissionPerSecond,
-          reserveData.vIncentivesLastUpdateTimestamp
-        ) = incentivesController.getAssetData(reserveData.debtTokenAddress);
-      }
+      DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserves[i]);
+      _fillReserveData(reserveData, reserves[i], baseData);
 
       if (user != address(0)) {
-        // incentives
-        if (address(0) != address(incentivesController)) {
-          userReservesData[i].bTokenincentivesUserIndex = incentivesController.getUserAssetData(
-            user,
-            reserveData.bTokenAddress
-          );
-          userReservesData[i].vTokenincentivesUserIndex = incentivesController.getUserAssetData(
-            user,
-            reserveData.debtTokenAddress
-          );
-        }
-        // user reserve data
-        userReservesData[i].underlyingAsset = reserveData.underlyingAsset;
-        userReservesData[i].scaledBTokenBalance = IBToken(reserveData.bTokenAddress).scaledBalanceOf(user);
-        userReservesData[i].scaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledBalanceOf(user);
+        _fillUserReserveData(userReservesData[i], user, reserves[i], baseData);
       }
     }
 
@@ -240,6 +135,75 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     }
 
     return (reservesData, userReservesData, incentivesControllerData);
+  }
+
+  function _fillReserveData(
+    AggregatedReserveData memory reserveData,
+    address reserveAsset,
+    DataTypes.ReserveData memory baseData
+  ) internal view {
+    reserveData.underlyingAsset = reserveAsset;
+
+    // reserve current state
+    reserveData.liquidityIndex = baseData.liquidityIndex;
+    reserveData.variableBorrowIndex = baseData.variableBorrowIndex;
+    reserveData.liquidityRate = baseData.currentLiquidityRate;
+    reserveData.variableBorrowRate = baseData.currentVariableBorrowRate;
+    reserveData.lastUpdateTimestamp = baseData.lastUpdateTimestamp;
+    reserveData.bTokenAddress = baseData.bTokenAddress;
+    reserveData.debtTokenAddress = baseData.debtTokenAddress;
+    reserveData.interestRateAddress = baseData.interestRateAddress;
+    reserveData.priceInEth = reserveOracle.getAssetPrice(reserveData.underlyingAsset);
+
+    reserveData.availableLiquidity = IERC20Detailed(reserveData.underlyingAsset).balanceOf(reserveData.bTokenAddress);
+    reserveData.totalScaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledTotalSupply();
+
+    // reserve configuration
+    reserveData.symbol = IERC20Detailed(reserveData.underlyingAsset).symbol();
+    reserveData.name = IERC20Detailed(reserveData.underlyingAsset).name();
+
+    (, , , reserveData.decimals, reserveData.reserveFactor) = baseData.configuration.getParamsMemory();
+    (reserveData.isActive, reserveData.isFrozen, reserveData.borrowingEnabled, ) = baseData
+      .configuration
+      .getFlagsMemory();
+    (reserveData.variableRateSlope1, reserveData.variableRateSlope2) = getInterestRateStrategySlopes(
+      InterestRate(reserveData.interestRateAddress)
+    );
+
+    // incentives
+    if (address(0) != address(incentivesController)) {
+      (
+        reserveData.bTokenIncentivesIndex,
+        reserveData.bEmissionPerSecond,
+        reserveData.bIncentivesLastUpdateTimestamp
+      ) = incentivesController.getAssetData(reserveData.bTokenAddress);
+
+      (
+        reserveData.vTokenIncentivesIndex,
+        reserveData.vEmissionPerSecond,
+        reserveData.vIncentivesLastUpdateTimestamp
+      ) = incentivesController.getAssetData(reserveData.debtTokenAddress);
+    }
+  }
+
+  function _fillUserReserveData(
+    UserReserveData memory userReserveData,
+    address user,
+    address reserveAsset,
+    DataTypes.ReserveData memory baseData
+  ) internal view {
+    // user reserve data
+    userReserveData.underlyingAsset = reserveAsset;
+    userReserveData.scaledBTokenBalance = IBToken(baseData.bTokenAddress).scaledBalanceOf(user);
+    userReserveData.scaledVariableDebt = IDebtToken(baseData.debtTokenAddress).scaledBalanceOf(user);
+    // incentives
+    if (address(0) != address(incentivesController)) {
+      userReserveData.bTokenincentivesUserIndex = incentivesController.getUserAssetData(user, baseData.bTokenAddress);
+      userReserveData.vTokenincentivesUserIndex = incentivesController.getUserAssetData(
+        user,
+        baseData.debtTokenAddress
+      );
+    }
   }
 
   function getNftsList(ILendPoolAddressesProvider provider) external view override returns (address[] memory) {
@@ -356,5 +320,32 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     userNftData.bNftAddress = baseData.bNftAddress;
 
     userNftData.TotalCollateral = lendPoolLoan.getUserNftCollateralAmount(user, nftAsset);
+  }
+
+  function getSimpleLoansData(
+    ILendPoolAddressesProvider provider,
+    address[] memory nftAssets,
+    uint256[] memory nftTokenIds
+  ) external view override returns (AggregatedLoanData[] memory) {
+    require(nftAssets.length == nftTokenIds.length, Errors.LP_INCONSISTENT_PARAMS);
+
+    ILendPool lendPool = ILendPool(provider.getLendPool());
+
+    AggregatedLoanData[] memory loansData = new AggregatedLoanData[](nftAssets.length);
+
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      AggregatedLoanData memory loanData = loansData[i];
+      (
+        loanData.totalCollateralETH,
+        loanData.totalDebtETH,
+        loanData.availableBorrowsETH,
+        loanData.ltv,
+        loanData.liquidationThreshold,
+        loanData.loanId,
+        loanData.healthFactor
+      ) = lendPool.getNftLoanData(nftAssets[i], nftTokenIds[i]);
+    }
+
+    return loansData;
   }
 }
