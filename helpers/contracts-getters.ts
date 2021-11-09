@@ -33,6 +33,7 @@ import {
   BendUpgradeableProxyFactory,
   BendProxyAdminFactory,
   MockIncentivesControllerFactory,
+  UiPoolDataProviderFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -193,6 +194,12 @@ export const getIErc721Detailed = async (address: tEthereumAddress) =>
 export const getBendProtocolDataProvider = async (address?: tEthereumAddress) =>
   await BendProtocolDataProviderFactory.connect(
     address || (await getDb().get(`${eContractid.BendProtocolDataProvider}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getUIPoolDataProvider = async (address?: tEthereumAddress) =>
+  await UiPoolDataProviderFactory.connect(
+    address || (await getDb().get(`${eContractid.UIPoolDataProvider}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );
 

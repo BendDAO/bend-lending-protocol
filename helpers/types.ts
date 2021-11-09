@@ -71,6 +71,7 @@ export enum eContractid {
   WrappedPunk = "WrappedPunk",
   PunkGateway = "PunkGateway",
   MockIncentivesController = "MockIncentivesController",
+  UIPoolDataProvider = "UIPoolDataProvider",
 }
 
 /*

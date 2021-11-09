@@ -111,6 +111,7 @@ library Errors {
   string public constant LP_NO_MORE_NFTS_ALLOWED = "86";
   string public constant LP_INVALIED_USER_SCALED_AMOUNT = "87";
   string public constant LP_INVALIED_USER_NFT_AMOUNT = "88";
+  string public constant LP_INVALIED_NFT_AMOUNT = "89";
 
   string public constant LPC_INVALIED_BNFT_ADDRESS = "101";
   string public constant LPC_INVALIED_LOAN_ADDRESS = "102";

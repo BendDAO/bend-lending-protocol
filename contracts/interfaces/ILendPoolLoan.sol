@@ -150,5 +150,7 @@ interface ILendPoolLoan {
 
   function getLoanReserveBorrowAmount(uint256 loanId) external view returns (uint256);
 
+  function getNftCollateralAmount(address nftAsset) external view returns (uint256);
+
   function getUserNftCollateralAmount(address user, address nftAsset) external view returns (uint256);
 }

@@ -24,6 +24,8 @@ import {
   getMockReserveOracle,
   getMockIncentivesController,
   getDebtToken,
+  getWalletProvider,
+  getUIPoolDataProvider,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -58,6 +60,8 @@ import {
   WrappedPunk,
   PunkGateway,
   MockIncentivesController,
+  UiPoolDataProvider,
+  WalletBalanceProvider,
 } from "../../types";
 import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
 
@@ -83,6 +87,8 @@ export interface TestEnv {
   mockNftOracle: MockNFTOracle;
   bendOracle: BendOracle;
   dataProvider: BendProtocolDataProvider;
+  uiProvider: UiPoolDataProvider;
+  walletProvider: WalletBalanceProvider;
   mockIncentivesController: MockIncentivesController;
   weth: WETH9Mocked;
   bWETH: BToken;
@@ -117,6 +123,8 @@ const testEnv: TestEnv = {
   loan: {} as LendPoolLoan,
   configurator: {} as LendPoolConfigurator,
   dataProvider: {} as BendProtocolDataProvider,
+  uiProvider: {} as UiPoolDataProvider,
+  walletProvider: {} as WalletBalanceProvider,
   mockIncentivesController: {} as MockIncentivesController,
   reserveOracle: {} as ReserveOracle,
   mockReserveOracle: {} as MockReserveOracle,
@@ -173,6 +181,8 @@ export async function initializeMakeSuite() {
   testEnv.bendOracle = await getBendOracle();
 
   testEnv.dataProvider = await getBendProtocolDataProvider();
+  testEnv.walletProvider = await getWalletProvider();
+  testEnv.uiProvider = await getUIPoolDataProvider();
 
   testEnv.mockIncentivesController = await getMockIncentivesController();
 

@@ -57,6 +57,7 @@ import {
   MockIncentivesControllerFactory,
   WrappedPunk,
   WETH9Mocked,
+  UiPoolDataProviderFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -245,6 +246,19 @@ export const deployBendProtocolDataProvider = async (addressesProvider: tEthereu
     await new BendProtocolDataProviderFactory(await getFirstSigner()).deploy(addressesProvider),
     eContractid.BendProtocolDataProvider,
     [addressesProvider],
+    verify
+  );
+
+export const deployUiPoolDataProvider = async (
+  incentivesController: tEthereumAddress,
+  reserveOracle: tEthereumAddress,
+  nftOracle: tEthereumAddress,
+  verify?: boolean
+) =>
+  withSaveAndVerify(
+    await new UiPoolDataProviderFactory(await getFirstSigner()).deploy(incentivesController, reserveOracle, nftOracle),
+    eContractid.UIPoolDataProvider,
+    [incentivesController, reserveOracle, nftOracle],
     verify
   );
 
