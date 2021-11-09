@@ -92,14 +92,14 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     );
 
     const afterPartialEtherBalance = await user.signer.getBalance();
-    const afterPartialATokensBalance = await bWETH.balanceOf(user.address);
+    const afterPartialBTokensBalance = await bWETH.balanceOf(user.address);
     const gasCosts = approveGas.add(withdrawGas).mul(GAS_PRICE);
 
     expect(afterPartialEtherBalance).to.be.equal(
       priorEthersBalance.add(partialWithdraw).sub(gasCosts),
       "User ETHER balance should contain the partial withdraw"
     );
-    expect(afterPartialATokensBalance).to.be.equal(
+    expect(afterPartialBTokensBalance).to.be.equal(
       bTokensBalance.sub(partialWithdraw),
       "User bWETH balance should be substracted"
     );
@@ -124,14 +124,14 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     );
 
     const afterFullEtherBalance = await user.signer.getBalance();
-    const afterFullATokensBalance = await bWETH.balanceOf(user.address);
+    const afterFullBTokensBalance = await bWETH.balanceOf(user.address);
     const gasCosts = approveGas.add(withdrawGas).mul(GAS_PRICE);
 
     expect(afterFullEtherBalance).to.be.eq(
       priorEthersBalance.add(bTokensBalance).sub(gasCosts),
       "User ETHER balance should contain the full withdraw"
     );
-    expect(afterFullATokensBalance).to.be.eq(0, "User bWETH balance should be zero");
+    expect(afterFullBTokensBalance).to.be.eq(0, "User bWETH balance should be zero");
   });
 
   it("Borrow WETH and Full Repay with ETH", async () => {

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 /**
  * @title IInterestRate interface
  * @dev Interface for the calculation of the interest rates
- * @author Aave
+ * @author Bend
  */
 interface IInterestRate {
   function baseVariableBorrowRate() external view returns (uint256);

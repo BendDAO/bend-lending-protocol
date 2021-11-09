@@ -1,14 +1,7 @@
-import BigNumber from "bignumber.js";
-
 import { TestEnv, makeSuite } from "./helpers/make-suite";
-import { APPROVAL_AMOUNT_LENDING_POOL, oneRay } from "../helpers/constants";
-import { convertToCurrencyDecimals, getContract } from "../helpers/contracts-helpers";
-import { ethers } from "ethers";
 import { MockFlashLoanReceiver } from "../types/MockFlashLoanReceiver";
 import { MockBNFTMinter } from "../types/MockBNFTMinter";
-import { ProtocolErrors, eContractid } from "../helpers/types";
 import { deployMockBNFTMinter, deployMockFlashLoanReceiver } from "../helpers/contracts-deployments";
-import { getBNFTRegistryProxy } from "../helpers/contracts-getters";
 
 const { expect } = require("chai");
 

@@ -17,9 +17,9 @@ import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ER
 import "hardhat/console.sol";
 
 /**
- * @title NFTLend ERC20 BToken
- * @dev Implementation of the interest bearing token for the NFTLend protocol
- * @author NFTLend
+ * @title ERC20 BToken
+ * @dev Implementation of the interest bearing token for the Bend protocol
+ * @author Bend
  */
 contract BToken is Initializable, IBToken, IncentivizedERC20 {
   using WadRayMath for uint256;
@@ -32,19 +32,19 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
   IIncentivesController internal _incentivesController;
 
   modifier onlyLendPool() {
-    require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
+    require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LEND_POOL);
     _;
   }
 
   modifier onlyLendPoolConfigurator() {
-    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR);
+    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
     _;
   }
 
   /**
    * @dev Initializes the bToken
    * @param addressProvider The address of the address provider where this bToken will be used
-   * @param treasury The address of the Aave treasury, receiving the fees on this bToken
+   * @param treasury The address of the Bend treasury, receiving the fees on this bToken
    * @param underlyingAsset The address of the underlying asset of this bToken (E.g. WETH for wWETH)
    * @param incentivesController The smart contract managing potential incentives distribution
    */
@@ -243,7 +243,7 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
   }
 
   /**
-   * @dev Returns the address of the Aave treasury, receiving the fees on this bToken
+   * @dev Returns the address of the Bend treasury, receiving the fees on this bToken
    **/
   function RESERVE_TREASURY_ADDRESS() public view returns (address) {
     return _treasury;

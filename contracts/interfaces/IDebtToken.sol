@@ -15,7 +15,7 @@ interface IDebtToken is IScaledBalanceToken {
    * @dev Emitted when a debt token is initialized
    * @param underlyingAsset The address of the underlying asset
    * @param addressProvider The address of the associated lend pool
-   * @param incentivesController The address of the incentives controller for this aToken
+   * @param incentivesController The address of the incentives controller
    * @param debtTokenDecimals the decimals of the debt token
    * @param debtTokenName the name of the debt token
    * @param debtTokenSymbol the symbol of the debt token

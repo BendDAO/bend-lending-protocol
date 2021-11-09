@@ -25,12 +25,12 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   address internal _underlyingAsset;
 
   modifier onlyLendPool() {
-    require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
+    require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LEND_POOL);
     _;
   }
 
   modifier onlyLendPoolConfigurator() {
-    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR);
+    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
     _;
   }
 
@@ -209,7 +209,7 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   }
 
   /**
-   * @dev Returns the address of the underlying asset of this aToken (E.g. WETH for aWETH)
+   * @dev Returns the address of the underlying asset of this bToken (E.g. WETH for bWETH)
    **/
   function UNDERLYING_ASSET_ADDRESS() public view returns (address) {
     return _underlyingAsset;

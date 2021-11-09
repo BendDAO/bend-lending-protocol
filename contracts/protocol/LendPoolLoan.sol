@@ -34,7 +34,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
    * @dev Only lending pool can call functions marked by this modifier
    **/
   modifier onlyLendPool() {
-    require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LENDING_POOL);
+    require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LEND_POOL);
     _;
   }
 
