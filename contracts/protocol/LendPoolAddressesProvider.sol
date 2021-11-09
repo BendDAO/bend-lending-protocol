@@ -12,8 +12,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @title LendingPoolAddressesProvider contract
  * @dev Main registry of addresses part of or connected to the protocol, including permissioned roles
  * - Acting also as factory of proxies and admin of those, so with right to change its implementations
- * - Owned by the NFTLend Governance
- * @author NFTLend
+ * - Owned by the Bend Governance
+ * @author Bend
  **/
 contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   string private _marketId;
@@ -35,7 +35,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   }
 
   /**
-   * @dev Returns the id of the Aave market to which this contracts points to
+   * @dev Returns the id of the Bend market to which this contracts points to
    * @return The market id
    **/
   function getMarketId() external view override returns (string memory) {

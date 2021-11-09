@@ -6,7 +6,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 
 /**
  * @title NftConfiguration library
- * @author NFTLend
+ * @author Bend
  * @notice Implements the bitmap logic to handle the NFT configuration
  */
 library NftConfiguration {

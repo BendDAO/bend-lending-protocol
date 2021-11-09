@@ -23,8 +23,8 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 
 /**
  * @title LendPoolConfigurator contract
- * @author NFTLend
- * @dev Implements the configuration methods for the NFTLend protocol
+ * @author Bend
+ * @dev Implements the configuration methods for the Bend protocol
  **/
 
 contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {

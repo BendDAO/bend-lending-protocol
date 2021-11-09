@@ -10,8 +10,7 @@ import { waitForTx } from "../helpers/misc-utils";
 const BEND_REFERRAL = CommonsConfig.ProtocolGlobalParams.BendReferral;
 
 makeSuite("BToken", (testEnv: TestEnv) => {
-  const { INVALID_FROM_BALANCE_AFTER_TRANSFER, INVALID_TO_BALANCE_AFTER_TRANSFER, VL_TRANSFER_NOT_ALLOWED } =
-    ProtocolErrors;
+  const { INVALID_FROM_BALANCE_AFTER_TRANSFER, INVALID_TO_BALANCE_AFTER_TRANSFER } = ProtocolErrors;
 
   afterEach("Reset", () => {
     testEnv.mockIncentivesController.resetHandleActionIsCalled();

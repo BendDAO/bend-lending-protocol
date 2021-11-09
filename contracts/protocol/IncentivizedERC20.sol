@@ -53,8 +53,8 @@ abstract contract IncentivizedERC20 is Initializable, IERC20MetadataUpgradeable,
   }
 
   /**
-   * @return Abstract function implemented by the child aToken/debtToken.
-   * Done this way in order to not break compatibility with previous versions of aTokens/debtTokens
+   * @return Abstract function implemented by the child bToken/debtToken.
+   * Done this way in order to not break compatibility with previous versions of bTokens/debtTokens
    **/
   function _getIncentivesController() internal view virtual returns (IIncentivesController);
 

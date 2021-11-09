@@ -28,7 +28,7 @@ interface IBToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgra
   /**
    * @dev Initializes the bToken
    * @param addressProvider The address of the address provider where this bToken will be used
-   * @param treasury The address of the Aave treasury, receiving the fees on this bToken
+   * @param treasury The address of the Bend treasury, receiving the fees on this bToken
    * @param underlyingAsset The address of the underlying asset of this bToken (E.g. WETH for wWETH)
    * @param incentivesController The smart contract managing potential incentives distribution
    */

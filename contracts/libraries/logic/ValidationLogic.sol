@@ -18,7 +18,7 @@ import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ER
 
 /**
  * @title ValidationLogic library
- * @author NFTLend
+ * @author Bend
  * @notice Implements functions to validate the different actions of the protocol
  */
 library ValidationLogic {
@@ -101,10 +101,7 @@ library ValidationLogic {
     require(amount != 0, Errors.VL_INVALID_AMOUNT);
 
     if (loanId != 0) {
-      require(
-        user == ILendPoolLoan(loanAddress).borrowerOf(loanId),
-        Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER
-      );
+      require(user == ILendPoolLoan(loanAddress).borrowerOf(loanId), Errors.VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
     }
 
     (vars.isActive, vars.isFrozen, vars.borrowingEnabled, vars.stableRateBorrowingEnabled) = reserve
@@ -175,7 +172,7 @@ library ValidationLogic {
 
     require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
 
-    require(onBehalfOf == borrower, Errors.LPCM_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
+    require(onBehalfOf == borrower, Errors.VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
   }
 
   /**

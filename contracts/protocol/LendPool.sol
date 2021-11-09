@@ -30,7 +30,7 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
 
 /**
  * @title LendPool contract
- * @dev Main point of interaction with an NFTLend protocol's market
+ * @dev Main point of interaction with an Bend protocol's market
  * - Users can:
  *   # Deposit
  *   # Withdraw
@@ -41,7 +41,7 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
  * - To be covered by a proxy contract, owned by the LendPoolAddressesProvider of the specific market
  * - All admin functions are callable by the LendPoolConfigurator contract defined also in the
  *   LendPoolAddressesProvider
- * @author NFTLend
+ * @author Bend
  **/
 contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeable, IERC721ReceiverUpgradeable {
   using WadRayMath for uint256;
@@ -67,10 +67,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   }
 
   function _onlyLendPoolConfigurator() internal view {
-    require(
-      _addressesProvider.getLendPoolConfigurator() == _msgSender(),
-      Errors.LP_CALLER_NOT_LENDING_POOL_CONFIGURATOR
-    );
+    require(_addressesProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
   }
 
   modifier onlyAddressProvider() {
@@ -251,7 +248,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     vars.nftTokenId = nftTokenId;
 
     vars.loanId = ILendPoolLoan(loanAddress).getCollateralLoanId(nftAsset, nftTokenId);
-    require(vars.loanId != 0, Errors.LPL_NFT_IS_NOT_USED_AS_COLLATERAL);
+    require(vars.loanId != 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
 
     vars.repayer = _msgSender();
     (, , vars.asset, ) = ILendPoolLoan(loanAddress).getLoanCollateralAndReserve(vars.loanId);
@@ -340,7 +337,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     vars.nftTokenId = nftTokenId;
 
     vars.loanId = ILendPoolLoan(loanAddress).getCollateralLoanId(nftAsset, nftTokenId);
-    require(vars.loanId != 0, Errors.LPL_NFT_IS_NOT_USED_AS_COLLATERAL);
+    require(vars.loanId != 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
 
     (, , vars.asset, ) = ILendPoolLoan(loanAddress).getLoanCollateralAndReserve(vars.loanId);
 
