@@ -8,6 +8,7 @@ import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Addr
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 
 /**
  * @title BNFT contract
@@ -50,7 +51,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
     require(IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) == _msgSender(), "BNFT: caller is not owner");
 
     // Receive NFT Tokens
-    IERC721Upgradeable(_underlyingAsset).transferFrom(_msgSender(), address(this), tokenId);
+    IERC721Upgradeable(_underlyingAsset).safeTransferFrom(_msgSender(), address(this), tokenId);
 
     // mint bNFT to user
     _mint(to, tokenId);
@@ -75,7 +76,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
 
     address owner = ERC721Upgradeable.ownerOf(tokenId);
 
-    IERC721Upgradeable(_underlyingAsset).transferFrom(address(this), _msgSender(), tokenId);
+    IERC721Upgradeable(_underlyingAsset).safeTransferFrom(address(this), _msgSender(), tokenId);
 
     _burn(tokenId);
 
@@ -104,7 +105,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
 
     // step 1: moving underlying asset forward to receiver contract
     for (i = 0; i < nftTokenIds.length; i++) {
-      IERC721Upgradeable(_underlyingAsset).transferFrom(address(this), receiverAddress, nftTokenIds[i]);
+      IERC721Upgradeable(_underlyingAsset).safeTransferFrom(address(this), receiverAddress, nftTokenIds[i]);
     }
 
     // setup 2: execute receiver contract, doing something like aidrop
@@ -115,7 +116,7 @@ contract BNFT is IBNFT, ERC721Upgradeable {
 
     // setup 3: moving underlying asset backword from receiver contract
     for (i = 0; i < nftTokenIds.length; i++) {
-      IERC721Upgradeable(_underlyingAsset).transferFrom(receiverAddress, address(this), nftTokenIds[i]);
+      IERC721Upgradeable(_underlyingAsset).safeTransferFrom(receiverAddress, address(this), nftTokenIds[i]);
 
       emit FlashLoan(receiverAddress, _msgSender(), nftTokenIds[i]);
     }
@@ -132,6 +133,19 @@ contract BNFT is IBNFT, ERC721Upgradeable {
     returns (string memory)
   {
     return IERC721MetadataUpgradeable(_underlyingAsset).tokenURI(tokenId);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external pure override returns (bytes4) {
+    operator;
+    from;
+    tokenId;
+    data;
+    return IERC721ReceiverUpgradeable.onERC721Received.selector;
   }
 
   /**

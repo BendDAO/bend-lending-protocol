@@ -37,21 +37,27 @@ makeSuite("BNFT: FlashLoan function", (testEnv: TestEnv) => {
     testEnv.tokenIdTracker++;
     user0TokenId1 = testEnv.tokenIdTracker.toString();
     await bayc.connect(users[0].signer).mint(user0TokenId1);
-    await bayc.connect(users[0].signer).transferFrom(users[0].address, _mockBNFTMinter.address, user0TokenId1);
+    await bayc
+      .connect(users[0].signer)
+      ["safeTransferFrom(address,address,uint256)"](users[0].address, _mockBNFTMinter.address, user0TokenId1);
     await bayc.connect(users[0].signer).setApprovalForAll(_mockBNFTMinter.address, true);
     await _mockBNFTMinter.mint(users[0].address, user0TokenId1);
 
     testEnv.tokenIdTracker++;
     user0TokenId2 = testEnv.tokenIdTracker.toString();
     await bayc.connect(users[0].signer).mint(user0TokenId2);
-    await bayc.connect(users[0].signer).transferFrom(users[0].address, _mockBNFTMinter.address, user0TokenId2);
+    await bayc
+      .connect(users[0].signer)
+      ["safeTransferFrom(address,address,uint256)"](users[0].address, _mockBNFTMinter.address, user0TokenId2);
     await bayc.connect(users[0].signer).setApprovalForAll(_mockBNFTMinter.address, true);
     await _mockBNFTMinter.mint(users[0].address, user0TokenId2);
 
     testEnv.tokenIdTracker++;
     user1TokenId1 = testEnv.tokenIdTracker.toString();
     await bayc.connect(users[1].signer).mint(user1TokenId1);
-    await bayc.connect(users[1].signer).transferFrom(users[1].address, _mockBNFTMinter.address, user1TokenId1);
+    await bayc
+      .connect(users[1].signer)
+      ["safeTransferFrom(address,address,uint256)"](users[1].address, _mockBNFTMinter.address, user1TokenId1);
     await bayc.connect(users[1].signer).setApprovalForAll(_mockBNFTMinter.address, true);
     await _mockBNFTMinter.mint(users[1].address, user1TokenId1);
   });

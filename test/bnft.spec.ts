@@ -33,7 +33,9 @@ makeSuite("BNFT", (testEnv: TestEnv) => {
     testEnv.tokenIdTracker++;
     const tokenId = testEnv.tokenIdTracker.toString();
     await bayc.connect(users[0].signer).mint(tokenId);
-    await bayc.connect(users[0].signer).transferFrom(users[0].address, mockMinterInstance1.address, tokenId);
+    await bayc
+      .connect(users[0].signer)
+      ["safeTransferFrom(address,address,uint256)"](users[0].address, mockMinterInstance1.address, tokenId);
     await bayc.connect(users[0].signer).setApprovalForAll(bBAYC.address, true);
 
     cachedTokenId = tokenId;

@@ -24,6 +24,7 @@ import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Addr
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
@@ -42,7 +43,7 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
  *   LendPoolAddressesProvider
  * @author NFTLend
  **/
-contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeable {
+contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeable, IERC721ReceiverUpgradeable {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -402,6 +403,19 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.user,
       vars.loanId
     );
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external pure override returns (bytes4) {
+    operator;
+    from;
+    tokenId;
+    data;
+    return IERC721ReceiverUpgradeable.onERC721Received.selector;
   }
 
   /**
@@ -779,7 +793,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     );
 
     if (vars.loanId == 0) {
-      IERC721Upgradeable(params.nftAsset).transferFrom(_msgSender(), address(this), params.nftTokenId);
+      IERC721Upgradeable(params.nftAsset).safeTransferFrom(_msgSender(), address(this), params.nftTokenId);
 
       vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
         params.user,

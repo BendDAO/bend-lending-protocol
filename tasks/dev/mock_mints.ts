@@ -54,7 +54,7 @@ task("dev:mint-mock-nfts", "Mint mock nfts for dev enviroment")
     for (let tokenIndex = 0; tokenIndex < index + amount; tokenIndex++) {
       console.log("Mint BAYC:", tokenIndex);
       await waitForTx(await bayc.mint(tokenIndex));
-      await waitForTx(await bayc.transferFrom(deployerAddress, user, tokenIndex));
+      await waitForTx(await bayc["safeTransferFrom(address,address,uint256)"](deployerAddress, user, tokenIndex));
     }
     console.log("BAYC Balances:", (await bayc.balanceOf(user)).toString());
   });

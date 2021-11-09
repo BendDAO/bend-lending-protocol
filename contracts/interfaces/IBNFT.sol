@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 
-interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable {
+interface IBNFT is IERC721Upgradeable, IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable {
   /**
    * @dev Emitted when an bNFT is initialized
    * @param underlyingAsset The address of the underlying asset

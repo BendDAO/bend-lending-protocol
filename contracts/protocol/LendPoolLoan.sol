@@ -10,11 +10,12 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
-contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
+contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC721ReceiverUpgradeable {
   using WadRayMath for uint256;
   using CountersUpgradeable for CountersUpgradeable.Counter;
 
@@ -86,7 +87,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     _nftToLoanIds[nftAsset][nftTokenId] = loanId;
 
     // transfer underlying NFT asset to pool and mint bNFT to onBehalfOf
-    IERC721Upgradeable(nftAsset).transferFrom(_msgSender(), address(this), nftTokenId);
+    IERC721Upgradeable(nftAsset).safeTransferFrom(_msgSender(), address(this), nftTokenId);
 
     IBNFT(bNftAddress).mint(onBehalfOf, nftTokenId);
 
@@ -165,6 +166,19 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     address bNftAddress
   ) external override onlyLendPool {
     _terminateLoan(user, loanId, bNftAddress, false);
+  }
+
+  function onERC721Received(
+    address operator,
+    address from,
+    uint256 tokenId,
+    bytes calldata data
+  ) external pure override returns (bytes4) {
+    operator;
+    from;
+    tokenId;
+    data;
+    return IERC721ReceiverUpgradeable.onERC721Received.selector;
   }
 
   function borrowerOf(uint256 loanId) external view override returns (address) {
@@ -253,7 +267,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-    IERC721Upgradeable(loan.nftAsset).transferFrom(address(this), user, loan.nftTokenId);
+    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), user, loan.nftTokenId);
 
     if (isRepay) {
       emit LoanRepaid(user, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, loan.scaledAmount);
