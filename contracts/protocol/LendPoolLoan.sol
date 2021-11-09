@@ -26,8 +26,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
   // nftAsset + nftTokenId => loanId
   mapping(address => mapping(uint256 => uint256)) private _nftToLoanIds;
-
-  mapping(address => mapping(address => uint256)) private _userNftCollateralAmounts;
+  mapping(address => uint256) private _nftTotalCollateral;
+  mapping(address => mapping(address => uint256)) private _userNftCollateral;
 
   /**
    * @dev Only lending pool can call functions marked by this modifier
@@ -101,7 +101,9 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
       scaledAmount: amountScaled
     });
 
-    _userNftCollateralAmounts[onBehalfOf][nftAsset] += 1;
+    _userNftCollateral[onBehalfOf][nftAsset] += 1;
+
+    _nftTotalCollateral[nftAsset] += 1;
 
     emit LoanCreated(user, onBehalfOf, loanId, nftAsset, nftTokenId, reserveAsset, amount, borrowIndex);
 
@@ -209,8 +211,12 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
     return _loans[loanId].scaledAmount;
   }
 
+  function getNftCollateralAmount(address nftAsset) external view override returns (uint256) {
+    return _nftTotalCollateral[nftAsset];
+  }
+
   function getUserNftCollateralAmount(address user, address nftAsset) external view override returns (uint256) {
-    return _userNftCollateralAmounts[user][nftAsset];
+    return _userNftCollateral[user][nftAsset];
   }
 
   function _getLendPool() internal view returns (ILendPool) {
@@ -238,8 +244,11 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable {
 
     _nftToLoanIds[loan.nftAsset][loan.nftTokenId] = 0;
 
-    require(_userNftCollateralAmounts[loan.borrower][loan.nftAsset] >= 1, Errors.LP_INVALIED_USER_NFT_AMOUNT);
-    _userNftCollateralAmounts[loan.borrower][loan.nftAsset] -= 1;
+    require(_userNftCollateral[loan.borrower][loan.nftAsset] >= 1, Errors.LP_INVALIED_USER_NFT_AMOUNT);
+    _userNftCollateral[loan.borrower][loan.nftAsset] -= 1;
+
+    require(_nftTotalCollateral[loan.nftAsset] >= 1, Errors.LP_INVALIED_NFT_AMOUNT);
+    _nftTotalCollateral[loan.nftAsset] -= 1;
 
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);

@@ -35,6 +35,7 @@ import {
   deployMockIncentivesController,
   deployAllMockTokens,
   deployAllMockNfts,
+  deployUiPoolDataProvider,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -350,12 +351,12 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   console.log("-> Prepare wallet & data & ui provider...");
   await deployWalletBalancerProvider();
   await deployBendProtocolDataProvider(addressesProvider.address);
-  /*
   await deployUiPoolDataProvider(
-    [incentivesController, reserveOracle, nftOracle],
-    verify
+    mockIncentivesController.address,
+    reserveOracleImpl.address,
+    nftOracleImpl.address,
+    false
   );
-  */
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare WETH gateway...");
