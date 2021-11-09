@@ -151,6 +151,10 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     uint256 tokenId,
     bytes calldata data
   ) external pure override returns (bytes4) {
+    operator;
+    from;
+    tokenId;
+    data;
     return IERC721Receiver.onERC721Received.selector;
   }
 

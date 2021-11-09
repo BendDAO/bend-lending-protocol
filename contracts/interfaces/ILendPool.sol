@@ -229,8 +229,6 @@ interface ILendPool {
 
   function getReserveConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory);
 
-  function getUserConfiguration(address user) external view returns (DataTypes.UserConfigurationMap memory);
-
   function getNftConfiguration(address asset) external view returns (DataTypes.NftConfigurationMap memory);
 
   /**

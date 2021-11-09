@@ -15,7 +15,6 @@ import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
-import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {InterestRate} from "../protocol/InterestRate.sol";
 
@@ -23,7 +22,6 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   using WadRayMath for uint256;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
-  using UserConfiguration for DataTypes.UserConfigurationMap;
 
   IIncentivesController public immutable override incentivesController;
   IReserveOracleGetter public immutable reserveOracle;
@@ -121,7 +119,6 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   {
     ILendPool lendPool = ILendPool(provider.getLendPool());
     address[] memory reserves = lendPool.getReservesList();
-    DataTypes.UserConfigurationMap memory userConfig = lendPool.getUserConfiguration(user);
 
     UserReserveData[] memory userReservesData = new UserReserveData[](user != address(0) ? reserves.length : 0);
 
@@ -141,10 +138,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
       // user reserve data
       userReservesData[i].underlyingAsset = reserves[i];
       userReservesData[i].scaledBTokenBalance = IBToken(baseData.bTokenAddress).scaledBalanceOf(user);
-
-      if (userConfig.isReserveBorrowing(i)) {
-        userReservesData[i].scaledVariableDebt = IDebtToken(baseData.debtTokenAddress).scaledBalanceOf(user);
-      }
+      userReservesData[i].scaledVariableDebt = IDebtToken(baseData.debtTokenAddress).scaledBalanceOf(user);
     }
 
     uint256 userUnclaimedRewards;
@@ -167,7 +161,6 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   {
     ILendPool lendPool = ILendPool(provider.getLendPool());
     address[] memory reserves = lendPool.getReservesList();
-    DataTypes.UserConfigurationMap memory userConfig = lendPool.getUserConfiguration(user);
 
     AggregatedReserveData[] memory reservesData = new AggregatedReserveData[](reserves.length);
     UserReserveData[] memory userReservesData = new UserReserveData[](user != address(0) ? reserves.length : 0);
@@ -233,10 +226,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
         // user reserve data
         userReservesData[i].underlyingAsset = reserveData.underlyingAsset;
         userReservesData[i].scaledBTokenBalance = IBToken(reserveData.bTokenAddress).scaledBalanceOf(user);
-
-        if (userConfig.isReserveBorrowing(i)) {
-          userReservesData[i].scaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledBalanceOf(user);
-        }
+        userReservesData[i].scaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledBalanceOf(user);
       }
     }
 

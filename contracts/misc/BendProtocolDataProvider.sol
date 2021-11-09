@@ -10,13 +10,11 @@ import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
-import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 contract BendProtocolDataProvider {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
-  using UserConfiguration for DataTypes.UserConfigurationMap;
 
   address constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
