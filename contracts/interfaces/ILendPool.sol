@@ -311,4 +311,12 @@ interface ILendPool {
   function setReserveConfiguration(address asset, uint256 configuration) external;
 
   function setNftConfiguration(address asset, uint256 configuration) external;
+
+  function setMaxNumberOfReserves(uint256 val) external;
+
+  function setMaxNumberOfNfts(uint256 val) external;
+
+  function MAX_NUMBER_RESERVES() external view returns (uint256);
+
+  function MAX_NUMBER_NFTS() external view returns (uint256);
 }

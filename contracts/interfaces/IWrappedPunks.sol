@@ -12,6 +12,8 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
  * need to send a transaction, and thus is not required to hold Ether at all.
  */
 interface IWrappedPunks is IERC721 {
+  function punkContract() external view returns (address);
+
   function mint(uint256 punkIndex) external;
 
   function burn(uint256 punkIndex) external;

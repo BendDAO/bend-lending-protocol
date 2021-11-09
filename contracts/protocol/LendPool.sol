@@ -84,8 +84,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    **/
   function initialize(ILendPoolAddressesProvider provider) public initializer {
     _setAddressProvider(provider);
-    _maxNumberOfReserves = 128;
-    _maxNumberOfNfts = 128;
+    _maxNumberOfReserves = 32;
+    _maxNumberOfNfts = 256;
   }
 
   function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
@@ -615,17 +615,25 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     return _addressesProvider;
   }
 
+  function setMaxNumberOfReserves(uint256 val) external override onlyLendPoolConfigurator {
+    _maxNumberOfReserves = val;
+  }
+
   /**
    * @dev Returns the maximum number of reserves supported to be listed in this LendPool
    */
-  function MAX_NUMBER_RESERVES() public view returns (uint256) {
+  function MAX_NUMBER_RESERVES() public view override returns (uint256) {
     return _maxNumberOfReserves;
+  }
+
+  function setMaxNumberOfNfts(uint256 val) external override onlyLendPoolConfigurator {
+    _maxNumberOfNfts = val;
   }
 
   /**
    * @dev Returns the maximum number of nfts supported to be listed in this LendPool
    */
-  function MAX_NUMBER_NFTS() public view returns (uint256) {
+  function MAX_NUMBER_NFTS() public view override returns (uint256) {
     return _maxNumberOfNfts;
   }
 
