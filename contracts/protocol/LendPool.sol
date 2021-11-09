@@ -15,7 +15,6 @@ import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
 import {NftLogic} from "../libraries/logic/NftLogic.sol";
 import {ValidationLogic} from "../libraries/logic/ValidationLogic.sol";
-import {UserConfiguration} from "../libraries/configuration/UserConfiguration.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
@@ -49,7 +48,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using ReserveLogic for DataTypes.ReserveData;
   using NftLogic for DataTypes.NftData;
-  using UserConfiguration for DataTypes.UserConfigurationMap;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
 
@@ -161,16 +159,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       amountToWithdraw = userBalance;
     }
 
-    ValidationLogic.validateWithdraw(
-      asset,
-      amountToWithdraw,
-      userBalance,
-      _reserves,
-      _usersConfig[_msgSender()],
-      _reservesList,
-      _reservesCount,
-      _addressesProvider.getReserveOracle()
-    );
+    ValidationLogic.validateWithdraw(reserve, amountToWithdraw, userBalance);
 
     reserve.updateState();
 
@@ -301,14 +290,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     // update interest rate according latest borrow amount (utilizaton)
     reserve.updateInterestRates(vars.asset, reserve.bTokenAddress, vars.paybackAmount, 0);
 
-    if (IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(vars.borrower) == 0) {
-      _usersConfig[vars.borrower].setReserveBorrowing(reserve.id, false);
-    }
-
-    if (ILendPoolLoan(loanAddress).getUserNftCollateralAmount(vars.borrower, vars.nftAsset) == 0) {
-      _usersConfig[vars.borrower].setUsingNftAsCollateral(nftData.id, false);
-    }
-
     IERC20Upgradeable(vars.asset).safeTransferFrom(vars.repayer, reserve.bTokenAddress, vars.paybackAmount);
 
     emit Repay(
@@ -406,14 +387,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     // update interest rate according latest borrow amount (utilizaton)
     reserve.updateInterestRates(vars.asset, reserve.bTokenAddress, vars.paybackAmount, 0);
 
-    if (IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(vars.borrower) == 0) {
-      _usersConfig[vars.borrower].setReserveBorrowing(reserve.id, false);
-    }
-
-    if (ILendPoolLoan(loanAddress).getUserNftCollateralAmount(vars.borrower, vars.nftAsset) == 0) {
-      _usersConfig[vars.borrower].setUsingNftAsCollateral(nftData.id, false);
-    }
-
     IERC20Upgradeable(vars.asset).safeTransferFrom(vars.user, reserve.bTokenAddress, vars.paybackAmount);
     if (vars.remainAmount > 0) {
       IERC20Upgradeable(vars.asset).safeTransferFrom(vars.user, vars.borrower, vars.remainAmount);
@@ -443,15 +416,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     returns (DataTypes.ReserveConfigurationMap memory)
   {
     return _reserves[asset].configuration;
-  }
-
-  /**
-   * @dev Returns the configuration of the user across all the reserves
-   * @param user The user address
-   * @return The configuration of the user
-   **/
-  function getUserConfiguration(address user) external view override returns (DataTypes.UserConfigurationMap memory) {
-    return _usersConfig[user];
   }
 
   /**
@@ -776,8 +740,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 reservePrice;
     uint256 nftPrice;
     uint256 thresholdPrice;
-    bool isFirstBorrowing;
-    bool isFirstPledging;
     uint256 loanId;
     address reserveOracle;
     address nftOracle;
@@ -786,7 +748,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
   function _executeBorrow(ExecuteBorrowParams memory params) internal {
     DataTypes.ReserveData storage reserve = _reserves[params.asset];
-    DataTypes.UserConfigurationMap storage userConfig = _usersConfig[params.onBehalfOf];
     DataTypes.NftData storage nftData = _nfts[params.nftAsset];
     ExecuteBorrowLocalVars memory vars;
 
@@ -817,16 +778,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.nftOracle
     );
 
-    vars.isFirstBorrowing = false;
-    if (IDebtToken(reserve.debtTokenAddress).scaledBalanceOf(params.onBehalfOf) == 0) {
-      vars.isFirstBorrowing = true;
-    }
-
-    vars.isFirstPledging = false;
-    if (ILendPoolLoan(vars.loanAddress).getUserNftCollateralAmount(params.onBehalfOf, params.nftAsset) == 0) {
-      vars.isFirstPledging = true;
-    }
-
     if (vars.loanId == 0) {
       IERC721Upgradeable(params.nftAsset).transferFrom(_msgSender(), address(this), params.nftTokenId);
 
@@ -840,14 +791,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
         params.amount,
         reserve.variableBorrowIndex
       );
-
-      if (vars.isFirstBorrowing) {
-        userConfig.setReserveBorrowing(reserve.id, true);
-      }
-
-      if (vars.isFirstPledging) {
-        userConfig.setUsingNftAsCollateral(nftData.id, true);
-      }
     } else {
       ILendPoolLoan(vars.loanAddress).updateLoan(
         params.user,

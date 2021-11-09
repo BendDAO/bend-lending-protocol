@@ -46,11 +46,6 @@ library DataTypes {
     uint256 data;
   }
 
-  struct UserConfigurationMap {
-    uint256 reserveData;
-    uint256 nftData;
-  }
-
   struct NftConfigurationMap {
     //bit 0-15: LTV
     //bit 16-31: Liq. threshold

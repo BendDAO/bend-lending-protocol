@@ -13,7 +13,6 @@ contract LendPoolStorage {
   ILendPoolAddressesProvider internal _addressesProvider;
 
   mapping(address => DataTypes.ReserveData) internal _reserves;
-  mapping(address => DataTypes.UserConfigurationMap) internal _usersConfig;
   mapping(address => DataTypes.NftData) internal _nfts;
 
   mapping(uint256 => address) internal _reservesList;
