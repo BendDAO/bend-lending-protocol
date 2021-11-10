@@ -463,10 +463,8 @@ export const repay = async (
     expectEqual(userDataAfter, expectedUserData);
     expectEqual(loanDataAfter, expectedLoanData);
   } else if (expectedResult === "revert") {
-    await expect(
-      pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, user.address, txOptions),
-      revertMessage
-    ).to.be.reverted;
+    await expect(pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions), revertMessage).to.be
+      .reverted;
   }
 };
 

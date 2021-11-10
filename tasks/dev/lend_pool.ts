@@ -71,5 +71,9 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
       verify
     );
 
+    // Generic BNFT Implementation at here
     await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);
+
+    // Generic BNFT Implementation in BNFT step, not here
+    //await deployBNFTImplementations(pool, poolConfig.NftsConfig, verify);
   });

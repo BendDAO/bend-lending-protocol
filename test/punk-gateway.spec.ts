@@ -6,7 +6,7 @@ import { getReservesConfigByPool } from "../helpers/configuration";
 import { MAX_UINT_AMOUNT, oneEther } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { getNowTimeInSeconds, waitForTx } from "../helpers/misc-utils";
-import { BendPools, iBendPoolAssets, IReserveParams, LoanState, ProtocolLoanState } from "../helpers/types";
+import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import { ERC721Factory } from "../types";
 import {
   approveERC20,

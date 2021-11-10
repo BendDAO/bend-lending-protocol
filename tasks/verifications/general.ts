@@ -21,6 +21,7 @@ import {
   getWalletProvider,
   getWETHGateway,
   getPunkGateway,
+  getUIPoolDataProvider,
 } from "../../helpers/contracts-getters";
 import { verifyContract, getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -33,18 +34,8 @@ task("verify:general", "Verify general contracts at Etherscan")
     await localDRE.run("set-DRE");
     const network = localDRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
-    const {
-      ReserveAssets,
-      ReservesConfig,
-      ProviderRegistry,
-      MarketId,
-      LendPoolLoan,
-      LendPoolConfigurator,
-      LendPool,
-      WethGateway,
-      CryptoPunksMarket,
-      PunkGateway,
-    } = poolConfig as ICommonConfiguration;
+    const { ReserveAssets, ReservesConfig, ProviderRegistry, MarketId, WethGateway, CryptoPunksMarket, PunkGateway } =
+      poolConfig as ICommonConfiguration;
     const treasuryAddress = await getTreasuryAddress(poolConfig);
 
     const registryAddress = getParamPerNetwork(ProviderRegistry, network);
@@ -60,23 +51,15 @@ task("verify:general", "Verify general contracts at Etherscan")
     const punkAddress = getParamPerNetwork(CryptoPunksMarket, network);
 
     if (all) {
-      const lendPoolImplAddress = getParamPerNetwork(LendPool, network);
-      const lendPoolImpl = notFalsyOrZeroAddress(lendPoolImplAddress)
-        ? await getLendPoolImpl(lendPoolImplAddress)
-        : await getLendPoolImpl();
+      const lendPoolImpl = await getLendPoolImpl();
 
-      const lendPoolConfiguratorImplAddress = getParamPerNetwork(LendPoolConfigurator, network);
-      const lendPoolConfiguratorImpl = notFalsyOrZeroAddress(lendPoolConfiguratorImplAddress)
-        ? await getLendPoolConfiguratorImpl(lendPoolConfiguratorImplAddress)
-        : await getLendPoolConfiguratorImpl();
+      const lendPoolConfiguratorImpl = await getLendPoolConfiguratorImpl();
 
-      const lendPoolLoanImplAddress = getParamPerNetwork(LendPoolLoan, network);
-      const lendPoolLoanImpl = notFalsyOrZeroAddress(lendPoolLoanImplAddress)
-        ? await getLendPoolLoanImpl(lendPoolLoanImplAddress)
-        : await getLendPoolLoanImpl();
+      const lendPoolLoanImpl = await getLendPoolLoanImpl();
 
       const dataProvider = await getBendProtocolDataProvider();
       const walletProvider = await getWalletProvider();
+      const uiProvider = await getUIPoolDataProvider();
 
       const wethGatewayAddress = getParamPerNetwork(WethGateway, network);
       const wethGateway = notFalsyOrZeroAddress(wethGatewayAddress)
@@ -104,13 +87,17 @@ task("verify:general", "Verify general contracts at Etherscan")
       console.log("\n- Verifying LendPool Loan Manager Implementation...\n");
       await verifyContract(eContractid.LendPoolLoan, lendPoolLoanImpl, []);
 
-      // Data Provider
-      console.log("\n- Verifying Data Provider...\n");
+      // Bend Data Provider
+      console.log("\n- Verifying Bend Data Provider...\n");
       await verifyContract(eContractid.BendProtocolDataProvider, dataProvider, [addressesProvider.address]);
 
       // Wallet balance provider
       console.log("\n- Verifying Wallet Balance Provider...\n");
       await verifyContract(eContractid.WalletBalanceProvider, walletProvider, []);
+
+      // UI data provider
+      console.log("\n- Verifying UI Data Provider...\n");
+      await verifyContract(eContractid.UIPoolDataProvider, uiProvider, []);
 
       // WETHGateway
       console.log("\n- Verifying WETHGateway...\n");
