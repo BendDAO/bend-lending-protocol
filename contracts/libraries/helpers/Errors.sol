@@ -10,6 +10,8 @@ library Errors {
   //common errors
   string public constant CALLER_NOT_POOL_ADMIN = "100"; // 'The caller must be the pool admin'
   string public constant CALLER_NOT_ADDRESS_PROVIDER = "101";
+  string public constant INVALID_FROM_BALANCE_AFTER_TRANSFER = "102";
+  string public constant INVALID_TO_BALANCE_AFTER_TRANSFER = "103";
 
   //math library erros
   string public constant MATH_MULTIPLICATION_OVERFLOW = "200";
@@ -29,6 +31,9 @@ library Errors {
   string public constant VL_NO_ACTIVE_NFT = "310";
   string public constant VL_NFT_FROZEN = "311";
   string public constant VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER = "312"; // 'User did not borrow the specified currency'
+  string public constant VL_INVALID_HEALTH_FACTOR = "313";
+  string public constant VL_INVALID_ONBEHALFOF_ADDRESS = "314";
+  string public constant VL_INVALID_TARGET_ADDRESS = "315";
 
   //lend pool errors
   string public constant LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400"; // 'The caller of the function is not the lending pool configurator'

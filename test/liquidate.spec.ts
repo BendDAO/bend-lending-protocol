@@ -1,13 +1,10 @@
 import BigNumber from "bignumber.js";
-import { DRE, increaseTime } from "../helpers/misc-utils";
+import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, oneEther } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
-import { ProtocolErrors } from "../helpers/types";
+import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
 import { getUserData } from "./helpers/utils/helpers";
-import { CommonsConfig } from "../markets/bend/commons";
-import { calcExpectedVariableDebtTokenBalance } from "./helpers/utils/calculations";
-import { getContractsDataWithLoan } from "./helpers/actions";
 
 const chai = require("chai");
 
@@ -63,7 +60,10 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     const loanDataAfter = await pool.getNftLoanData(bayc.address, "101");
 
-    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0), ProtocolErrors.INVALID_HF);
+    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.gt(
+      oneEther.toFixed(0),
+      ProtocolErrors.VL_INVALID_HEALTH_FACTOR
+    );
   });
 
   it("Drop the health factor below 1", async () => {
@@ -71,17 +71,22 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const borrower = users[1];
 
     const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(
-      bayc.address,
-      new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
-      latestTime.add(1),
-      latestTime.add(1)
+    const latestTime = await getNowTimeInSeconds();
+    await waitForTx(
+      await nftOracle.setAssetData(
+        bayc.address,
+        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
+        latestTime,
+        latestTime
+      )
     );
 
     const loanDataAfter = await pool.getNftLoanData(bayc.address, "101");
 
-    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0), ProtocolErrors.INVALID_HF);
+    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.lt(
+      oneEther.toFixed(0),
+      ProtocolErrors.VL_INVALID_HEALTH_FACTOR
+    );
   });
 
   it("Liquidates the borrow", async () => {
@@ -104,7 +109,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     // accurate borrow index, increment interest to loanDataBefore.scaledAmount
     await increaseTime(100);
 
-    const tx = await pool.connect(liquidator.signer).liquidate(bayc.address, "101");
+    const tx = await pool.connect(liquidator.signer).liquidate(bayc.address, "101", liquidator.address);
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 
@@ -127,7 +132,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
       new BigNumber(ethReserveDataAfter.variableBorrowIndex.toString())
     );
 
-    expect(loanDataAfter.state.toString()).to.be.equal("4", "Invalid loan state after liquidation");
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
     expect(userReserveDataAfter.currentVariableDebt.toString()).to.be.bignumber.almostEqual(
       userVariableDebtAmountBeforeTx.minus(expectedLiquidateAmount).toString(),

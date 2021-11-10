@@ -1,28 +1,30 @@
 import BigNumber from "bignumber.js";
-import { expect } from "chai";
 import { BigNumber as BN } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
-import { waitForTx } from "../helpers/misc-utils";
-import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
-import { ERC721UpgradeableFactory } from "../types";
+import { getNowTimeInSeconds, waitForTx } from "../helpers/misc-utils";
+import { BendPools, iBendPoolAssets, IReserveParams, LoanState, ProtocolLoanState } from "../helpers/types";
+import { ERC721Factory } from "../types";
 import {
   approveERC20,
   approveERC20PunkGateway,
+  approveERC721,
   configuration as actionsConfiguration,
   deposit,
   mintERC20,
+  setApprovalForAll,
 } from "./helpers/actions";
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import { getERC20TokenBalance, getLoanData, getReserveAddressFromSymbol } from "./helpers/utils/helpers";
 
-makeSuite("PunkGateway", (testEnv: TestEnv) => {
-  let cachedTokenId;
+const chai = require("chai");
+const { expect } = chai;
 
+makeSuite("PunkGateway", (testEnv: TestEnv) => {
   const zero = BN.from(0);
 
   before("Initializing configuration", async () => {
@@ -91,7 +93,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
     await waitForTx(
-      await punkGateway.connect(user.signer).borrow(pool.address, usdcAddress, borrowSize, punkIndex, user.address, "0")
+      await punkGateway.connect(user.signer).borrow(usdcAddress, borrowSize, punkIndex, user.address, "0")
     );
 
     const usdcBalanceAfterBorrow = await getERC20TokenBalance(usdcAddress, user.address);
@@ -102,11 +104,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     expect(debtAfterBorrow).to.be.gte(borrowSize);
 
     // Repay partial
-    await waitForTx(
-      await punkGateway
-        .connect(user.signer)
-        .repay(pool.address, loan.address, punkIndex, repaySize.div(2), user.address)
-    );
+    await waitForTx(await punkGateway.connect(user.signer).repay(punkIndex, repaySize.div(2)));
     const usdcBalanceAfterPartialRepay = await getERC20TokenBalance(usdcAddress, user.address);
     const debtAfterPartialRepay = await getDebtBalance();
 
@@ -119,14 +117,9 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     // Repay full
     await waitForTx(
-      await ERC721UpgradeableFactory.connect(wrappedPunk.address, user.signer).setApprovalForAll(
-        punkGateway.address,
-        true
-      )
+      await ERC721Factory.connect(wrappedPunk.address, user.signer).setApprovalForAll(punkGateway.address, true)
     );
-    await waitForTx(
-      await punkGateway.connect(user.signer).repay(pool.address, loan.address, punkIndex, repaySize, user.address)
-    );
+    await waitForTx(await punkGateway.connect(user.signer).repay(punkIndex, repaySize));
     const usdcBalanceAfterFullRepay = await getERC20TokenBalance(usdcAddress, user.address);
     const debtAfterFullRepay = await getDebtBalance();
 
@@ -143,9 +136,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     // Deposit with native ETH
     await waitForTx(
-      await wethGateway
-        .connect(depositor.signer)
-        .depositETH(pool.address, depositor.address, "0", { value: depositSize })
+      await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize })
     );
 
     const borrowSize = parseEther("1");
@@ -175,11 +166,9 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await waitForTx(
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
-    await waitForTx(
-      await punkGateway
-        .connect(user.signer)
-        .borrowETH(wethGateway.address, pool.address, borrowSize, punkIndex, user.address, "0")
-    );
+    await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize, punkIndex, user.address, "0"));
+    const loanDataAfterBorrow = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex);
+    expect(loanDataAfterBorrow.state).to.be.eq(ProtocolLoanState.Active);
 
     const wrapperPunkOwner = await getWrappedPunkOwner();
     const debtAfterBorrow = await getDebtBalance();
@@ -189,12 +178,11 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     // Repay partial
     await waitForTx(
-      await punkGateway
-        .connect(user.signer)
-        .repayETH(wethGateway.address, pool.address, loan.address, punkIndex, repaySize.div(2), user.address, {
-          value: repaySize.div(2),
-        })
+      await punkGateway.connect(user.signer).repayETH(punkIndex, repaySize.div(2), {
+        value: repaySize.div(2),
+      })
     );
+    const loanDataAfterRepayPart = await dataProvider.getLoanDataByLoanId(loanDataAfterBorrow.loanId);
     const debtAfterPartialRepay = await getDebtBalance();
 
     expect(debtAfterPartialRepay).to.be.lt(debtAfterBorrow);
@@ -202,24 +190,111 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     expect(await getWrappedPunkOwner(), "WrappedPunk should owned by loan after partial borrow").to.be.eq(
       wrapperPunkOwner
     );
+    expect(loanDataAfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
 
     // Repay full
     await waitForTx(
-      await ERC721UpgradeableFactory.connect(wrappedPunk.address, user.signer).setApprovalForAll(
-        punkGateway.address,
-        true
-      )
+      await ERC721Factory.connect(wrappedPunk.address, user.signer).setApprovalForAll(punkGateway.address, true)
     );
     await waitForTx(
-      await punkGateway
-        .connect(user.signer)
-        .repayETH(wethGateway.address, pool.address, loan.address, punkIndex, MAX_UINT_AMOUNT, user.address, {
-          value: repaySize,
-        })
+      await punkGateway.connect(user.signer).repayETH(punkIndex, MAX_UINT_AMOUNT, {
+        value: repaySize,
+      })
     );
     const debtAfterFullRepay = await getDebtBalance();
+    const loanDataAfterRepayFull = await dataProvider.getLoanDataByLoanId(loanDataAfterBorrow.loanId);
 
     expect(debtAfterFullRepay).to.be.eq(zero);
     expect(await getPunkOwner()).to.be.eq(user.address);
+    expect(loanDataAfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
+  });
+
+  it("Borrow ETH and liquidate it", async () => {
+    const {
+      users,
+      cryptoPunksMarket,
+      wrappedPunk,
+      punkGateway,
+      weth,
+      wethGateway,
+      pool,
+      dataProvider,
+      loan,
+      reserveOracle,
+      nftOracle,
+    } = testEnv;
+
+    const [depositor, user] = users;
+    const liquidator = users[4];
+    const depositSize = parseEther("500");
+
+    // Deposit with native ETH
+    await waitForTx(
+      await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize })
+    );
+
+    const punkIndex = testEnv.punkIndexTracker++;
+
+    const getPunkOwner = async () => {
+      const owner = await cryptoPunksMarket.punkIndexToAddress(punkIndex);
+
+      return owner;
+    };
+
+    // mint native punk
+    await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
+    await waitForTx(
+      await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
+    );
+
+    // borrow eth, health factor above 1
+    const poolLoanDataBefore = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+
+    const wethPrice = await reserveOracle.getAssetPrice(weth.address);
+    const amountBorrow = await convertToCurrencyDecimals(
+      weth.address,
+      new BigNumber(poolLoanDataBefore.availableBorrowsETH.toString())
+        .div(wethPrice.toString())
+        .multipliedBy(0.95)
+        .toFixed(0)
+    );
+
+    await waitForTx(await punkGateway.connect(user.signer).borrowETH(amountBorrow, punkIndex, user.address, "0"));
+
+    await waitForTx(
+      await ERC721Factory.connect(wrappedPunk.address, liquidator.signer).setApprovalForAll(punkGateway.address, true)
+    );
+
+    const poolLoanDataAfterBorrow = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+    expect(poolLoanDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
+
+    // Drop the health factor below 1
+    const punkPrice = await nftOracle.getAssetPrice(wrappedPunk.address);
+    const latestTime = await getNowTimeInSeconds();
+    await waitForTx(
+      await nftOracle.setAssetData(
+        wrappedPunk.address,
+        new BigNumber(punkPrice.toString()).multipliedBy(0.55).toFixed(0),
+        latestTime,
+        latestTime
+      )
+    );
+    const poolLoanDataAfterLiquidate = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+    expect(poolLoanDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
+
+    // Liquidate ETH loan with native ETH
+    const { liquidatePrice } = await pool.getNftLiquidatePrice(wrappedPunk.address, punkIndex);
+    const liquidateAmountSend = liquidatePrice.add(liquidatePrice.mul(5).div(100));
+    await waitForTx(
+      await punkGateway
+        .connect(liquidator.signer)
+        .liquidateETH(punkIndex, liquidator.address, { value: liquidateAmountSend })
+    );
+
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
+
+    const punkOwner = await getPunkOwner();
+    expect(punkOwner).to.be.equal(liquidator.address, "Invalid punk owner after liquidation");
   });
 });

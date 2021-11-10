@@ -151,15 +151,11 @@ library ValidationLogic {
 
   /**
    * @dev Validates a repay action
-   * @param onBehalfOf The address of the user msg.sender is repaying for
-   * @param borrower The owner address of loan
    * @param reserve The reserve state from which the user is repaying
    * @param amountSent The amount sent for the repayment. Can be an actual value or uint(-1)
    * @param variableDebt The borrow balance of the user
    */
   function validateRepay(
-    address onBehalfOf,
-    address borrower,
     DataTypes.ReserveData storage reserve,
     uint256 amountSent,
     uint256 variableDebt
@@ -171,8 +167,6 @@ library ValidationLogic {
     require(amountSent > 0, Errors.VL_INVALID_AMOUNT);
 
     require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
-
-    require(onBehalfOf == borrower, Errors.VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
   }
 
   /**

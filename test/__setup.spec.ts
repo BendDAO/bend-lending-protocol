@@ -3,10 +3,7 @@ import { MockContract } from "ethereum-waffle";
 import { insertContractAddressInDb, registerContractInJsonDb } from "../helpers/contracts-helpers";
 import {
   deployLendPoolAddressesProvider,
-  deployMintableERC20,
-  deployMintableERC721,
   deployBTokenImplementations,
-  deployBNFTImplementations,
   deployLendPoolConfigurator,
   deployLendPool,
   deployLendPoolLoan,
@@ -18,15 +15,8 @@ import {
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   deployWETHGateway,
-  deployWETHMocked,
-  authorizeWETHGateway,
-  authorizeWETHGatewayNFT,
   deployBNFTRegistry,
-  deployCryptoPunksMarket,
-  deployWrappedPunk,
   deployPunkGateway,
-  authorizePunkGateway,
-  authorizePunkGatewayERC20,
   deployBendUpgradeableProxy,
   deployBendProxyAdmin,
   deployGenericBNFTImpl,
@@ -37,16 +27,10 @@ import {
   deployUiPoolDataProvider,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
-import { TokenContractId, NftContractId, eContractid, tEthereumAddress, BendPools } from "../helpers/types";
+import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
 import { MintableERC20 } from "../types/MintableERC20";
 import { MintableERC721 } from "../types/MintableERC721";
-import {
-  ConfigNames,
-  getReservesConfigByPool,
-  getNftsConfigByPool,
-  getTreasuryAddress,
-  loadPoolConfig,
-} from "../helpers/configuration";
+import { ConfigNames, getTreasuryAddress, loadPoolConfig } from "../helpers/configuration";
 import { initializeMakeSuite } from "./helpers/make-suite";
 
 import {
@@ -114,6 +98,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     ...(await deployAllMockNfts(false)),
   };
   const cryptoPunksMarket = await getCryptoPunksMarket();
+  await waitForTx(await cryptoPunksMarket.allInitialOwnersAssigned());
   const wrappedPunk = await getWrappedPunk();
 
   console.log("-> Prepare mock external IncentivesController...");
@@ -350,18 +335,20 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare WETH gateway...");
-  const wethGateway = await deployWETHGateway([mockTokens.WETH.address]);
-  await authorizeWETHGateway(wethGateway.address, lendPoolAddress);
-  await authorizeWETHGatewayNFT(wethGateway.address, lendPoolAddress, await getNftAddressFromSymbol("BAYC"));
-  await authorizeWETHGatewayNFT(wethGateway.address, lendPoolAddress, wrappedPunk.address);
+  const wethGateway = await deployWETHGateway([addressesProvider.address, mockTokens.WETH.address]);
+  await waitForTx(await wethGateway.authorizeLendPoolNFT(await getNftAddressFromSymbol("BAYC")));
+  await waitForTx(await wethGateway.authorizeLendPoolNFT(wrappedPunk.address));
 
   console.log("-> Prepare PUNK gateway...");
-  const punkGateway = await deployPunkGateway([cryptoPunksMarket.address, wrappedPunk.address]);
+  const punkGateway = await deployPunkGateway([
+    addressesProvider.address,
+    wethGateway.address,
+    cryptoPunksMarket.address,
+    wrappedPunk.address,
+  ]);
   console.log(`Deploy PunkGateway at ${punkGateway.address}`);
-  await authorizePunkGateway(punkGateway.address, lendPoolAddress, wethGateway.address);
   console.log(`Authorzie PunkGateway with LendPool and WETHGateway`);
-  await waitForTx(await cryptoPunksMarket.allInitialOwnersAssigned());
-  await authorizePunkGatewayERC20(punkGateway.address, lendPoolAddress, allReservesAddresses.USDC);
+  await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.USDC));
 
   console.timeEnd("setup");
 };

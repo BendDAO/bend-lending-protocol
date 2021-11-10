@@ -1,15 +1,14 @@
 import BigNumber from "bignumber.js";
-import { expect } from "chai";
 import { BigNumber as BN } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import DRE from "hardhat";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther } from "../helpers/constants";
 import { deploySelfdestructTransferMock } from "../helpers/contracts-deployments";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
-import { waitForTx } from "../helpers/misc-utils";
-import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
+import { getNowTimeInSeconds, waitForTx } from "../helpers/misc-utils";
+import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import {
   borrow,
   configuration as actionsConfiguration,
@@ -22,11 +21,15 @@ import { configuration as calculationsConfiguration } from "./helpers/utils/calc
 import { getLoanData, getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
 
+const chai = require("chai");
+const { expect } = chai;
+
 makeSuite("WETHGateway", (testEnv: TestEnv) => {
   let cachedTokenId;
 
   const zero = BN.from(0);
   const depositSize = parseEther("5");
+  const depositSize500 = parseEther("500");
   const GAS_PRICE = NETWORKS_DEFAULT_GAS[DRE.network.name];
 
   before("Initializing configuration", async () => {
@@ -57,12 +60,10 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const user = users[1];
 
     // Deposit liquidity with native ETH
-    await wethGateway
-      .connect(depositor.signer)
-      .depositETH(pool.address, depositor.address, "0", { value: depositSize });
+    await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize });
 
     // Deposit with native ETH
-    await wethGateway.connect(user.signer).depositETH(pool.address, user.address, "0", { value: depositSize });
+    await wethGateway.connect(user.signer).depositETH(user.address, "0", { value: depositSize });
 
     const bTokensBalance = await bWETH.balanceOf(user.address);
 
@@ -88,7 +89,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     // Partial Withdraw and send native Ether to user
     const { gasUsed: withdrawGas } = await waitForTx(
-      await wethGateway.connect(user.signer).withdrawETH(pool.address, partialWithdraw, user.address)
+      await wethGateway.connect(user.signer).withdrawETH(partialWithdraw, user.address)
     );
 
     const afterPartialEtherBalance = await user.signer.getBalance();
@@ -120,7 +121,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     // Full withdraw
     const { gasUsed: withdrawGas } = await waitForTx(
-      await wethGateway.connect(user.signer).withdrawETH(pool.address, MAX_UINT_AMOUNT, user.address)
+      await wethGateway.connect(user.signer).withdrawETH(MAX_UINT_AMOUNT, user.address)
     );
 
     const afterFullEtherBalance = await user.signer.getBalance();
@@ -135,7 +136,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
   });
 
   it("Borrow WETH and Full Repay with ETH", async () => {
-    const { users, wethGateway, pool, loan, bWETH, dataProvider } = testEnv;
+    const { users, wethGateway, pool, loan, bWETH, bayc, dataProvider } = testEnv;
     const depositor = users[0];
     const user = users[1];
     const borrowSize = parseEther("1");
@@ -143,9 +144,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     // Deposit with native ETH
     await waitForTx(
-      await wethGateway
-        .connect(depositor.signer)
-        .depositETH(pool.address, depositor.address, "0", { value: depositSize })
+      await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize })
     );
 
     const bTokensBalance = await bWETH.balanceOf(depositor.address);
@@ -173,29 +172,28 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     // Partial Repay WETH loan with native ETH
     const partialPayment = repaySize.div(2);
     await waitForTx(
-      await wethGateway
-        .connect(user.signer)
-        .repayETH(pool.address, loan.address, nftAsset, tokenId, partialPayment, user.address, {
-          value: partialPayment,
-        })
+      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, partialPayment, {
+        value: partialPayment,
+      })
     );
     expect(await getDebtBalance()).to.be.lt(debtBalance);
 
     // Full Repay WETH loan with native ETH
     await waitForTx(
-      await wethGateway
-        .connect(user.signer)
-        .repayETH(pool.address, loan.address, nftAsset, tokenId, MAX_UINT_AMOUNT, user.address, {
-          value: repaySize,
-        })
+      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, MAX_UINT_AMOUNT, {
+        value: repaySize,
+      })
     );
     expect(await getDebtBalance()).to.be.eq(zero);
+
+    const tokenOwner = await bayc.ownerOf(tokenId);
+    expect(tokenOwner).to.be.equal(user.address, "Invalid token owner after repay");
 
     cachedTokenId = tokenId;
   });
 
   it("Borrow ETH and Full Repay with ETH", async () => {
-    const { users, wethGateway, pool, loan, bWETH, dataProvider } = testEnv;
+    const { users, wethGateway, pool, loan, bWETH, bayc, dataProvider } = testEnv;
     const depositor = users[0];
     const user = users[1];
     const borrowSize = parseEther("1");
@@ -203,9 +201,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     // Deposit with native ETH
     await waitForTx(
-      await wethGateway
-        .connect(depositor.signer)
-        .depositETH(pool.address, depositor.address, "0", { value: depositSize })
+      await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize })
     );
 
     const bTokensBalance = await bWETH.balanceOf(depositor.address);
@@ -227,9 +223,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const ethBalanceBefore = await user.signer.getBalance();
 
     // Borrow with NFT
-    await waitForTx(
-      await wethGateway.connect(user.signer).borrowETH(pool.address, borrowSize, nftAsset, tokenId, user.address, "0")
-    );
+    await waitForTx(await wethGateway.connect(user.signer).borrowETH(borrowSize, nftAsset, tokenId, user.address, "0"));
 
     expect(await user.signer.getBalance(), "current eth balance shoud increase").to.be.gt(ethBalanceBefore);
 
@@ -240,23 +234,22 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     // Partial Repay ETH loan with native ETH
     const partialPayment = repaySize.div(2);
     await waitForTx(
-      await wethGateway
-        .connect(user.signer)
-        .repayETH(pool.address, loan.address, nftAsset, tokenId, partialPayment, user.address, {
-          value: partialPayment,
-        })
+      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, partialPayment, {
+        value: partialPayment,
+      })
     );
     expect(await getDebtBalance()).to.be.lt(debtBalance);
 
     // Full Repay ETH loan with native ETH
     await waitForTx(
-      await wethGateway
-        .connect(user.signer)
-        .repayETH(pool.address, loan.address, nftAsset, tokenId, MAX_UINT_AMOUNT, user.address, {
-          value: repaySize,
-        })
+      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, MAX_UINT_AMOUNT, {
+        value: repaySize,
+      })
     );
     expect(await getDebtBalance()).to.be.eq(zero);
+
+    const tokenOwner = await bayc.ownerOf(tokenId);
+    expect(tokenOwner).to.be.equal(user.address, "Invalid token owner after repay");
 
     cachedTokenId = tokenId;
   });
@@ -368,5 +361,72 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
       "User should recover the funds due emergency eth transfer."
     );
     expect(wethGatewayAfterRecovery).to.be.eq("0", "WETHGateway ether balance should be zero.");
+  });
+
+  // MUST BE LAST TEST CASE, not related to previous test cases
+  it("Borrow ETH and Liquidate with ETH", async () => {
+    const { users, wethGateway, pool, loan, reserveOracle, nftOracle, weth, bWETH, bayc, dataProvider } = testEnv;
+    const depositor = users[0];
+    const user = users[1];
+    const user3 = users[3];
+    const liquidator = users[4];
+
+    // Deposit with native ETH
+    await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize500 });
+
+    // Start loan
+    const nftAsset = await getNftAddressFromSymbol("BAYC");
+    const tokenIdNum = testEnv.tokenIdTracker++;
+    const tokenId = tokenIdNum.toString();
+    await mintERC721(testEnv, user, "BAYC", tokenId);
+    await setApprovalForAll(testEnv, user, "BAYC");
+    await setApprovalForAllWETHGateway(testEnv, user, "BAYC");
+
+    const poolLoanDataBefore = await pool.getNftLoanData(bayc.address, tokenId);
+
+    const wethPrice = await reserveOracle.getAssetPrice(weth.address);
+    const amountBorrow = await convertToCurrencyDecimals(
+      weth.address,
+      new BigNumber(poolLoanDataBefore.availableBorrowsETH.toString())
+        .div(wethPrice.toString())
+        .multipliedBy(0.95)
+        .toFixed(0)
+    );
+
+    // Borrow with NFT
+    await waitForTx(
+      await wethGateway.connect(user.signer).borrowETH(amountBorrow, nftAsset, tokenId, user.address, "0")
+    );
+    const poolLoanDataAfterBorrow = await pool.getNftLoanData(bayc.address, tokenId);
+    expect(poolLoanDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
+
+    // Drop the health factor below 1
+    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
+    const latestTime = await getNowTimeInSeconds();
+    await waitForTx(
+      await nftOracle.setAssetData(
+        bayc.address,
+        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
+        latestTime,
+        latestTime
+      )
+    );
+    const poolLoanDataAfterLiquidate = await pool.getNftLoanData(bayc.address, tokenId);
+    expect(poolLoanDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
+
+    // Liquidate ETH loan with native ETH
+    const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, tokenId);
+    const liquidateAmountSend = liquidatePrice.add(liquidatePrice.mul(5).div(100));
+    await waitForTx(
+      await wethGateway
+        .connect(liquidator.signer)
+        .liquidateETH(nftAsset, tokenId, liquidator.address, { value: liquidateAmountSend })
+    );
+
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
+
+    const tokenOwner = await bayc.ownerOf(tokenId);
+    expect(tokenOwner).to.be.equal(liquidator.address, "Invalid token owner after liquidation");
   });
 });

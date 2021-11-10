@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
@@ -16,27 +16,37 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 
 contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
+  ILendPoolAddressesProvider internal _addressProvider;
+  ILendPool internal _pool;
+  ILendPoolLoan internal _poolLoan;
+  IWETHGateway internal _wethGateway;
+
   IPunks public punks;
   IWrappedPunks public wrappedPunks;
   address public proxy;
 
-  constructor(IPunks _punks, IWrappedPunks _wrappedPunks) {
-    punks = _punks;
-    wrappedPunks = _wrappedPunks;
+  constructor(
+    address addressProvider,
+    address wethGateway,
+    address _punks,
+    address _wrappedPunks
+  ) {
+    _addressProvider = ILendPoolAddressesProvider(addressProvider);
+    _pool = ILendPool(_addressProvider.getLendPool());
+    _poolLoan = ILendPoolLoan(_addressProvider.getLendPoolLoan());
+    _wethGateway = IWETHGateway(wethGateway);
+
+    punks = IPunks(_punks);
+    wrappedPunks = IWrappedPunks(_wrappedPunks);
     wrappedPunks.registerProxy();
     proxy = wrappedPunks.proxyInfo(address(this));
+
+    IERC721(address(wrappedPunks)).setApprovalForAll(address(_pool), true);
+    IERC721(address(wrappedPunks)).setApprovalForAll(address(_wethGateway), true);
   }
 
-  function authorizeLendPool(address lendPool) external onlyOwner {
-    IERC721Upgradeable(address(wrappedPunks)).setApprovalForAll(lendPool, true);
-  }
-
-  function authorizeLendPoolERC20(address lendPool, address token) external onlyOwner {
-    IERC20(token).approve(lendPool, type(uint256).max);
-  }
-
-  function authorizeWETHGateway(address wethGateway) external onlyOwner {
-    IERC721Upgradeable(address(wrappedPunks)).setApprovalForAll(wethGateway, true);
+  function authorizeLendPoolERC20(address token) external onlyOwner {
+    IERC20(token).approve(address(_pool), type(uint256).max);
   }
 
   function _depositPunk(uint256 punkIndex) internal {
@@ -50,7 +60,6 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
   }
 
   function borrow(
-    address lendPool,
     address reserveAsset,
     uint256 amount,
     uint256 punkIndex,
@@ -59,30 +68,25 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
   ) external override {
     _depositPunk(punkIndex);
 
-    ILendPool(lendPool).borrow(reserveAsset, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
+    _pool.borrow(reserveAsset, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
     IERC20(reserveAsset).transfer(onBehalfOf, amount);
   }
 
-  function _withdrawPunk(uint256 punkIndex) internal {
+  function _withdrawPunk(uint256 punkIndex, address onBehalfOf) internal {
     address owner = wrappedPunks.ownerOf(punkIndex);
-    require(owner == _msgSender(), "PunkGateway: invalid owner");
+    require(owner == onBehalfOf, "PunkGateway: invalid owner");
 
-    wrappedPunks.safeTransferFrom(_msgSender(), address(this), punkIndex);
+    wrappedPunks.safeTransferFrom(onBehalfOf, address(this), punkIndex);
     wrappedPunks.burn(punkIndex);
-    punks.transferPunk(_msgSender(), punkIndex);
+    punks.transferPunk(onBehalfOf, punkIndex);
   }
 
-  function repay(
-    address lendPool,
-    address lendPoolLoan,
-    uint256 punkIndex,
-    uint256 amount,
-    address onBehalfOf
-  ) external override returns (uint256, bool) {
-    uint256 loanId = ILendPoolLoan(lendPoolLoan).getCollateralLoanId(address(wrappedPunks), punkIndex);
+  function repay(uint256 punkIndex, uint256 amount) external override returns (uint256, bool) {
+    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
-    (, , address reserve, ) = ILendPoolLoan(lendPoolLoan).getLoanCollateralAndReserve(loanId);
-    uint256 debt = ILendPoolLoan(lendPoolLoan).getLoanReserveBorrowAmount(loanId);
+    (, , address reserve, ) = _poolLoan.getLoanCollateralAndReserve(loanId);
+    uint256 debt = _poolLoan.getLoanReserveBorrowAmount(loanId);
+    address borrower = _poolLoan.borrowerOf(loanId);
 
     if (amount > debt) {
       amount = debt;
@@ -90,51 +94,62 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
 
     IERC20(reserve).transferFrom(msg.sender, address(this), amount);
 
-    (uint256 paybackAmount, bool burn) = ILendPool(lendPool).repay(
-      address(wrappedPunks),
-      punkIndex,
-      amount,
-      onBehalfOf
-    );
+    (uint256 paybackAmount, bool burn) = _pool.repay(address(wrappedPunks), punkIndex, amount);
 
     if (burn) {
-      _withdrawPunk(punkIndex);
+      _withdrawPunk(punkIndex, borrower);
     }
 
     return (paybackAmount, burn);
   }
 
+  function liquidate(uint256 punkIndex) external override returns (uint256, uint256) {
+    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    require(loanId != 0, "PunkGateway: no loan with such punkIndex");
+
+    (, , address reserve, ) = _poolLoan.getLoanCollateralAndReserve(loanId);
+
+    (uint256 liquidatePriceGuess, uint256 paybackAmountGuess) = _pool.getNftLiquidatePrice(
+      address(wrappedPunks),
+      punkIndex
+    );
+    if (liquidatePriceGuess < paybackAmountGuess) {
+      liquidatePriceGuess = paybackAmountGuess;
+    }
+
+    IERC20(reserve).transferFrom(msg.sender, address(this), liquidatePriceGuess);
+
+    (uint256 liquidateAmount, uint256 paybackAmount) = _pool.liquidate(address(wrappedPunks), punkIndex, _msgSender());
+
+    _withdrawPunk(punkIndex, _msgSender());
+
+    return (liquidateAmount, paybackAmount);
+  }
+
   function borrowETH(
-    address wethGateway,
-    address lendPool,
     uint256 amount,
     uint256 punkIndex,
     address onBehalfOf,
     uint16 referralCode
   ) external override {
     _depositPunk(punkIndex);
-    IWETHGateway(wethGateway).borrowETH(lendPool, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
+    _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
   }
 
-  function repayETH(
-    address wethGateway,
-    address lendPool,
-    address lendPoolLoan,
-    uint256 punkIndex,
-    uint256 amount,
-    address onBehalfOf
-  ) external payable override returns (uint256, bool) {
-    (uint256 paybackAmount, bool burn) = IWETHGateway(wethGateway).repayETH{value: msg.value}(
-      lendPool,
-      lendPoolLoan,
+  function repayETH(uint256 punkIndex, uint256 amount) external payable override returns (uint256, bool) {
+    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    require(loanId != 0, "PunkGateway: no loan with such punkIndex");
+
+    address borrower = _poolLoan.borrowerOf(loanId);
+
+    (uint256 paybackAmount, bool burn) = _wethGateway.repayETH{value: msg.value}(
       address(wrappedPunks),
       punkIndex,
-      amount,
-      onBehalfOf
+      amount
     );
 
     if (burn) {
-      _withdrawPunk(punkIndex);
+      _withdrawPunk(punkIndex, borrower);
     }
 
     // refund remaining dust eth
@@ -143,6 +158,23 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     }
 
     return (paybackAmount, burn);
+  }
+
+  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable override returns (uint256, uint256) {
+    (uint256 liquidateAmount, uint256 paybackAmount) = _wethGateway.liquidateETH{value: msg.value}(
+      address(wrappedPunks),
+      punkIndex,
+      onBehalfOf
+    );
+
+    _withdrawPunk(punkIndex, onBehalfOf);
+
+    // refund remaining dust eth
+    if (msg.value > liquidateAmount) {
+      _safeTransferETH(msg.sender, msg.value - liquidateAmount);
+    }
+
+    return (liquidateAmount, paybackAmount);
   }
 
   function onERC721Received(

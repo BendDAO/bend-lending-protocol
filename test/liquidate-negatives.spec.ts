@@ -11,8 +11,6 @@ const chai = require("chai");
 const { expect } = chai;
 
 makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
-  const { INVALID_HF } = ProtocolErrors;
-
   before("Before liquidation: set config", () => {
     BigNumber.config({ DECIMAL_PLACES: 0, ROUNDING_MODE: BigNumber.ROUND_DOWN });
   });
@@ -25,7 +23,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const { configurator, bayc, pool, users } = testEnv;
     const user1 = users[1];
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", user1.address)).to.be.revertedWith(
       ProtocolErrors.LP_NFT_IS_NOT_USED_AS_COLLATERAL
     );
   });
@@ -56,7 +54,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
 
     await configurator.deactivateNft(bayc.address);
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", user1.address)).to.be.revertedWith(
       ProtocolErrors.VL_NO_ACTIVE_NFT
     );
 
@@ -84,7 +82,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const user0 = users[0];
     const user1 = users[1];
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", user1.address)).to.be.revertedWith(
       ProtocolErrors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE
     );
   });
@@ -103,7 +101,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       latestTime.add(1)
     );
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", user1.address)).to.be.revertedWith(
       ProtocolErrors.LP_PRICE_TOO_LOW_TO_LIQUIDATE
     );
   });
