@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 import {IERC20Detailed} from "../interfaces/IERC20Detailed.sol";
 import {IERC721Detailed} from "../interfaces/IERC721Detailed.sol";

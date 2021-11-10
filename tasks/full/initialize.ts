@@ -8,6 +8,7 @@ import {
   authorizeWETHGatewayNFT,
   authorizePunkGateway,
   authorizePunkGatewayERC20,
+  deployUiPoolDataProvider,
 } from "../../helpers/contracts-deployments";
 import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
 import { getWETHGateway, getPunkGateway } from "../../helpers/contracts-getters";
@@ -90,13 +91,9 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       const bendProtocolDataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
       console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
 
-      /*
-      const uiPoolDataProvider = await deployUiPoolDataProvider(
-        [incentivesController, reserveOracle, nftOracle],
-        verify
-      );
-      console.log('UiPoolDataProvider deployed at:', uiPoolDataProvider.address);
-      */
+      // this contract is not support upgrade, just deploy new contract
+      const uiPoolDataProvider = await deployUiPoolDataProvider(reserveOracle, nftOracle, verify);
+      console.log("UiPoolDataProvider deployed at:", uiPoolDataProvider.address);
 
       //////////////////////////////////////////////////////////////////////////
       // Init & Config Gateways

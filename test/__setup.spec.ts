@@ -119,9 +119,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare proxy admin...");
-  const bendProxyAdmin = await deployBendProxyAdmin();
+  const bendProxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminTest);
   console.log("bendProxyAdmin:", bendProxyAdmin.address);
-  await waitForTx(await addressesProvider.setProxyAdmin(bendProxyAdmin.address));
 
   //////////////////////////////////////////////////////////////////////////////
   // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
@@ -326,12 +325,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   console.log("-> Prepare wallet & data & ui provider...");
   await deployWalletBalancerProvider();
   await deployBendProtocolDataProvider(addressesProvider.address);
-  await deployUiPoolDataProvider(
-    mockIncentivesController.address,
-    reserveOracleImpl.address,
-    nftOracleImpl.address,
-    false
-  );
+  await deployUiPoolDataProvider(reserveOracleImpl.address, nftOracleImpl.address, false);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare WETH gateway...");

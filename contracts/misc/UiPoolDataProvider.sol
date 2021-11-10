@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {IERC20Detailed} from "../interfaces/IERC20Detailed.sol";
 import {IERC721Detailed} from "../interfaces/IERC721Detailed.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {IUiPoolDataProvider} from "../interfaces/IUiPoolDataProvider.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
@@ -24,16 +23,10 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
 
-  IIncentivesController public immutable override incentivesController;
   IReserveOracleGetter public immutable reserveOracle;
   INFTOracleGetter public immutable nftOracle;
 
-  constructor(
-    IIncentivesController _incentivesController,
-    IReserveOracleGetter _reserveOracle,
-    INFTOracleGetter _nftOracle
-  ) {
-    incentivesController = _incentivesController;
+  constructor(IReserveOracleGetter _reserveOracle, INFTOracleGetter _nftOracle) {
     reserveOracle = _reserveOracle;
     nftOracle = _nftOracle;
   }
@@ -51,7 +44,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     public
     view
     override
-    returns (AggregatedReserveData[] memory, uint256)
+    returns (AggregatedReserveData[] memory)
   {
     ILendPool lendPool = ILendPool(provider.getLendPool());
     address[] memory reserves = lendPool.getReservesList();
@@ -65,19 +58,14 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
       _fillReserveData(reserveData, reserves[i], baseData);
     }
 
-    uint256 emissionEndTimestamp;
-    if (address(0) != address(incentivesController)) {
-      emissionEndTimestamp = incentivesController.DISTRIBUTION_END();
-    }
-
-    return (reservesData, emissionEndTimestamp);
+    return (reservesData);
   }
 
   function getUserReservesData(ILendPoolAddressesProvider provider, address user)
     external
     view
     override
-    returns (UserReserveData[] memory, uint256)
+    returns (UserReserveData[] memory)
   {
     ILendPool lendPool = ILendPool(provider.getLendPool());
     address[] memory reserves = lendPool.getReservesList();
@@ -90,23 +78,14 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
       _fillUserReserveData(userReservesData[i], user, reserves[i], baseData);
     }
 
-    uint256 userUnclaimedRewards;
-    if (address(0) != address(incentivesController)) {
-      userUnclaimedRewards = incentivesController.getUserUnclaimedRewards(user);
-    }
-
-    return (userReservesData, userUnclaimedRewards);
+    return (userReservesData);
   }
 
   function getReservesData(ILendPoolAddressesProvider provider, address user)
     external
     view
     override
-    returns (
-      AggregatedReserveData[] memory,
-      UserReserveData[] memory,
-      IncentivesControllerData memory
-    )
+    returns (AggregatedReserveData[] memory, UserReserveData[] memory)
   {
     ILendPool lendPool = ILendPool(provider.getLendPool());
     address[] memory reserves = lendPool.getReservesList();
@@ -125,16 +104,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
       }
     }
 
-    IncentivesControllerData memory incentivesControllerData;
-
-    if (address(0) != address(incentivesController)) {
-      if (user != address(0)) {
-        incentivesControllerData.userUnclaimedRewards = incentivesController.getUserUnclaimedRewards(user);
-      }
-      incentivesControllerData.emissionEndTimestamp = incentivesController.DISTRIBUTION_END();
-    }
-
-    return (reservesData, userReservesData, incentivesControllerData);
+    return (reservesData, userReservesData);
   }
 
   function _fillReserveData(
@@ -169,21 +139,6 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     (reserveData.variableRateSlope1, reserveData.variableRateSlope2) = getInterestRateStrategySlopes(
       InterestRate(reserveData.interestRateAddress)
     );
-
-    // incentives
-    if (address(0) != address(incentivesController)) {
-      (
-        reserveData.bTokenIncentivesIndex,
-        reserveData.bEmissionPerSecond,
-        reserveData.bIncentivesLastUpdateTimestamp
-      ) = incentivesController.getAssetData(reserveData.bTokenAddress);
-
-      (
-        reserveData.vTokenIncentivesIndex,
-        reserveData.vEmissionPerSecond,
-        reserveData.vIncentivesLastUpdateTimestamp
-      ) = incentivesController.getAssetData(reserveData.debtTokenAddress);
-    }
   }
 
   function _fillUserReserveData(
@@ -196,14 +151,6 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     userReserveData.underlyingAsset = reserveAsset;
     userReserveData.scaledBTokenBalance = IBToken(baseData.bTokenAddress).scaledBalanceOf(user);
     userReserveData.scaledVariableDebt = IDebtToken(baseData.debtTokenAddress).scaledBalanceOf(user);
-    // incentives
-    if (address(0) != address(incentivesController)) {
-      userReserveData.bTokenincentivesUserIndex = incentivesController.getUserAssetData(user, baseData.bTokenAddress);
-      userReserveData.vTokenincentivesUserIndex = incentivesController.getUserAssetData(
-        user,
-        baseData.debtTokenAddress
-      );
-    }
   }
 
   function getNftsList(ILendPoolAddressesProvider provider) external view override returns (address[] memory) {
@@ -319,7 +266,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     // user nft data
     userNftData.bNftAddress = baseData.bNftAddress;
 
-    userNftData.TotalCollateral = lendPoolLoan.getUserNftCollateralAmount(user, nftAsset);
+    userNftData.totalCollateral = lendPoolLoan.getUserNftCollateralAmount(user, nftAsset);
   }
 
   function getSimpleLoansData(

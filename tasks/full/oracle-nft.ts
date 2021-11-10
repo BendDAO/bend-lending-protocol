@@ -8,7 +8,7 @@ import {
   getNFTOracle,
   getLendPoolAddressesProvider,
   getBendUpgradeableProxy,
-  getBendProxyAdmin,
+  getBendProxyAdminById,
 } from "../../helpers/contracts-getters";
 import { NFTOracle, BendUpgradeableProxy } from "../../types";
 
@@ -24,7 +24,7 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
 
       const addressesProvider = await getLendPoolAddressesProvider();
       const poolAdmin = await getGenesisPoolAdmin(poolConfig);
-      const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
+      const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
       const proxyOwnerAddress = await proxyAdmin.owner();
 
       const nftOracleAddress = getParamPerNetwork(poolConfig.NFTOracle, network);
@@ -40,7 +40,7 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       let nftOracle: NFTOracle;
       let nftOracleProxy: BendUpgradeableProxy;
 
-      if (notFalsyOrZeroAddress(nftOracleAddress)) {
+      if (nftOracleAddress != undefined && notFalsyOrZeroAddress(nftOracleAddress)) {
         console.log("Upgrading exist nft oracle proxy to new implementation...");
 
         await insertContractAddressInDb(eContractid.NFTOracle, nftOracleAddress);

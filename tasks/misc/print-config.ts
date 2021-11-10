@@ -28,7 +28,6 @@ task("print-config", "Print config of all reserves and nfts")
     console.log("Market Id: ", await addressesProvider.getMarketId());
     console.log("Pool Admin", await addressesProvider.getPoolAdmin());
     console.log("Emergency Admin", await addressesProvider.getEmergencyAdmin());
-    console.log("Proxy Admin", await addressesProvider.getProxyAdmin());
     console.log("Lend Pool Proxy:", await addressesProvider.getLendPool());
     console.log("Lend Pool Loan Proxy", await addressesProvider.getLendPoolLoan());
     console.log("Lend Pool Configurator Proxy", await addressesProvider.getLendPoolConfigurator());

@@ -46,12 +46,12 @@ task("bend:mainnet", "Deploy full enviroment")
     console.log("Migration started\n");
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy address provider");
-    await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry });
-
-    //////////////////////////////////////////////////////////////////////////
     console.log("Deploy proxy admin");
     await DRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
+
+    //////////////////////////////////////////////////////////////////////////
+    console.log("Deploy address provider");
+    await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("Deploy bnft registry");

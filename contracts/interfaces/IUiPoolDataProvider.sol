@@ -29,22 +29,12 @@ interface IUiPoolDataProvider {
     uint256 priceInEth;
     uint256 variableRateSlope1;
     uint256 variableRateSlope2;
-    // incentives
-    uint256 bEmissionPerSecond;
-    uint256 vEmissionPerSecond;
-    uint256 bIncentivesLastUpdateTimestamp;
-    uint256 vIncentivesLastUpdateTimestamp;
-    uint256 bTokenIncentivesIndex;
-    uint256 vTokenIncentivesIndex;
   }
 
   struct UserReserveData {
     address underlyingAsset;
     uint256 scaledBTokenBalance;
     uint256 scaledVariableDebt;
-    // incentives
-    uint256 bTokenincentivesUserIndex;
-    uint256 vTokenincentivesUserIndex;
   }
 
   struct AggregatedNftData {
@@ -64,12 +54,7 @@ interface IUiPoolDataProvider {
   struct UserNftData {
     address underlyingAsset;
     address bNftAddress;
-    uint256 TotalCollateral;
-  }
-
-  struct IncentivesControllerData {
-    uint256 userUnclaimedRewards;
-    uint256 emissionEndTimestamp;
+    uint256 totalCollateral;
   }
 
   struct AggregatedLoanData {
@@ -82,35 +67,23 @@ interface IUiPoolDataProvider {
     uint256 healthFactor;
   }
 
-  function incentivesController() external view returns (IIncentivesController);
-
   function getReservesList(ILendPoolAddressesProvider provider) external view returns (address[] memory);
 
   function getSimpleReservesData(ILendPoolAddressesProvider provider)
     external
     view
-    returns (
-      AggregatedReserveData[] memory,
-      uint256 // emission end timestamp
-    );
+    returns (AggregatedReserveData[] memory);
 
   function getUserReservesData(ILendPoolAddressesProvider provider, address user)
     external
     view
-    returns (
-      UserReserveData[] memory,
-      uint256 // user unclaimed rewards
-    );
+    returns (UserReserveData[] memory);
 
   // generic method with full data
   function getReservesData(ILendPoolAddressesProvider provider, address user)
     external
     view
-    returns (
-      AggregatedReserveData[] memory,
-      UserReserveData[] memory,
-      IncentivesControllerData memory
-    );
+    returns (AggregatedReserveData[] memory, UserReserveData[] memory);
 
   function getNftsList(ILendPoolAddressesProvider provider) external view returns (address[] memory);
 
