@@ -6,6 +6,7 @@ import {
   deployLendPool,
   deployLendPoolLoan,
   deployLendPoolConfigurator,
+  deployBNFTImplementations,
 } from "../../helpers/contracts-deployments";
 import { eContractid, eNetwork } from "../../helpers/types";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
@@ -28,21 +29,13 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const poolConfig = loadPoolConfig(pool);
       const addressesProvider = await getLendPoolAddressesProvider();
 
-      const { LendPool, LendPoolLoan, LendPoolConfigurator } = poolConfig;
-
       //////////////////////////////////////////////////////////////////////////
       // Reuse/deploy lend pool implementation
-      let lendPoolImplAddress = getParamPerNetwork(LendPool, network);
-      if (!notFalsyOrZeroAddress(lendPoolImplAddress)) {
-        console.log("Deploying new lend pool implementation & libraries...");
-        const lendPoolImpl = await deployLendPool(verify);
-        lendPoolImplAddress = lendPoolImpl.address;
-      } else {
-        await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImplAddress);
-      }
-      console.log("Setting lend pool implementation with address:", lendPoolImplAddress);
+      console.log("Deploying new lend pool implementation & libraries...");
+      const lendPoolImpl = await deployLendPool(verify);
+      console.log("Setting lend pool implementation with address:", lendPoolImpl.address);
       // Set lending pool impl to Address provider
-      await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImplAddress));
+      await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address));
 
       const address = await addressesProvider.getLendPool();
       const lendPoolProxy = await getLendPool(address);
@@ -51,17 +44,11 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
 
       //////////////////////////////////////////////////////////////////////////
       // Reuse/deploy lend pool loan
-      let lendPoolLoanImplAddress = getParamPerNetwork(LendPoolLoan, network);
-      if (!notFalsyOrZeroAddress(lendPoolLoanImplAddress)) {
-        console.log("Deploying new loan implementation...");
-        const lendPoolLoanImpl = await deployLendPoolLoan(verify);
-        lendPoolLoanImplAddress = lendPoolLoanImpl.address;
-      } else {
-        await insertContractAddressInDb(eContractid.LendPoolLoanImpl, lendPoolLoanImplAddress);
-      }
-      console.log("Setting lend pool loan implementation with address:", lendPoolLoanImplAddress);
+      console.log("Deploying new loan implementation...");
+      const lendPoolLoanImpl = await deployLendPoolLoan(verify);
+      console.log("Setting lend pool loan implementation with address:", lendPoolLoanImpl.address);
       // Set lend pool conf impl to Address Provider
-      await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImplAddress));
+      await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address));
 
       const lendPoolLoanProxy = await getLendPoolLoanProxy(await addressesProvider.getLendPoolLoan());
 
@@ -69,17 +56,11 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
 
       //////////////////////////////////////////////////////////////////////////
       // Reuse/deploy lend pool configurator
-      let lendPoolConfiguratorImplAddress = getParamPerNetwork(LendPoolConfigurator, network);
-      if (!notFalsyOrZeroAddress(lendPoolConfiguratorImplAddress)) {
-        console.log("Deploying new configurator implementation...");
-        const lendPoolConfiguratorImpl = await deployLendPoolConfigurator(verify);
-        lendPoolConfiguratorImplAddress = lendPoolConfiguratorImpl.address;
-      } else {
-        await insertContractAddressInDb(eContractid.LendPoolConfiguratorImpl, lendPoolConfiguratorImplAddress);
-      }
-      console.log("Setting lend pool configurator implementation with address:", lendPoolConfiguratorImplAddress);
+      console.log("Deploying new configurator implementation...");
+      const lendPoolConfiguratorImpl = await deployLendPoolConfigurator(verify);
+      console.log("Setting lend pool configurator implementation with address:", lendPoolConfiguratorImpl.address);
       // Set lend pool conf impl to Address Provider
-      await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolConfiguratorImplAddress));
+      await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolConfiguratorImpl.address));
 
       const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
         await addressesProvider.getLendPoolConfigurator()
@@ -99,7 +80,11 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
         verify
       );
 
+      // Generic BToken & DebtToken Implementation in Pool
       await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);
+
+      // Generic BNFT Implementation in BNFT step, not here
+      //await deployBNFTImplementations(pool, poolConfig.NftsConfig, verify);
     } catch (error) {
       throw error;
     }

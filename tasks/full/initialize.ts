@@ -3,11 +3,6 @@ import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import {
   deployBendProtocolDataProvider,
   deployWalletBalancerProvider,
-  //deployUiPoolDataProvider,
-  authorizeWETHGateway,
-  authorizeWETHGatewayNFT,
-  authorizePunkGateway,
-  authorizePunkGatewayERC20,
   deployUiPoolDataProvider,
 } from "../../helpers/contracts-deployments";
 import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
@@ -40,7 +35,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       const treasuryAddress = await getTreasuryAddress(poolConfig);
 
       //////////////////////////////////////////////////////////////////////////
-      // Init & Config Reserve assets
+      console.log("Init & Config Reserve assets");
       const reserveAssets = getParamPerNetwork(poolConfig.ReserveAssets, network);
       if (!reserveAssets) {
         throw "Reserve assets is undefined. Check ReserveAssets configuration at config directory";
@@ -62,7 +57,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       await configureReservesByHelper(poolConfig.ReservesConfig, reserveAssets, admin);
 
       //////////////////////////////////////////////////////////////////////////
-      // Init & Config NFT assets
+      console.log("Init & Config NFT assets");
       const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
       if (!nftsAssets) {
         throw "NFT assets is undefined. Check NftsAssets configuration at config directory";
@@ -80,7 +75,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, admin);
 
       //////////////////////////////////////////////////////////////////////////
-      // Deploy wallet & data & ui provider for backend
+      console.log("Deploy bend & wallet & ui provider");
       const reserveOracle = await addressesProvider.getReserveOracle();
       const nftOracle = await addressesProvider.getNFTOracle();
 
@@ -96,25 +91,26 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       console.log("UiPoolDataProvider deployed at:", uiPoolDataProvider.address);
 
       //////////////////////////////////////////////////////////////////////////
-      // Init & Config Gateways
+      console.log("Init & Config Gateways");
       const lendPoolAddress = await addressesProvider.getLendPool();
 
       let wethGatewayAddress = getParamPerNetwork(poolConfig.WethGateway, network);
       if (!notFalsyOrZeroAddress(wethGatewayAddress)) {
         wethGatewayAddress = (await getWETHGateway()).address;
       }
-      await authorizeWETHGateway(wethGatewayAddress, lendPoolAddress);
+      const wethGateway = await getWETHGateway();
       for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
-        await authorizeWETHGatewayNFT(wethGatewayAddress, lendPoolAddress, assetAddress);
+        await waitForTx(await wethGateway.authorizeLendPoolNFT(assetAddress));
       }
 
       let punkGatewayAddress = getParamPerNetwork(poolConfig.PunkGateway, network);
       if (!notFalsyOrZeroAddress(punkGatewayAddress)) {
         punkGatewayAddress = (await getPunkGateway()).address;
       }
-      await authorizePunkGateway(punkGatewayAddress, lendPoolAddress, wethGatewayAddress);
+
+      const punkGateway = await getPunkGateway();
       for (const [assetSymbol, assetAddress] of Object.entries(reserveAssets) as [string, string][]) {
-        await authorizePunkGatewayERC20(punkGatewayAddress, lendPoolAddress, assetAddress);
+        await waitForTx(await punkGateway.authorizeLendPoolERC20(assetAddress));
       }
     } catch (err) {
       console.error(err);

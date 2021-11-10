@@ -83,9 +83,6 @@ export const getTreasuryAddress = async (config: ICommonConfiguration): Promise<
   return getParamPerNetwork(config.ReserveFactorTreasuryAddress, <eNetwork>currentNetwork);
 };
 
-export const getBTokenDomainSeparatorPerNetwork = (network: eNetwork, config: ICommonConfiguration): tEthereumAddress =>
-  getParamPerNetwork<tEthereumAddress>(config.BTokenDomainSeparator, network);
-
 export const getWrappedNativeTokenAddress = async (config: ICommonConfiguration) => {
   const currentNetwork = process.env.MAINNET_FORK === "true" ? "main" : DRE.network.name;
   const wethAddress = getParamPerNetwork(config.WrappedNativeToken, <eNetwork>currentNetwork);

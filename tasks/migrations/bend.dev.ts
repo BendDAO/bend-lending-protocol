@@ -15,51 +15,51 @@ task("bend:dev", "Deploy development enviroment")
       checkVerification();
     }
 
-    console.log("Migration started\n");
+    console.log("\n\nMigration started");
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy mock reserves");
+    console.log("\n\nDeploy mock reserves");
     await localBRE.run("dev:deploy-mock-reserves", { verify });
 
-    console.log("Deploy mock nfts");
+    console.log("\n\nDeploy mock nfts");
     await localBRE.run("dev:deploy-mock-nfts", { verify });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy proxy admin");
+    console.log("\n\nDeploy proxy admin");
     await localBRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy address provider");
+    console.log("\n\nDeploy address provider");
     await localBRE.run("dev:deploy-address-provider", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy bnft registry");
+    console.log("\n\nDeploy bnft registry");
     await localBRE.run("dev:deploy-bnft-registry", { verify, pool: POOL_NAME });
 
-    console.log("Deploy bnft tokens");
+    console.log("\n\nDeploy bnft tokens");
     await localBRE.run("dev:deploy-bnft-tokens", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy lend pool");
+    console.log("\n\nDeploy lend pool");
     await localBRE.run("dev:deploy-lend-pool", { verify, pool: POOL_NAME });
 
-    console.log("Deploy reserve oracle");
+    console.log("\n\nDeploy reserve oracle");
     await localBRE.run("dev:deploy-oracle-reserve", { verify, pool: POOL_NAME });
 
-    console.log("Deploy nft oracle");
+    console.log("\n\nDeploy nft oracle");
     await localBRE.run("dev:deploy-oracle-nft", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy WETH Gateway");
+    console.log("\n\nDeploy WETH Gateway");
     await localBRE.run("full:deploy-weth-gateway", { verify, pool: POOL_NAME });
 
-    console.log("Deploy PUNK Gateway"); // MUST AFTER WETH GATEWAY
+    console.log("\n\nDeploy PUNK Gateway"); // MUST AFTER WETH GATEWAY
     await localBRE.run("full:deploy-punk-gateway", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Initialize lend pool");
+    console.log("\n\nInitialize lend pool");
     await localBRE.run("dev:initialize-lend-pool", { verify, pool: POOL_NAME });
 
-    console.log("\nFinished migration");
+    console.log("\n\nFinished migration");
     printContracts();
   });

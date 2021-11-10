@@ -3,10 +3,6 @@ import {
   deployMockFlashLoanReceiver,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
-  authorizeWETHGateway,
-  authorizeWETHGatewayNFT,
-  authorizePunkGateway,
-  authorizePunkGatewayERC20,
   deployUiPoolDataProvider,
 } from "../../helpers/contracts-deployments";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
@@ -118,9 +114,9 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     if (!notFalsyOrZeroAddress(wethGatewayAddress)) {
       wethGatewayAddress = (await getWETHGateway()).address;
     }
-    await authorizeWETHGateway(wethGatewayAddress, lendPoolAddress);
+    const wethGateway = await getWETHGateway();
     for (const [assetSymbol, assetAddress] of Object.entries(allNftAddresses) as [string, string][]) {
-      await authorizeWETHGatewayNFT(wethGatewayAddress, lendPoolAddress, assetAddress);
+      await waitForTx(await wethGateway.authorizeLendPoolNFT(assetAddress));
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -128,9 +124,9 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     if (!notFalsyOrZeroAddress(punkGatewayAddress)) {
       punkGatewayAddress = (await getPunkGateway()).address;
     }
-    await authorizePunkGateway(punkGatewayAddress, lendPoolAddress, wethGatewayAddress);
+    const punkGateway = await getPunkGateway();
     for (const [assetSymbol, assetAddress] of Object.entries(allTokenAddresses) as [string, string][]) {
-      await authorizePunkGatewayERC20(punkGatewayAddress, lendPoolAddress, assetAddress);
+      await waitForTx(await punkGateway.authorizeLendPoolERC20(assetAddress));
     }
 
     ////////////////////////////////////////////////////////////////////////////

@@ -43,55 +43,55 @@ task("bend:mainnet", "Deploy full enviroment")
       checkVerification();
     }
 
-    console.log("Migration started\n");
+    console.log("\n\nMigration started");
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy proxy admin");
+    console.log("\n\nDeploy proxy admin");
     await DRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy address provider");
+    console.log("\n\nDeploy address provider");
     await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy bnft registry");
+    console.log("\n\nDeploy bnft registry");
     await DRE.run("full:deploy-bnft-registry", { verify, pool: POOL_NAME });
 
-    console.log("Deploy bnft tokens");
+    console.log("\n\nDeploy bnft tokens");
     await DRE.run("full:deploy-bnft-tokens", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy lend pool");
+    console.log("\n\nDeploy lend pool");
     await DRE.run("full:deploy-lend-pool", { pool: POOL_NAME });
 
-    console.log("Deploy reserve oracle");
+    console.log("\n\nDeploy reserve oracle");
     await DRE.run("full:deploy-oracle-reserve", { pool: POOL_NAME });
 
-    console.log("Deploy nft oracle");
+    console.log("\n\nDeploy nft oracle");
     await DRE.run("full:deploy-oracle-nft", { pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Deploy WETH Gateway");
+    console.log("\n\nDeploy WETH Gateway");
     await DRE.run("full:deploy-weth-gateway", { pool: POOL_NAME });
 
-    console.log("Deploy PUNK Gateway"); // MUST AFTER WETH GATEWAY
+    console.log("\n\nDeploy PUNK Gateway"); // MUST AFTER WETH GATEWAY
     await DRE.run("full:deploy-punk-gateway", { pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("Initialize lend pool");
+    console.log("\n\nInitialize lend pool");
     await DRE.run("full:initialize-lend-pool", { pool: POOL_NAME });
 
     if (verify) {
       printContracts();
 
-      console.log("Veryfing general contracts");
+      console.log("\n\nVeryfing general contracts");
       await DRE.run("verify:general", { all: true, pool: POOL_NAME });
 
-      console.log("Veryfing reserves and nfts contracts");
+      console.log("\n\nVeryfing reserves and nfts contracts");
       await DRE.run("verify:reserves", { pool: POOL_NAME });
       await DRE.run("verify:nfts", { pool: POOL_NAME });
     }
 
-    console.log("\nFinished migrations");
+    console.log("\n\nFinished migrations");
     printContracts();
   });
