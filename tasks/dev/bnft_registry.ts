@@ -1,5 +1,5 @@
 import { task } from "hardhat/config";
-import { waitForTx } from "../../helpers/misc-utils";
+import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, tEthereumAddress, BendPools } from "../../helpers/types";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import {
@@ -7,7 +7,11 @@ import {
   deployGenericBNFTImpl,
   deployBendUpgradeableProxy,
 } from "../../helpers/contracts-deployments";
-import { getLendPoolAddressesProvider, getBendProxyAdmin, getBNFTRegistryProxy } from "../../helpers/contracts-getters";
+import {
+  getLendPoolAddressesProvider,
+  getBNFTRegistryProxy,
+  getBendProxyAdminById,
+} from "../../helpers/contracts-getters";
 
 task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -17,7 +21,7 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
 
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
+    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminBNFT);
 
     const poolConfig = loadPoolConfig(pool);
 

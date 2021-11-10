@@ -11,7 +11,7 @@ import {
   getLendPoolAddressesProvider,
   getBNFTRegistryProxy,
   getBendUpgradeableProxy,
-  getBendProxyAdmin,
+  getBendProxyAdminById,
 } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { BNFTRegistry, BendUpgradeableProxy } from "../../types";
@@ -26,7 +26,7 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
+    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminBNFT);
     const proxyOwnerAddress = await proxyAdmin.owner();
 
     const bnftGenericImpl = await deployGenericBNFTImpl(verify);

@@ -12,7 +12,7 @@ import {
   getReserveOracle,
   getLendPoolAddressesProvider,
   getPairsTokenAggregator,
-  getBendProxyAdmin,
+  getBendProxyAdminById,
   getBendUpgradeableProxy,
 } from "../../helpers/contracts-getters";
 import { ReserveOracle, BendUpgradeableProxy } from "../../types";
@@ -25,10 +25,11 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
+
       const { ReserveAssets, ReserveAggregator } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
-      const proxyAdmin = await getBendProxyAdmin(await addressesProvider.getProxyAdmin());
+      const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
       const proxyOwnerAddress = await proxyAdmin.owner();
 
       const reserveOracleAddress = getParamPerNetwork(poolConfig.ReserveOracle, network);
@@ -49,7 +50,7 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       let reserveOracle: ReserveOracle;
       let reserveOracleProxy: BendUpgradeableProxy;
 
-      if (notFalsyOrZeroAddress(reserveOracleAddress)) {
+      if (reserveOracleAddress != undefined && notFalsyOrZeroAddress(reserveOracleAddress)) {
         console.log("Upgrading exist reserve oracle proxy to new implementation...");
 
         await insertContractAddressInDb(eContractid.ReserveOracle, reserveOracleAddress);

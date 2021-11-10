@@ -70,7 +70,7 @@ makeSuite("DataProvider", (testEnv) => {
 
     {
       const simpleReservesData = await uiProvider.getSimpleReservesData(addressesProvider.address);
-      const wethData = simpleReservesData[0].find((reserveData) => {
+      const wethData = simpleReservesData.find((reserveData) => {
         if (reserveData.underlyingAsset === weth.address) {
           return reserveData;
         }
@@ -82,7 +82,7 @@ makeSuite("DataProvider", (testEnv) => {
 
     {
       const userReservesData = await uiProvider.getUserReservesData(addressesProvider.address, borrower.address);
-      const userWethData = userReservesData[0].find((userReserveData) => {
+      const userWethData = userReservesData.find((userReserveData) => {
         if (userReserveData.underlyingAsset === weth.address) {
           return userReserveData;
         }
@@ -140,7 +140,7 @@ makeSuite("DataProvider", (testEnv) => {
         }
       });
       //console.log("userNftsData", userNftsData);
-      expect(userBaycData?.TotalCollateral).to.be.gt(0);
+      expect(userBaycData?.totalCollateral).to.be.gt(0);
     }
 
     {
@@ -158,7 +158,7 @@ makeSuite("DataProvider", (testEnv) => {
           return userNftData;
         }
       });
-      expect(aggUserBaycData?.TotalCollateral).to.be.gt(0);
+      expect(aggUserBaycData?.totalCollateral).to.be.gt(0);
     }
   });
 

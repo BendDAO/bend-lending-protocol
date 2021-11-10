@@ -63,8 +63,4 @@ interface ILendPoolAddressesProvider {
   function getBNFTRegistry() external view returns (address);
 
   function setBNFTRegistry(address factory) external;
-
-  function getProxyAdmin() external view returns (address);
-
-  function setProxyAdmin(address admin) external;
 }

@@ -57,6 +57,7 @@ import {
   WrappedPunk,
   WETH9Mocked,
   UiPoolDataProviderFactory,
+  BendCollectorFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -246,15 +247,14 @@ export const deployBendProtocolDataProvider = async (addressesProvider: tEthereu
   );
 
 export const deployUiPoolDataProvider = async (
-  incentivesController: tEthereumAddress,
   reserveOracle: tEthereumAddress,
   nftOracle: tEthereumAddress,
   verify?: boolean
 ) =>
   withSaveAndVerify(
-    await new UiPoolDataProviderFactory(await getFirstSigner()).deploy(incentivesController, reserveOracle, nftOracle),
+    await new UiPoolDataProviderFactory(await getFirstSigner()).deploy(reserveOracle, nftOracle),
     eContractid.UIPoolDataProvider,
-    [incentivesController, reserveOracle, nftOracle],
+    [reserveOracle, nftOracle],
     verify
   );
 
@@ -517,13 +517,8 @@ export const deployBendUpgradeableProxy = async (
     verify
   );
 
-export const deployBendProxyAdmin = async (verify?: boolean) =>
-  withSaveAndVerify(
-    await new BendProxyAdminFactory(await getFirstSigner()).deploy(),
-    eContractid.BendProxyAdmin,
-    [],
-    verify
-  );
+export const deployBendProxyAdmin = async (id: string, verify?: boolean) =>
+  withSaveAndVerify(await new BendProxyAdminFactory(await getFirstSigner()).deploy(), id, [], verify);
 
 export const deployMockIncentivesController = async (verify?: boolean) =>
   withSaveAndVerify(
@@ -532,3 +527,9 @@ export const deployMockIncentivesController = async (verify?: boolean) =>
     [],
     verify
   );
+
+export const deployBendCollector = async (args: [], verify?: boolean) => {
+  const bendCollectorImpl = await new BendCollectorFactory(await getFirstSigner()).deploy();
+  await insertContractAddressInDb(eContractid.BendCollectorImpl, bendCollectorImpl.address);
+  return withSaveAndVerify(bendCollectorImpl, eContractid.BendCollector, [], verify);
+};

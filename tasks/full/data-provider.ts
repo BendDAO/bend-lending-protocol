@@ -1,6 +1,10 @@
 import { task } from "hardhat/config";
 import { formatEther } from "ethers/lib/utils";
-import { deployBendProtocolDataProvider, deployWalletBalancerProvider } from "../../helpers/contracts-deployments";
+import {
+  deployBendProtocolDataProvider,
+  deployUiPoolDataProvider,
+  deployWalletBalancerProvider,
+} from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { getFirstSigner, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
@@ -31,13 +35,9 @@ task("full:deploy-data-provider", "Deploy data provider for full enviroment")
       console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
     }
 
-    /*
+    // this contract is not support upgrade, just deploy new contract
     if (ui) {
-    const uiPoolDataProvider = await deployUiPoolDataProvider(
-      [incentivesController, reserveOracle, nftOracle],
-      verify
-    );
-    console.log('UiPoolDataProvider deployed at:', uiPoolDataProvider.address);
+      const uiPoolDataProvider = await deployUiPoolDataProvider(reserveOracle, nftOracle, verify);
+      console.log("UiPoolDataProvider deployed at:", uiPoolDataProvider.address);
     }
-    */
   });

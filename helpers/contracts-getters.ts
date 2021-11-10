@@ -33,6 +33,7 @@ import {
   BendProxyAdminFactory,
   MockIncentivesControllerFactory,
   UiPoolDataProviderFactory,
+  BendCollectorFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -332,9 +333,14 @@ export const getSelfdestructTransferMock = async (address?: tEthereumAddress) =>
 export const getBendUpgradeableProxy = async (address: tEthereumAddress) =>
   await BendUpgradeableProxyFactory.connect(address, await getFirstSigner());
 
-export const getBendProxyAdmin = async (address?: tEthereumAddress) =>
+export const getBendProxyAdminByAddress = async (address: tEthereumAddress) =>
+  await BendProxyAdminFactory.connect(address, await getFirstSigner());
+
+export const getBendProxyAdminById = async (id: string) =>
   await BendProxyAdminFactory.connect(
-    address || (await getDb().get(`${eContractid.LendPoolImpl}.${DRE.network.name}`).value()).address,
+    (
+      await getDb().get(`${id}.${DRE.network.name}`).value()
+    ).address,
     await getFirstSigner()
   );
 
@@ -386,5 +392,11 @@ export const getPunkGateway = async (address?: tEthereumAddress) =>
 export const getMockIncentivesController = async (address?: tEthereumAddress) =>
   await MockIncentivesControllerFactory.connect(
     address || (await getDb().get(`${eContractid.MockIncentivesController}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getBendCollectorProxy = async (address?: tEthereumAddress) =>
+  await BendCollectorFactory.connect(
+    address || (await getDb().get(`${eContractid.BendCollector}.${DRE.network.name}`).value()).address,
     await getFirstSigner()
   );

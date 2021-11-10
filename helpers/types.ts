@@ -40,7 +40,10 @@ export enum eContractid {
   MockReserveOracle = "MockReserveOracle",
   InterestRate = "InterestRate",
   BendUpgradeableProxy = "BendUpgradeableProxy",
-  BendProxyAdmin = "BendProxyAdmin",
+  BendProxyAdminTest = "BendProxyAdminTest",
+  BendProxyAdminBNFT = "BendProxyAdminBNFT", //BNFT(Registry)
+  BendProxyAdminPool = "BendProxyAdminPool", //LendPool Contracts, etc Oracle(Reserve, NFT)
+  BendProxyAdminFund = "BendProxyAdminFund", //Treasury Fundings, etc Collector
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   DebtToken = "DebtToken",
@@ -70,6 +73,8 @@ export enum eContractid {
   PunkGateway = "PunkGateway",
   MockIncentivesController = "MockIncentivesController",
   UIPoolDataProvider = "UIPoolDataProvider",
+  BendCollector = "BendCollector",
+  BendCollectorImpl = "BendCollectorImpl",
 }
 
 export enum ProtocolLoanState {
@@ -300,31 +305,32 @@ export interface ICommonConfiguration {
   DebtTokenSymbolPrefix: string;
   BNftNamePrefix: string;
   BNftSymbolPrefix: string;
+
   ProviderId: number;
   ProtocolGlobalParams: IProtocolGlobalConfig;
   Mocks: IMocksConfig;
-  ProxyAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
+
+  ProxyAdminBNFT: iParamsPerNetwork<tEthereumAddress | undefined>;
+  ProxyAdminPool: iParamsPerNetwork<tEthereumAddress | undefined>;
+  ProxyAdminFund: iParamsPerNetwork<tEthereumAddress | undefined>;
+
   BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   BNFTRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
-  LendPoolConfigurator: iParamsPerNetwork<tEthereumAddress>;
-  LendPool: iParamsPerNetwork<tEthereumAddress>;
-  LendPoolLoan: iParamsPerNetwork<tEthereumAddress>;
-  ReserveOracle: iParamsPerNetwork<tEthereumAddress>;
-  NFTOracle: iParamsPerNetwork<tEthereumAddress>;
-  ReserveAggregator: iParamsPerNetwork<ITokenAddress>;
-  NftAggregator: iParamsPerNetwork<ITokenAddress>;
+  ReserveOracle: iParamsPerNetwork<tEthereumAddress | undefined>;
+  NFTOracle: iParamsPerNetwork<tEthereumAddress | undefined>;
+
   PoolAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
   PoolAdminIndex: number;
   EmergencyAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
   EmergencyAdminIndex: number;
+
+  ReserveAggregator: iParamsPerNetwork<ITokenAddress>;
   ReserveAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   ReservesConfig: iMultiPoolsAssets<IReserveParams>;
   NftsAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   NftsConfig: iMultiPoolsNfts<INftParams>;
-  BTokenDomainSeparator: iParamsPerNetwork<string>;
-  BNftDomainSeparator: iParamsPerNetwork<string>;
 
   WrappedNativeToken: iParamsPerNetwork<tEthereumAddress>;
   WethGateway: iParamsPerNetwork<tEthereumAddress>;

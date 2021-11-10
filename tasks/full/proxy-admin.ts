@@ -1,10 +1,11 @@
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { deployBendProxyAdmin } from "../../helpers/contracts-deployments";
-import { getBendProxyAdmin, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
+import { getBendProxyAdminByAddress } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eNetwork, eContractid } from "../../helpers/types";
+import { BendProxyAdmin } from "../../types";
 
 task("full:deploy-proxy-admin", "Deploy proxy admin contract")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -13,19 +14,40 @@ task("full:deploy-proxy-admin", "Deploy proxy admin contract")
     await DRE.run("set-DRE");
     const poolConfig = loadPoolConfig(pool);
     const network = <eNetwork>DRE.network.name;
-    const addressesProvider = await getLendPoolAddressesProvider();
 
-    let proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdmin, network);
-
-    if (proxyAdminAddress != undefined && notFalsyOrZeroAddress(proxyAdminAddress)) {
-      await insertContractAddressInDb(eContractid.BendProxyAdmin, proxyAdminAddress);
-      const contract = await getBendProxyAdmin(proxyAdminAddress);
-      console.log("Already deployed Proxy Admin Address:", proxyAdminAddress, "Owner Address:", await contract.owner());
-    } else {
-      const contract = await deployBendProxyAdmin(verify);
-      proxyAdminAddress = contract.address;
-      console.log("Deployed Proxy Admin Address:", contract.address, "Owner Address:", await contract.owner());
+    {
+      let proxyAdmin: BendProxyAdmin;
+      const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdminBNFT, network);
+      if (proxyAdminAddress == undefined || !notFalsyOrZeroAddress(proxyAdminAddress)) {
+        proxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminBNFT, verify);
+      } else {
+        await insertContractAddressInDb(eContractid.BendProxyAdminBNFT, proxyAdminAddress);
+        proxyAdmin = await getBendProxyAdminByAddress(proxyAdminAddress);
+      }
+      console.log("ProxyAdminBNFT Address:", proxyAdmin.address, "Owner Address:", await proxyAdmin.owner());
     }
 
-    await waitForTx(await addressesProvider.setProxyAdmin(proxyAdminAddress));
+    {
+      let proxyAdmin: BendProxyAdmin;
+      const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdminPool, network);
+      if (proxyAdminAddress == undefined || !notFalsyOrZeroAddress(proxyAdminAddress)) {
+        proxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminPool, verify);
+      } else {
+        await insertContractAddressInDb(eContractid.BendProxyAdminPool, proxyAdminAddress);
+        proxyAdmin = await getBendProxyAdminByAddress(proxyAdminAddress);
+      }
+      console.log("ProxyAdminPool Address:", proxyAdmin.address, "Owner Address:", await proxyAdmin.owner());
+    }
+
+    {
+      let proxyAdmin: BendProxyAdmin;
+      const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdminFund, network);
+      if (proxyAdminAddress == undefined || !notFalsyOrZeroAddress(proxyAdminAddress)) {
+        proxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminFund, verify);
+      } else {
+        await insertContractAddressInDb(eContractid.BendProxyAdminFund, proxyAdminAddress);
+        proxyAdmin = await getBendProxyAdminByAddress(proxyAdminAddress);
+      }
+      console.log("BendProxyAdminFund Address:", proxyAdmin.address, "Owner Address:", await proxyAdmin.owner());
+    }
   });
