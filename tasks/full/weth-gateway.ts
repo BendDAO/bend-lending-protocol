@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 import { loadPoolConfig, ConfigNames, getWrappedNativeTokenAddress } from "../../helpers/configuration";
 import { deployWETHGateway } from "../../helpers/contracts-deployments";
+import { getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 
 task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -13,11 +14,13 @@ task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
     }
 
     const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+
     const weth = await getWrappedNativeTokenAddress(poolConfig);
     console.log("WETH.address", weth);
 
     // this contract is not support upgrade, just deploy new contract
-    const wethGateWay = await deployWETHGateway([weth], verify);
+    const wethGateWay = await deployWETHGateway([addressesProvider.address, weth], verify);
     console.log("WETHGateway.address", wethGateWay.address);
     console.log("Finished WETHGateway deployment");
   });

@@ -71,6 +71,10 @@ export const advanceTimeAndBlock_coverage_failed = async function (forwardTime: 
   await DRE.ethers.provider.send("evm_mine", []);
 };
 
+export const getNowTimeInSeconds = async () => (Date.now() / 1000).toFixed(0);
+
+export const getNowTimeInMilliSeconds = async () => Date.now().toFixed(0);
+
 export const waitForTx = async (tx: ContractTransaction) => await tx.wait(1);
 
 export const filterMapBy = (raw: { [key: string]: any }, fn: (key: string) => boolean) =>

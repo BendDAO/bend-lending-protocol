@@ -81,6 +81,7 @@ interface ILendPool {
    * @param repayAmount The amount of bToken repaid by the liquidator
    * @param borrowerAmount The amount of bToken received by the borrower
    * @param liquidator The address of the liquidator
+   * @param onBehalfOf The address that will be getting the NFT
    **/
   event Liquidate(
     address indexed nftAsset,
@@ -90,6 +91,7 @@ interface ILendPool {
     uint256 repayAmount,
     uint256 borrowerAmount,
     address liquidator,
+    address onBehalfOf,
     uint256 loanId
   );
 
@@ -187,16 +189,12 @@ interface ILendPool {
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
    * @param amount The amount to repay
-   * @param onBehalfOf Address of the user who will get his debt reduced/removed. Should be the address of the
-   * user calling the function if he wants to reduce/remove his own debt, or the address of any other
-   * other borrower whose debt should be removed
    * @return The final amount repaid, loan is burned or not
    **/
   function repay(
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount,
-    address onBehalfOf
+    uint256 amount
   ) external returns (uint256, bool);
 
   /**
@@ -205,8 +203,16 @@ interface ILendPool {
    *   the collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
+   * @param onBehalfOf Address of the user who will receive the underlying NFT. Should be the address of the liquidator itself
+   * calling the function if he wants the collateral, or the address of the credit delegator
+   * if he has been given credit delegation allowance
+   * @return The liquidate amount, payback amount
    **/
-  function liquidate(address nftAsset, uint256 nftTokenId) external;
+  function liquidate(
+    address nftAsset,
+    uint256 nftTokenId,
+    address onBehalfOf
+  ) external returns (uint256, uint256);
 
   /**
    * @dev Validates and finalizes an bToken transfer
@@ -280,6 +286,11 @@ interface ILendPool {
       uint256 loanId,
       uint256 healthFactor
     );
+
+  function getNftLiquidatePrice(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    returns (uint256 liquidatePrice, uint256 paybackAmount);
 
   function getNftsList() external view returns (address[] memory);
 

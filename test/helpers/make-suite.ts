@@ -1,4 +1,4 @@
-import { evmRevert, evmSnapshot, DRE } from "../../helpers/misc-utils";
+import { evmRevert, evmSnapshot, DRE, getNowTimeInSeconds } from "../../helpers/misc-utils";
 import { Signer } from "ethers";
 import {
   getLendPool,
@@ -105,6 +105,9 @@ export interface TestEnv {
   punkIndexTracker: number;
   wrappedPunk: WrappedPunk;
   punkGateway: PunkGateway;
+
+  roundIdTracker: number;
+  nowTimeTracker: number;
 }
 
 let buidlerevmSnapshotId: string = "0x1";
@@ -142,6 +145,8 @@ const testEnv: TestEnv = {
   wethGateway: {} as WETHGateway,
   //wpunksGateway: {} as WPUNKSGateway,
   tokenIdTracker: {} as number,
+  roundIdTracker: {} as number,
+  nowTimeTracker: {} as number,
 } as TestEnv;
 
 export async function initializeMakeSuite() {
@@ -238,6 +243,9 @@ export async function initializeMakeSuite() {
 
   testEnv.tokenIdTracker = 100;
   testEnv.punkIndexTracker = 0;
+
+  testEnv.roundIdTracker = 1;
+  testEnv.nowTimeTracker = Number(await getNowTimeInSeconds());
 }
 
 const setSnapshot = async () => {

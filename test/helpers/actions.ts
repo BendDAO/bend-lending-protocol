@@ -415,7 +415,7 @@ export const repay = async (
 
   if (expectedResult === "success") {
     const txResult = await waitForTx(
-      await pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, user.address, txOptions)
+      await pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions)
     );
 
     const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);

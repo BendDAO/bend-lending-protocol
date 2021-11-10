@@ -4,49 +4,48 @@ pragma solidity ^0.8.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
-  IWETH internal immutable WETH;
+  ILendPoolAddressesProvider internal _addressProvider;
+  ILendPool internal _pool;
+  ILendPoolLoan internal _poolLoan;
+
+  IWETH internal WETH;
 
   /**
-   * @dev Sets the WETH address and the LendingPoolAddressesProvider address. Infinite approves lending pool.
+   * @dev Sets the WETH address and the LendPoolAddressesProvider address. Infinite approves lend pool.
    * @param weth Address of the Wrapped Ether contract
    **/
-  constructor(address weth) {
+  constructor(address addressProvider, address weth) {
+    _addressProvider = ILendPoolAddressesProvider(addressProvider);
+    _pool = ILendPool(_addressProvider.getLendPool());
+    _poolLoan = ILendPoolLoan(_addressProvider.getLendPoolLoan());
+
     WETH = IWETH(weth);
+
+    WETH.approve(address(_pool), type(uint256).max);
   }
 
-  function authorizeLendPool(address lendPool) external onlyOwner {
-    WETH.approve(lendPool, type(uint256).max);
+  function authorizeLendPoolNFT(address nftAsset) external onlyOwner {
+    IERC721(nftAsset).setApprovalForAll(address(_pool), true);
   }
 
-  function authorizeLendPoolNFT(address lendPool, address nftAsset) external onlyOwner {
-    IERC721Upgradeable(nftAsset).setApprovalForAll(lendPool, true);
-  }
-
-  function depositETH(
-    address lendPool,
-    address onBehalfOf,
-    uint16 referralCode
-  ) external payable override {
+  function depositETH(address onBehalfOf, uint16 referralCode) external payable override {
     WETH.deposit{value: msg.value}();
-    ILendPool(lendPool).deposit(address(WETH), msg.value, onBehalfOf, referralCode);
+    _pool.deposit(address(WETH), msg.value, onBehalfOf, referralCode);
   }
 
-  function withdrawETH(
-    address lendPool,
-    uint256 amount,
-    address to
-  ) external override {
-    IBToken bWETH = IBToken(ILendPool(lendPool).getReserveData(address(WETH)).bTokenAddress);
+  function withdrawETH(uint256 amount, address to) external override {
+    IBToken bWETH = IBToken(_pool.getReserveData(address(WETH)).bTokenAddress);
 
     uint256 userBalance = bWETH.balanceOf(msg.sender);
     uint256 amountToWithdraw = amount;
@@ -57,13 +56,12 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     }
 
     bWETH.transferFrom(msg.sender, address(this), amountToWithdraw);
-    ILendPool(lendPool).withdraw(address(WETH), amountToWithdraw, address(this));
+    _pool.withdraw(address(WETH), amountToWithdraw, address(this));
     WETH.withdraw(amountToWithdraw);
     _safeTransferETH(to, amountToWithdraw);
   }
 
   function borrowETH(
-    address lendPool,
     uint256 amount,
     address nftAsset,
     uint256 nftTokenId,
@@ -72,23 +70,21 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
   ) external override {
     require(address(onBehalfOf) != address(0), "WETHGateway: `onBehalfOf` should not be zero");
 
-    IERC721Upgradeable(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
-    ILendPool(lendPool).borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
+    IERC721(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
+    _pool.borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
     WETH.withdraw(amount);
     _safeTransferETH(onBehalfOf, amount);
   }
 
   function repayETH(
-    address lendPool,
-    address lendPoolLoan,
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount,
-    address onBehalfOf
+    uint256 amount
   ) external payable override returns (uint256, bool) {
-    uint256 loanId = ILendPoolLoan(lendPoolLoan).getCollateralLoanId(nftAsset, nftTokenId);
+    uint256 loanId = _poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
+    require(loanId > 0, "collateral loan id not exist");
 
-    uint256 repayDebtAmount = ILendPoolLoan(lendPoolLoan).getLoanReserveBorrowAmount(loanId);
+    uint256 repayDebtAmount = _poolLoan.getLoanReserveBorrowAmount(loanId);
     if (amount < repayDebtAmount) {
       repayDebtAmount = amount;
     }
@@ -96,7 +92,7 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     require(msg.value >= repayDebtAmount, "msg.value is less than repayment amount");
 
     WETH.deposit{value: repayDebtAmount}();
-    (uint256 paybackAmount, bool burn) = ILendPool(lendPool).repay(nftAsset, nftTokenId, amount, onBehalfOf);
+    (uint256 paybackAmount, bool burn) = _pool.repay(nftAsset, nftTokenId, amount);
 
     // refund remaining dust eth
     if (msg.value > repayDebtAmount) {
@@ -104,6 +100,29 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     }
 
     return (paybackAmount, burn);
+  }
+
+  function liquidateETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    address onBehalfOf
+  ) external payable override returns (uint256, uint256) {
+    (uint256 liquidatePriceGuess, uint256 paybackAmountGuess) = _pool.getNftLiquidatePrice(nftAsset, nftTokenId);
+    if (liquidatePriceGuess < paybackAmountGuess) {
+      liquidatePriceGuess = paybackAmountGuess;
+    }
+
+    require(msg.value >= liquidatePriceGuess, "msg.value is less than liquidate amount guessed");
+
+    WETH.deposit{value: liquidatePriceGuess}();
+    (uint256 liquidateAmount, uint256 paybackAmount) = _pool.liquidate(nftAsset, nftTokenId, onBehalfOf);
+
+    // refund remaining dust eth
+    if (msg.value > liquidateAmount) {
+      _safeTransferETH(msg.sender, msg.value - liquidateAmount);
+    }
+
+    return (liquidateAmount, paybackAmount);
   }
 
   function onERC721Received(

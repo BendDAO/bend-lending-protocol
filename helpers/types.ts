@@ -72,10 +72,25 @@ export enum eContractid {
   UIPoolDataProvider = "UIPoolDataProvider",
 }
 
+export enum ProtocolLoanState {
+  // We need a default that is not 'Created' - this is the zero value
+  DUMMY_DO_NOT_USE,
+  // The loan data is stored, but not initiated yet.
+  Created,
+  // The loan has been initialized, funds have been delivered to the borrower and the collateral is held.
+  Active,
+  // The loan has been repaid, and the collateral has been returned to the borrower. This is a terminal state.
+  Repaid,
+  // The loan was delinquent and collateral claimed by the liquidator. This is a terminal state.
+  Defaulted,
+}
+
 export enum ProtocolErrors {
   //common errors
   CALLER_NOT_POOL_ADMIN = "100", // 'The caller must be the pool admin'
   CALLER_NOT_ADDRESS_PROVIDER = "101",
+  INVALID_FROM_BALANCE_AFTER_TRANSFER = "102",
+  INVALID_TO_BALANCE_AFTER_TRANSFER = "103",
 
   //math library erros
   MATH_MULTIPLICATION_OVERFLOW = "200",
@@ -95,6 +110,7 @@ export enum ProtocolErrors {
   VL_NO_ACTIVE_NFT = "310",
   VL_NFT_FROZEN = "311",
   VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER = "312", // 'User did not borrow the specified currency'
+  VL_INVALID_HEALTH_FACTOR = "313",
 
   //lend pool errors
   LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400", // 'The caller of the function is not the lending pool configurator'

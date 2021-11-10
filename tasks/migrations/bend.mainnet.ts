@@ -74,7 +74,7 @@ task("bend:mainnet", "Deploy full enviroment")
     console.log("Deploy WETH Gateway");
     await DRE.run("full:deploy-weth-gateway", { pool: POOL_NAME });
 
-    console.log("Deploy PUNK Gateway");
+    console.log("Deploy PUNK Gateway"); // MUST AFTER WETH GATEWAY
     await DRE.run("full:deploy-punk-gateway", { pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
