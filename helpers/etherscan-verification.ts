@@ -23,6 +23,7 @@ function delay(ms: number) {
 export const verifyEtherscanContract = async (
   address: string,
   constructorArguments: (string | string[])[],
+  contract?: string,
   libraries?: string
 ) => {
   const currentNetwork = DRE.network.name;
@@ -42,7 +43,8 @@ export const verifyEtherscanContract = async (
     );
     const msDelay = 3000;
     const times = 4;
-    // Write a temporal file to host complex parameters for buidler-etherscan https://github.com/nomiclabs/buidler/tree/development/packages/buidler-etherscan#complex-arguments
+    //write a javascript module that exports the argument list
+    //https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#complex-arguments
     const { fd, path, cleanup } = await file({
       prefix: "verify-params-",
       postfix: ".js",
@@ -51,11 +53,14 @@ export const verifyEtherscanContract = async (
 
     const params = {
       address: address,
+      contract,
       libraries,
+      constructorArguments: constructorArguments,
+      constructorArgsParams: constructorArguments,
       constructorArgs: path,
       relatedSources: true,
     };
-    await runTaskWithRetry("verify", params, times, msDelay, cleanup);
+    await runTaskWithRetry("verify:verify", params, times, msDelay, cleanup);
   } catch (error) {}
 };
 

@@ -266,7 +266,15 @@ export const getSignatureFromTypedData = (
 };
 
 export const verifyContract = async (id: string, instance: Contract, args: (string | string[])[]) => {
-  await verifyEtherscanContract(instance.address, args);
+  if (id == eContractid.BendUpgradeableProxy) {
+    await verifyEtherscanContract(
+      instance.address,
+      args,
+      "contracts/libraries/proxy/BendUpgradeableProxy.sol:BendUpgradeableProxy"
+    );
+  } else {
+    await verifyEtherscanContract(instance.address, args);
+  }
   return instance;
 };
 
