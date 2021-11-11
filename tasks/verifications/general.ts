@@ -1,22 +1,11 @@
 import { task } from "hardhat/config";
-import {
-  loadPoolConfig,
-  ConfigNames,
-  getTreasuryAddress,
-  getWrappedNativeTokenAddress,
-  getWrappedPunkTokenAddress,
-} from "../../helpers/configuration";
-import { ZERO_ADDRESS } from "../../helpers/constants";
+import { loadPoolConfig, ConfigNames, getWrappedNativeTokenAddress } from "../../helpers/configuration";
 import {
   getBendProtocolDataProvider,
-  getAddressById,
   getLendPoolImpl,
-  getLendPool,
   getLendPoolAddressesProvider,
   getLendPoolLoanImpl,
-  getLendPoolLoanProxy,
   getLendPoolConfiguratorImpl,
-  getLendPoolConfiguratorProxy,
   getBendUpgradeableProxy,
   getWalletProvider,
   getWETHGateway,
@@ -34,12 +23,11 @@ task("verify:general", "Verify general contracts at Etherscan")
     await localDRE.run("set-DRE");
     const network = localDRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
-    const { ReserveAssets, ReservesConfig, ProviderRegistry, MarketId, WethGateway, CryptoPunksMarket, PunkGateway } =
+    const { MarketId, WethGateway, CryptoPunksMarket, WrappedPunkToken, PunkGateway } =
       poolConfig as ICommonConfiguration;
-    const treasuryAddress = await getTreasuryAddress(poolConfig);
 
-    const registryAddress = getParamPerNetwork(ProviderRegistry, network);
     const addressesProvider = await getLendPoolAddressesProvider();
+
     const lendPoolAddress = await addressesProvider.getLendPool();
     const lendPoolConfiguratorAddress = await addressesProvider.getLendPoolConfigurator();
     const lendPoolLoanAddress = await addressesProvider.getLendPoolLoan();
@@ -49,14 +37,13 @@ task("verify:general", "Verify general contracts at Etherscan")
     const lendPoolLoanProxy = await getBendUpgradeableProxy(lendPoolLoanAddress);
 
     const punkAddress = getParamPerNetwork(CryptoPunksMarket, network);
+    const wpunkAddress = getParamPerNetwork(WrappedPunkToken, network);
+
+    const lendPoolImpl = await getLendPoolImpl();
+    const lendPoolConfiguratorImpl = await getLendPoolConfiguratorImpl();
+    const lendPoolLoanImpl = await getLendPoolLoanImpl();
 
     if (all) {
-      const lendPoolImpl = await getLendPoolImpl();
-
-      const lendPoolConfiguratorImpl = await getLendPoolConfiguratorImpl();
-
-      const lendPoolLoanImpl = await getLendPoolLoanImpl();
-
       const dataProvider = await getBendProtocolDataProvider();
       const walletProvider = await getWalletProvider();
       const uiProvider = await getUIPoolDataProvider();
@@ -97,30 +84,51 @@ task("verify:general", "Verify general contracts at Etherscan")
 
       // UI data provider
       console.log("\n- Verifying UI Data Provider...\n");
-      await verifyContract(eContractid.UIPoolDataProvider, uiProvider, []);
+      await verifyContract(eContractid.UIPoolDataProvider, uiProvider, [
+        await addressesProvider.getReserveOracle(),
+        await addressesProvider.getNFTOracle(),
+      ]);
 
       // WETHGateway
       console.log("\n- Verifying WETHGateway...\n");
-      await verifyContract(eContractid.WETHGateway, wethGateway, [await getWrappedNativeTokenAddress(poolConfig)]);
+      await verifyContract(eContractid.WETHGateway, wethGateway, [
+        addressesProvider.address,
+        await getWrappedNativeTokenAddress(poolConfig),
+      ]);
 
       // PunkGateway
       console.log("\n- Verifying PunkGateway...\n");
       await verifyContract(eContractid.PunkGateway, punkGateway, [
-        await getWrappedPunkTokenAddress(poolConfig, punkAddress),
+        addressesProvider.address,
+        wethGateway.address,
+        punkAddress,
+        wpunkAddress,
       ]);
     }
 
     // Lend Pool proxy
     console.log("\n- Verifying Lend Pool Proxy...\n");
-    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolProxy, [addressesProvider.address]);
+    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolProxy, [
+      lendPoolImpl.address,
+      addressesProvider.address,
+      lendPoolImpl.interface.encodeFunctionData("initialize", [addressesProvider.address]),
+    ]);
 
     // LendPool Conf proxy
     console.log("\n- Verifying Lend Pool Configurator Proxy...\n");
-    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolConfiguratorProxy, [addressesProvider.address]);
+    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolConfiguratorProxy, [
+      lendPoolConfiguratorImpl.address,
+      addressesProvider.address,
+      lendPoolConfiguratorImpl.interface.encodeFunctionData("initialize", [addressesProvider.address]),
+    ]);
 
     // LendPool loan manager
     console.log("\n- Verifying Lend Pool Loan Manager Proxy...\n");
-    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolLoanProxy, [addressesProvider.address]);
+    await verifyContract(eContractid.BendUpgradeableProxy, lendPoolLoanProxy, [
+      lendPoolLoanImpl.address,
+      addressesProvider.address,
+      lendPoolLoanImpl.interface.encodeFunctionData("initialize", [addressesProvider.address]),
+    ]);
 
     console.log("Finished verifications.");
   });

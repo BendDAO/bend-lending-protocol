@@ -362,6 +362,13 @@ export const getLendPoolLoanImpl = async (address?: tEthereumAddress) =>
     await getFirstSigner()
   );
 
+export const getBNFTRegistryImpl = async (address?: tEthereumAddress) => {
+  return await BNFTRegistryFactory.connect(
+    address || (await getDb().get(`${eContractid.BNFTRegistryImpl}.${DRE.network.name}`).value()).address,
+    await getFirstSigner()
+  );
+};
+
 export const getWalletProvider = async (address?: tEthereumAddress) =>
   await WalletBalanceProviderFactory.connect(
     address || (await getDb().get(`${eContractid.WalletBalanceProvider}.${DRE.network.name}`).value()).address,
