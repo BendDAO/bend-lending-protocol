@@ -289,7 +289,8 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
         loanData.ltv,
         loanData.liquidationThreshold,
         loanData.loanId,
-        loanData.healthFactor
+        loanData.healthFactor,
+        loanData.reserveAsset
       ) = lendPool.getNftLoanData(nftAssets[i], nftTokenIds[i]);
     }
 

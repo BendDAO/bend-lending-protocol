@@ -267,12 +267,13 @@ interface ILendPool {
    * @param nftAsset The address of the NFT
    * @param nftTokenId The token id of the NFT
    * @return totalCollateralETH the total collateral in ETH of the NFT
-   * @return totalDebtETH the total debt in ETH of the NFT
+   * @return totalDebtETH the total borrowed debt in ETH of the NFT
    * @return availableBorrowsETH the borrowing power left of the NFT
    * @return ltv the loan to value of the user
    * @return liquidationThreshold the liquidation threshold of the NFT
    * @return loanId the loan id of the NFT
    * @return healthFactor the current health factor of the NFT
+   * @return reserveAsset the current borrowed reserve of the NFT
    **/
   function getNftLoanData(address nftAsset, uint256 nftTokenId)
     external
@@ -284,7 +285,8 @@ interface ILendPool {
       uint256 ltv,
       uint256 liquidationThreshold,
       uint256 loanId,
-      uint256 healthFactor
+      uint256 healthFactor,
+      address reserveAsset
     );
 
   function getNftLiquidatePrice(address nftAsset, uint256 nftTokenId)

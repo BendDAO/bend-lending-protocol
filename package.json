@@ -34,7 +34,8 @@
     "external:deploy-nft-main": "npm run compile && hardhat --network main external:deploy-new-nft --symbol ${SYMBOL} --verify",
     "print-contracts:rinkeby": "npm run hardhat:rinkeby -- print-contracts",
     "print-contracts:main": "npm run hardhat:main -- print-contracts",
-    "print-config:rinkeby": "hardhat --network rinkeby print-config --pool Bend --data-provider 0xF08f40fa0312B23C31C4b027F26fDbc95Bcd7781",
+    "print-config:rinkeby": "hardhat --network rinkeby print-config --pool Bend --data-provider ${DATA_PROVIDER}",
+    "print-config:main": "hardhat --network main print-config --pool Bend --data-provider ${DATA_PROVIDER}",
     "prepublishOnly": "npm run compile"
   },
   "devDependencies": {

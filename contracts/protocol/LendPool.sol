@@ -513,16 +513,15 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       uint256 ltv,
       uint256 liquidationThreshold,
       uint256 loanId,
-      uint256 healthFactor
+      uint256 healthFactor,
+      address reserveAsset
     )
   {
     DataTypes.NftData storage nftData = _nfts[nftAsset];
 
     loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
-      (, , address reserveAsset, ) = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanCollateralAndReserve(
-        loanId
-      );
+      (, , reserveAsset, ) = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanCollateralAndReserve(loanId);
       DataTypes.ReserveData storage reserveData = _reserves[reserveAsset];
       totalDebtETH = GenericLogic.calculateNftDebtData(
         reserveAsset,

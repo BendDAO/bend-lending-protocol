@@ -134,7 +134,7 @@ interface ILendPoolLoan {
 
   function getCollateralLoanId(address nftAsset, uint256 nftTokenId) external view returns (uint256);
 
-  function getLoan(uint256 loanId) external view returns (DataTypes.LoanData calldata loanData);
+  function getLoan(uint256 loanId) external view returns (DataTypes.LoanData memory loanData);
 
   function getLoanCollateralAndReserve(uint256 loanId)
     external
