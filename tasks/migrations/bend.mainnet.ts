@@ -47,7 +47,7 @@ task("bend:mainnet", "Deploy full enviroment")
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy proxy admin");
-    await DRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
+    await DRE.run("full:deploy-proxy-admin", { pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy address provider");
@@ -55,10 +55,10 @@ task("bend:mainnet", "Deploy full enviroment")
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy bnft registry");
-    await DRE.run("full:deploy-bnft-registry", { verify, pool: POOL_NAME });
+    await DRE.run("full:deploy-bnft-registry", { pool: POOL_NAME });
 
     console.log("\n\nDeploy bnft tokens");
-    await DRE.run("full:deploy-bnft-tokens", { verify, pool: POOL_NAME });
+    await DRE.run("full:deploy-bnft-tokens", { pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy lend pool");
@@ -87,8 +87,10 @@ task("bend:mainnet", "Deploy full enviroment")
       console.log("\n\nVeryfing general contracts");
       await DRE.run("verify:general", { all: true, pool: POOL_NAME });
 
-      console.log("\n\nVeryfing reserves and nfts contracts");
+      console.log("\n\nVeryfing reserves contracts");
       await DRE.run("verify:reserves", { pool: POOL_NAME });
+
+      console.log("\n\nVeryfing nfts contracts");
       await DRE.run("verify:nfts", { pool: POOL_NAME });
     }
 

@@ -6,6 +6,8 @@ import {
   getWETHMocked,
   getAllMockedNfts,
   getAllMockedTokens,
+  getMintableERC721,
+  getMintableERC20,
 } from "../../helpers/contracts-getters";
 import { verifyContract, getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -16,6 +18,9 @@ task("verify:mocks", "Verify mock contracts at Etherscan")
   .setAction(async ({ all, pool }, localDRE) => {
     await localDRE.run("set-DRE");
     const network = localDRE.network.name as eNetwork;
+    if (network.includes("main")) {
+      throw new Error("Mocks not used at mainnet configuration.");
+    }
     const poolConfig = loadPoolConfig(pool);
     const { CryptoPunksMarket, WrappedPunkToken, WrappedNativeToken } = poolConfig as ICommonConfiguration;
 
@@ -27,29 +32,21 @@ task("verify:mocks", "Verify mock contracts at Etherscan")
     const wpunkImpl = await getWrappedPunk(wpunkAddress);
     const wethImpl = await getWETHMocked(wethAddress);
 
-    console.log("\n- Verifying CryptoPunksMarket...\n");
-    await verifyContract(eContractid.CryptoPunksMarket, punkImpl, []);
-
-    console.log("\n- Verifying WrappedPunk...\n");
-    await verifyContract(eContractid.WrappedPunk, wpunkImpl, [punkImpl.address]);
-
-    console.log("\n- Verifying WETHMocked...\n");
-    await verifyContract(eContractid.WETHMocked, wethImpl, []);
-
-    const mockNfts = await getAllMockedNfts();
+    const mockNfts = getParamPerNetwork(poolConfig.NftsAssets, network);
+    const mockTokens = getParamPerNetwork(poolConfig.ReserveAssets, network);
+    console.log("mockNfts", mockNfts, "mockTokens", mockTokens);
     {
       console.log("\n- Verifying Mocked BAYC...\n");
-      const mockedBAYC = mockNfts["BAYC"];
+      const mockedBAYC = await getMintableERC721(mockNfts["BAYC"]);
       await verifyContract(eContractid.MintableERC721, mockedBAYC, [
         await mockedBAYC.name(),
         await mockedBAYC.symbol(),
       ]);
     }
 
-    const mockTokens = await getAllMockedTokens();
     {
       console.log("\n- Verifying Mocked DAI...\n");
-      const mockedDAI = mockTokens["DAI"];
+      const mockedDAI = await getMintableERC20(mockTokens["DAI"]);
       await verifyContract(eContractid.MintableERC20, mockedDAI, [
         await mockedDAI.name(),
         await mockedDAI.symbol(),
@@ -58,7 +55,7 @@ task("verify:mocks", "Verify mock contracts at Etherscan")
     }
     {
       console.log("\n- Verifying Mocked USDC...\n");
-      const mockedUSDC = mockTokens["USDC"];
+      const mockedUSDC = await getMintableERC20(mockTokens["USDC"]);
       await verifyContract(eContractid.MintableERC20, mockedUSDC, [
         await mockedUSDC.name(),
         await mockedUSDC.symbol(),

@@ -65,6 +65,7 @@ interface IUiPoolDataProvider {
     uint256 liquidationThreshold;
     uint256 loanId;
     uint256 healthFactor;
+    address reserveAsset;
   }
 
   function getReservesList(ILendPoolAddressesProvider provider) external view returns (address[] memory);
