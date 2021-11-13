@@ -3,12 +3,13 @@ pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {Pausable} from "@openzeppelin/contracts/security/Pausable.sol";
 import {UserProxy} from "./UserProxy.sol";
 import {ICryptoPunk} from "./ICryptoPunk.sol";
 import {IWrappedPunks} from "../../interfaces/IWrappedPunks.sol";
 
-contract WrappedPunk is IWrappedPunks, Ownable, ERC721, Pausable {
+contract WrappedPunk is IWrappedPunks, Ownable, ERC721Enumerable, Pausable {
   event ProxyRegistered(address user, address proxy);
 
   // Instance of cryptopunk smart contract

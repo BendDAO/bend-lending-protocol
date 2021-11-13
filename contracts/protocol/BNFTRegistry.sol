@@ -5,6 +5,7 @@ import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 import {IBNFT} from "../interfaces/IBNFT.sol";
 import {BendUpgradeableProxy} from "../libraries/proxy/BendUpgradeableProxy.sol";
 
+import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
@@ -57,7 +58,7 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
    * @dev See {IBNFTRegistry-createBNFT}.
    */
   function createBNFT(address nftAsset, bytes memory params) external override returns (address bNftProxy) {
-    require(nftAsset != address(0), "BNFTR: asset is zero address");
+    _requireAddressIsERC721(nftAsset);
     require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
     require(bNftGenericImpl != address(0), "BNFTR: impl is zero address");
 
@@ -82,7 +83,7 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     address bNftImpl,
     bytes memory params
   ) external override onlyOwner returns (address bNftProxy) {
-    require(nftAsset != address(0), "BNFTR: asset is zero address");
+    _requireAddressIsERC721(nftAsset);
     require(bNftImpl != address(0), "BNFTR: implement is zero address");
     require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
 
@@ -136,5 +137,10 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     string memory bNftSymbol = string(abi.encodePacked(symbolPrefix, IERC721MetadataUpgradeable(nftAsset).symbol()));
 
     initParams = abi.encodeWithSelector(IBNFT.initialize.selector, nftAsset, bNftName, bNftSymbol, params);
+  }
+
+  function _requireAddressIsERC721(address nftAsset) internal view {
+    require(nftAsset != address(0), "BNFTR: asset is zero address");
+    require(AddressUpgradeable.isContract(nftAsset), "BNFTR: asset is not contract");
   }
 }

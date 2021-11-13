@@ -1,4 +1,4 @@
-import { eContractid, IReserveParams, INftParams } from '../../helpers/types';
+import { eContractid, IReserveParams, INftParams, SymbolMap } from '../../helpers/types';
 
 import { 
   rateStrategyStableOne,
@@ -74,4 +74,31 @@ export const strategyBAYC: INftParams = {
   liquidationThreshold: '6500', // 65%
   liquidationBonus: '500', // 5%
   bNftImpl: eContractid.BNFT,
+};
+
+export const strategyNftClassA: INftParams = {
+  baseLTVAsCollateral: '5000', // 50%
+  liquidationThreshold: '7000', // 70%
+  liquidationBonus: '500', // 5%
+  bNftImpl: eContractid.BNFT,
+};
+
+export const strategyNftClassB: INftParams = {
+  baseLTVAsCollateral: '4000', // 40%
+  liquidationThreshold: '6500', // 65%
+  liquidationBonus: '500', // 5%
+  bNftImpl: eContractid.BNFT,
+};
+
+export const strategyNftClassC: INftParams = {
+  baseLTVAsCollateral: '2000', // 20%
+  liquidationThreshold: '4500', // 35%
+  liquidationBonus: '1000', // 10%
+  bNftImpl: eContractid.BNFT,
+};
+
+export const strategyNftParams: SymbolMap<INftParams> = {
+  "ClassA": strategyNftClassA,
+  "ClassB": strategyNftClassB,
+  "ClassC": strategyNftClassC,
 };

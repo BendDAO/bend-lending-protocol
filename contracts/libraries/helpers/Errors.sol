@@ -34,6 +34,7 @@ library Errors {
   string public constant VL_INVALID_HEALTH_FACTOR = "313";
   string public constant VL_INVALID_ONBEHALFOF_ADDRESS = "314";
   string public constant VL_INVALID_TARGET_ADDRESS = "315";
+  string public constant VL_INVALID_RESERVE_ADDRESS = "316";
 
   //lend pool errors
   string public constant LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400"; // 'The caller of the function is not the lending pool configurator'
