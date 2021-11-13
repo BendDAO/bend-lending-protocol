@@ -11,6 +11,7 @@ import {
   getMintableERC721,
   getNFTOracle,
   getUIPoolDataProvider,
+  getWalletProvider,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
 import { getEthersSigners, getParamPerNetwork, verifyContract } from "../../helpers/contracts-helpers";
@@ -26,8 +27,6 @@ task("dev:custom-task", "Doing custom task")
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
-
-    await printUISimpleData(addressesProvider);
   });
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
@@ -65,7 +64,6 @@ const feedNftOraclePrice = async (
     await nftOracleProxy.setAssetData(mockedCoolAddress, MOCK_NFT_AGGREGATORS_PRICES["COOL"], latestTime, 1)
   );
   */
-  return;
   await waitForTx(
     await nftOracleProxy.setAssetData(nftsAssets["WPUNKS"], MOCK_NFT_AGGREGATORS_PRICES["WPUNKS"], latestTime, 1)
   );
@@ -128,4 +126,16 @@ const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) 
   await waitForTx(
     await wethGateway.borrowETH("500000000000000000", bayc.address, "5001", await signer.getAddress(), "0")
   );
+};
+
+const printWalletBatchToken = async () => {
+  const user = "0x8b04B42962BeCb429a4dBFb5025b66D3d7D31d27";
+
+  const walletProvider = await getWalletProvider("0xcdAeD24a337CC35006b5CF79a7A858561686E783");
+  const punkIndexs = await walletProvider.batchPunkOfOwner(user, "0x6AB60B1E965d9Aa445d637Ac5034Eba605FF0b82", 0, 2000);
+  console.log("batchPunkOfOwner:", punkIndexs.join(","));
+  const tokenIds1 = await walletProvider.batchTokenOfOwner(user, "0x6f9a28ACE211122CfD6f115084507b44FDBc12C7", 0, 2000);
+  console.log("batchTokenOfOwner(BAYC):", tokenIds1.join(","));
+  const tokenIds2 = await walletProvider.batchTokenOfOwnerByIndex(user, "0xEF307D349b242b6967a75A4f19Cdb692170F1106");
+  console.log("batchTokenOfOwnerByIndex(COOL):", tokenIds2.join(","));
 };

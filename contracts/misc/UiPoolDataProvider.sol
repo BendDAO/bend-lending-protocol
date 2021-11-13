@@ -126,7 +126,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     reserveData.priceInEth = reserveOracle.getAssetPrice(reserveData.underlyingAsset);
 
     reserveData.availableLiquidity = IERC20Detailed(reserveData.underlyingAsset).balanceOf(reserveData.bTokenAddress);
-    reserveData.totalScaledVariableDebt = IDebtToken(reserveData.debtTokenAddress).scaledTotalSupply();
+    reserveData.totalVariableDebt = IDebtToken(reserveData.debtTokenAddress).totalSupply();
 
     // reserve configuration
     reserveData.symbol = IERC20Detailed(reserveData.underlyingAsset).symbol();
@@ -149,8 +149,8 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   ) internal view {
     // user reserve data
     userReserveData.underlyingAsset = reserveAsset;
-    userReserveData.scaledBTokenBalance = IBToken(baseData.bTokenAddress).scaledBalanceOf(user);
-    userReserveData.scaledVariableDebt = IDebtToken(baseData.debtTokenAddress).scaledBalanceOf(user);
+    userReserveData.bTokenBalance = IBToken(baseData.bTokenAddress).balanceOf(user);
+    userReserveData.variableDebt = IDebtToken(baseData.debtTokenAddress).balanceOf(user);
   }
 
   function getNftsList(ILendPoolAddressesProvider provider) external view override returns (address[] memory) {

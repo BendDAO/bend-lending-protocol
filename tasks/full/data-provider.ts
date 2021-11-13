@@ -13,9 +13,9 @@ import { eNetwork } from "../../helpers/types";
 task("full:deploy-data-provider", "Deploy data provider for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .addFlag("wallet", "")
-  .addFlag("protocol", "")
-  .addFlag("ui", "")
+  .addFlag("wallet", "Deploy wallet balancer provider")
+  .addFlag("protocol", "Deploy bend protocol data provider")
+  .addFlag("ui", "Deploy ui data provider")
   .setAction(async ({ verify, wallet, protocol, ui }, DRE) => {
     await DRE.run("set-DRE");
     const addressesProvider = await getLendPoolAddressesProvider();

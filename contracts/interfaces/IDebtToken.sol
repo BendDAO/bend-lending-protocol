@@ -5,12 +5,15 @@ import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvid
 import {IIncentivesController} from "./IIncentivesController.sol";
 import {IScaledBalanceToken} from "./IScaledBalanceToken.sol";
 
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+
 /**
  * @title IDebtToken
  * @author Bend
  * @notice Defines the basic interface for a debt token.
  **/
-interface IDebtToken is IScaledBalanceToken {
+interface IDebtToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgradeable {
   /**
    * @dev Emitted when a debt token is initialized
    * @param underlyingAsset The address of the underlying asset

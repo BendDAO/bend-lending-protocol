@@ -25,7 +25,7 @@ interface IUiPoolDataProvider {
     address interestRateAddress;
     //
     uint256 availableLiquidity;
-    uint256 totalScaledVariableDebt;
+    uint256 totalVariableDebt;
     uint256 priceInEth;
     uint256 variableRateSlope1;
     uint256 variableRateSlope2;
@@ -33,8 +33,8 @@ interface IUiPoolDataProvider {
 
   struct UserReserveData {
     address underlyingAsset;
-    uint256 scaledBTokenBalance;
-    uint256 scaledVariableDebt;
+    uint256 bTokenBalance;
+    uint256 variableDebt;
   }
 
   struct AggregatedNftData {
