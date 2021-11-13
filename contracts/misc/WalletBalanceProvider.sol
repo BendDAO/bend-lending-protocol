@@ -179,6 +179,8 @@ contract WalletBalanceProvider {
    * @dev Returns a token ID list owned by `owner`.
    * Requirements:
    *  - The `token` must be IERC721Enumerable contract address
+   * @param owner The address of user
+   * @param token The address of ERC721 contract
    */
   function batchTokenOfOwnerByIndex(address owner, address token) external view returns (uint256[] memory) {
     uint256 tokenBalances = IERC721Enumerable(token).balanceOf(owner);
@@ -195,20 +197,24 @@ contract WalletBalanceProvider {
    * @dev Returns a token ID list owned by `owner`.
    * Requirements:
    *  - The `token` must be IERC721 contract address
-   *  - The `offset` plus `limit` must be not greater than total supply
-   *  - The transaction must not ran out of gas, `limit` <= 2000
+   *  - The `start` plus `count` must be not greater than total supply
+   *  - The transaction must not ran out of gas, `count` <= 2000
+   * @param owner The address of user
+   * @param token The address of ERC721 contract
+   * @param start The starting token ID
+   * @param count The scaning number
    */
   function batchTokenOfOwner(
     address owner,
     address token,
-    uint256 offset,
-    uint256 limit
+    uint256 start,
+    uint256 count
   ) external view returns (uint256[] memory) {
     uint256 tokenBalances = IERC721(token).balanceOf(owner);
 
     uint256[] memory tokenIds = new uint256[](tokenBalances);
     uint256 pos = 0;
-    uint256 maxTokenId = offset + limit;
+    uint256 maxTokenId = start + count;
     for (uint256 tokenId = 0; tokenId < maxTokenId; tokenId++) {
       try IERC721(token).ownerOf(tokenId) returns (address tokenOwner) {
         if (tokenOwner == owner) {
@@ -233,20 +239,24 @@ contract WalletBalanceProvider {
    * @dev Returns a punk index list owned by `owner`.
    * Requirements:
    *  - The `punkContract` must be CryptoPunksMarket address
-   *  - The `offset` plus `limit` must be not greater than total supply
-   *  - The transaction must not ran out of gas, `limit` <= 2000
+   *  - The `start` plus `count` must be not greater than total supply
+   *  - The transaction must not ran out of gas, `count` <= 2000
+   * @param owner The address of user
+   * @param punkContract The address of punk contract
+   * @param start The starting punk index
+   * @param count The scaning number
    */
   function batchPunkOfOwner(
     address owner,
     address punkContract,
-    uint256 offset,
-    uint256 limit
+    uint256 start,
+    uint256 count
   ) external view returns (uint256[] memory) {
     uint256 punkBalances = IPunks(punkContract).balanceOf(owner);
 
     uint256[] memory punkIndexs = new uint256[](punkBalances);
     uint256 pos = 0;
-    uint256 maxIndex = offset + limit;
+    uint256 maxIndex = start + count;
     for (uint256 punkIndex = 0; punkIndex < maxIndex; punkIndex++) {
       address ownerAddress = IPunks(punkContract).punkIndexToAddress(punkIndex);
       if (ownerAddress == address(0)) {

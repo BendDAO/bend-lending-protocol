@@ -77,7 +77,7 @@ makeSuite("DataProvider", (testEnv) => {
       });
       //console.log("simpleReservesData", simpleReservesData);
       expect(wethData?.isActive).to.be.equal(true);
-      expect(wethData?.totalScaledVariableDebt).to.be.gt(0);
+      expect(wethData?.totalVariableDebt).to.be.gt(0);
     }
 
     {
@@ -88,7 +88,7 @@ makeSuite("DataProvider", (testEnv) => {
         }
       });
       //console.log("userReservesData", userReservesData);
-      expect(userWethData?.scaledVariableDebt).to.be.gt(0);
+      expect(userWethData?.variableDebt).to.be.gt(0);
     }
 
     {
@@ -100,13 +100,13 @@ makeSuite("DataProvider", (testEnv) => {
       });
       //console.log("aggReservesData", aggReservesData);
       expect(aggWethData?.isActive).to.be.equal(true);
-      expect(aggWethData?.totalScaledVariableDebt).to.be.gt(0);
+      expect(aggWethData?.totalVariableDebt).to.be.gt(0);
       const aggUserWethData = aggReservesData[1].find((userReserveData) => {
         if (userReserveData.underlyingAsset === weth.address) {
           return userReserveData;
         }
       });
-      expect(aggUserWethData?.scaledVariableDebt).to.be.gt(0);
+      expect(aggUserWethData?.variableDebt).to.be.gt(0);
     }
   });
 
