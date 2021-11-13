@@ -15,6 +15,7 @@ import { DRE, notFalsyOrZeroAddress } from "./misc-utils";
 import { tEthereumAddress } from "./types";
 import { getParamPerNetwork } from "./contracts-helpers";
 import { deployWETHMocked, deployWrappedPunk, deployCryptoPunksMarket } from "./contracts-deployments";
+import { ZERO_ADDRESS } from "./constants";
 
 export enum ConfigNames {
   Commons = "Commons",
@@ -55,6 +56,15 @@ export const getNftsConfigByPool = (pool: BendPools): iMultiPoolsNfts<INftParams
     },
     pool
   );
+
+export const getProviderRegistryAddress = async (config: ICommonConfiguration): Promise<tEthereumAddress> => {
+  const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;
+  const registryAddress = getParamPerNetwork(config.ProviderRegistry, <eNetwork>currentNetwork);
+  if (registryAddress) {
+    return registryAddress;
+  }
+  return ZERO_ADDRESS;
+};
 
 export const getGenesisPoolAdmin = async (config: ICommonConfiguration): Promise<tEthereumAddress> => {
   const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;

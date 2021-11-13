@@ -2,12 +2,13 @@
 pragma solidity ^0.8.0;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 /**
  * @title MintableERC721
  * @dev ERC721 minting logic
  */
-contract MintableERC721 is ERC721 {
+contract MintableERC721 is ERC721Enumerable {
   string public baseURI;
 
   constructor(string memory name, string memory symbol) ERC721(name, symbol) {

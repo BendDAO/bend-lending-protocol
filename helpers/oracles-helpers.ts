@@ -5,7 +5,7 @@ import { ReserveOracle } from "../types/ReserveOracle";
 import { NFTOracle } from "../types/NFTOracle";
 import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
 import { deployMockChainlinkOracle } from "./contracts-deployments";
-import { waitForTx } from "./misc-utils";
+import { getNowTimeInSeconds, waitForTx } from "./misc-utils";
 
 export const setPricesInChainlinkMockAggregator = async (
   prices: SymbolMap<string>,
@@ -50,11 +50,16 @@ export const setPricesInNFTOracle = async (
   assetsAddresses: SymbolMap<tEthereumAddress>,
   nftOracleInstance: NFTOracle
 ) => {
-  for (const [assetSymbol, price] of Object.entries(prices) as [string, string][]) {
-    const assetAddressIndex = Object.keys(assetsAddresses).findIndex((value) => value === assetSymbol);
-    const [, assetAddress] = (Object.entries(assetsAddresses) as [string, string][])[assetAddressIndex];
+  const latestTime = await getNowTimeInSeconds();
+  for (const [assetSymbol, assetAddress] of Object.entries(assetsAddresses) as [string, string][]) {
+    const priceIndex = Object.keys(prices).findIndex((value) => value === assetSymbol);
+    if (priceIndex == undefined) {
+      console.log("can not find price for asset", assetSymbol, assetAddress);
+      continue;
+    }
+    const [, price] = (Object.entries(prices) as [string, string][])[priceIndex];
     console.log("setPricesInNFTOracle", assetSymbol, assetAddress, price);
-    await waitForTx(await nftOracleInstance.setAssetData(assetAddress, price, "1444004400", "10001"));
+    await waitForTx(await nftOracleInstance.setAssetData(assetAddress, price, latestTime, latestTime));
   }
 };
 
@@ -63,6 +68,7 @@ export const deployAllChainlinkMockAggregators = async (
   initialPrices: iAssetAggregatorBase<string>,
   verify?: boolean
 ) => {
+  const latestTime = await getNowTimeInSeconds();
   const aggregators: { [tokenSymbol: string]: MockChainlinkOracle } = {};
   for (const tokenContractName of Object.keys(initialPrices)) {
     if (tokenContractName !== "ETH") {
@@ -79,7 +85,7 @@ export const deployAllChainlinkMockAggregators = async (
         price,
         decimals
       );
-      await aggregators[tokenContractName].mockAddAnswer("1", price, "1", "1", "1");
+      await aggregators[tokenContractName].mockAddAnswer(1, price, latestTime, latestTime, "1");
     }
   }
   return aggregators;

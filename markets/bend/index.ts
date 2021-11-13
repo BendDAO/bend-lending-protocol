@@ -9,6 +9,7 @@ import {
 
   strategyWPUNKS,
   strategyBAYC,
+  strategyNftClassC,
 } from './reservesConfigs';
 
 // ----------------

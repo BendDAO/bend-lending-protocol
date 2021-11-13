@@ -116,10 +116,10 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
 
     DataTypes.ReserveData storage reserve = _reserves[asset];
+    address bToken = reserve.bTokenAddress;
+    require(bToken != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
     ValidationLogic.validateDeposit(reserve, amount);
-
-    address bToken = reserve.bTokenAddress;
 
     reserve.updateState();
     reserve.updateInterestRates(asset, bToken, amount, 0);
@@ -150,8 +150,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     require(to != address(0), Errors.VL_INVALID_TARGET_ADDRESS);
 
     DataTypes.ReserveData storage reserve = _reserves[asset];
-
     address bToken = reserve.bTokenAddress;
+    require(bToken != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
     uint256 userBalance = IBToken(bToken).balanceOf(_msgSender());
 
@@ -199,6 +199,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     DataTypes.ReserveData storage reserve = _reserves[asset];
     DataTypes.NftData storage nftData = _nfts[nftAsset];
+
+    require(reserve.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
 
     _executeBorrow(
       ExecuteBorrowParams(
@@ -257,6 +260,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     DataTypes.ReserveData storage reserve = _reserves[vars.asset];
     DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    require(reserve.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
     reserve.updateState();
@@ -356,6 +361,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     DataTypes.ReserveData storage reserve = _reserves[vars.asset];
     DataTypes.NftData storage nftData = _nfts[vars.nftAsset];
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    require(reserve.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
     reserve.updateState();

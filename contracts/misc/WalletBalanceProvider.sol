@@ -5,7 +5,9 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
+import {IPunks} from "../interfaces/IPunks.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
@@ -171,5 +173,94 @@ contract WalletBalanceProvider {
     }
 
     return (nfts, balances);
+  }
+
+  /**
+   * @dev Returns a token ID list owned by `owner`.
+   * Requirements:
+   *  - The `token` must be IERC721Enumerable contract address
+   */
+  function batchTokenOfOwnerByIndex(address owner, address token) external view returns (uint256[] memory) {
+    uint256 tokenBalances = IERC721Enumerable(token).balanceOf(owner);
+
+    uint256[] memory tokenIds = new uint256[](tokenBalances);
+    for (uint256 index = 0; index < tokenBalances; index++) {
+      tokenIds[index] = IERC721Enumerable(token).tokenOfOwnerByIndex(owner, index);
+    }
+
+    return tokenIds;
+  }
+
+  /**
+   * @dev Returns a token ID list owned by `owner`.
+   * Requirements:
+   *  - The `token` must be IERC721 contract address
+   *  - The `offset` plus `limit` must be not greater than total supply
+   *  - The transaction must not ran out of gas, `limit` <= 2000
+   */
+  function batchTokenOfOwner(
+    address owner,
+    address token,
+    uint256 offset,
+    uint256 limit
+  ) external view returns (uint256[] memory) {
+    uint256 tokenBalances = IERC721(token).balanceOf(owner);
+
+    uint256[] memory tokenIds = new uint256[](tokenBalances);
+    uint256 pos = 0;
+    uint256 maxTokenId = offset + limit;
+    for (uint256 tokenId = 0; tokenId < maxTokenId; tokenId++) {
+      try IERC721(token).ownerOf(tokenId) returns (address tokenOwner) {
+        if (tokenOwner == owner) {
+          tokenIds[pos] = tokenId;
+          pos++;
+          //avoid useless loop scan
+          if (pos == tokenBalances) {
+            return tokenIds;
+          }
+        }
+      } catch Error(
+        string memory /*reason*/
+      ) {} catch (
+        bytes memory /*lowLevelData*/
+      ) {}
+    }
+
+    return tokenIds;
+  }
+
+  /**
+   * @dev Returns a punk index list owned by `owner`.
+   * Requirements:
+   *  - The `punkContract` must be CryptoPunksMarket address
+   *  - The `offset` plus `limit` must be not greater than total supply
+   *  - The transaction must not ran out of gas, `limit` <= 2000
+   */
+  function batchPunkOfOwner(
+    address owner,
+    address punkContract,
+    uint256 offset,
+    uint256 limit
+  ) external view returns (uint256[] memory) {
+    uint256 punkBalances = IPunks(punkContract).balanceOf(owner);
+
+    uint256[] memory punkIndexs = new uint256[](punkBalances);
+    uint256 pos = 0;
+    uint256 maxIndex = offset + limit;
+    for (uint256 punkIndex = 0; punkIndex < maxIndex; punkIndex++) {
+      address ownerAddress = IPunks(punkContract).punkIndexToAddress(punkIndex);
+      if (ownerAddress == address(0)) {
+        continue;
+      }
+
+      punkIndexs[pos] = punkIndex;
+      pos++;
+      //avoid useless loop scan
+      if (pos == punkBalances) {
+        return punkIndexs;
+      }
+    }
+
+    return punkIndexs;
   }
 }

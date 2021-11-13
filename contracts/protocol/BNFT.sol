@@ -6,6 +6,7 @@ import {IFlashLoanReceiver} from "../interfaces/IFlashLoanReceiver.sol";
 
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
@@ -14,7 +15,7 @@ import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/to
  * @title BNFT contract
  * @dev Implements the methods for the bNFT protocol
  **/
-contract BNFT is IBNFT, ERC721Upgradeable {
+contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
   address private _underlyingAsset;
   // Mapping from token ID to minter address
   mapping(uint256 => address) private _minters;
