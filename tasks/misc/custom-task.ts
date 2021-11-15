@@ -2,8 +2,11 @@ import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/configuration";
 import { MOCK_NFT_AGGREGATORS_PRICES } from "../../helpers/constants";
+import { deployBNFTRegistry, deployGenericBNFTImpl, deployLendPool } from "../../helpers/contracts-deployments";
 import {
   getBendProtocolDataProvider,
+  getBendProxyAdminByAddress,
+  getBNFTRegistryProxy,
   getFirstSigner,
   getLendPool,
   getLendPoolAddressesProvider,
@@ -27,6 +30,9 @@ task("dev:custom-task", "Doing custom task")
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
+
+    //await printUISimpleData(addressesProvider);
+    //await printWalletBatchToken();
   });
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
@@ -129,13 +135,114 @@ const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) 
 };
 
 const printWalletBatchToken = async () => {
+  const user0signer = await getFirstSigner();
+  const user0Address = await user0signer.getAddress();
   const user = "0x8b04B42962BeCb429a4dBFb5025b66D3d7D31d27";
 
   const walletProvider = await getWalletProvider("0xcdAeD24a337CC35006b5CF79a7A858561686E783");
-  const punkIndexs = await walletProvider.batchPunkOfOwner(user, "0x6AB60B1E965d9Aa445d637Ac5034Eba605FF0b82", 0, 2000);
-  console.log("batchPunkOfOwner:", punkIndexs.join(","));
-  const tokenIds1 = await walletProvider.batchTokenOfOwner(user, "0x6f9a28ACE211122CfD6f115084507b44FDBc12C7", 0, 2000);
-  console.log("batchTokenOfOwner(BAYC):", tokenIds1.join(","));
-  const tokenIds2 = await walletProvider.batchTokenOfOwnerByIndex(user, "0xEF307D349b242b6967a75A4f19Cdb692170F1106");
-  console.log("batchTokenOfOwnerByIndex(COOL):", tokenIds2.join(","));
+  {
+    const punkIndexs = await walletProvider.batchPunkOfOwner(
+      user,
+      "0x6AB60B1E965d9Aa445d637Ac5034Eba605FF0b82",
+      0,
+      2000
+    );
+    console.log("batchPunkOfOwner:", punkIndexs.join(","));
+  }
+  {
+    const tokenIds = await walletProvider.batchTokenOfOwner(
+      user,
+      "0x6f9a28ACE211122CfD6f115084507b44FDBc12C7",
+      0,
+      2000
+    );
+    console.log("batchTokenOfOwner(BAYC):", tokenIds.join(","));
+  }
+  {
+    const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(user, "0xEF307D349b242b6967a75A4f19Cdb692170F1106");
+    console.log("batchTokenOfOwnerByIndex(COOL):", tokenIds.join(","));
+  }
+
+  {
+    const tokenIds = await walletProvider.batchTokenOfOwner(
+      user0Address,
+      "0x42258A4ab69a6570381277d384D6F1419d765fEA",
+      5000,
+      2000
+    );
+    console.log("batchTokenOfOwner(bBAYC):", tokenIds.join(","));
+  }
+  {
+    const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(
+      user0Address,
+      "0x42258A4ab69a6570381277d384D6F1419d765fEA"
+    );
+    console.log("batchTokenOfOwnerByIndex(bBAYC):", tokenIds.join(","));
+  }
+};
+
+const changeNFTOracleFeedAdmin = async (addressesProvider: LendPoolAddressesProvider) => {
+  const nftOracleProxy = await getNFTOracle(await addressesProvider.getNFTOracle());
+
+  await waitForTx(await nftOracleProxy.setPriceFeedAdmin("0x1Cd450216B4221D76A13cAd3aa8aF87F39c4Cb2c"));
+  console.log("priceFeedAdmin:", await nftOracleProxy.priceFeedAdmin());
+};
+
+const upgradeLendPool1115 = async (addressesProvider: LendPoolAddressesProvider) => {
+  const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());
+
+  const lendPoolImpl = await deployLendPool(false);
+
+  await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address));
+  console.log("LendPool:", "proxy.address", lendPoolProxy.address, "implementation.address", lendPoolImpl.address);
+};
+
+const upgradeBNFTRegistry1115 = async (
+  DRE: HardhatRuntimeEnvironment,
+  network: eNetwork,
+  poolConfig: PoolConfiguration,
+  addressesProvider: LendPoolAddressesProvider
+) => {
+  const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdminBNFT, network);
+  if (proxyAdminAddress == undefined) {
+    throw new Error("Invalid proxy admin address");
+  }
+  const proxyAdminBNFT = await getBendProxyAdminByAddress(proxyAdminAddress);
+  const proxyOwnerAddress = await proxyAdminBNFT.owner();
+
+  const bnftRegistryImpl = await deployBNFTRegistry(false);
+  const bnftRegistry = await getBNFTRegistryProxy(await addressesProvider.getBNFTRegistry());
+  const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);
+  await waitForTx(await proxyAdminBNFT.connect(ownerSigner).upgrade(bnftRegistry.address, bnftRegistryImpl.address));
+
+  console.log(
+    "BNFTRegistr:",
+    "proxy.address",
+    bnftRegistry.address,
+    "implementation.address",
+    bnftRegistryImpl.address
+  );
+};
+
+const upgradeBNFT1115 = async (
+  DRE: HardhatRuntimeEnvironment,
+  network: eNetwork,
+  poolConfig: PoolConfiguration,
+  addressesProvider: LendPoolAddressesProvider
+) => {
+  const bnftRegistry = await getBNFTRegistryProxy(await addressesProvider.getBNFTRegistry());
+  const registryOwnerAddress = await bnftRegistry.owner();
+
+  const bnftGenericImpl = await deployGenericBNFTImpl(false);
+  await waitForTx(await bnftRegistry.setBNFTGenericImpl(bnftGenericImpl.address));
+
+  const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
+  for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
+    const ownerSigner = DRE.ethers.provider.getSigner(registryOwnerAddress);
+    await waitForTx(
+      await bnftRegistry.connect(ownerSigner).upgradeBNFTWithImpl(assetAddress, bnftGenericImpl.address, [])
+    );
+    const { bNftProxy, bNftImpl } = await bnftRegistry.getBNFTAddresses(assetAddress);
+    console.log("BNFT:", assetSymbol, "proxy.address", bNftProxy, "implementation.address", bNftImpl);
+  }
 };

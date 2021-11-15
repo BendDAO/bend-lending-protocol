@@ -73,6 +73,8 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   function setBNFTGenericImpl(address genericImpl) external override onlyOwner {
     require(genericImpl != address(0), "BNFTR: impl is zero address");
     bNftGenericImpl = genericImpl;
+
+    emit GenericImplementationUpdated(genericImpl);
   }
 
   /**
