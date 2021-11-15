@@ -45,7 +45,7 @@ task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
       }
       bnftAddresses = await bnftRegistryProxy.getBNFTAddresses(assetAddress);
       console.log(
-        "BNFT %s: , asset.address:%s, proxy.address: %s, implementation.address: %s",
+        "BNFT %s: asset.address:%s, proxy.address: %s, implementation.address: %s",
         assetSymbol,
         assetAddress,
         bnftAddresses.bNftProxy,

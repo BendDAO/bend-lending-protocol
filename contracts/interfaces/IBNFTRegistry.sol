@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 interface IBNFTRegistry {
   event Initialized(address genericImpl, string namePrefix, string symbolPrefix);
+  event GenericImplementationUpdated(address genericImpl);
   event BNFTCreated(address indexed nftAsset, address bNftImpl, address bNftProxy, uint256 totals);
   event BNFTUpgraded(address indexed nftAsset, address bNftImpl, address bNftProxy, uint256 totals);
 
