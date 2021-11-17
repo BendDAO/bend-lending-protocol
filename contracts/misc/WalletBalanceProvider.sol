@@ -259,7 +259,7 @@ contract WalletBalanceProvider {
     uint256 maxIndex = start + count;
     for (uint256 punkIndex = 0; punkIndex < maxIndex; punkIndex++) {
       address ownerAddress = IPunks(punkContract).punkIndexToAddress(punkIndex);
-      if (ownerAddress == address(0)) {
+      if (ownerAddress != owner) {
         continue;
       }
 

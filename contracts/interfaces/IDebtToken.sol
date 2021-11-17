@@ -17,7 +17,7 @@ interface IDebtToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUp
   /**
    * @dev Emitted when a debt token is initialized
    * @param underlyingAsset The address of the underlying asset
-   * @param addressProvider The address of the associated lend pool
+   * @param pool The address of the associated lend pool
    * @param incentivesController The address of the incentives controller
    * @param debtTokenDecimals the decimals of the debt token
    * @param debtTokenName the name of the debt token
@@ -26,7 +26,7 @@ interface IDebtToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUp
    **/
   event Initialized(
     address indexed underlyingAsset,
-    address indexed addressProvider,
+    address indexed pool,
     address incentivesController,
     uint8 debtTokenDecimals,
     string debtTokenName,

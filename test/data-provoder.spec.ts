@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
-import { APPROVAL_AMOUNT_LENDING_POOL, oneEther } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ZERO_ADDRESS } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 
@@ -163,7 +163,7 @@ makeSuite("DataProvider", (testEnv) => {
   });
 
   it("Query UI Loan Data", async () => {
-    const { users, addressesProvider, bayc, uiProvider } = testEnv;
+    const { users, addressesProvider, weth, bayc, uiProvider } = testEnv;
     const depositor = users[0];
     const borrower = users[1];
 
@@ -184,11 +184,13 @@ makeSuite("DataProvider", (testEnv) => {
       expect(loanData4Nft101.totalDebtETH).to.be.gt(0);
       expect(loanData4Nft101.ltv).to.be.gt(0);
       expect(loanData4Nft101.liquidationThreshold).to.be.gt(0);
+      expect(loanData4Nft101.reserveAsset).to.be.eq(weth.address);
 
       expect(loanData4Nft102.loanId).to.be.equal(0);
       expect(loanData4Nft102.totalCollateralETH).to.be.gt(0);
       expect(loanData4Nft102.availableBorrowsETH).to.be.gt(0);
       expect(loanData4Nft102.totalDebtETH).to.be.equal(0);
+      expect(loanData4Nft102.reserveAsset).to.be.eq(ZERO_ADDRESS);
 
       expect(loanData4Nft101.ltv).to.be.equal(loanData4Nft102.ltv);
       expect(loanData4Nft101.liquidationThreshold).to.be.equal(loanData4Nft102.liquidationThreshold);

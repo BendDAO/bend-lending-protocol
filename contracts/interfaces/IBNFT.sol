@@ -34,9 +34,10 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
    * @dev Emitted on flashLoan
    * @param target The address of the flash loan receiver contract
    * @param initiator The address initiating the flash loan
+   * @param nftAsset address of the underlying asset of NFT
    * @param tokenId The token id of the asset being flash borrowed
    **/
-  event FlashLoan(address indexed target, address indexed initiator, uint256 tokenId);
+  event FlashLoan(address indexed target, address indexed initiator, address indexed nftAsset, uint256 tokenId);
 
   /**
    * @dev Initializes the bNFT

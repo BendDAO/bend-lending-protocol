@@ -20,7 +20,6 @@ interface ILendPoolAddressesProvider {
   event ProxyCreated(bytes32 id, address indexed newAddress);
   event AddressSet(bytes32 id, address indexed newAddress, bool hasProxy);
   event BNFTRegistryUpdated(address indexed newAddress);
-  event ProxyAdminUpdated(address indexed newAddress);
 
   function getMarketId() external view returns (string memory);
 
