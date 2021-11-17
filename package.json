@@ -16,6 +16,8 @@
     "test:file": "TS_NODE_TRANSPILE_ONLY=1 hardhat test ./test/__setup.spec.ts",
     "test-subgraph:scenarios": "npm run compile && hardhat test ./test/__setup.spec.ts ./test/subgraph-scenarios.spec.ts",
     "dev:coverage": "hardhat compile --force && hardhat coverage --network coverage",
+    "dev:update-abis": "npm run compile && node ./scripts/updateAbis",
+    "prettier:abis": "prettier --write 'abis/**/*.json'",
     "prettier:check": "npx prettier -c 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts'",
     "prettier:write": "prettier --write 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts'",
     "ci:test": "npm run compile && npm run test",
