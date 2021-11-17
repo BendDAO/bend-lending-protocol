@@ -31,8 +31,9 @@ task("dev:custom-task", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
+    //borrowETHUsingBAYC(addressesProvider);
     //await printUISimpleData(addressesProvider);
-    //await printWalletBatchToken();
+    await printWalletBatchToken();
   });
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
@@ -85,23 +86,35 @@ const printUISimpleData = async (addressesProvider: LendPoolAddressesProvider) =
   const dataProvider = await getBendProtocolDataProvider();
   const uiProvider = await getUIPoolDataProvider();
 
+  console.log("--------------------------------------------------------------------------------");
   const simpleNftsData = await uiProvider.getSimpleNftsData(addressesProvider.address);
   console.log(simpleNftsData);
 
+  console.log("--------------------------------------------------------------------------------");
   const userNftData = await uiProvider.getUserNftsData(
     addressesProvider.address,
     "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   );
   console.log(userNftData);
 
+  console.log("--------------------------------------------------------------------------------");
   const simpleReservesData = await uiProvider.getSimpleReservesData(addressesProvider.address);
   console.log(simpleReservesData);
 
+  console.log("--------------------------------------------------------------------------------");
   const userReserveData = await uiProvider.getUserReservesData(
     addressesProvider.address,
     "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   );
   console.log(userReserveData);
+
+  console.log("--------------------------------------------------------------------------------");
+  const simpleLoansData = await uiProvider.getSimpleLoansData(
+    addressesProvider.address,
+    ["0x6f9a28ACE211122CfD6f115084507b44FDBc12C7"],
+    ["5001"]
+  );
+  console.log(simpleLoansData);
 };
 
 const createMockedCool = async () => {
@@ -123,14 +136,33 @@ const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) 
   const wethGateway = await getWETHGateway("0xda66d66534072356EE7DCBfeB29493A925d55d95");
   const baycAddress = "0x6f9a28ACE211122CfD6f115084507b44FDBc12C7";
 
-  const mockedCoolAddress = "0xEF307D349b242b6967a75A4f19Cdb692170F1106";
-  //await waitForTx(await wethGateway.authorizeLendPoolNFT(mockedCoolAddress));
-
   const bayc = await getMintableERC721(baycAddress);
-  //await waitForTx(await bayc.setApprovalForAll(wethGateway.address, true));
-  //await waitForTx(await bayc.mint(5001));
+  await waitForTx(await bayc.setApprovalForAll(wethGateway.address, true));
+  /*
+  await waitForTx(await bayc.mint(5001));
   await waitForTx(
-    await wethGateway.borrowETH("500000000000000000", bayc.address, "5001", await signer.getAddress(), "0")
+    await wethGateway.borrowETH("100000000000000000", bayc.address, "5001", await signer.getAddress(), "0")
+  );
+*/
+  await waitForTx(await bayc.mint(5002));
+  await waitForTx(
+    await wethGateway.borrowETH("100000000000000000", bayc.address, "5002", await signer.getAddress(), "0")
+  );
+};
+
+const borrowETHUsingCOOL = async (addressesProvider: LendPoolAddressesProvider) => {
+  const signer = await getFirstSigner();
+
+  const wethGateway = await getWETHGateway("0xda66d66534072356EE7DCBfeB29493A925d55d95");
+  const coolAddress = "0xEF307D349b242b6967a75A4f19Cdb692170F1106";
+
+  await waitForTx(await wethGateway.authorizeLendPoolNFT(coolAddress));
+
+  const cool = await getMintableERC721(coolAddress);
+  await waitForTx(await cool.setApprovalForAll(wethGateway.address, true));
+  await waitForTx(await cool.mint(5001));
+  await waitForTx(
+    await wethGateway.borrowETH("100000000000000000", cool.address, "1001", await signer.getAddress(), "0")
   );
 };
 

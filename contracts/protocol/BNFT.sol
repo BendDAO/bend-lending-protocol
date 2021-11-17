@@ -119,7 +119,7 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
     for (i = 0; i < nftTokenIds.length; i++) {
       IERC721Upgradeable(_underlyingAsset).safeTransferFrom(receiverAddress, address(this), nftTokenIds[i]);
 
-      emit FlashLoan(receiverAddress, _msgSender(), nftTokenIds[i]);
+      emit FlashLoan(receiverAddress, _msgSender(), _underlyingAsset, nftTokenIds[i]);
     }
   }
 

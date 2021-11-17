@@ -6,8 +6,9 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
 interface ILendPoolLoan {
   /**
    * @dev Emitted on initialization to share location of dependent notes
+   * @param pool The address of the associated lend pool
    */
-  event Initialized();
+  event Initialized(address indexed pool);
 
   /**
    * @dev Emitted when a loan is created

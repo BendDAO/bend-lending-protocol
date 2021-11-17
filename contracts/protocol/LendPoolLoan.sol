@@ -51,10 +51,14 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
     // Avoid having loanId = 0
     _loanIdTracker.increment();
+
+    emit Initialized(address(_pool));
   }
 
   function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
     _setAddressProvider(provider);
+
+    emit Initialized(address(_pool));
   }
 
   function _setAddressProvider(ILendPoolAddressesProvider provider) internal {

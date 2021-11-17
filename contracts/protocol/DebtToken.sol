@@ -105,7 +105,7 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
 
     emit Initialized(
       underlyingAsset,
-      address(addressProvider),
+      address(_pool),
       address(incentivesController),
       debtTokenDecimals,
       debtTokenName,
