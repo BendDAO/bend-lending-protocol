@@ -8,17 +8,13 @@ import {
   getWrappedPunk,
 } from "../../helpers/contracts-getters";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { convertToCurrencyDecimals, convertToCurrencyUnits, getParamPerNetwork } from "../../helpers/contracts-helpers";
+import {
+  convertToCurrencyDecimals,
+  convertToCurrencyUnits,
+  getContractAddressInDb,
+  getParamPerNetwork,
+} from "../../helpers/contracts-helpers";
 import { waitForTx } from "../../helpers/misc-utils";
-
-const MockAddresses = {
-  PUNK: "0x6AB60B1E965d9Aa445d637Ac5034Eba605FF0b82", //Not ERC721
-  WPUNK: "0xBe410D495B843e4874a029580B7eAA6F3611107B", //ERC721
-  BAYC: "0x6f9a28ACE211122CfD6f115084507b44FDBc12C7", //ERC721
-
-  DAI: "0x28E0bd32f9B1c5060A1F8498e1c1EDa585F09162", //ERC20
-  USDC: "0xB2428A65347eF2954e58e186f7adab951C0a3A6f", //ERC20
-};
 
 task("dev:mint-mock-nfts", "Mint mock nfts for dev enviroment")
   .addParam("index", "NFT Index of start")
@@ -35,24 +31,26 @@ task("dev:mint-mock-nfts", "Mint mock nfts for dev enviroment")
     const deployerAddress = await deployerSigner.getAddress();
 
     // PUNK
-    const cryptoPunksMarket = await getCryptoPunksMarket(MockAddresses.PUNK);
+    const cryptoPunksMarket = await getCryptoPunksMarket();
     if (index <= 1) {
       // first time to open market to public
       await waitForTx(await cryptoPunksMarket.allInitialOwnersAssigned());
     }
 
-    // for (let punkIndex = Number(index); punkIndex < Number(index) + Number(amount); punkIndex++) {
-    //   console.log("Mint PUNK:", punkIndex);
-    //   await waitForTx(await cryptoPunksMarket.getPunk(punkIndex));
-    //   await waitForTx(await cryptoPunksMarket.transferPunk(user, punkIndex));
-    // }
-    // console.log("PUNK Balances:", (await cryptoPunksMarket.balanceOf(user)).toString());
+    for (let punkIndex = Number(index); punkIndex < Number(index) + Number(amount); punkIndex++) {
+      console.log("Mint PUNK:", punkIndex);
+      await waitForTx(await cryptoPunksMarket.getPunk(punkIndex));
+      await waitForTx(await cryptoPunksMarket.transferPunk(user, punkIndex));
+    }
+    console.log("PUNK Balances:", (await cryptoPunksMarket.balanceOf(user)).toString());
 
-    //const wpunk = await getWrappedPunk(MockAddresses.WPUNK);
+    //const wpunkAddress = await getContractAddressInDb("WPUNK");
+    //const wpunk = await getWrappedPunk(wpunkAddress);
     //await waitForTx(await wpunk.registerProxy());
 
     // BAYC
-    const bayc = await getMintableERC721(MockAddresses.BAYC);
+    const baycAddress = await getContractAddressInDb("BAYC");
+    const bayc = await getMintableERC721(baycAddress);
     if (index <= 1) {
       // first time to set base uri
       await waitForTx(await bayc.setBaseURI("ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/"));
@@ -79,14 +77,16 @@ task("dev:mint-mock-reserves", "Mint mock reserves for dev enviroment")
     const deployerAddress = await deployerSigner.getAddress();
 
     // DAI
-    const dai = await getMintableERC20(MockAddresses.DAI);
+    const daiAddress = await getContractAddressInDb("DAI");
+    const dai = await getMintableERC20(daiAddress);
     const daiAmountToMint = await convertToCurrencyDecimals(dai.address, amount);
     await waitForTx(await dai.mint(daiAmountToMint));
     await waitForTx(await dai.transfer(user, daiAmountToMint));
     console.log("DAI Balances:", (await dai.balanceOf(user)).toString());
 
     // USDC
-    const usdc = await getMintableERC20(MockAddresses.USDC);
+    const usdcAddress = await getContractAddressInDb("USDC");
+    const usdc = await getMintableERC20(usdcAddress);
     const usdcAmountToMint = await convertToCurrencyDecimals(usdc.address, amount);
     await waitForTx(await usdc.mint(usdcAmountToMint));
     await waitForTx(await usdc.transfer(user, usdcAmountToMint));

@@ -78,6 +78,14 @@ export const rawInsertContractAddressInDb = async (id: string, address: tEthereu
     .write();
 };
 
+export const getContractAddressInDb = async (id: string): Promise<tEthereumAddress> => {
+  const contractAtDb = await getDb().get(`${id}.${DRE.network.name}`).value();
+  if (contractAtDb?.address) {
+    return contractAtDb.address as tEthereumAddress;
+  }
+  throw Error(`Missing contract address ${id} at Market config and JSON local db`);
+};
+
 export const getEthersSigners = async (): Promise<Signer[]> => {
   const ethersSigners = await Promise.all(await DRE.ethers.getSigners());
   return ethersSigners;
