@@ -326,7 +326,7 @@ export interface ICommonConfiguration {
   EmergencyAdmin: iParamsPerNetwork<tEthereumAddress | undefined>;
   EmergencyAdminIndex: number;
 
-  ReserveAggregator: iParamsPerNetwork<ITokenAddress>;
+  ReserveAggregators: iParamsPerNetwork<ITokenAddress>;
   ReserveAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
   ReservesConfig: iMultiPoolsAssets<IReserveParams>;
   NftsAssets: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;

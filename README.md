@@ -1,8 +1,184 @@
-# bend-protocol
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Build pass](https://github.com/bend/bend-protocol/actions/workflows/node.js.yml/badge.svg)](https://github.com/bendfinance/bend-protocol/actions/workflows/node.js.yml)
+```
+'########::'########:'##::: ##:'########::
+ ##.... ##: ##.....:: ###:: ##: ##.... ##:
+ ##:::: ##: ##::::::: ####: ##: ##:::: ##:
+ ########:: ######::: ## ## ##: ##:::: ##:
+ ##.... ##: ##...:::: ##. ####: ##:::: ##:
+ ##:::: ##: ##::::::: ##:. ###: ##:::: ##:
+ ########:: ########: ##::. ##: ########::
+........:::........::..::::..::........:::                              
+```
 
-This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
+# Bend Protocol V1
 
-The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.
+This repository contains the smart contracts source code and markets configuration for Bend Protocol. The repository uses Hardhat as development enviroment for compilation, testing and deployment tasks.
+
+## What is Bend?
+
+Bend is a decentralized non-custodial NFT lending protocol where users can participate as depositors or borrowers. Depositors provide liquidity to the market to earn a passive income, while borrowers are able to borrow in an overcollateralized fashion.
+
+## Documentation
+
+The documentation of Bend Protocol is in the following [Bend V1 documentation](https://docs.bend.finance/developers/v/1.0/) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
+
+For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.finance/developers/v/1.0/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
+
+A more detailed and technical description of the protocol can be found in this repository, [here](./bend-v1-whitepaper.pdf)
+
+## Audits
+TODO
+
+## Connect with the community
+
+You can join at the [Discord](http://bend.finance/discord) channel or at the [Governance Forum](https://governance.bend.finance/) for asking questions about the protocol or talk about Bend with other peers.
+
+## Getting Started
+
+You can install `@bend/bend-protocol` as an NPM package in your Hardhat, Buidler or Truffle project to import the contracts and interfaces:
+
+`npm install @bend/bend-protocol`
+
+Import at Solidity files:
+
+```
+import {ILendPool} from "@bend/bend-protocol/contracts/interfaces/ILendPool.sol";
+
+contract Misc {
+
+  function deposit(address pool, address token, address user, uint256 amount) public {
+    ILendPool(pool).deposit(token, amount, user, 0);
+    {...}
+  }
+}
+```
+
+The JSON artifacts with the ABI and Bytecode are also included into the bundled NPM package at `artifacts/` directory.
+
+Import JSON file via Node JS `require`:
+
+```
+const LendPoolArtifact = require('@bend/bend-protocol/artifacts/contracts/protocol/LendPool.sol/LendPool.json');
+
+// Log the ABI into console
+console.log(LendPoolArtifact.abi)
+```
+
+## Setup
+
+The repository uses Docker Compose to manage sensitive keys and load the configuration. Prior any action like test or deploy, you must run `docker-compose up` to start the `contracts-env` container, and then connect to the container console via `docker-compose exec contracts-env bash`.
+
+Follow the next steps to setup the repository:
+
+- Install `docker` and `docker-compose`
+- Create an enviroment file named `.env` and fill the next enviroment variables
+
+```
+# Mnemonic, only first address will be used
+MNEMONIC=""
+
+# Add Alchemy or Infura provider keys, alchemy takes preference at the config level
+ALCHEMY_KEY=""
+INFURA_KEY=""
+
+# Optional Etherscan key, for automatize the verification of the contracts at Etherscan
+ETHERSCAN_KEY=""
+
+```
+
+## Markets configuration
+
+The configurations related with the Bend Markets are located at `markets` directory. You can follow the `IBendConfiguration` interface to create new Markets configuration or extend the current Bend configuration.
+
+Each market should have his own Market configuration file, and their own set of deployment tasks, using the Bend market config and tasks as a reference.
+
+## Test
+
+You can run the full test suite with the following commands:
+
+```
+# In one terminal
+docker-compose up
+
+# Open another tab or terminal
+docker-compose exec contracts-env bash
+
+# A new Bash terminal is prompted, connected to the container
+npm run test
+```
+
+## Deployments
+
+For deploying Bend Protocol, you can use the available scripts located at `package.json`. For a complete list, run `npm run` to see all the tasks.
+
+### Prepare
+```
+# In one terminal
+docker-compose up
+
+# Open another tab or terminal
+docker-compose exec contracts-env bash
+
+# Runing NPM task
+# npm run xxx
+```
+
+### Localhost deployment
+```
+# In first terminal
+npm run hardhat:node
+
+# In second terminal
+npm run bend:localhost:dev:migration
+```
+
+### Rinkeby deployment
+```
+# In one terminal
+npm run bend:rinkeby:full:migration
+```
+
+## Interact with Bend in Mainnet via console
+
+You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at https://docs.bend.finance/developers/deployed-contracts.
+
+Run the Hardhat console pointing to the Mainnet network:
+
+```
+npx hardhat --network main console
+```
+
+At the Hardhat console, you can interact with the protocol:
+
+```
+// Load the HRE into helpers to access signers
+run("set-DRE")
+
+// Import getters to instance any Bend contract
+const contractGetters = require('./helpers/contracts-getters');
+
+// Load the first signer
+const signer = await contractGetters.getFirstSigner();
+
+// Lend pool instance
+const lendPool = await contractGetters.getLendPool("0x3AF6fC17EbD751E4D11F5A1d6823b2aE64723B87");
+
+// ERC20 token WETH Mainnet instance
+const WETH = await contractGetters.getIErc20Detailed("0xbe4d36E2C69Aa9658e937f6cC584E60167484381");
+
+// Approve 10 WETH to LendPool address
+await WETH.connect(signer).approve(lendPool.address, ethers.utils.parseUnits('10'));
+
+// Deposit 10 WETH
+await lendPool.connect(signer).deposit(DAI.address, ethers.utils.parseUnits('10'), await signer.getAddress(), '0');
+```
+
+## Tools
+
+This project integrates other tools commonly used alongside Hardhat in the ecosystem.
+
+It also comes with a variety of other tools, preconfigured to work with the project code.
 
 Try running some of the following tasks:
 
@@ -25,7 +201,7 @@ npx solhint 'contracts/**/*.sol'
 npx solhint 'contracts/**/*.sol' --fix
 ```
 
-# Etherscan verification
+## Etherscan verification
 
 To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
 
