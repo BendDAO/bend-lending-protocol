@@ -273,6 +273,9 @@ export const getPairsTokenAggregator = (
   const pairs = Object.entries(assetsWithoutQuoteCurrency).map(([tokenSymbol, tokenAddress]) => {
     //if (true/*tokenSymbol !== 'WETH' && tokenSymbol !== 'ETH' && tokenSymbol !== 'LpWETH'*/) {
     const aggregatorAddressIndex = Object.keys(aggregatorsAddresses).findIndex((value) => value === tokenSymbol);
+    if (aggregatorAddressIndex < 0) {
+      throw Error(`can not find aggregator for ${tokenSymbol}`);
+    }
     const [, aggregatorAddress] = (Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][])[
       aggregatorAddressIndex
     ];

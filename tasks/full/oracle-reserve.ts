@@ -27,7 +27,7 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       const poolConfig = loadPoolConfig(pool);
       const UsdAddress = poolConfig.ProtocolGlobalParams.UsdAddress;
 
-      const { ReserveAssets, ReserveAggregator } = poolConfig as ICommonConfiguration;
+      const { ReserveAssets, ReserveAggregators } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
       const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
@@ -39,7 +39,7 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
         ...reserveAssets,
         USD: UsdAddress,
       };
-      const reserveAggregators = getParamPerNetwork(ReserveAggregator, network);
+      const reserveAggregators = getParamPerNetwork(ReserveAggregators, network);
 
       const [tokens, aggregators] = getPairsTokenAggregator(
         reserveAssetsWithUSD,

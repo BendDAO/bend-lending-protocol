@@ -91,6 +91,11 @@ const buidlerConfig: HardhatUserConfig = {
       url: "http://localhost:8555",
       chainId: COVERAGE_CHAINID,
     },
+    localhost: {
+      url: "http://localhost:8545",
+      chainId: BUIDLEREVM_CHAINID,
+      accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => (secretKey)),
+    },
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     hardhat: {
@@ -104,7 +109,7 @@ const buidlerConfig: HardhatUserConfig = {
       throwOnCallFailures: true,
       accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => ({
         privateKey: secretKey,
-        balance,
+        balance: balance,
       })),
       forking: buildForkConfig(),
     },

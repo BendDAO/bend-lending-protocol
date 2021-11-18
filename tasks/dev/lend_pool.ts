@@ -28,7 +28,7 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
     const poolConfig = loadPoolConfig(pool);
 
     const bnftRegistryProxy = await getBNFTRegistryProxy();
-    addressesProvider.setBNFTRegistry(bnftRegistryProxy.address);
+    await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistryProxy.address));
 
     ////////////////////////////////////////////////////////////////////////////
     // deploy lend pool

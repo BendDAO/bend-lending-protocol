@@ -121,7 +121,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.hardhat]: '',
   },
 
-  ReserveAggregator: {
+  ReserveAggregators: {
     // https://data.chain.link/ethereum/mainnet/crypto-eth
     // https://docs.chain.link/docs/ethereum-addresses/
     [eEthereumNetwork.coverage]: {},
