@@ -1,10 +1,15 @@
 import { task } from "hardhat/config";
 import { deployReserveOracle } from "../../helpers/contracts-deployments";
-import { deployAllChainlinkMockAggregators, setAggregatorsInReserveOracle } from "../../helpers/oracles-helpers";
+import {
+  deployAllChainlinkMockAggregators,
+  deployChainlinkMockAggregator,
+  setAggregatorsInReserveOracle,
+} from "../../helpers/oracles-helpers";
 import { tEthereumAddress } from "../../helpers/types";
 import { waitForTx } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { getAllMockedTokens, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
+import { MOCK_USD_PRICE, USD_ADDRESS } from "../../helpers/constants";
 
 task("dev:deploy-oracle-reserve", "Deploy reserve oracle for dev environment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -37,13 +42,16 @@ task("dev:deploy-oracle-reserve", "Deploy reserve oracle for dev environment")
       poolConfig.Mocks.AllAssetsInitialPrices,
       verify
     );
+    const usdMockAggregator = await deployChainlinkMockAggregator("USD", "8", MOCK_USD_PRICE);
 
     const allAggregatorsAddresses = Object.entries(mockAggregators).reduce(
       (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, aggregator]) => ({
         ...accum,
         [tokenSymbol]: aggregator.address,
       }),
-      {}
+      {
+        USD: USD_ADDRESS,
+      }
     );
 
     const reserveOracleImpl = await deployReserveOracle([], verify);

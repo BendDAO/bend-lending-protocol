@@ -24,20 +24,23 @@ export const OPTIMAL_UTILIZATION_RATE = new BigNumber(0.8).times(RAY);
 export const EXCESS_UTILIZATION_RATE = new BigNumber(0.2).times(RAY);
 export const APPROVAL_AMOUNT_LENDING_POOL = "1000000000000000000000000000";
 export const TOKEN_DISTRIBUTOR_PERCENTAGE_BASE = "10000";
-export const MOCK_USD_PRICE_IN_WEI = "5848466240000000";
-export const USD_ADDRESS = "0x10F7Fc1F91Ba351f9C629c5947AD69bD03C05b96";
+export const MOCK_USD_PRICE = "425107839690";
+export const USD_ADDRESS = "0x9ceB4d4C184d1786614a593a03621b7F37F8685F"; //index 19
 export const BEND_REFERRAL = "0";
 
+//Price source: https://data.chain.link/ethereum/mainnet/stablecoins
 export const MOCK_RESERVE_AGGREGATORS_PRICES = {
   WETH: oneEther.toFixed(),
-  DAI: oneEther.multipliedBy("0.00369068412860").toFixed(),
-  //BUSD: oneEther.multipliedBy('0.00736484').toFixed(),
-  USDC: oneEther.multipliedBy("0.00367714136416").toFixed(),
-  //USDT: oneEther.multipliedBy('0.00369068412860').toFixed(),
+  DAI: oneEther.multipliedBy("0.000233211").toFixed(),
+  //BUSD: oneEther.multipliedBy('0.0002343946').toFixed(),
+  USDC: oneEther.multipliedBy("0.0002349162").toFixed(),
+  //USDT: oneEther.multipliedBy('0.0002359253').toFixed(),
 };
 
+//Price source: https://nftpricefloor.com/
+//Price source: https://opensea.io/
 export const MOCK_NFT_AGGREGATORS_PRICES = {
-  WPUNKS: oneEther.multipliedBy("100").toFixed(),
-  BAYC: oneEther.multipliedBy("30").toFixed(),
-  COOL: oneEther.multipliedBy("6").toFixed(),
+  WPUNKS: oneEther.multipliedBy("90.00").toFixed(),
+  BAYC: oneEther.multipliedBy("50.90").toFixed(),
+  COOL: oneEther.multipliedBy("8.69").toFixed(),
 };

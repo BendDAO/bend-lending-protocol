@@ -113,7 +113,9 @@ library GenericLogic {
     CalculateLoanDataVars memory vars;
 
     (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData.configuration.getParams();
-    vars.tokenUnit = 10**vars.decimals;
+    // all asset price has converted to ETH based, unit is in WEI (18 decimals)
+    //vars.tokenUnit = 10**vars.decimals;
+    vars.tokenUnit = 10**18;
 
     vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAddress);
 
@@ -141,6 +143,7 @@ library GenericLogic {
     (vars.nftLtv, vars.nftLiquidationThreshold, ) = nftData.configuration.getParams();
 
     // calculate total collateral balance for the nft
+    // all asset price has converted to ETH based, unit is in WEI (18 decimals)
     vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPrice(nftAddress);
     vars.totalCollateralInETH = vars.nftUnitPrice;
 

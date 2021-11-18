@@ -62,6 +62,7 @@ import {
   WalletBalanceProvider,
 } from "../../types";
 import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
+import { USD_ADDRESS } from "../../helpers/constants";
 
 chai.use(bignumberChai());
 chai.use(almostEqual());

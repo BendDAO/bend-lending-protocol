@@ -25,6 +25,7 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
+      const UsdAddress = poolConfig.ProtocolGlobalParams.UsdAddress;
 
       const { ReserveAssets, ReserveAggregator } = poolConfig as ICommonConfiguration;
 
@@ -34,10 +35,14 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
 
       const reserveOracleAddress = getParamPerNetwork(poolConfig.ReserveOracle, network);
       const reserveAssets = getParamPerNetwork(ReserveAssets, network);
+      const reserveAssetsWithUSD = {
+        ...reserveAssets,
+        USD: UsdAddress,
+      };
       const reserveAggregators = getParamPerNetwork(ReserveAggregator, network);
 
       const [tokens, aggregators] = getPairsTokenAggregator(
-        reserveAssets,
+        reserveAssetsWithUSD,
         reserveAggregators,
         poolConfig.OracleQuoteCurrency
       );

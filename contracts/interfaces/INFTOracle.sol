@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 @title INFTOracle interface
 @notice Interface for NFT price oracle.*/
 interface INFTOracle {
+  /* CAUTION: Price uint is ETH based (WEI, 18 decimals) */
   // get latest price
   function getAssetPrice(address _asset) external view returns (uint256);
 

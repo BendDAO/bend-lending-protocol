@@ -26,6 +26,9 @@ export const setAggregatorsInReserveOracle = async (
 ) => {
   for (const [assetSymbol, assetAddress] of Object.entries(allAssetsAddresses) as [string, tEthereumAddress][]) {
     const aggAddressIndex = Object.keys(aggregatorsAddresses).findIndex((value) => value === assetSymbol);
+    if (aggAddressIndex < 0) {
+      throw Error(`can not find aggregator for ${assetSymbol}`);
+    }
     const [, aggAddress] = (Object.entries(aggregatorsAddresses) as [string, tEthereumAddress][])[aggAddressIndex];
     //console.log("assetSymbol", assetSymbol, "assetAddress", assetAddress, "aggAddress", aggAddress);
     const assetBytes32 = ethers.utils.zeroPad(ethers.utils.arrayify(assetAddress), 32);
@@ -68,25 +71,34 @@ export const deployAllChainlinkMockAggregators = async (
   initialPrices: iAssetAggregatorBase<string>,
   verify?: boolean
 ) => {
-  const latestTime = await getNowTimeInSeconds();
   const aggregators: { [tokenSymbol: string]: MockChainlinkOracle } = {};
   for (const tokenContractName of Object.keys(initialPrices)) {
     if (tokenContractName !== "ETH") {
       const priceIndex = Object.keys(initialPrices).findIndex((value) => value === tokenContractName);
+      if (priceIndex < 0) {
+        throw Error(`can not find price for ${tokenContractName}`);
+      }
       const [, price] = (Object.entries(initialPrices) as [string, string][])[priceIndex];
+
       //all reserves price must be ETH based, so aggregtaor decimals is 18
       //const decimals = allTokenDecimals[tokenContractName];
       const decimals = "18";
-      aggregators[tokenContractName] = await deployMockChainlinkOracle(decimals, verify);
-      console.log(
-        "ChainlinkMockAggregator,",
-        tokenContractName,
-        aggregators[tokenContractName].address,
-        price,
-        decimals
-      );
-      await aggregators[tokenContractName].mockAddAnswer(1, price, latestTime, latestTime, "1");
+
+      aggregators[tokenContractName] = await deployChainlinkMockAggregator(tokenContractName, decimals, price, verify);
     }
   }
   return aggregators;
+};
+
+export const deployChainlinkMockAggregator = async (
+  tokenName: string,
+  tokenDecimal: string,
+  initialPrice: string,
+  verify?: boolean
+) => {
+  const latestTime = await getNowTimeInSeconds();
+  const aggregator = await deployMockChainlinkOracle(tokenDecimal, verify);
+  console.log("ChainlinkMockAggregator,", tokenName, aggregator.address, initialPrice, tokenDecimal);
+  await aggregator.mockAddAnswer(1, initialPrice, latestTime, latestTime, "1");
+  return aggregator;
 };
