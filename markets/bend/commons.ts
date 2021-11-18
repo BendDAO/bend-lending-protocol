@@ -26,8 +26,8 @@ export const CommonsConfig: ICommonConfiguration = {
   OracleQuoteCurrency: 'ETH',
   OracleQuoteUnit: oneEther.toString(),
   ProtocolGlobalParams: {
-    MockUsdPriceInWei: '5848466240000000',
-    UsdAddress: '0x10F7Fc1F91Ba351f9C629c5947AD69bD03C05b96',
+    MockUsdPrice: '425107839690',
+    UsdAddress: '0x9ceB4d4C184d1786614a593a03621b7F37F8685F', //index 19
     NilAddress: '0x0000000000000000000000000000000000000000',
     OneAddress: '0x0000000000000000000000000000000000000001',
     BendReferral: '0',

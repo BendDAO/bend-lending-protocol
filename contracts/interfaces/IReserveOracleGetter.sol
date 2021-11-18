@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 @title IReserveOracleGetter interface
 @notice Interface for getting Reserve price oracle.*/
 interface IReserveOracleGetter {
+  /* CAUTION: Price uint is ETH based (WEI, 18 decimals) */
   /***********
     @dev returns the asset price in ETH
      */

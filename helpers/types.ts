@@ -285,7 +285,7 @@ export interface ObjectString {
 }
 
 export interface IProtocolGlobalConfig {
-  MockUsdPriceInWei: string;
+  MockUsdPrice: string;
   UsdAddress: tEthereumAddress;
   NilAddress: tEthereumAddress;
   OneAddress: tEthereumAddress;

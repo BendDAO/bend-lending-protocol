@@ -25,6 +25,7 @@ import {
   deployAllMockTokens,
   deployAllMockNfts,
   deployUiPoolDataProvider,
+  deployMockChainlinkOracle,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -38,6 +39,7 @@ import {
   addAssetsInNFTOracle,
   setPricesInNFTOracle,
   deployAllChainlinkMockAggregators,
+  deployChainlinkMockAggregator,
 } from "../helpers/oracles-helpers";
 import { DRE, waitForTx } from "../helpers/misc-utils";
 import {
@@ -68,7 +70,7 @@ import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { WrappedPunk } from "../types/WrappedPunk";
 
-const MOCK_USD_PRICE_IN_WEI = BendConfig.ProtocolGlobalParams.MockUsdPriceInWei;
+const MOCK_USD_PRICE = BendConfig.ProtocolGlobalParams.MockUsdPrice;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
 const USD_ADDRESS = BendConfig.ProtocolGlobalParams.UsdAddress;
 
@@ -203,20 +205,26 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     {}
   );
   const mockAggregators = await deployAllChainlinkMockAggregators(allTokenDecimals, ALL_ASSETS_INITIAL_PRICES);
+  const usdMockAggregator = await deployChainlinkMockAggregator("USD", "8", MOCK_USD_PRICE);
   const allTokenAddresses = Object.entries(mockTokens).reduce(
     (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, tokenContract]) => ({
       ...accum,
       [tokenSymbol]: tokenContract.address,
     }),
-    {}
+    {
+      USD: USD_ADDRESS,
+    }
   );
   const allAggregatorsAddresses = Object.entries(mockAggregators).reduce(
     (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, aggregator]) => ({
       ...accum,
       [tokenSymbol]: aggregator.address,
     }),
-    {}
+    {
+      USD: usdMockAggregator.address,
+    }
   );
+  await deployMockChainlinkOracle("18", false); // Dummy aggregator for test
 
   console.log("-> Prepare reserve oracle...");
   const reserveOracleImpl = await deployReserveOracle([
