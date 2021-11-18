@@ -12,6 +12,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     _;
   }
 
+  event AssetAdded(address indexed asset);
+  event AssetRemoved(address indexed asset);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
 
   struct NFTPriceData {
@@ -54,6 +56,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     requireKeyExisted(_nftContract, false);
     nftPriceFeedMap[_nftContract].registered = true;
     nftPriceFeedKeys.push(_nftContract);
+    emit AssetAdded(_nftContract);
   }
 
   function removeAsset(address _nftContract) external onlyOwner {
@@ -68,6 +71,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
         break;
       }
     }
+    emit AssetRemoved(_nftContract);
   }
 
   function setAssetData(
