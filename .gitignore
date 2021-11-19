@@ -10,6 +10,9 @@ build/
 /types
 
 deployed-contracts.json
+/deployments/*
+!/deployments/deployed-contracts-main.json
+!/deployments/deployed-contracts-rinkeby.json
 
 coverage
 .coverage_artifacts

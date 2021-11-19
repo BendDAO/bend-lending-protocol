@@ -106,7 +106,7 @@ export const getLoanData = async (
 };
 
 export const getReserveAddressFromSymbol = async (symbol: string) => {
-  const token = await getMintableERC20((await getDb().get(`${symbol}.${DRE.network.name}`).value()).address);
+  const token = await getMintableERC20((await getDb(DRE.network.name).get(`${symbol}`).value()).address);
 
   if (!token) {
     throw `Could not find instance for contract ${symbol}`;
@@ -115,7 +115,7 @@ export const getReserveAddressFromSymbol = async (symbol: string) => {
 };
 
 export const getNftAddressFromSymbol = async (symbol: string) => {
-  const token = await getMintableERC721((await getDb().get(`${symbol}.${DRE.network.name}`).value()).address);
+  const token = await getMintableERC721((await getDb(DRE.network.name).get(`${symbol}`).value()).address);
 
   if (!token) {
     throw `Could not find instance for contract ${symbol}`;
