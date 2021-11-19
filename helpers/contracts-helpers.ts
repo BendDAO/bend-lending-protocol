@@ -42,8 +42,8 @@ export const registerContractInJsonDb = async (contractId: string, contractInsta
     console.log();
   }
 
-  await getDb()
-    .set(`${contractId}.${currentNetwork}`, {
+  await getDb(currentNetwork)
+    .set(`${contractId}`, {
       address: contractInstance.address,
       deployer: contractInstance.deployTransaction.from,
     })
@@ -62,8 +62,8 @@ export const registerContractInJsonDb = async (contractId: string, contractInsta
 
 export const insertContractAddressInDb = async (id: eContractid, address: tEthereumAddress) => {
   console.log("contracts-helpers:insertContractAddressInDb,", "id:", id, "address", address);
-  await getDb()
-    .set(`${id}.${DRE.network.name}`, {
+  await getDb(DRE.network.name)
+    .set(`${id}`, {
       address,
     })
     .write();
@@ -71,15 +71,15 @@ export const insertContractAddressInDb = async (id: eContractid, address: tEther
 
 export const rawInsertContractAddressInDb = async (id: string, address: tEthereumAddress) => {
   console.log("contracts-helpers:rawInsertContractAddressInDb,", "id:", id, "address", address);
-  await getDb()
-    .set(`${id}.${DRE.network.name}`, {
+  await getDb(DRE.network.name)
+    .set(`${id}`, {
       address,
     })
     .write();
 };
 
 export const getContractAddressInDb = async (id: string): Promise<tEthereumAddress> => {
-  const contractAtDb = await getDb().get(`${id}.${DRE.network.name}`).value();
+  const contractAtDb = await getDb(DRE.network.name).get(`${id}`).value();
   if (contractAtDb?.address) {
     return contractAtDb.address as tEthereumAddress;
   }
@@ -289,14 +289,14 @@ export const verifyContract = async (id: string, instance: Contract, args: (stri
 export const getContractAddressWithJsonFallback = async (id: string, pool: ConfigNames): Promise<tEthereumAddress> => {
   const poolConfig = loadPoolConfig(pool);
   const network = <eNetwork>DRE.network.name;
-  const db = getDb();
+  const db = getDb(network);
 
   const contractAtMarketConfig = getOptionalParamAddressPerNetwork(poolConfig[id], network);
   if (notFalsyOrZeroAddress(contractAtMarketConfig)) {
     return contractAtMarketConfig;
   }
 
-  const contractAtDb = await getDb().get(`${id}.${DRE.network.name}`).value();
+  const contractAtDb = await getDb(DRE.network.name).get(`${id}`).value();
   if (contractAtDb?.address) {
     return contractAtDb.address as tEthereumAddress;
   }

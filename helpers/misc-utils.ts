@@ -14,7 +14,7 @@ export const toWad = (value: string | number) => new BigNumber(value).times(WAD)
 export const bnToBigNumber = (amount: BN): BigNumber => new BigNumber(<any>amount);
 export const stringToBigNumber = (amount: string): BigNumber => new BigNumber(amount);
 
-export const getDb = () => low(new FileSync("./deployed-contracts.json"));
+export const getDb = (network: string) => low(new FileSync(`./deployments/deployed-contracts-${network}.json`));
 
 export let DRE: HardhatRuntimeEnvironment;
 
@@ -102,7 +102,7 @@ interface DbEntry {
 
 export const printContracts = () => {
   const network = DRE.network.name;
-  const db = getDb();
+  const db = getDb(network);
   console.log("Contracts deployed at", network);
   console.log("---------------------------------");
 
