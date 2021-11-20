@@ -105,6 +105,12 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "borrowIndex",
+        "type": "uint256"
       }
     ],
     "name": "LoanLiquidated",
@@ -148,6 +154,12 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "borrowIndex",
+        "type": "uint256"
       }
     ],
     "name": "LoanRepaid",
@@ -166,6 +178,18 @@
         "indexed": true,
         "internalType": "uint256",
         "name": "loanId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "nftTokenId",
         "type": "uint256"
       },
       {
@@ -524,6 +548,11 @@
         "internalType": "address",
         "name": "bNftAddress",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "borrowIndex",
+        "type": "uint256"
       }
     ],
     "name": "liquidateLoan",
@@ -581,6 +610,11 @@
         "internalType": "address",
         "name": "bNftAddress",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "borrowIndex",
+        "type": "uint256"
       }
     ],
     "name": "repayLoan",
