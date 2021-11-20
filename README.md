@@ -17,13 +17,13 @@ This repository contains the smart contracts source code and markets configurati
 
 ## What is Bend?
 
-Bend is a decentralized non-custodial NFT lending protocol where users can participate as depositors or borrowers. Depositors provide liquidity to the market to earn a passive income, while borrowers are able to borrow in an overcollateralized fashion.
+Bend is a decentralized non-custodial NFT lending protocol where users can participate as depositors or borrowers. Depositors provide liquidity to the market to earn a passive income, while borrowers are able to borrow in an overcollateralized fashion, using NFTs as collaterl.
 
 ## Documentation
 
-The documentation of Bend Protocol is in the following [Bend V1 documentation](https://docs.bend.finance/developers/v/1.0/) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
+The documentation of Bend Protocol is in the following [Bend V1 documentation](https://docs.bend.fi/developers/v/1.0/) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
 
-For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.finance/developers/v/1.0/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
+For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.fi/developers/v/1.0/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
 
 A more detailed and technical description of the protocol can be found in this repository, [here](./bend-v1-whitepaper.pdf)
 
@@ -32,7 +32,7 @@ TODO
 
 ## Connect with the community
 
-You can join at the [Discord](http://bend.finance/discord) channel or at the [Governance Forum](https://governance.bend.finance/) for asking questions about the protocol or talk about Bend with other peers.
+You can join at the [Discord](http://bend.fi/discord) channel or at the [Governance Forum](https://governance.bend.fi/) for asking questions about the protocol or talk about Bend with other peers.
 
 ## Getting Started
 
@@ -141,7 +141,7 @@ npm run bend:rinkeby:full:migration
 
 ## Interact with Bend in Mainnet via console
 
-You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at https://docs.bend.finance/developers/deployed-contracts.
+You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at https://docs.bend.fi/developers/deployed-contracts.
 
 Run the Hardhat console pointing to the Mainnet network:
 

@@ -30,6 +30,8 @@ interface ILendPoolLoan {
   event LoanUpdated(
     address indexed user,
     uint256 indexed loanId,
+    address nftAsset,
+    uint256 nftTokenId,
     address reserveAsset,
     uint256 amountAdded,
     uint256 amountTaken,
@@ -45,7 +47,8 @@ interface ILendPoolLoan {
     address nftAsset,
     uint256 nftTokenId,
     address reserveAsset,
-    uint256 amount
+    uint256 amount,
+    uint256 borrowIndex
   );
 
   /**
@@ -57,7 +60,8 @@ interface ILendPoolLoan {
     address nftAsset,
     uint256 nftTokenId,
     address reserveAsset,
-    uint256 amount
+    uint256 amount,
+    uint256 borrowIndex
   );
 
   function initNft(address nftAsset, address bNftAddress) external;
@@ -111,7 +115,8 @@ interface ILendPoolLoan {
   function repayLoan(
     address user,
     uint256 loanId,
-    address bNftAddress
+    address bNftAddress,
+    uint256 borrowIndex
   ) external;
 
   /**
@@ -128,7 +133,8 @@ interface ILendPoolLoan {
   function liquidateLoan(
     address user,
     uint256 loanId,
-    address bNftAddress
+    address bNftAddress,
+    uint256 borrowIndex
   ) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);

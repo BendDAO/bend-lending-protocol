@@ -286,7 +286,12 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
         reserve.variableBorrowIndex
       );
     } else {
-      ILendPoolLoan(loanAddress).repayLoan(vars.borrower, vars.loanId, nftData.bNftAddress);
+      ILendPoolLoan(loanAddress).repayLoan(
+        vars.borrower,
+        vars.loanId,
+        nftData.bNftAddress,
+        reserve.variableBorrowIndex
+      );
     }
 
     IDebtToken(reserve.debtTokenAddress).burn(vars.borrower, vars.paybackAmount, reserve.variableBorrowIndex);
@@ -398,7 +403,12 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.remainAmount = vars.liquidatePrice - vars.paybackAmount;
     }
 
-    ILendPoolLoan(loanAddress).liquidateLoan(vars.onBehalfOf, vars.loanId, nftData.bNftAddress);
+    ILendPoolLoan(loanAddress).liquidateLoan(
+      vars.onBehalfOf,
+      vars.loanId,
+      nftData.bNftAddress,
+      reserve.variableBorrowIndex
+    );
 
     IDebtToken(reserve.debtTokenAddress).burn(vars.borrower, vars.paybackAmount, reserve.variableBorrowIndex);
 
