@@ -42,8 +42,6 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       DebtTokenSymbolPrefix,
       BNftNamePrefix,
       BNftSymbolPrefix,
-      WethGateway,
-      PunkGateway,
       ReservesConfig,
       NftsConfig,
     } = poolConfig;
@@ -110,20 +108,12 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     const lendPoolAddress = await addressesProvider.getLendPool();
 
     ////////////////////////////////////////////////////////////////////////////
-    let wethGatewayAddress = getParamPerNetwork(WethGateway, network);
-    if (!notFalsyOrZeroAddress(wethGatewayAddress)) {
-      wethGatewayAddress = (await getWETHGateway()).address;
-    }
     const wethGateway = await getWETHGateway();
     for (const [assetSymbol, assetAddress] of Object.entries(allNftAddresses) as [string, string][]) {
       await waitForTx(await wethGateway.authorizeLendPoolNFT(assetAddress));
     }
 
     ////////////////////////////////////////////////////////////////////////////
-    let punkGatewayAddress = getParamPerNetwork(PunkGateway, network);
-    if (!notFalsyOrZeroAddress(punkGatewayAddress)) {
-      punkGatewayAddress = (await getPunkGateway()).address;
-    }
     const punkGateway = await getPunkGateway();
     for (const [assetSymbol, assetAddress] of Object.entries(allTokenAddresses) as [string, string][]) {
       await waitForTx(await punkGateway.authorizeLendPoolERC20(assetAddress));
