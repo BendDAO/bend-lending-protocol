@@ -27,7 +27,7 @@ export const CommonsConfig: ICommonConfiguration = {
   OracleQuoteUnit: oneEther.toString(),
   ProtocolGlobalParams: {
     MockUsdPrice: '425107839690',
-    UsdAddress: '0x9ceB4d4C184d1786614a593a03621b7F37F8685F', //index 19
+    UsdAddress: '0x9ceb4d4c184d1786614a593a03621b7f37f8685f', //index 19, lowercase
     NilAddress: '0x0000000000000000000000000000000000000000',
     OneAddress: '0x0000000000000000000000000000000000000001',
     BendReferral: '0',
