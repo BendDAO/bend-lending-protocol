@@ -94,7 +94,7 @@ export const chunk = <T>(arr: Array<T>, chunkSize: number): Array<Array<T>> => {
 };
 
 interface DbEntry {
-  [network: string]: {
+  [contract: string]: {
     deployer: string;
     address: string;
   };
@@ -106,9 +106,9 @@ export const printContracts = () => {
   console.log("Contracts deployed at", network);
   console.log("---------------------------------");
 
-  const entries = Object.entries<DbEntry>(db.getState()).filter(([_k, value]) => !!value[network]);
+  const entries = Object.entries<DbEntry>(db.getState()).filter(([_k, value]) => !!value);
 
-  const contractsPrint = entries.map(([key, value]: [string, DbEntry]) => `${key}: ${value[network].address}`);
+  const contractsPrint = entries.map(([key, value]: [string, DbEntry]) => `${key}: ${value.address}`);
 
   console.log("N# Contracts:", entries.length);
   console.log(contractsPrint.join("\n"), "\n");

@@ -25,7 +25,7 @@ export const EXCESS_UTILIZATION_RATE = new BigNumber(0.2).times(RAY);
 export const APPROVAL_AMOUNT_LENDING_POOL = "1000000000000000000000000000";
 export const TOKEN_DISTRIBUTOR_PERCENTAGE_BASE = "10000";
 export const MOCK_USD_PRICE = "425107839690";
-export const USD_ADDRESS = "0x9ceB4d4C184d1786614a593a03621b7F37F8685F"; //index 19
+export const USD_ADDRESS = "0x9ceb4d4c184d1786614a593a03621b7f37f8685f"; //index 19, lowercase
 export const BEND_REFERRAL = "0";
 
 //Price source: https://data.chain.link/ethereum/mainnet/stablecoins

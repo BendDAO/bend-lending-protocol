@@ -34,7 +34,9 @@ task("dev:deploy-oracle-reserve", "Deploy reserve oracle for dev environment")
         ...accum,
         [tokenSymbol]: tokenContract.address,
       }),
-      {}
+      {
+        USD: USD_ADDRESS,
+      }
     );
 
     const mockAggregators = await deployAllChainlinkMockAggregators(
@@ -50,7 +52,7 @@ task("dev:deploy-oracle-reserve", "Deploy reserve oracle for dev environment")
         [tokenSymbol]: aggregator.address,
       }),
       {
-        USD: USD_ADDRESS,
+        USD: usdMockAggregator.address,
       }
     );
 
