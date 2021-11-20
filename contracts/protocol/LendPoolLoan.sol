@@ -147,7 +147,16 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       loan.scaledAmount -= amountScaled;
     }
 
-    emit LoanUpdated(user, loanId, loan.reserveAsset, amountAdded, amountTaken, borrowIndex);
+    emit LoanUpdated(
+      user,
+      loanId,
+      loan.nftAsset,
+      loan.nftTokenId,
+      loan.reserveAsset,
+      amountAdded,
+      amountTaken,
+      borrowIndex
+    );
   }
 
   /**
@@ -156,9 +165,10 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   function repayLoan(
     address user,
     uint256 loanId,
-    address bNftAddress
+    address bNftAddress,
+    uint256 borrowIndex
   ) external override onlyLendPool {
-    _terminateLoan(user, loanId, bNftAddress, true);
+    _terminateLoan(user, loanId, bNftAddress, borrowIndex, true);
   }
 
   /**
@@ -167,9 +177,10 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   function liquidateLoan(
     address user,
     uint256 loanId,
-    address bNftAddress
+    address bNftAddress,
+    uint256 borrowIndex
   ) external override onlyLendPool {
-    _terminateLoan(user, loanId, bNftAddress, false);
+    _terminateLoan(user, loanId, bNftAddress, borrowIndex, false);
   }
 
   function onERC721Received(
@@ -245,6 +256,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     address user,
     uint256 loanId,
     address bNftAddress,
+    uint256 borrowIndex,
     bool isRepay
   ) internal {
     // Must use storage to change state
@@ -274,9 +286,17 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), user, loan.nftTokenId);
 
     if (isRepay) {
-      emit LoanRepaid(user, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, loan.scaledAmount);
+      emit LoanRepaid(user, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, loan.scaledAmount, borrowIndex);
     } else {
-      emit LoanLiquidated(user, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, loan.scaledAmount);
+      emit LoanLiquidated(
+        user,
+        loanId,
+        loan.nftAsset,
+        loan.nftTokenId,
+        loan.reserveAsset,
+        loan.scaledAmount,
+        borrowIndex
+      );
     }
   }
 }

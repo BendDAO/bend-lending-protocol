@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/configuration";
-import { MOCK_NFT_AGGREGATORS_PRICES } from "../../helpers/constants";
+import { MOCK_NFT_AGGREGATORS_PRICES, USD_ADDRESS } from "../../helpers/constants";
 import { deployBNFTRegistry, deployGenericBNFTImpl, deployLendPool } from "../../helpers/contracts-deployments";
 import {
   getBendProtocolDataProvider,
@@ -13,6 +13,7 @@ import {
   getLendPoolConfiguratorProxy,
   getMintableERC721,
   getNFTOracle,
+  getReserveOracle,
   getUIPoolDataProvider,
   getWalletProvider,
   getWETHGateway,
@@ -31,9 +32,9 @@ task("dev:custom-task", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    //borrowETHUsingBAYC(addressesProvider);
+    //await borrowETHUsingBAYC(addressesProvider);
     //await printUISimpleData(addressesProvider);
-    await printWalletBatchToken();
+    //await printWalletBatchToken();
   });
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
@@ -277,4 +278,22 @@ const upgradeBNFT1115 = async (
     const { bNftProxy, bNftImpl } = await bnftRegistry.getBNFTAddresses(assetAddress);
     console.log("BNFT:", assetSymbol, "proxy.address", bNftProxy, "implementation.address", bNftImpl);
   }
+};
+
+const addETHUSDAsset = async (
+  DRE: HardhatRuntimeEnvironment,
+  network: eNetwork,
+  poolConfig: PoolConfiguration,
+  addressesProvider: LendPoolAddressesProvider
+) => {
+  const oracle = await getReserveOracle(await addressesProvider.getReserveOracle());
+  const owwnerAddress = await oracle.owner();
+  const ownerSigner = DRE.ethers.provider.getSigner(owwnerAddress);
+
+  const aggregators = getParamPerNetwork(poolConfig.ReserveAggregators, network);
+
+  //await waitForTx(await oracle.connect(ownerSigner).addAggregator(USD_ADDRESS, aggregators["USD"]));
+
+  const price = await oracle.getAssetPrice(USD_ADDRESS);
+  console.log("ETH-USD price:", price.toString());
 };
