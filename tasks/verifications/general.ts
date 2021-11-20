@@ -23,8 +23,7 @@ task("verify:general", "Verify general contracts at Etherscan")
     await localDRE.run("set-DRE");
     const network = localDRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
-    const { MarketId, WethGateway, CryptoPunksMarket, WrappedPunkToken, PunkGateway } =
-      poolConfig as ICommonConfiguration;
+    const { MarketId, CryptoPunksMarket, WrappedPunkToken } = poolConfig as ICommonConfiguration;
 
     const addressesProvider = await getLendPoolAddressesProvider();
 
@@ -48,15 +47,8 @@ task("verify:general", "Verify general contracts at Etherscan")
       const walletProvider = await getWalletProvider();
       const uiProvider = await getUIPoolDataProvider();
 
-      const wethGatewayAddress = getParamPerNetwork(WethGateway, network);
-      const wethGateway = notFalsyOrZeroAddress(wethGatewayAddress)
-        ? await getWETHGateway(wethGatewayAddress)
-        : await getWETHGateway();
-
-      const punkGatewayAddress = getParamPerNetwork(PunkGateway, network);
-      const punkGateway = notFalsyOrZeroAddress(punkGatewayAddress)
-        ? await getPunkGateway(punkGatewayAddress)
-        : await getPunkGateway();
+      const wethGateway = await getWETHGateway();
+      const punkGateway = await getPunkGateway();
 
       // Address Provider
       console.log("\n- Verifying address provider...\n");

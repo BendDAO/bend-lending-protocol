@@ -318,6 +318,7 @@ export interface ICommonConfiguration {
   BNFTRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
+
   ReserveOracle: iParamsPerNetwork<tEthereumAddress | undefined>;
   NFTOracle: iParamsPerNetwork<tEthereumAddress | undefined>;
 
@@ -333,11 +334,9 @@ export interface ICommonConfiguration {
   NftsConfig: iMultiPoolsNfts<INftParams>;
 
   WrappedNativeToken: iParamsPerNetwork<tEthereumAddress>;
-  WethGateway: iParamsPerNetwork<tEthereumAddress>;
 
   CryptoPunksMarket: iParamsPerNetwork<tEthereumAddress>;
   WrappedPunkToken: iParamsPerNetwork<tEthereumAddress>;
-  PunkGateway: iParamsPerNetwork<tEthereumAddress>;
 
   ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;

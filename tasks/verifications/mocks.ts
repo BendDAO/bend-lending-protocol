@@ -4,8 +4,6 @@ import {
   getCryptoPunksMarket,
   getWrappedPunk,
   getWETHMocked,
-  getAllMockedNfts,
-  getAllMockedTokens,
   getMintableERC721,
   getMintableERC20,
 } from "../../helpers/contracts-getters";
@@ -28,9 +26,17 @@ task("verify:mocks", "Verify mock contracts at Etherscan")
     const wpunkAddress = getParamPerNetwork(WrappedPunkToken, network);
     const wethAddress = getParamPerNetwork(WrappedNativeToken, network);
 
-    const punkImpl = await getCryptoPunksMarket(punkAddress);
-    const wpunkImpl = await getWrappedPunk(wpunkAddress);
-    const wethImpl = await getWETHMocked(wethAddress);
+    {
+      console.log("\n- Verifying Mocked CryptoPunksMarket...\n");
+      const punkImpl = await getCryptoPunksMarket(punkAddress);
+      await verifyContract(eContractid.CryptoPunksMarket, punkImpl, []);
+    }
+
+    {
+      console.log("\n- Verifying Mocked WPUNKS...\n");
+      const wpunkImpl = await getWrappedPunk(wpunkAddress);
+      await verifyContract(eContractid.WrappedPunk, wpunkImpl, [punkAddress]);
+    }
 
     const mockNfts = getParamPerNetwork(poolConfig.NftsAssets, network);
     const mockTokens = getParamPerNetwork(poolConfig.ReserveAssets, network);
@@ -42,6 +48,12 @@ task("verify:mocks", "Verify mock contracts at Etherscan")
         await mockedBAYC.name(),
         await mockedBAYC.symbol(),
       ]);
+    }
+
+    {
+      console.log("\n- Verifying Mocked WETH...\n");
+      const wethImpl = await getWETHMocked(wethAddress);
+      await verifyContract(eContractid.WETHMocked, wethImpl, []);
     }
 
     {

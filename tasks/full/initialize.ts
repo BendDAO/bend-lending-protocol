@@ -94,18 +94,9 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       console.log("Init & Config Gateways");
       const lendPoolAddress = await addressesProvider.getLendPool();
 
-      let wethGatewayAddress = getParamPerNetwork(poolConfig.WethGateway, network);
-      if (!notFalsyOrZeroAddress(wethGatewayAddress)) {
-        wethGatewayAddress = (await getWETHGateway()).address;
-      }
       const wethGateway = await getWETHGateway();
       for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
         await waitForTx(await wethGateway.authorizeLendPoolNFT(assetAddress));
-      }
-
-      let punkGatewayAddress = getParamPerNetwork(poolConfig.PunkGateway, network);
-      if (!notFalsyOrZeroAddress(punkGatewayAddress)) {
-        punkGatewayAddress = (await getPunkGateway()).address;
       }
 
       const punkGateway = await getPunkGateway();

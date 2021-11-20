@@ -84,23 +84,24 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.main]: undefined,
   },
   EmergencyAdminIndex: 1,
+
   BNFTRegistry: {
-    [eEthereumNetwork.rinkeby]: '0xD6ED460Dea089C07DA8ca7d292BfF830C6A294A9',
-    [eEthereumNetwork.main]: '',
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.rinkeby]: '0x683f73Ddb5272049e392603d55593511Fd503D61',
+    [eEthereumNetwork.main]: '',
   },
   BNFTRegistryOwner: {
+    [eEthereumNetwork.coverage]: '',
+    [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.rinkeby]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.main]: '',
-    [eEthereumNetwork.coverage]: '',
-    [eEthereumNetwork.hardhat]: '',
   },
   ProviderRegistry: {
-    [eEthereumNetwork.rinkeby]: '0x7f803E6ae59094d5cFaD288C664b4401Dca8a068',
-    [eEthereumNetwork.main]: '',
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.rinkeby]: '0x800Ad9f20c396592FccC8C0f7cc418F7fDcF70f2',
+    [eEthereumNetwork.main]: '',
   },
   ProviderRegistryOwner: {
     [eEthereumNetwork.rinkeby]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
@@ -108,17 +109,18 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
   },
+
   ReserveOracle: {
-    [eEthereumNetwork.rinkeby]: '0xe7111e8F13307d87D45f6972fc05d78BeC8613AF',
-    [eEthereumNetwork.main]: '',
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.rinkeby]: '0xF8cbFf1Ef3e84a50E3F5e0b8617aa85162FDF5D3',
+    [eEthereumNetwork.main]: '',
   },
   NFTOracle: {
-    [eEthereumNetwork.rinkeby]: '0x2bA50305574EFBbb207f55e5da2c61835ad9e4F9',
-    [eEthereumNetwork.main]: '',
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
+    [eEthereumNetwork.rinkeby]: '0xb55ea3D072Fd8943fa7DEf37b8da4a20A9d9ebF9',
+    [eEthereumNetwork.main]: '',
   },
 
   ReserveAggregators: {
@@ -155,34 +157,21 @@ export const CommonsConfig: ICommonConfiguration = {
   WrappedNativeToken: { //WETH
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.rinkeby]: '0xbe4d36E2C69Aa9658e937f6cC584E60167484381',
+    [eEthereumNetwork.rinkeby]: '0x585d17A346cb99849a539F553f4d542D7e5B5B28',
     [eEthereumNetwork.main]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-  },
-  WethGateway: {
-    [eEthereumNetwork.coverage]: '',
-    [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.rinkeby]: '',
-    [eEthereumNetwork.main]: '',
   },
 
   CryptoPunksMarket: {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.rinkeby]: '0x6AB60B1E965d9Aa445d637Ac5034Eba605FF0b82',
+    [eEthereumNetwork.rinkeby]: '0xF85EeD76C0D2b3f0C50140BEdB2aF489E5eaaeB8',
     [eEthereumNetwork.main]: '0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb',
   },
   WrappedPunkToken: {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.rinkeby]: '0xBe410D495B843e4874a029580B7eAA6F3611107B',
+    [eEthereumNetwork.rinkeby]: '0x5b4FaC380a2A79EE0ddA713a31cbA7A74Cba7Cd0',
     [eEthereumNetwork.main]: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
-  },
-
-  PunkGateway: {
-    [eEthereumNetwork.coverage]: '',
-    [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.rinkeby]: '',
-    [eEthereumNetwork.main]: '',
   },
 
   ReserveFactorTreasuryAddress: {
