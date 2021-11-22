@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/configuration";
-import { MOCK_NFT_AGGREGATORS_PRICES, USD_ADDRESS } from "../../helpers/constants";
+import { MOCK_NFT_AGGREGATORS_PRICES, USD_ADDRESS, MAX_UINT_AMOUNT } from "../../helpers/constants";
 import { deployBNFTRegistry, deployGenericBNFTImpl, deployLendPool } from "../../helpers/contracts-deployments";
 import {
   getBendProtocolDataProvider,
@@ -11,14 +11,21 @@ import {
   getLendPool,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
+  getMintableERC20,
   getMintableERC721,
   getNFTOracle,
   getReserveOracle,
+  getThirdSigner,
   getUIPoolDataProvider,
   getWalletProvider,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
-import { getEthersSigners, getParamPerNetwork, verifyContract } from "../../helpers/contracts-helpers";
+import {
+  getContractAddressInDb,
+  getEthersSigners,
+  getParamPerNetwork,
+  verifyContract,
+} from "../../helpers/contracts-helpers";
 import { getNowTimeInSeconds, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork, PoolConfiguration } from "../../helpers/types";
 import { LendPoolAddressesProvider, MintableERC721Factory } from "../../types";
@@ -31,6 +38,11 @@ task("dev:custom-task", "Doing custom task")
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
+
+    //await lendPoolUnpause(DRE, network, poolConfig, addressesProvider);
+    //await feedNftOraclePrice(network, poolConfig, addressesProvider);
+    //await changeNFTOracleFeedAdmin(addressesProvider);
+    //await generateEventsForSubgraph(addressesProvider);
 
     //await borrowETHUsingBAYC(addressesProvider);
     //await printUISimpleData(addressesProvider);
@@ -65,21 +77,12 @@ const feedNftOraclePrice = async (
   const nftOracleProxy = await getNFTOracle(await addressesProvider.getNFTOracle());
   const latestTime = await getNowTimeInSeconds();
   const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
-  /*
-  const mockedCoolAddress = "0xEF307D349b242b6967a75A4f19Cdb692170F1106";
-  await waitForTx(await nftOracleProxy.addAsset(mockedCoolAddress));
-  await waitForTx(
-    await nftOracleProxy.setAssetData(mockedCoolAddress, MOCK_NFT_AGGREGATORS_PRICES["COOL"], latestTime, 1)
-  );
-  */
+
   await waitForTx(
     await nftOracleProxy.setAssetData(nftsAssets["WPUNKS"], MOCK_NFT_AGGREGATORS_PRICES["WPUNKS"], latestTime, 1)
   );
   await waitForTx(
     await nftOracleProxy.setAssetData(nftsAssets["BAYC"], MOCK_NFT_AGGREGATORS_PRICES["BAYC"], latestTime, 1)
-  );
-  await waitForTx(
-    await nftOracleProxy.setAssetData(nftsAssets["COOL"], MOCK_NFT_AGGREGATORS_PRICES["COOL"], latestTime, 1)
   );
 };
 
@@ -110,11 +113,8 @@ const printUISimpleData = async (addressesProvider: LendPoolAddressesProvider) =
   console.log(userReserveData);
 
   console.log("--------------------------------------------------------------------------------");
-  const simpleLoansData = await uiProvider.getSimpleLoansData(
-    addressesProvider.address,
-    ["0x6f9a28ACE211122CfD6f115084507b44FDBc12C7"],
-    ["5001"]
-  );
+  const baycAddress = await getContractAddressInDb("BAYC");
+  const simpleLoansData = await uiProvider.getSimpleLoansData(addressesProvider.address, [baycAddress], ["5001"]);
   console.log(simpleLoansData);
 };
 
@@ -296,4 +296,51 @@ const addETHUSDAsset = async (
 
   const price = await oracle.getAssetPrice(USD_ADDRESS);
   console.log("ETH-USD price:", price.toString());
+};
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const generateEventsForSubgraph = async (addressesProvider: LendPoolAddressesProvider) => {
+  const allSigners = await getEthersSigners();
+  const depositer = allSigners[5];
+  const depositerAddress = await depositer.getAddress();
+  const borrower = allSigners[6];
+  const borrowerAddress = await borrower.getAddress();
+
+  const pool = await getLendPool(await addressesProvider.getLendPool());
+  const depositerPool = pool.connect(depositer);
+  const borrowerPool = pool.connect(borrower);
+
+  // deposit
+  console.log("deposit");
+  const dai = await getMintableERC20(await getContractAddressInDb("DAI"));
+  const depositerDai = dai.connect(depositer);
+  const borrowerDai = dai.connect(borrower);
+  await waitForTx(await depositerDai.approve(pool.address, "100000000000000000000000000000"));
+  await waitForTx(await depositerDai.mint("1000000000000000000000")); // 1000 DAI, 18 decimals
+  await waitForTx(await depositerPool.deposit(dai.address, "1000000000000000000000", depositerAddress, "0"));
+
+  // borrow
+  console.log("borrow");
+  const bayc = await getMintableERC721(await getContractAddressInDb("BAYC"));
+  const borrowerBayc = bayc.connect(borrower);
+  await waitForTx(await borrowerBayc.setApprovalForAll(pool.address, true));
+  await waitForTx(await borrowerBayc.mint("5001"));
+  await waitForTx(
+    await borrowerPool.borrow(dai.address, "500000000000000000000", bayc.address, "5001", borrowerAddress, "0")
+  ); // 500 DAI
+
+  // repay partly
+  console.log("Delay 20 seconds, repay partly");
+  //await delay(200000);
+  await waitForTx(await borrowerDai.approve(pool.address, "100000000000000000000000000000"));
+  await waitForTx(await borrowerDai.mint("1000000000000000000000")); // 1000 DAI, 18 decimals
+  await waitForTx(await borrowerPool.repay(bayc.address, "5001", "100000000000000000000")); // 100 DAI
+
+  // withdraw partly
+  console.log("Delay 20 seconds, withdraw partly");
+  //await delay(200000);
+  await waitForTx(await depositerPool.withdraw(dai.address, "100000000000000000000", depositerAddress)); // 100 DAI
 };

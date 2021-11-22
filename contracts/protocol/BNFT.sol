@@ -51,13 +51,13 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
     require(!_exists(tokenId), "BNFT: exist token");
     require(IERC721Upgradeable(_underlyingAsset).ownerOf(tokenId) == _msgSender(), "BNFT: caller is not owner");
 
-    // Receive NFT Tokens
-    IERC721Upgradeable(_underlyingAsset).safeTransferFrom(_msgSender(), address(this), tokenId);
-
     // mint bNFT to user
     _mint(to, tokenId);
 
     _minters[tokenId] = _msgSender();
+
+    // Receive NFT Tokens
+    IERC721Upgradeable(_underlyingAsset).safeTransferFrom(_msgSender(), address(this), tokenId);
 
     emit Mint(_msgSender(), _underlyingAsset, tokenId, to);
   }
@@ -77,11 +77,11 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
 
     address owner = ERC721Upgradeable.ownerOf(tokenId);
 
-    IERC721Upgradeable(_underlyingAsset).safeTransferFrom(address(this), _msgSender(), tokenId);
-
     _burn(tokenId);
 
     delete _minters[tokenId];
+
+    IERC721Upgradeable(_underlyingAsset).safeTransferFrom(address(this), _msgSender(), tokenId);
 
     emit Mint(_msgSender(), _underlyingAsset, tokenId, owner);
   }
