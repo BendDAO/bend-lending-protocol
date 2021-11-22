@@ -14,6 +14,9 @@ deployed-contracts.json
 !/deployments/deployed-contracts-main*.json
 !/deployments/deployed-contracts-rinkeby*.json
 
+/flattened
+bend-flattened.zip
+
 coverage
 .coverage_artifacts
 .coverage_cache
