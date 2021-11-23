@@ -112,4 +112,6 @@ abstract contract IncentivizedERC20 is Initializable, IERC20MetadataUpgradeable,
   function _setDecimals(uint8 newDecimals) internal {
     _customDecimals = newDecimals;
   }
+
+  uint256[45] private __gap;
 }
