@@ -137,7 +137,6 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
 
     IERC20Upgradeable(_underlyingAsset).safeTransfer(receiverOfUnderlying, amount);
 
-    emit Transfer(user, address(0), amount);
     emit Burn(user, receiverOfUnderlying, amount, index);
   }
 
@@ -160,7 +159,6 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);
 
-    emit Transfer(address(0), user, amount);
     emit Mint(user, amount, index);
 
     return previousBalance == 0;

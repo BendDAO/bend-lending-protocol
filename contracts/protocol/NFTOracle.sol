@@ -64,7 +64,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     delete nftPriceFeedMap[_nftContract];
 
     uint256 length = nftPriceFeedKeys.length;
-    for (uint256 i; i < length; i++) {
+    for (uint256 i = 0; i < length; i++) {
       if (nftPriceFeedKeys[i] == _nftContract) {
         nftPriceFeedKeys[i] = nftPriceFeedKeys[length - 1];
         nftPriceFeedKeys.pop();
