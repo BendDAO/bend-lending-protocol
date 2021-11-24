@@ -7,6 +7,7 @@ import {
   getBendProtocolDataProvider,
   getBendProxyAdminByAddress,
   getBNFTRegistryProxy,
+  getCryptoPunksMarket,
   getFirstSigner,
   getLendPool,
   getLendPoolAddressesProvider,
@@ -14,11 +15,13 @@ import {
   getMintableERC20,
   getMintableERC721,
   getNFTOracle,
+  getPunkGateway,
   getReserveOracle,
   getThirdSigner,
   getUIPoolDataProvider,
   getWalletProvider,
   getWETHGateway,
+  getWrappedPunk,
 } from "../../helpers/contracts-getters";
 import {
   getContractAddressInDb,
@@ -39,14 +42,7 @@ task("dev:custom-task", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    //await lendPoolUnpause(DRE, network, poolConfig, addressesProvider);
-    //await feedNftOraclePrice(network, poolConfig, addressesProvider);
-    //await changeNFTOracleFeedAdmin(addressesProvider);
-    //await generateEventsForSubgraph(addressesProvider);
-
-    //await borrowETHUsingBAYC(addressesProvider);
     //await printUISimpleData(addressesProvider);
-    //await printWalletBatchToken();
   });
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
@@ -131,6 +127,14 @@ const verifyMockedCool = async () => {
   await verifyContract(eContractid.MintableERC721, mockedCool, [await mockedCool.name(), await mockedCool.symbol()]);
 };
 
+const depositETH = async (addressesProvider: LendPoolAddressesProvider) => {
+  const signer = await getFirstSigner();
+
+  const wethGateway = await getWETHGateway();
+
+  await waitForTx(await wethGateway.depositETH(await signer.getAddress(), "0", { value: "100000000000000000" })); // 0.1 ETH
+};
+
 const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) => {
   const signer = await getFirstSigner();
 
@@ -151,20 +155,30 @@ const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) 
   );
 };
 
-const borrowETHUsingCOOL = async (addressesProvider: LendPoolAddressesProvider) => {
+const borrowETHUsingPunk = async (addressesProvider: LendPoolAddressesProvider) => {
   const signer = await getFirstSigner();
 
-  const wethGateway = await getWETHGateway("0xda66d66534072356EE7DCBfeB29493A925d55d95");
-  const coolAddress = "0xEF307D349b242b6967a75A4f19Cdb692170F1106";
+  const punk = await getCryptoPunksMarket();
+  const punkGateway = await getPunkGateway();
 
-  await waitForTx(await wethGateway.authorizeLendPoolNFT(coolAddress));
+  await waitForTx(await punk.getPunk("5001"));
+  await waitForTx(await punk.offerPunkForSaleToAddress("5001", "0", punkGateway.address));
+  await waitForTx(await punkGateway.borrowETH("50000000000000000", "5001", await signer.getAddress(), "0")); // 0.05 ETH
+};
 
-  const cool = await getMintableERC721(coolAddress);
-  await waitForTx(await cool.setApprovalForAll(wethGateway.address, true));
-  await waitForTx(await cool.mint(5001));
+const borrowDAIUsingPunk = async (addressesProvider: LendPoolAddressesProvider) => {
+  const signer = await getFirstSigner();
+
+  const daiAddress = await getContractAddressInDb("DAI");
+
+  const punk = await getCryptoPunksMarket();
+  const punkGateway = await getPunkGateway();
+
+  await waitForTx(await punk.getPunk("5002"));
+  await waitForTx(await punk.offerPunkForSaleToAddress("5002", "0", punkGateway.address));
   await waitForTx(
-    await wethGateway.borrowETH("100000000000000000", cool.address, "1001", await signer.getAddress(), "0")
-  );
+    await punkGateway.borrow(daiAddress, "100000000000000000000", "5002", await signer.getAddress(), "0")
+  ); // 100 DAI
 };
 
 const printWalletBatchToken = async () => {

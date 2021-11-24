@@ -129,7 +129,7 @@ interface IBToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgra
   function getIncentivesController() external view returns (IIncentivesController);
 
   /**
-   * @dev Returns the address of the underlying asset of this bToken (E.g. WETH for aWETH)
+   * @dev Returns the address of the underlying asset of this bToken (E.g. WETH for bWETH)
    **/
   function UNDERLYING_ASSET_ADDRESS() external view returns (address);
 }

@@ -9,7 +9,7 @@ import {
 } from "../../helpers/contracts-getters";
 import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork } from "../../helpers/types";
-import { strategyNftParams } from "../../markets/bend/reservesConfigs";
+import { strategyNftParams } from "../../markets/bend/nftsConfigs";
 
 task("init-new-nft", "Init and config new nft asset to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)

@@ -6,11 +6,12 @@ import {
   strategyWETH,
   strategyDAI,
   strategyUSDC,
-
+} from './reservesConfigs';
+import {
   strategyWPUNKS,
   strategyBAYC,
   strategyNftClassC,
-} from './reservesConfigs';
+} from './nftsConfigs';
 
 // ----------------
 // POOL--SPECIFIC PARAMS
