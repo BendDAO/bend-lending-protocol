@@ -73,6 +73,8 @@ library ValidationLogic {
     bool stableRateBorrowingEnabled;
     bool nftIsActive;
     bool nftIsFrozen;
+    address loanReserveAsset;
+    address loanBorrower;
   }
 
   /**
@@ -100,7 +102,10 @@ library ValidationLogic {
     require(amount != 0, Errors.VL_INVALID_AMOUNT);
 
     if (loanId != 0) {
-      require(user == ILendPoolLoan(loanAddress).borrowerOf(loanId), Errors.VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER);
+      vars.loanBorrower = ILendPoolLoan(loanAddress).borrowerOf(loanId);
+      require(user == vars.loanBorrower, Errors.VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER);
+      (, , vars.loanReserveAsset, ) = ILendPoolLoan(loanAddress).getLoanCollateralAndReserve(loanId);
+      require(reserveAsset == vars.loanReserveAsset, Errors.VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER);
     }
 
     (vars.isActive, vars.isFrozen, vars.borrowingEnabled, vars.stableRateBorrowingEnabled) = reserve

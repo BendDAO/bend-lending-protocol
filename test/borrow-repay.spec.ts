@@ -44,15 +44,23 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
     });
   });
 
-  it("User 2 deposits 1 WETH to account for rounding errors", async () => {
+  it("User 2 deposits 1 WETH and 1000 DAI to account for rounding errors", async () => {
     const { users } = testEnv;
     const user2 = users[2];
 
+    // WETH
     await mintERC20(testEnv, user2, "WETH", "1");
 
     await approveERC20(testEnv, user2, "WETH");
 
     await deposit(testEnv, user2, "", "WETH", "1", user2.address, "success", "");
+
+    // DAI
+    await mintERC20(testEnv, user2, "DAI", "1000");
+
+    await approveERC20(testEnv, user2, "DAI");
+
+    await deposit(testEnv, user2, "", "DAI", "1000", user2.address, "success", "");
   });
 
   it("User 0 deposits 100 WETH, user 1 uses NFT as collateral and borrows 1 WETH", async () => {
@@ -87,6 +95,27 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
     expect(checkResult2).to.be.equal(true, "IncentivesController not called");
 
     cachedTokenId = tokenId;
+  });
+
+  it("User 1 uses existed collateral and borrows more 100 DAI (revert expected)", async () => {
+    const { users } = testEnv;
+    const user1 = users[1];
+
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
+    const tokenId = cachedTokenId;
+
+    await borrow(
+      testEnv,
+      user1,
+      "DAI",
+      "200",
+      "BAYC",
+      tokenId,
+      user1.address,
+      "365",
+      "revert",
+      "The reserve must be same"
+    );
   });
 
   it("User 1 uses existed collateral and borrows more 2 WETH", async () => {
