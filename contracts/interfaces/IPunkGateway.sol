@@ -9,7 +9,7 @@ interface IPunkGateway {
    *   and lock collateral asset in contract
    * @param reserveAsset The address of the underlying asset to borrow
    * @param amount The amount to be borrowed
-   * @param punkIndex The index of the CryptoPunk to deposit
+   * @param punkIndex The index of the CryptoPunk used as collteral
    * @param onBehalfOf Address of the user who will receive the loan. Should be the address of the borrower itself
    * calling the function if he wants to borrow against his own collateral, or the address of the credit delegator
    * if he has been given credit delegation allowance
@@ -27,7 +27,7 @@ interface IPunkGateway {
   /**
    * @notice Repays a borrowed `amount` on a specific punk, burning the equivalent loan owned
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
-   * @param punkIndex The index of the CryptoPunk to repay
+   * @param punkIndex The index of the CryptoPunk used as collteral
    * @param amount The amount to repay
    * @return The final amount repaid, loan is burned or not
    **/
@@ -36,7 +36,7 @@ interface IPunkGateway {
   /**
    * @notice liquidate a unhealth punk loan with ERC20 reserve
    * - E.g. User pays 100 USDC, burning loan and receives collateral asset
-   * @param punkIndex The index of the CryptoPunk to repay
+   * @param punkIndex The index of the CryptoPunk used as collteral
    * @return The final amount liquidated, payback amount
    **/
   function liquidate(uint256 punkIndex) external returns (uint256, uint256);

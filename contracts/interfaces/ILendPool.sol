@@ -126,7 +126,7 @@ interface ILendPool {
 
   /**
    * @dev Deposits an `amount` of underlying asset into the reserve, receiving in return overlying bTokens.
-   * - E.g. User deposits 100 USDC and gets in return 100 aUSDC
+   * - E.g. User deposits 100 USDC and gets in return 100 bUSDC
    * @param reserve The address of the underlying asset to deposit
    * @param amount The amount to be deposited
    * @param onBehalfOf The address that will receive the bTokens, same as msg.sender if the user
@@ -144,7 +144,7 @@ interface ILendPool {
 
   /**
    * @dev Withdraws an `amount` of underlying asset from the reserve, burning the equivalent bTokens owned
-   * E.g. User has 100 aUSDC, calls withdraw() and receives 100 USDC, burning the 100 aUSDC
+   * E.g. User has 100 bUSDC, calls withdraw() and receives 100 USDC, burning the 100 bUSDC
    * @param reserve The address of the underlying asset to withdraw
    * @param amount The underlying amount to be withdrawn
    *   - Send the value type(uint256).max in order to withdraw the whole bToken balance

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 interface IWETHGateway {
   /**
-   * @dev deposits WETH into the reserve, using native ETH. A corresponding amount of the overlying asset (aTokens)
+   * @dev deposits WETH into the reserve, using native ETH. A corresponding amount of the overlying asset (bTokens)
    * is minted.
    * @param onBehalfOf address of the user who will receive the bTokens representing the deposit
    * @param referralCode integrators are assigned a referral code and can potentially receive rewards.
@@ -12,7 +12,7 @@ interface IWETHGateway {
 
   /**
    * @dev withdraws the WETH _reserves of msg.sender.
-   * @param amount amount of aWETH to withdraw and receive native ETH
+   * @param amount amount of bWETH to withdraw and receive native ETH
    * @param to address of the user who will receive native ETH
    */
   function withdrawETH(uint256 amount, address to) external;
