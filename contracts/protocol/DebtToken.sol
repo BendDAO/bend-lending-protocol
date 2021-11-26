@@ -209,7 +209,7 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   }
 
   /**
-   * @dev Returns the address of the underlying asset of this bToken (E.g. WETH for bWETH)
+   * @dev Returns the address of the underlying asset of this bToken
    **/
   function UNDERLYING_ASSET_ADDRESS() public view returns (address) {
     return _underlyingAsset;
