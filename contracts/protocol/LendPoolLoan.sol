@@ -83,6 +83,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     uint256 amount,
     uint256 borrowIndex
   ) external override onlyLendPool returns (uint256) {
+    // index is expressed in Ray, so:
+    // amount.wadToRay().rayDiv(index).rayToWad() => amount.rayDiv(index)
     uint256 amountScaled = amount.rayDiv(borrowIndex);
 
     uint256 loanId = _loanIdTracker.current();

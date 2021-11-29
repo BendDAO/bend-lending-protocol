@@ -28,14 +28,13 @@ library GenericLogic {
 
   struct CalculateLoanDataVars {
     uint256 reserveUnitPrice;
-    uint256 tokenUnit;
-    uint256 compoundedBorrowBalance;
-    uint256 decimals;
-    uint256 ltv;
-    uint256 liquidationThreshold;
+    uint256 reserveUnit;
+    uint256 reserveDecimals;
     uint256 healthFactor;
     uint256 totalCollateralInETH;
+    uint256 totalCollateralInReserve;
     uint256 totalDebtInETH;
+    uint256 totalDebtInReserve;
     uint256 nftLtv;
     uint256 nftLiquidationThreshold;
     address nftAsset;
@@ -112,15 +111,14 @@ library GenericLogic {
   ) internal view returns (uint256) {
     CalculateLoanDataVars memory vars;
 
-    (vars.ltv, vars.liquidationThreshold, , vars.decimals, ) = reserveData.configuration.getParams();
+    vars.reserveDecimals = reserveData.configuration.getDecimals();
     // all asset price has converted to ETH based, unit is in WEI (18 decimals)
-    //vars.tokenUnit = 10**vars.decimals;
-    vars.tokenUnit = 10**18;
+    vars.reserveUnit = 10**vars.reserveDecimals;
 
     vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAddress);
 
-    vars.compoundedBorrowBalance = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(loanId);
-    vars.totalDebtInETH = (vars.reserveUnitPrice * vars.compoundedBorrowBalance) / vars.tokenUnit;
+    vars.totalDebtInReserve = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(loanId);
+    vars.totalDebtInETH = (vars.reserveUnitPrice * vars.totalDebtInReserve) / vars.reserveUnit;
 
     return vars.totalDebtInETH;
   }
