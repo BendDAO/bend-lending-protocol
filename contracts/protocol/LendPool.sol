@@ -325,7 +325,10 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 ltv;
     uint256 liquidationThreshold;
     uint256 liquidationBonus;
-    uint256 nftPrice;
+    uint256 reserveDecimals;
+    uint256 reservePriceInETH;
+    uint256 nftPriceInETH;
+    uint256 nftPriceInReserve;
     uint256 thresholdPrice;
     uint256 liquidatePrice;
     uint256 paybackAmount;
@@ -378,6 +381,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getParams();
 
+    vars.reserveDecimals = reserve.configuration.getDecimals();
+
     ValidationLogic.validateLiquidate(reserve, nftData, vars.paybackAmount);
 
     /*
@@ -390,12 +395,15 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
      * Liquidate Price: (100% - BonusRatio) * NFT Price;
      * If NFT price is too low, can't cover borrowing, there's no liquidation;
      */
-    vars.nftPrice = INFTOracleGetter(_addressesProvider.getNFTOracle()).getAssetPrice(vars.nftAsset);
+    vars.nftPriceInETH = INFTOracleGetter(_addressesProvider.getNFTOracle()).getAssetPrice(vars.nftAsset);
+    vars.reservePriceInETH = IReserveOracleGetter(_addressesProvider.getReserveOracle()).getAssetPrice(vars.asset);
 
-    vars.thresholdPrice = vars.nftPrice.percentMul(vars.liquidationThreshold);
+    vars.nftPriceInReserve = (10**vars.reserveDecimals * vars.nftPriceInETH) / vars.reservePriceInETH;
+
+    vars.thresholdPrice = vars.nftPriceInReserve.percentMul(vars.liquidationThreshold);
     require(vars.paybackAmount > vars.thresholdPrice, Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
 
-    vars.liquidatePrice = vars.nftPrice.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
+    vars.liquidatePrice = vars.nftPriceInReserve.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
     require(vars.liquidatePrice >= vars.paybackAmount, Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
 
     vars.remainAmount = 0;
@@ -569,7 +577,11 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 ltv;
     uint256 liquidationThreshold;
     uint256 liquidationBonus;
-    uint256 nftPrice;
+    address reserveAsset;
+    uint256 reserveDecimals;
+    uint256 nftPriceInETH;
+    uint256 reservePriceInETH;
+    uint256 nftPriceInReserve;
     uint256 thresholdPrice;
     uint256 liquidatePrice;
     uint256 paybackAmount;
@@ -589,12 +601,24 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     vars.loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
     require(vars.loanId > 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
 
+    (, , vars.reserveAsset, ) = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanCollateralAndReserve(
+      vars.loanId
+    );
+    DataTypes.ReserveData storage reserve = _reserves[vars.reserveAsset];
+    vars.reserveDecimals = reserve.configuration.getDecimals();
+
     vars.paybackAmount = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanReserveBorrowAmount(vars.loanId);
 
     (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getParams();
-    vars.nftPrice = INFTOracleGetter(_addressesProvider.getNFTOracle()).getAssetPrice(nftAsset);
 
-    vars.liquidatePrice = vars.nftPrice.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
+    vars.nftPriceInETH = INFTOracleGetter(_addressesProvider.getNFTOracle()).getAssetPrice(nftAsset);
+    vars.reservePriceInETH = IReserveOracleGetter(_addressesProvider.getReserveOracle()).getAssetPrice(
+      vars.reserveAsset
+    );
+
+    vars.nftPriceInReserve = ((10**vars.reserveDecimals) * vars.nftPriceInETH) / vars.reservePriceInETH;
+
+    vars.liquidatePrice = vars.nftPriceInReserve.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
     if (vars.liquidatePrice < vars.paybackAmount) {
       vars.liquidatePrice = vars.paybackAmount;
     }

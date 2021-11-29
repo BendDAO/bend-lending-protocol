@@ -155,6 +155,8 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
   ) external override onlyLendPool returns (bool) {
     uint256 previousBalance = super.balanceOf(user);
 
+    // index is expressed in Ray, so:
+    // amount.wadToRay().rayDiv(index).rayToWad() => amount.rayDiv(index)
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
     _mint(user, amountScaled);

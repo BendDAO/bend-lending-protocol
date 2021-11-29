@@ -19,7 +19,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     BigNumber.config({ DECIMAL_PLACES: 20, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
   });
 
-  it("Borrows WETH", async () => {
+  it("WETH - Borrows WETH", async () => {
     const { users, pool, nftOracle, reserveOracle, weth, bayc, configurator, dataProvider } = testEnv;
     const depositor = users[0];
     const borrower = users[1];
@@ -30,7 +30,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     //user 3 approve protocol to access depositor wallet
     await weth.connect(depositor.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
-    //user 3 deposits 1000 WETH
+    //user 3 deposits WETH
     const amountDeposit = await convertToCurrencyDecimals(weth.address, "1000");
 
     await pool.connect(depositor.signer).deposit(weth.address, amountDeposit, depositor.address, "0");
@@ -66,7 +66,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     );
   });
 
-  it("Drop the health factor below 1", async () => {
+  it("WETH - Drop the health factor below 1", async () => {
     const { weth, bayc, users, pool, nftOracle } = testEnv;
     const borrower = users[1];
 
@@ -89,7 +89,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     );
   });
 
-  it("Liquidates the borrow", async () => {
+  it("WETH - Liquidates the borrow", async () => {
     const { weth, bayc, users, pool, nftOracle, reserveOracle, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
@@ -153,6 +153,144 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     expect(ethReserveDataAfter.availableLiquidity.toString()).to.be.bignumber.almostEqual(
       new BigNumber(ethReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
+      "Invalid principal available liquidity"
+    );
+  });
+
+  it("USDC - Borrows USDC", async () => {
+    const { users, pool, nftOracle, reserveOracle, usdc, bayc, configurator, dataProvider } = testEnv;
+    const depositor = users[0];
+    const borrower = users[1];
+
+    //user 3 mints USDC to depositor
+    await usdc.connect(depositor.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
+
+    //user 3 approve protocol to access depositor wallet
+    await usdc.connect(depositor.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
+
+    //user 3 deposits USDC
+    const amountDeposit = await convertToCurrencyDecimals(usdc.address, "1000000");
+
+    await pool.connect(depositor.signer).deposit(usdc.address, amountDeposit, depositor.address, "0");
+
+    //user 4 mints BAYC to borrower
+    await bayc.connect(borrower.signer).mint("102");
+
+    //user 4 approve protocol to access borrower wallet
+    await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
+
+    //user 4 borrows
+    const loanDataBefore = await pool.getNftLoanData(bayc.address, "102");
+
+    const usdcPrice = await reserveOracle.getAssetPrice(usdc.address);
+
+    const amountBorrow = await convertToCurrencyDecimals(
+      usdc.address,
+      new BigNumber(loanDataBefore.availableBorrowsETH.toString())
+        .div(usdcPrice.toString())
+        .multipliedBy(0.95)
+        .toFixed(0)
+    );
+
+    await pool
+      .connect(borrower.signer)
+      .borrow(usdc.address, amountBorrow.toString(), bayc.address, "102", borrower.address, "0");
+
+    const loanDataAfter = await pool.getNftLoanData(bayc.address, "102");
+
+    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.gt(
+      oneEther.toFixed(0),
+      ProtocolErrors.VL_INVALID_HEALTH_FACTOR
+    );
+  });
+
+  it("USDC - Drop the health factor below 1", async () => {
+    const { usdc, bayc, users, pool, nftOracle } = testEnv;
+    const borrower = users[1];
+
+    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
+    const latestTime = await getNowTimeInSeconds();
+    await waitForTx(
+      await nftOracle.setAssetData(
+        bayc.address,
+        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
+        latestTime,
+        latestTime
+      )
+    );
+
+    const loanDataAfter = await pool.getNftLoanData(bayc.address, "102");
+
+    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.lt(
+      oneEther.toFixed(0),
+      ProtocolErrors.VL_INVALID_HEALTH_FACTOR
+    );
+  });
+
+  it("USDC - Liquidates the borrow", async () => {
+    const { usdc, bayc, users, pool, nftOracle, reserveOracle, dataProvider } = testEnv;
+    const liquidator = users[3];
+    const borrower = users[1];
+
+    //mints USDC to the liquidator
+    await usdc.connect(liquidator.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
+
+    //approve protocol to access the liquidator wallet
+    await usdc.connect(liquidator.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
+
+    const usdcReserveDataBefore = await dataProvider.getReserveData(usdc.address);
+
+    const userReserveDataBefore = await getUserData(pool, dataProvider, usdc.address, borrower.address);
+
+    const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
+
+    // accurate borrow index, increment interest to loanDataBefore.scaledAmount
+    await increaseTime(100);
+
+    const tx = await pool.connect(liquidator.signer).liquidate(bayc.address, "102", liquidator.address);
+
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
+
+    const userReserveDataAfter = await getUserData(pool, dataProvider, usdc.address, borrower.address);
+
+    const usdcReserveDataAfter = await dataProvider.getReserveData(usdc.address);
+
+    if (!tx.blockNumber) {
+      expect(false, "Invalid block number");
+      return;
+    }
+    const txTimestamp = new BigNumber((await DRE.ethers.provider.getBlock(tx.blockNumber)).timestamp);
+
+    const userVariableDebtAmountBeforeTx = new BigNumber(userReserveDataBefore.scaledVariableDebt).rayMul(
+      new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
+    );
+
+    // expect debt amount to be liquidated
+    const expectedLiquidateAmount = new BigNumber(loanDataBefore.scaledAmount.toString()).rayMul(
+      new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
+    );
+
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
+
+    expect(userReserveDataAfter.currentVariableDebt.toString()).to.be.bignumber.almostEqual(
+      userVariableDebtAmountBeforeTx.minus(expectedLiquidateAmount).toString(),
+      "Invalid user debt after liquidation"
+    );
+
+    //the liquidity index of the principal reserve needs to be bigger than the index before
+    expect(usdcReserveDataAfter.liquidityIndex.toString()).to.be.bignumber.gte(
+      usdcReserveDataBefore.liquidityIndex.toString(),
+      "Invalid liquidity index"
+    );
+
+    //the principal APY after a liquidation needs to be lower than the APY before
+    expect(usdcReserveDataAfter.liquidityRate.toString()).to.be.bignumber.lt(
+      usdcReserveDataBefore.liquidityRate.toString(),
+      "Invalid liquidity APY"
+    );
+
+    expect(usdcReserveDataAfter.availableLiquidity.toString()).to.be.bignumber.almostEqual(
+      new BigNumber(usdcReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
       "Invalid principal available liquidity"
     );
   });
