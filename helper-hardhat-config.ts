@@ -44,8 +44,8 @@ export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
 };
 
 export const BLOCK_TO_FORK: iParamsPerNetwork<number | undefined> = {
-  [eEthereumNetwork.main]: 12406069,
-  [eEthereumNetwork.rinkeby]: undefined,
-  [eEthereumNetwork.coverage]: undefined,
-  [eEthereumNetwork.hardhat]: undefined,
+  [eEthereumNetwork.main]: 13623705,
+  [eEthereumNetwork.rinkeby]: 0,
+  [eEthereumNetwork.coverage]: 0,
+  [eEthereumNetwork.hardhat]: 0,
 };

@@ -29,6 +29,8 @@
     "bend:localhost:dev:migration": "npm run compile && npm run hardhat:localhost -- bend:dev",
     "bend:rinkeby:full:migration": "npm run compile && npm run hardhat:rinkeby -- bend:mainnet",
     "bend:main:full:migration": "npm run compile && npm run hardhat:main -- bend:mainnet --verify",
+    "bend:fork:main": "npm run compile && FORK=main hardhat bend:mainnet",
+    "bend:fork:rinkeby": "npm run compile && FORK=rinkeby hardhat bend:mainnet",
     "rinkeby:verify": "npm run hardhat:rinkeby verify:general -- --all --pool Bend",
     "rinkeby:verify:reserves": "npm run hardhat:rinkeby verify:reserves -- --pool Bend",
     "rinkeby:verify:nfts": "npm run hardhat:rinkeby verify:nfts -- --pool Bend",
