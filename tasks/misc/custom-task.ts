@@ -7,6 +7,7 @@ import {
   getBendProtocolDataProvider,
   getBendProxyAdminByAddress,
   getBNFTRegistryProxy,
+  getBToken,
   getCryptoPunksMarket,
   getFirstSigner,
   getLendPool,
@@ -132,7 +133,28 @@ const depositETH = async (addressesProvider: LendPoolAddressesProvider) => {
 
   const wethGateway = await getWETHGateway();
 
+  const wethAddress = await getContractAddressInDb("WETH");
+  const weth = await getMintableERC20(wethAddress);
+  await waitForTx(await weth.approve(wethGateway.address, MAX_UINT_AMOUNT));
+
   await waitForTx(await wethGateway.depositETH(await signer.getAddress(), "0", { value: "100000000000000000" })); // 0.1 ETH
+};
+
+const withdrawETH = async (addressesProvider: LendPoolAddressesProvider) => {
+  const signer = await getFirstSigner();
+
+  const lendPool = await getLendPool(await addressesProvider.getLendPool());
+
+  const wethGateway = await getWETHGateway();
+
+  const wethAddress = await getContractAddressInDb("WETH");
+  const weth = await getMintableERC20(wethAddress);
+
+  const wethResData = await lendPool.getReserveData(weth.address);
+  const bWeth = await getBToken(wethResData.bTokenAddress);
+  await waitForTx(await bWeth.approve(wethGateway.address, MAX_UINT_AMOUNT));
+
+  await waitForTx(await wethGateway.withdrawETH("10000000000000000", await signer.getAddress())); // 0.01 ETH
 };
 
 const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) => {
@@ -153,6 +175,24 @@ const borrowETHUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) 
   await waitForTx(
     await wethGateway.borrowETH("100000000000000000", bayc.address, "5002", await signer.getAddress(), "0")
   );
+};
+
+const borrowUSDCUsingBAYC = async (addressesProvider: LendPoolAddressesProvider) => {
+  const signer = await getFirstSigner();
+
+  const lendPool = await getLendPool(await addressesProvider.getLendPool());
+
+  const usdcAddress = await getContractAddressInDb("USDC");
+  const usdc = await getMintableERC20(usdcAddress);
+
+  const baycAddress = await getContractAddressInDb("BAYC");
+  const bayc = await getMintableERC721(baycAddress);
+  //await waitForTx(await bayc.setApprovalForAll(lendPool.address, true));
+  //await waitForTx(await bayc.mint(5003));
+
+  await waitForTx(
+    await lendPool.borrow(usdc.address, "100000000", bayc.address, "5003", await signer.getAddress(), "0")
+  ); // 100 USDC
 };
 
 const borrowETHUsingPunk = async (addressesProvider: LendPoolAddressesProvider) => {
