@@ -125,6 +125,9 @@ contract BendProtocolDataProvider {
       uint256 ltv,
       uint256 liquidationThreshold,
       uint256 liquidationBonus,
+      uint256 redeemDuration,
+      uint256 auctionDuration,
+      uint256 redeemFine,
       bool isActive,
       bool isFrozen
     )
@@ -132,7 +135,8 @@ contract BendProtocolDataProvider {
     DataTypes.NftConfigurationMap memory configuration = ILendPool(ADDRESSES_PROVIDER.getLendPool())
       .getNftConfiguration(asset);
 
-    (ltv, liquidationThreshold, liquidationBonus) = configuration.getParamsMemory();
+    (ltv, liquidationThreshold, liquidationBonus) = configuration.getCollateralParamsMemory();
+    (redeemDuration, auctionDuration, redeemFine) = configuration.getAuctionParamsMemory();
 
     (isActive, isFrozen) = configuration.getFlagsMemory();
   }

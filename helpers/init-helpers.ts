@@ -302,11 +302,15 @@ export const configureNftsByHelper = async (
     baseLTV: BigNumberish;
     liquidationThreshold: BigNumberish;
     liquidationBonus: BigNumberish;
+    redeemDuration: BigNumberish;
+    auctionDuration: BigNumberish;
+    redeemFine: BigNumberish;
   }[] = [];
 
-  for (const [assetSymbol, { baseLTVAsCollateral, liquidationBonus, liquidationThreshold }] of Object.entries(
-    nftsParams
-  ) as [string, INftParams][]) {
+  for (const [
+    assetSymbol,
+    { baseLTVAsCollateral, liquidationBonus, liquidationThreshold, redeemDuration, auctionDuration, redeemFine },
+  ] of Object.entries(nftsParams) as [string, INftParams][]) {
     if (!nftAddresses[assetSymbol]) {
       console.log(`- Skipping init of ${assetSymbol} due nft address is not set at markets config`);
       continue;
@@ -322,6 +326,9 @@ export const configureNftsByHelper = async (
       baseLTV: baseLTVAsCollateral,
       liquidationThreshold: liquidationThreshold,
       liquidationBonus: liquidationBonus,
+      redeemDuration: redeemDuration,
+      auctionDuration: auctionDuration,
+      redeemFine: redeemFine,
     });
 
     tokens.push(tokenAddress);

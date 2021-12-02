@@ -138,7 +138,7 @@ library GenericLogic {
   {
     CalculateLoanDataVars memory vars;
 
-    (vars.nftLtv, vars.nftLiquidationThreshold, ) = nftData.configuration.getParams();
+    (vars.nftLtv, vars.nftLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
 
     // calculate total collateral balance for the nft
     // all asset price has converted to ETH based, unit is in WEI (18 decimals)
@@ -187,5 +187,66 @@ library GenericLogic {
 
     availableBorrowsETH = availableBorrowsETH - totalDebtInETH;
     return availableBorrowsETH;
+  }
+
+  struct CalcLiquidatePriceLocalVars {
+    uint256 ltv;
+    uint256 liquidationThreshold;
+    uint256 liquidationBonus;
+    uint256 nftPriceInETH;
+    uint256 nftPriceInReserve;
+    uint256 reserveDecimals;
+    uint256 reservePriceInETH;
+    uint256 thresholdPrice;
+    uint256 liquidatePrice;
+    uint256 paybackAmount;
+  }
+
+  function calculateLoanLiquidatePrice(
+    uint256 loanId,
+    address reserveAsset,
+    DataTypes.ReserveData storage reserveData,
+    address nftAsset,
+    DataTypes.NftData storage nftData,
+    address poolLoan,
+    address reserveOracle,
+    address nftOracle
+  )
+    internal
+    view
+    returns (
+      uint256,
+      uint256,
+      uint256
+    )
+  {
+    CalcLiquidatePriceLocalVars memory vars;
+
+    /*
+     * 0                   CR                  LH                  100
+     * |___________________|___________________|___________________|
+     *  <       Borrowing with Interest        <
+     * CR: Callteral Ratio;
+     * LH: Liquidate Threshold;
+     * Liquidate Trigger: Borrowing with Interest (paybackAmount) > thresholdPrice;
+     * Liquidate Price: (100% - BonusRatio) * NFT Price;
+     */
+
+    vars.reserveDecimals = reserveData.configuration.getDecimals();
+
+    vars.paybackAmount = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanId);
+
+    (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getCollateralParams();
+
+    vars.nftPriceInETH = INFTOracleGetter(nftOracle).getAssetPrice(nftAsset);
+    vars.reservePriceInETH = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAsset);
+
+    vars.nftPriceInReserve = ((10**vars.reserveDecimals) * vars.nftPriceInETH) / vars.reservePriceInETH;
+
+    vars.thresholdPrice = vars.nftPriceInReserve.percentMul(vars.liquidationThreshold);
+
+    vars.liquidatePrice = vars.nftPriceInReserve.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
+
+    return (vars.paybackAmount, vars.thresholdPrice, vars.liquidatePrice);
   }
 }

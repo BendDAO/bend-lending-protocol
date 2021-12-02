@@ -22,6 +22,9 @@ contract BTokensAndBNFTsHelper is Ownable {
     uint256 baseLTV;
     uint256 liquidationThreshold;
     uint256 liquidationBonus;
+    uint256 redeemDuration;
+    uint256 auctionDuration;
+    uint256 redeemFine;
   }
 
   constructor(
@@ -52,6 +55,12 @@ contract BTokensAndBNFTsHelper is Ownable {
         inputParams[i].baseLTV,
         inputParams[i].liquidationThreshold,
         inputParams[i].liquidationBonus
+      );
+      configurator.configureNftAsAuction(
+        inputParams[i].asset,
+        inputParams[i].redeemDuration,
+        inputParams[i].auctionDuration,
+        inputParams[i].redeemFine
       );
     }
   }

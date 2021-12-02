@@ -34,12 +34,23 @@ interface IPunkGateway {
   function repay(uint256 punkIndex, uint256 amount) external returns (uint256, bool);
 
   /**
+   * @notice auction a unhealth punk loan with ERC20 reserve
+   * - E.g. User pays 100 USDC, burning loan and receives collateral asset
+   * @param punkIndex The index of the CryptoPunk used as collteral
+   * @param bidPrice The bid price
+   **/
+  function auction(
+    uint256 punkIndex,
+    uint256 bidPrice,
+    address onBehalfOf
+  ) external;
+
+  /**
    * @notice liquidate a unhealth punk loan with ERC20 reserve
    * - E.g. User pays 100 USDC, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk used as collteral
-   * @return The final amount liquidated, payback amount
    **/
-  function liquidate(uint256 punkIndex) external returns (uint256, uint256);
+  function liquidate(uint256 punkIndex, address onBehalfOf) external;
 
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -71,13 +82,18 @@ interface IPunkGateway {
   function repayETH(uint256 punkIndex, uint256 amount) external payable returns (uint256, bool);
 
   /**
-   * @notice liquidate a unhealth punk loan with native ETH
+   * @notice auction a unhealth punk loan with native ETH
    * - E.g. User pays 100 ETH, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk to repay
    * @param onBehalfOf Address of the user who will receive the CryptoPunk. Should be the address of the user itself
-   * calling the function if he wants to get collateral, or the address of the credit delegator
-   * if he has been given credit delegation allowance
-   * @return The final amount liquidated, payback amount
+   * calling the function if he wants to get collateral
    **/
-  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable returns (uint256, uint256);
+  function auctionETH(uint256 punkIndex, address onBehalfOf) external payable;
+
+  /**
+   * @notice liquidate a unhealth punk loan with native ETH
+   * - E.g. User pays 100 ETH, burning loan and receives collateral asset
+   * @param punkIndex The index of the CryptoPunk to repay
+   **/
+  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable;
 }

@@ -52,6 +52,16 @@ library Errors {
   string public constant LP_CALLER_MUST_BE_AN_BTOKEN = "410";
   string public constant LP_INVALIED_NFT_AMOUNT = "411";
 
+  //lend pool loan errors
+  string public constant LPL_INVALID_LOAN_STATE = "480";
+  string public constant LPL_INVALID_LOAN_AMOUNT = "481";
+  string public constant LPL_INVALID_TAKEN_AMOUNT = "482";
+  string public constant LPL_AMOUNT_OVERFLOW = "483";
+  string public constant LPL_BID_PRICE_TOO_LOW = "484";
+  string public constant LPL_BID_DURATION_EXCEED = "485";
+  string public constant LPL_BID_USER_NOT_SAME = "486";
+  string public constant LPL_BID_REPAY_AMOUNT_TOO_SMALL = "487";
+
   //common token errors
   string public constant CT_CALLER_MUST_BE_LEND_POOL = "500"; // 'The caller of this function must be a lending pool'
   string public constant CT_INVALID_MINT_AMOUNT = "501"; //invalid amount to mint
@@ -77,6 +87,9 @@ library Errors {
   string public constant RC_INVALID_LIQ_BONUS = "732";
   string public constant RC_INVALID_DECIMALS = "733";
   string public constant RC_INVALID_RESERVE_FACTOR = "734";
+  string public constant RC_INVALID_REDEEM_DURATION = "735";
+  string public constant RC_INVALID_AUCTION_DURATION = "736";
+  string public constant RC_INVALID_REDEEM_FINE = "737";
 
   //address provider erros
   string public constant LPAPR_PROVIDER_NOT_REGISTERED = "760"; // 'Provider is not registered'

@@ -72,9 +72,23 @@ interface ILendPool {
   );
 
   /**
-   * @dev Emitted when a borrower is liquidated. This event is emitted by the LendingPool via
-   * LendingPoolCollateral manager using a DELEGATECALL
-   * This allows to have the events in the generated ABI for LendingPool.
+   * @dev Emitted when a borrower's loan is auctioned.
+   * @param loanId The loan ID of the NFT loans
+   * @param price The amount of bToken repaid by the liquidator
+   * @param liquidator The address of the liquidator
+   * @param onBehalfOf The address that will be getting the NFT
+   **/
+  event Auction(
+    address indexed nftAsset,
+    uint256 nftTokenId,
+    uint256 price,
+    address indexed liquidator,
+    address onBehalfOf,
+    uint256 loanId
+  );
+
+  /**
+   * @dev Emitted when a borrower's loan is liquidated.
    * @param loanId The loan ID of the NFT loans
    * @param user The address of the borrower getting liquidated
    * @param reserve The address of the underlying asset of the reserve
@@ -198,21 +212,34 @@ interface ILendPool {
   ) external returns (uint256, bool);
 
   /**
+   * @dev Function to auction a non-healthy position collateral-wise
+   * - The caller (liquidator) want to buy collateral asset of the user getting liquidated
+   * @param nftAsset The address of the underlying NFT used as collateral
+   * @param nftTokenId The token ID of the underlying NFT used as collateral
+   * @param bidPrice The bid price of the liquidator want to buy the underlying NFT
+   * @param onBehalfOf Address of the user who will get the underlying NFT, same as msg.sender if the user
+   *   wants to receive them on his own wallet, or a different address if the beneficiary of NFT
+   *   is a different wallet
+   **/
+  function auction(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 bidPrice,
+    address onBehalfOf
+  ) external;
+
+  /**
    * @dev Function to liquidate a non-healthy position collateral-wise
    * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
    *   the collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
-   * @param onBehalfOf Address of the user who will receive the underlying NFT. Should be the address of the liquidator itself
-   * calling the function if he wants the collateral, or the address of the credit delegator
-   * if he has been given credit delegation allowance
-   * @return The liquidate amount, payback amount
    **/
   function liquidate(
     address nftAsset,
     uint256 nftTokenId,
     address onBehalfOf
-  ) external returns (uint256, uint256);
+  ) external;
 
   /**
    * @dev Validates and finalizes an bToken transfer
