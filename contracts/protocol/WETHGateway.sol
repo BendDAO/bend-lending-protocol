@@ -102,27 +102,23 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     return (paybackAmount, burn);
   }
 
+  function auctionETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    address onBehalfOf
+  ) external payable override {
+    WETH.deposit{value: msg.value}();
+    _pool.auction(nftAsset, nftTokenId, msg.value, onBehalfOf);
+  }
+
   function liquidateETH(
     address nftAsset,
     uint256 nftTokenId,
     address onBehalfOf
-  ) external payable override returns (uint256, uint256) {
-    (uint256 liquidatePriceGuess, uint256 paybackAmountGuess) = _pool.getNftLiquidatePrice(nftAsset, nftTokenId);
-    if (liquidatePriceGuess < paybackAmountGuess) {
-      liquidatePriceGuess = paybackAmountGuess;
-    }
+  ) external payable override {
+    onBehalfOf;
 
-    require(msg.value >= liquidatePriceGuess, "msg.value is less than liquidate amount guessed");
-
-    WETH.deposit{value: liquidatePriceGuess}();
-    (uint256 liquidateAmount, uint256 paybackAmount) = _pool.liquidate(nftAsset, nftTokenId, onBehalfOf);
-
-    // refund remaining dust eth
-    if (msg.value > liquidateAmount) {
-      _safeTransferETH(msg.sender, msg.value - liquidateAmount);
-    }
-
-    return (liquidateAmount, paybackAmount);
+    _pool.liquidate(nftAsset, nftTokenId, onBehalfOf);
   }
 
   function onERC721Received(

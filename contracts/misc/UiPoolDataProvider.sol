@@ -250,7 +250,12 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     nftData.symbol = IERC721Detailed(nftData.underlyingAsset).symbol();
     nftData.name = IERC721Detailed(nftData.underlyingAsset).name();
 
-    (nftData.ltv, nftData.liquidationThreshold, nftData.liquidationBonus) = baseData.configuration.getParamsMemory();
+    (nftData.ltv, nftData.liquidationThreshold, nftData.liquidationBonus) = baseData
+      .configuration
+      .getCollateralParamsMemory();
+    (nftData.redeemDuration, nftData.auctionDuration, nftData.redeemFine) = baseData
+      .configuration
+      .getAuctionParamsMemory();
     (nftData.isActive, nftData.isFrozen) = baseData.configuration.getFlagsMemory();
   }
 

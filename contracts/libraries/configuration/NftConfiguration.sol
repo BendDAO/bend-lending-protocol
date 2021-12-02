@@ -15,16 +15,25 @@ library NftConfiguration {
   uint256 constant LIQUIDATION_BONUS_MASK =     0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFF; // prettier-ignore
   uint256 constant ACTIVE_MASK =                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFF; // prettier-ignore
   uint256 constant FROZEN_MASK =                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFF; // prettier-ignore
+  uint256 constant REDEEM_DURATION_MASK =       0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFF; // prettier-ignore
+  uint256 constant AUCTION_DURATION_MASK =      0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFF; // prettier-ignore
+  uint256 constant REDEEM_FINE_MASK =           0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFF; // prettier-ignore
 
   /// @dev For the LTV, the start bit is 0 (up to 15), hence no bitshifting is needed
   uint256 constant LIQUIDATION_THRESHOLD_START_BIT_POSITION = 16;
   uint256 constant LIQUIDATION_BONUS_START_BIT_POSITION = 32;
   uint256 constant IS_ACTIVE_START_BIT_POSITION = 56;
   uint256 constant IS_FROZEN_START_BIT_POSITION = 57;
+  uint256 constant REDEEM_DURATION_START_BIT_POSITION = 64;
+  uint256 constant AUCTION_DURATION_START_BIT_POSITION = 72;
+  uint256 constant REDEEM_FINE_START_BIT_POSITION = 80;
 
   uint256 constant MAX_VALID_LTV = 65535;
   uint256 constant MAX_VALID_LIQUIDATION_THRESHOLD = 65535;
   uint256 constant MAX_VALID_LIQUIDATION_BONUS = 65535;
+  uint256 constant MAX_VALID_REDEEM_DURATION = 255;
+  uint256 constant MAX_VALID_AUCTION_DURATION = 255;
+  uint256 constant MAX_VALID_REDEEM_FINE = 65535;
 
   /**
    * @dev Sets the Loan to Value of the NFT
@@ -123,6 +132,66 @@ library NftConfiguration {
   }
 
   /**
+   * @dev Sets the redeem duration of the NFT
+   * @param self The NFT configuration
+   * @param redeemDuration The redeem duration
+   **/
+  function setRedeemDuration(DataTypes.NftConfigurationMap memory self, uint256 redeemDuration) internal pure {
+    require(redeemDuration <= MAX_VALID_REDEEM_DURATION, Errors.RC_INVALID_REDEEM_DURATION);
+
+    self.data = (self.data & REDEEM_DURATION_MASK) | (redeemDuration << REDEEM_DURATION_START_BIT_POSITION);
+  }
+
+  /**
+   * @dev Gets the redeem duration of the NFT
+   * @param self The NFT configuration
+   * @return The redeem duration
+   **/
+  function getRedeemDuration(DataTypes.NftConfigurationMap storage self) internal view returns (uint256) {
+    return (self.data & ~REDEEM_DURATION_MASK) >> REDEEM_DURATION_START_BIT_POSITION;
+  }
+
+  /**
+   * @dev Sets the auction duration of the NFT
+   * @param self The NFT configuration
+   * @param auctionDuration The auction duration
+   **/
+  function setAuctionDuration(DataTypes.NftConfigurationMap memory self, uint256 auctionDuration) internal pure {
+    require(auctionDuration <= MAX_VALID_AUCTION_DURATION, Errors.RC_INVALID_AUCTION_DURATION);
+
+    self.data = (self.data & AUCTION_DURATION_MASK) | (auctionDuration << AUCTION_DURATION_START_BIT_POSITION);
+  }
+
+  /**
+   * @dev Gets the auction duration of the NFT
+   * @param self The NFT configuration
+   * @return The auction duration
+   **/
+  function getAuctionDuration(DataTypes.NftConfigurationMap storage self) internal view returns (uint256) {
+    return (self.data & ~AUCTION_DURATION_MASK) >> AUCTION_DURATION_START_BIT_POSITION;
+  }
+
+  /**
+   * @dev Sets the redeem fine of the NFT
+   * @param self The NFT configuration
+   * @param redeemFine The redeem duration
+   **/
+  function setRedeemFine(DataTypes.NftConfigurationMap memory self, uint256 redeemFine) internal pure {
+    require(redeemFine <= MAX_VALID_REDEEM_FINE, Errors.RC_INVALID_REDEEM_FINE);
+
+    self.data = (self.data & REDEEM_FINE_MASK) | (redeemFine << REDEEM_FINE_START_BIT_POSITION);
+  }
+
+  /**
+   * @dev Gets the redeem fine of the NFT
+   * @param self The NFT configuration
+   * @return The redeem fine
+   **/
+  function getRedeemFine(DataTypes.NftConfigurationMap storage self) internal view returns (uint256) {
+    return (self.data & ~REDEEM_FINE_MASK) >> REDEEM_FINE_START_BIT_POSITION;
+  }
+
+  /**
    * @dev Gets the configuration flags of the NFT
    * @param self The NFT configuration
    * @return The state flags representing active, frozen
@@ -134,11 +203,20 @@ library NftConfiguration {
   }
 
   /**
-   * @dev Gets the configuration paramters of the NFT
+   * @dev Gets the configuration flags of the NFT from a memory object
+   * @param self The NFT configuration
+   * @return The state flags representing active, frozen
+   **/
+  function getFlagsMemory(DataTypes.NftConfigurationMap memory self) internal pure returns (bool, bool) {
+    return ((self.data & ~ACTIVE_MASK) != 0, (self.data & ~FROZEN_MASK) != 0);
+  }
+
+  /**
+   * @dev Gets the collateral configuration paramters of the NFT
    * @param self The NFT configuration
    * @return The state params representing ltv, liquidation threshold, liquidation bonus
    **/
-  function getParams(DataTypes.NftConfigurationMap storage self)
+  function getCollateralParams(DataTypes.NftConfigurationMap storage self)
     internal
     view
     returns (
@@ -157,11 +235,34 @@ library NftConfiguration {
   }
 
   /**
-   * @dev Gets the configuration paramters of the NFT from a memory object
+   * @dev Gets the auction configuration paramters of the NFT
+   * @param self The NFT configuration
+   * @return The state params representing redeem duration, auction duration, redeem fine
+   **/
+  function getAuctionParams(DataTypes.NftConfigurationMap storage self)
+    internal
+    view
+    returns (
+      uint256,
+      uint256,
+      uint256
+    )
+  {
+    uint256 dataLocal = self.data;
+
+    return (
+      (dataLocal & ~REDEEM_DURATION_MASK) >> REDEEM_DURATION_START_BIT_POSITION,
+      (dataLocal & ~AUCTION_DURATION_MASK) >> AUCTION_DURATION_START_BIT_POSITION,
+      (dataLocal & ~REDEEM_FINE_MASK) >> REDEEM_FINE_START_BIT_POSITION
+    );
+  }
+
+  /**
+   * @dev Gets the collateral configuration paramters of the NFT from a memory object
    * @param self The NFT configuration
    * @return The state params representing ltv, liquidation threshold, liquidation bonus
    **/
-  function getParamsMemory(DataTypes.NftConfigurationMap memory self)
+  function getCollateralParamsMemory(DataTypes.NftConfigurationMap memory self)
     internal
     pure
     returns (
@@ -178,11 +279,23 @@ library NftConfiguration {
   }
 
   /**
-   * @dev Gets the configuration flags of the NFT from a memory object
+   * @dev Gets the auction configuration paramters of the NFT from a memory object
    * @param self The NFT configuration
-   * @return The state flags representing active, frozen
+   * @return The state params representing redeem duration, auction duration, redeem fine
    **/
-  function getFlagsMemory(DataTypes.NftConfigurationMap memory self) internal pure returns (bool, bool) {
-    return ((self.data & ~ACTIVE_MASK) != 0, (self.data & ~FROZEN_MASK) != 0);
+  function getAuctionParamsMemory(DataTypes.NftConfigurationMap memory self)
+    internal
+    pure
+    returns (
+      uint256,
+      uint256,
+      uint256
+    )
+  {
+    return (
+      (self.data & ~REDEEM_DURATION_MASK) >> REDEEM_DURATION_START_BIT_POSITION,
+      (self.data & ~AUCTION_DURATION_MASK) >> AUCTION_DURATION_START_BIT_POSITION,
+      (self.data & ~REDEEM_FINE_MASK) >> REDEEM_FINE_START_BIT_POSITION
+    );
   }
 }

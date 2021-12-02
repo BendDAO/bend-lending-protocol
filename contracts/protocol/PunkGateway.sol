@@ -103,27 +103,28 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     return (paybackAmount, burn);
   }
 
-  function liquidate(uint256 punkIndex) external override returns (uint256, uint256) {
+  function auction(
+    uint256 punkIndex,
+    uint256 bidPrice,
+    address onBehalfOf
+  ) external override {
     uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
     (, , address reserve, ) = _poolLoan.getLoanCollateralAndReserve(loanId);
 
-    (uint256 liquidatePriceGuess, uint256 paybackAmountGuess) = _pool.getNftLiquidatePrice(
-      address(wrappedPunks),
-      punkIndex
-    );
-    if (liquidatePriceGuess < paybackAmountGuess) {
-      liquidatePriceGuess = paybackAmountGuess;
-    }
+    IERC20(reserve).transferFrom(msg.sender, address(this), bidPrice);
 
-    IERC20(reserve).transferFrom(msg.sender, address(this), liquidatePriceGuess);
+    _pool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
+  }
 
-    (uint256 liquidateAmount, uint256 paybackAmount) = _pool.liquidate(address(wrappedPunks), punkIndex, _msgSender());
+  function liquidate(uint256 punkIndex, address onBehalfOf) external override {
+    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    _withdrawPunk(punkIndex, _msgSender());
+    _pool.liquidate(address(wrappedPunks), punkIndex, onBehalfOf);
 
-    return (liquidateAmount, paybackAmount);
+    _withdrawPunk(punkIndex, onBehalfOf);
   }
 
   function borrowETH(
@@ -160,21 +161,14 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     return (paybackAmount, burn);
   }
 
-  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable override returns (uint256, uint256) {
-    (uint256 liquidateAmount, uint256 paybackAmount) = _wethGateway.liquidateETH{value: msg.value}(
-      address(wrappedPunks),
-      punkIndex,
-      onBehalfOf
-    );
+  function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override {
+    _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
+  }
+
+  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable override {
+    _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
 
     _withdrawPunk(punkIndex, onBehalfOf);
-
-    // refund remaining dust eth
-    if (msg.value > liquidateAmount) {
-      _safeTransferETH(msg.sender, msg.value - liquidateAmount);
-    }
-
-    return (liquidateAmount, paybackAmount);
   }
 
   function onERC721Received(

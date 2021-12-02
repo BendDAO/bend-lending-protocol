@@ -174,6 +174,24 @@ library ValidationLogic {
   }
 
   /**
+   * @dev Validates the auction action
+   * @param principalReserve The reserve data of the principal
+   * @param nftData The NFT configuration
+   * @param bidPrice Total variable debt balance of the user
+   **/
+  function validateAuction(
+    DataTypes.ReserveData storage principalReserve,
+    DataTypes.NftData storage nftData,
+    uint256 bidPrice
+  ) internal view {
+    require(principalReserve.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
+
+    require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
+
+    require(bidPrice > 0, Errors.VL_INVALID_AMOUNT);
+  }
+
+  /**
    * @dev Validates the liquidation action
    * @param principalReserve The reserve data of the principal
    * @param nftData The NFT configuration

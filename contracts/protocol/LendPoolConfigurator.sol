@@ -323,7 +323,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
    * @param asset The address of the underlying asset of the reserve
    * @param ltv The loan to value of the asset when used as NFT
    * @param liquidationThreshold The threshold at which loans using this asset as collateral will be considered undercollateralized
-   * @param liquidationBonus The bonus liquidators receive to liquidate this asset. The values is always above 100%. A value of 105%
+   * @param liquidationBonus The bonus liquidators receive to liquidate this asset. The values is always below 100%. A value of 5%
    * means the liquidator will receive a 5% bonus
    **/
   function configureNftAsCollateral(
@@ -410,6 +410,33 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     _pool.setNftConfiguration(asset, currentConfig.data);
 
     emit NftUnfrozen(asset);
+  }
+
+  /**
+   * @dev Configures the NFT auction parameters
+   * @param asset The address of the underlying asset of the reserve
+   * @param redeemDuration The threshold at which loans using this asset as collateral will be considered undercollateralized
+   * @param auctionDuration The bonus liquidators receive to liquidate this asset.
+   **/
+  function configureNftAsAuction(
+    address asset,
+    uint256 redeemDuration,
+    uint256 auctionDuration,
+    uint256 redeemFine
+  ) external onlyPoolAdmin {
+    DataTypes.NftConfigurationMap memory currentConfig = _pool.getNftConfiguration(asset);
+
+    //validation of the parameters: the redeem duration can
+    //only be lower or equal than the auction duration
+    require(redeemDuration <= auctionDuration, Errors.LPC_INVALID_CONFIGURATION);
+
+    currentConfig.setRedeemDuration(redeemDuration);
+    currentConfig.setAuctionDuration(auctionDuration);
+    currentConfig.setRedeemFine(redeemFine);
+
+    _pool.setNftConfiguration(asset, currentConfig.data);
+
+    emit NftAuctionChanged(asset, redeemDuration, auctionDuration, redeemFine);
   }
 
   function setMaxNumberOfReserves(uint256 newVal) external onlyPoolAdmin {

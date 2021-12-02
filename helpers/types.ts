@@ -231,7 +231,7 @@ export interface IReserveParams extends IReserveBorrowParams, IReserveCollateral
   strategy: IInterestRateStrategyParams;
 }
 
-export interface INftParams extends INftCollateralParams {
+export interface INftParams extends INftAuctionParams, INftCollateralParams {
   bNftImpl: eContractid;
 }
 
@@ -258,6 +258,12 @@ export interface INftCollateralParams {
   baseLTVAsCollateral: string;
   liquidationThreshold: string;
   liquidationBonus: string;
+}
+
+export interface INftAuctionParams {
+  redeemDuration: string;
+  auctionDuration: string;
+  redeemFine: string;
 }
 
 export type iParamsPerNetwork<T> = iEthereumParamsPerNetwork<T>;

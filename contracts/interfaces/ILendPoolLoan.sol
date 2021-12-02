@@ -52,6 +52,19 @@ interface ILendPoolLoan {
   );
 
   /**
+   * @dev Emitted when a loan is auction by the liquidator
+   */
+  event LoanAuctioned(
+    address indexed user,
+    uint256 indexed loanId,
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 price,
+    address previousUser,
+    uint256 previousPrice
+  );
+
+  /**
    * @dev Emitted when a loan is liquidate by the liquidator
    */
   event LoanLiquidated(
@@ -117,6 +130,25 @@ interface ILendPoolLoan {
     uint256 loanId,
     address bNftAddress,
     uint256 borrowIndex
+  ) external;
+
+  /**
+   * @dev Auction the given loan
+   *
+   * Requirements:
+   *  - The price must be greater than current highest price
+   *  - The loan must be in state Active or Auction
+   *
+   * @param user The user receiving the returned underlying asset
+   * @param loanId The loan getting auctioned
+   * @param price The bid price of this auction
+   * @param amount The payback amount of the loan
+   */
+  function auctionLoan(
+    address user,
+    uint256 loanId,
+    uint256 price,
+    uint256 amount
   ) external;
 
   /**

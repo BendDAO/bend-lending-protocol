@@ -71,7 +71,9 @@ library DataTypes {
     // The loan has been repaid, and the collateral has been returned to the borrower. This is a terminal state.
     Repaid,
     // The loan was delinquent and collateral claimed by the liquidator. This is a terminal state.
-    Defaulted
+    Defaulted,
+    // The loan is in auction, higest price liquidator will got chance to claim it.
+    Auction
   }
 
   struct LoanData {
@@ -89,5 +91,13 @@ library DataTypes {
     address reserveAsset;
     //scaled borrow amount. Expressed in ray
     uint256 scaledAmount;
+    //start time of first bid time
+    uint256 bidStartTimestamp;
+    //liquidator Address of higest bid
+    address bidLiquidator;
+    //price of higest bid
+    uint256 bidPrice;
+    //payback amount
+    uint256 bidPaybackAmount;
   }
 }

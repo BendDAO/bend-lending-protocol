@@ -158,6 +158,15 @@ interface ILendPoolConfigurator {
   event NftUnfrozen(address indexed asset);
 
   /**
+   * @dev Emitted when a redeem duration is updated
+   * @param asset The address of the underlying asset of the NFT
+   * @param redeemDuration The new redeem duration
+   * @param auctionDuration The new redeem duration
+   * @param redeemFine The new redeem fine
+   **/
+  event NftAuctionChanged(address indexed asset, uint256 redeemDuration, uint256 auctionDuration, uint256 redeemFine);
+
+  /**
    * @dev Emitted when an bToken implementation is upgraded
    * @param asset The address of the underlying asset of the reserve
    * @param proxy The bToken proxy address
