@@ -119,7 +119,7 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
 
   /**
    * @dev Burns bTokens from `user` and sends the equivalent amount of underlying to `receiverOfUnderlying`
-   * - Only callable by the LendingPool, as extra state updates there need to be managed
+   * - Only callable by the LendPool, as extra state updates there need to be managed
    * @param user The owner of the bTokens, getting them burned
    * @param receiverOfUnderlying The address that will receive the underlying
    * @param amount The amount being burned
@@ -142,7 +142,7 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
 
   /**
    * @dev Mints `amount` bTokens to `user`
-   * - Only callable by the LendingPool, as extra state updates there need to be managed
+   * - Only callable by the LendPool, as extra state updates there need to be managed
    * @param user The address receiving the minted tokens
    * @param amount The amount of tokens getting minted
    * @param index The new liquidity index of the reserve
@@ -168,7 +168,7 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
 
   /**
    * @dev Mints bTokens to the reserve treasury
-   * - Only callable by the LendingPool
+   * - Only callable by the LendPool
    * @param amount The amount of tokens getting minted
    * @param index The new liquidity index of the reserve
    */
@@ -282,7 +282,7 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
   }
 
   /**
-   * @dev Transfers the underlying asset to `target`. Used by the LendingPool to transfer
+   * @dev Transfers the underlying asset to `target`. Used by the LendPool to transfer
    * assets in borrow(), withdraw() and flashLoan()
    * @param target The recipient of the bTokens
    * @param amount The amount getting transferred

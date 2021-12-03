@@ -48,6 +48,19 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       .borrow(weth.address, amountBorrow.toString(), bayc.address, "101", user1.address, "0");
   });
 
+  it("User 1 auction on a non-active NFT", async () => {
+    const { configurator, bayc, pool, users } = testEnv;
+    const user1 = users[1];
+
+    await configurator.deactivateNft(bayc.address);
+
+    await expect(pool.connect(user1.signer).auction(bayc.address, "101", "0", user1.address)).to.be.revertedWith(
+      ProtocolErrors.VL_NO_ACTIVE_NFT
+    );
+
+    await configurator.activateNft(bayc.address);
+  });
+
   it("User 1 liquidate on a non-active NFT", async () => {
     const { configurator, bayc, pool, users } = testEnv;
     const user1 = users[1];
@@ -77,17 +90,19 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
   */
 
-  it("User 1 liquidate on a loan health factor above 1", async () => {
+  it("User 1 auction on a loan health factor above 1", async () => {
     const { configurator, weth, bayc, pool, users } = testEnv;
     const user0 = users[0];
     const user1 = users[1];
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", user1.address)).to.be.revertedWith(
-      ProtocolErrors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE
-    );
+    const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
+
+    await expect(
+      pool.connect(user1.signer).auction(bayc.address, "101", liquidatePrice, user1.address)
+    ).to.be.revertedWith(ProtocolErrors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
   });
 
-  it("User 1 liquidate on a loan health factor below 1, but price unable to cover borrow", async () => {
+  it("User 1 auction on a loan health factor below 1, but price unable to cover borrow", async () => {
     const { configurator, weth, bayc, nftOracle, pool, users } = testEnv;
     const user0 = users[0];
     const user1 = users[1];
@@ -101,8 +116,10 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       latestTime.add(1)
     );
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", user1.address)).to.be.revertedWith(
-      ProtocolErrors.LP_PRICE_TOO_LOW_TO_LIQUIDATE
-    );
+    const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
+
+    await expect(
+      pool.connect(user1.signer).auction(bayc.address, "101", liquidatePrice, user1.address)
+    ).to.be.revertedWith(ProtocolErrors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
   });
 });

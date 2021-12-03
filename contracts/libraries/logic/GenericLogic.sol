@@ -199,7 +199,7 @@ library GenericLogic {
     uint256 reservePriceInETH;
     uint256 thresholdPrice;
     uint256 liquidatePrice;
-    uint256 paybackAmount;
+    uint256 borrowAmount;
   }
 
   function calculateLoanLiquidatePrice(
@@ -228,13 +228,13 @@ library GenericLogic {
      *  <       Borrowing with Interest        <
      * CR: Callteral Ratio;
      * LH: Liquidate Threshold;
-     * Liquidate Trigger: Borrowing with Interest (paybackAmount) > thresholdPrice;
+     * Liquidate Trigger: Borrowing with Interest > thresholdPrice;
      * Liquidate Price: (100% - BonusRatio) * NFT Price;
      */
 
     vars.reserveDecimals = reserveData.configuration.getDecimals();
 
-    vars.paybackAmount = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanId);
+    vars.borrowAmount = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanId);
 
     (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getCollateralParams();
 
@@ -247,6 +247,6 @@ library GenericLogic {
 
     vars.liquidatePrice = vars.nftPriceInReserve.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
 
-    return (vars.paybackAmount, vars.thresholdPrice, vars.liquidatePrice);
+    return (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice);
   }
 }

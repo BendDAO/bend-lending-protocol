@@ -97,7 +97,5 @@ library DataTypes {
     address bidLiquidator;
     //price of higest bid
     uint256 bidPrice;
-    //payback amount
-    uint256 bidPaybackAmount;
   }
 }

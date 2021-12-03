@@ -154,7 +154,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     expect(reserveFactor).to.be.equal(1000);
   });
 
-  it("Check the onlyLendingPoolManager on setReserveFactor", async () => {
+  it("Check the onlyLendPoolManager on setReserveFactor", async () => {
     const { configurator, users, weth } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setReserveFactor(weth.address, "2000"),

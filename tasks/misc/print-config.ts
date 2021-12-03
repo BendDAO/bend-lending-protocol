@@ -55,7 +55,16 @@ task("print-config", "Print config of all reserves and nfts")
       });
     }
 
-    const nftFields = ["ltv", "liquidationThreshold", "liquidationBonus", "isActive", "isFrozen"];
+    const nftFields = [
+      "ltv",
+      "liquidationThreshold",
+      "liquidationBonus",
+      "redeemDuration",
+      "auctionDuration",
+      "redeemFine",
+      "isActive",
+      "isFrozen",
+    ];
     const nftTokensFields = ["bNftSymbol", "bNftAddress"];
     const nftsAsset = getParamPerNetwork(poolConfig.NftsAssets, network as eNetwork);
     for (const [symbol, address] of Object.entries(nftsAsset)) {

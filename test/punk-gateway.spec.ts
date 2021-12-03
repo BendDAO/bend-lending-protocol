@@ -3,9 +3,9 @@ import { BigNumber as BN } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT, oneEther } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
-import { getNowTimeInSeconds, waitForTx } from "../helpers/misc-utils";
+import { getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import { ERC721Factory } from "../types";
 import {
@@ -247,6 +247,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
 
+    const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
+
     // borrow eth, health factor above 1
     const poolLoanDataBefore = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
 
@@ -288,8 +290,12 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await waitForTx(
       await punkGateway
         .connect(liquidator.signer)
-        .liquidateETH(punkIndex, liquidator.address, { value: liquidateAmountSend })
+        .auctionETH(punkIndex, liquidator.address, { value: liquidateAmountSend })
     );
+
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+
+    await waitForTx(await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex, liquidator.address));
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");

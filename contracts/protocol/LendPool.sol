@@ -36,8 +36,8 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
  *   # Withdraw
  *   # Borrow
  *   # Repay
- *   # Liquidate positions
- *   # Execute Flash Loans
+ *   # Auction
+ *   # Liquidate
  * - To be covered by a proxy contract, owned by the LendPoolAddressesProvider of the specific market
  * - All admin functions are callable by the LendPoolConfigurator contract defined also in the
  *   LendPoolAddressesProvider
@@ -174,6 +174,21 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     return amountToWithdraw;
   }
 
+  struct ExecuteBorrowLocalVars {
+    address user;
+    uint256 ltv;
+    uint256 liquidationThreshold;
+    uint256 liquidationBonus;
+    uint256 amountInETH;
+    uint256 reservePrice;
+    uint256 nftPrice;
+    uint256 thresholdPrice;
+    uint256 loanId;
+    address reserveOracle;
+    address nftOracle;
+    address loanAddress;
+  }
+
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset
    * - E.g. User borrows 100 USDC, receiving the 100 USDC in his wallet
@@ -197,25 +212,73 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   ) external override whenNotPaused {
     require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
 
-    DataTypes.ReserveData storage reserve = _reserves[asset];
+    ExecuteBorrowLocalVars memory vars;
+    vars.user = _msgSender();
+
+    DataTypes.ReserveData storage reserveData = _reserves[asset];
     DataTypes.NftData storage nftData = _nfts[nftAsset];
 
-    require(reserve.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
-    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    reserveData.updateState();
 
-    _executeBorrow(
-      ExecuteBorrowParams(
-        _msgSender(),
+    // Convert asset amount to ETH
+    vars.reserveOracle = _addressesProvider.getReserveOracle();
+    vars.nftOracle = _addressesProvider.getNFTOracle();
+    vars.loanAddress = _addressesProvider.getLendPoolLoan();
+
+    vars.reservePrice = IReserveOracleGetter(vars.reserveOracle).getAssetPrice(asset);
+    vars.amountInETH = (vars.reservePrice * amount) / 10**reserveData.configuration.getDecimals();
+
+    vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(nftAsset, nftTokenId);
+
+    ValidationLogic.validateBorrow(
+      onBehalfOf,
+      asset,
+      amount,
+      vars.amountInETH,
+      reserveData,
+      nftAsset,
+      nftData,
+      vars.loanAddress,
+      vars.loanId,
+      vars.reserveOracle,
+      vars.nftOracle
+    );
+
+    if (vars.loanId == 0) {
+      IERC721Upgradeable(nftAsset).safeTransferFrom(_msgSender(), address(this), nftTokenId);
+
+      vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
+        vars.user,
         onBehalfOf,
-        asset,
-        amount,
-        reserve.bTokenAddress,
         nftAsset,
         nftTokenId,
         nftData.bNftAddress,
-        referralCode,
-        true
-      )
+        asset,
+        amount,
+        reserveData.variableBorrowIndex
+      );
+    } else {
+      ILendPoolLoan(vars.loanAddress).updateLoan(vars.user, vars.loanId, amount, 0, reserveData.variableBorrowIndex);
+    }
+
+    IDebtToken(reserveData.debtTokenAddress).mint(onBehalfOf, amount, reserveData.variableBorrowIndex);
+
+    // update interest rate according latest borrow amount (utilizaton)
+    reserveData.updateInterestRates(asset, reserveData.bTokenAddress, 0, amount);
+
+    IBToken(reserveData.bTokenAddress).transferUnderlyingTo(vars.user, amount);
+
+    emit Borrow(
+      asset,
+      vars.user,
+      onBehalfOf,
+      amount,
+      nftAsset,
+      nftTokenId,
+      reserveData.currentVariableBorrowRate,
+      vars.loanId,
+      referralCode
     );
   }
 
@@ -227,9 +290,10 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     bool isUpdate;
     uint256 borrowDebt;
     uint256 halfDebt;
-    uint256 paybackAmount;
+    uint256 repayAmount;
     uint256 bidFine;
     uint256 bidPriceAndFine;
+    uint256 redeemEndTimestamp;
   }
 
   /**
@@ -255,24 +319,20 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     vars.repayer = _msgSender();
 
-    DataTypes.ReserveData storage reserve = _reserves[loanData.reserveAsset];
+    DataTypes.ReserveData storage reserveData = _reserves[loanData.reserveAsset];
     DataTypes.NftData storage nftData = _nfts[loanData.nftAsset];
-    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
-    require(reserve.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserve.updateState();
+    reserveData.updateState();
 
     vars.borrowDebt = ILendPoolLoan(vars.poolLoan).getLoanReserveBorrowAmount(vars.loanId);
 
-    ValidationLogic.validateRepay(reserve, amount, vars.borrowDebt);
+    ValidationLogic.validateRepay(reserveData, nftData, amount, vars.borrowDebt);
 
     // If loan state is Auction, borrower need repay half debt at least and penalty fine
     if (loanData.state == DataTypes.LoanState.Auction) {
-      require(
-        block.timestamp <= (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration()),
-        Errors.LPL_BID_DURATION_EXCEED
-      );
+      vars.redeemEndTimestamp = (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration() * 1 days);
+      require(block.timestamp <= vars.redeemEndTimestamp, Errors.LPL_BID_DURATION_EXCEED);
 
       vars.halfDebt = vars.borrowDebt.percentMul(PercentageMath.HALF_PERCENT);
 
@@ -280,46 +340,54 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       require(amount >= (vars.halfDebt + vars.bidFine), Errors.LPL_BID_REPAY_AMOUNT_TOO_SMALL);
 
       vars.bidPriceAndFine = loanData.bidPrice + vars.bidFine;
+
+      ILendPoolLoan(vars.poolLoan).undoAuctionLoan(loanData.borrower, vars.loanId);
     }
 
-    vars.paybackAmount = vars.borrowDebt + vars.bidFine;
+    vars.repayAmount = vars.borrowDebt + vars.bidFine;
     vars.isUpdate = false;
-    if (amount < vars.paybackAmount) {
+    if (amount < vars.repayAmount) {
       vars.isUpdate = true;
-      vars.paybackAmount = amount;
+      vars.repayAmount = amount;
     }
+    vars.repayAmount = vars.repayAmount - vars.bidFine;
 
     if (vars.isUpdate) {
       ILendPoolLoan(vars.poolLoan).updateLoan(
         loanData.borrower,
         vars.loanId,
         0,
-        vars.paybackAmount,
-        reserve.variableBorrowIndex
+        vars.repayAmount,
+        reserveData.variableBorrowIndex
       );
     } else {
       ILendPoolLoan(vars.poolLoan).repayLoan(
         loanData.borrower,
         vars.loanId,
         nftData.bNftAddress,
-        reserve.variableBorrowIndex
+        reserveData.variableBorrowIndex
       );
     }
 
-    IDebtToken(reserve.debtTokenAddress).burn(loanData.borrower, vars.paybackAmount, reserve.variableBorrowIndex);
+    IDebtToken(reserveData.debtTokenAddress).burn(loanData.borrower, vars.repayAmount, reserveData.variableBorrowIndex);
 
     // update interest rate according latest borrow amount (utilizaton)
-    reserve.updateInterestRates(loanData.reserveAsset, reserve.bTokenAddress, vars.paybackAmount, 0);
+    reserveData.updateInterestRates(
+      loanData.reserveAsset,
+      reserveData.bTokenAddress,
+      vars.repayAmount,
+      vars.bidPriceAndFine
+    );
 
-    IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(vars.repayer, reserve.bTokenAddress, vars.paybackAmount);
+    IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
+      vars.repayer,
+      reserveData.bTokenAddress,
+      vars.repayAmount
+    );
 
-    // Transfer bid price and penalty fine to liquidator
-    if (loanData.state == DataTypes.LoanState.Auction) {
-      IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
-        reserve.bTokenAddress,
-        loanData.bidLiquidator,
-        vars.bidPriceAndFine
-      );
+    // Return back bid price and penalty fine to latest liquidator
+    if (vars.bidPriceAndFine > 0) {
+      IBToken(reserveData.bTokenAddress).transferUnderlyingTo(loanData.bidLiquidator, vars.bidPriceAndFine);
     }
 
     emit Repay(
@@ -328,11 +396,11 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       loanData.reserveAsset,
       loanData.borrower,
       vars.repayer,
-      vars.paybackAmount,
+      vars.repayAmount,
       vars.loanId
     );
 
-    return (vars.paybackAmount, !vars.isUpdate);
+    return (vars.repayAmount, !vars.isUpdate);
   }
 
   struct AuctionLocalVars {
@@ -341,9 +409,8 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 loanId;
     uint256 thresholdPrice;
     uint256 liquidatePrice;
-    uint256 paybackAmount;
-    address previousBidUser;
-    uint256 previousBidPrice;
+    uint256 borrowAmount;
+    uint256 auctionEndTimestamp;
   }
 
   /**
@@ -375,12 +442,13 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     DataTypes.ReserveData storage reserveData = _reserves[loanData.reserveAsset];
     DataTypes.NftData storage nftData = _nfts[loanData.nftAsset];
-    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
-    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
     ValidationLogic.validateAuction(reserveData, nftData, bidPrice);
 
-    (vars.paybackAmount, vars.thresholdPrice, vars.liquidatePrice) = GenericLogic.calculateLoanLiquidatePrice(
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    reserveData.updateState();
+
+    (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice) = GenericLogic.calculateLoanLiquidatePrice(
       vars.loanId,
       loanData.reserveAsset,
       reserveData,
@@ -394,29 +462,30 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     // first bid need more check
     if (loanData.state == DataTypes.LoanState.Active) {
       // only loan's heath factor below 1.0 can be liquidated
-      require(vars.paybackAmount > vars.thresholdPrice, Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
+      require(vars.borrowAmount > vars.thresholdPrice, Errors.LP_PRICE_TOO_HIGH_TO_LIQUIDATE);
+
       // liquidate price must greater than total debt with interest
-      require(vars.liquidatePrice >= vars.paybackAmount, Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
+      require(vars.liquidatePrice >= vars.borrowAmount, Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
 
       // bid price must greater than liquidate price
       require(bidPrice >= vars.liquidatePrice, Errors.LP_PRICE_TOO_LOW_TO_LIQUIDATE);
     } else {
-      require(
-        block.timestamp <= loanData.bidStartTimestamp + nftData.configuration.getAuctionDuration(),
-        Errors.LPL_BID_DURATION_EXCEED
-      );
+      vars.auctionEndTimestamp = loanData.bidStartTimestamp + (nftData.configuration.getAuctionDuration() * 1 days);
+      require(block.timestamp <= vars.auctionEndTimestamp, Errors.LPL_BID_DURATION_EXCEED);
+
       require(bidPrice > loanData.bidPrice, Errors.LPL_BID_PRICE_TOO_LOW);
     }
 
-    ILendPoolLoan(vars.loanAddress).auctionLoan(onBehalfOf, vars.loanId, bidPrice, vars.paybackAmount);
+    ILendPoolLoan(vars.loanAddress).auctionLoan(onBehalfOf, vars.loanId, bidPrice);
+
+    // update interest rate according latest borrow amount (utilizaton)
+    reserveData.updateInterestRates(loanData.reserveAsset, reserveData.bTokenAddress, bidPrice, loanData.bidPrice);
 
     IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(vars.liquidator, reserveData.bTokenAddress, bidPrice);
-    if (vars.previousBidUser != address(0)) {
-      IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
-        reserveData.bTokenAddress,
-        vars.previousBidUser,
-        vars.previousBidPrice
-      );
+
+    // return back to previous bid liquidator
+    if (loanData.bidLiquidator != address(0)) {
+      IBToken(reserveData.bTokenAddress).transferUnderlyingTo(loanData.bidLiquidator, loanData.bidPrice);
     }
 
     emit Auction(nftAsset, nftTokenId, bidPrice, vars.liquidator, onBehalfOf, vars.loanId);
@@ -426,7 +495,11 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     address poolLoan;
     address liquidator;
     uint256 loanId;
+    uint256 borrowAmount;
+    uint256 thresholdPrice;
+    uint256 liquidatePrice;
     uint256 remainAmount;
+    uint256 auctionEndTimestamp;
   }
 
   /**
@@ -455,25 +528,28 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     DataTypes.ReserveData storage reserveData = _reserves[loanData.reserveAsset];
     DataTypes.NftData storage nftData = _nfts[loanData.nftAsset];
-    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
-    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
-    require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
-    require(
-      block.timestamp > loanData.bidStartTimestamp + nftData.configuration.getAuctionDuration(),
-      Errors.LPL_BID_DURATION_EXCEED
-    );
-    require(onBehalfOf == loanData.bidLiquidator, Errors.LPL_BID_USER_NOT_SAME);
+    ValidationLogic.validateLiquidate(reserveData, nftData, loanData, onBehalfOf);
 
-    ValidationLogic.validateLiquidate(reserveData, nftData, loanData.bidPaybackAmount);
+    vars.auctionEndTimestamp = loanData.bidStartTimestamp + (nftData.configuration.getAuctionDuration() * 1 days);
+    require(block.timestamp > vars.auctionEndTimestamp, Errors.LPL_BID_DURATION_EXCEED);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
     reserveData.updateState();
 
-    if (loanData.bidPrice > loanData.bidPaybackAmount) {
-      vars.remainAmount = loanData.bidPrice - loanData.bidPaybackAmount;
-    } else {
-      vars.remainAmount = 0;
+    (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice) = GenericLogic.calculateLoanLiquidatePrice(
+      vars.loanId,
+      loanData.reserveAsset,
+      reserveData,
+      loanData.nftAsset,
+      nftData,
+      vars.poolLoan,
+      _addressesProvider.getReserveOracle(),
+      _addressesProvider.getNFTOracle()
+    );
+
+    if (loanData.bidPrice > vars.borrowAmount) {
+      vars.remainAmount = loanData.bidPrice - vars.borrowAmount;
     }
 
     ILendPoolLoan(vars.poolLoan).liquidateLoan(
@@ -485,20 +561,16 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     IDebtToken(reserveData.debtTokenAddress).burn(
       loanData.borrower,
-      loanData.bidPaybackAmount,
+      vars.borrowAmount,
       reserveData.variableBorrowIndex
     );
 
     // update interest rate according latest borrow amount (utilizaton)
-    reserveData.updateInterestRates(loanData.reserveAsset, reserveData.bTokenAddress, loanData.bidPaybackAmount, 0);
+    reserveData.updateInterestRates(loanData.reserveAsset, reserveData.bTokenAddress, 0, vars.remainAmount);
 
     // transfer remain amount to borrower, liquidator's tokens has been transfer to reserve in auction bid phase
     if (vars.remainAmount > 0) {
-      IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
-        reserveData.bTokenAddress,
-        loanData.borrower,
-        vars.remainAmount
-      );
+      IBToken(reserveData.bTokenAddress).transferUnderlyingTo(loanData.borrower, vars.remainAmount);
     }
 
     emit Liquidate(
@@ -506,7 +578,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       loanData.nftTokenId,
       loanData.borrower,
       loanData.reserveAsset,
-      loanData.bidPaybackAmount,
+      vars.borrowAmount,
       vars.remainAmount,
       vars.liquidator,
       loanData.bidLiquidator,
@@ -757,7 +829,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   }
 
   /**
-   * @dev Returns if the LendingPool is paused
+   * @dev Returns if the LendPool is paused
    */
   function paused() external view override returns (bool) {
     return _paused;
@@ -795,7 +867,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   /**
    * @dev Initializes a reserve, activating it, assigning an bToken and nft loan and an
    * interest rate strategy
-   * - Only callable by the LendingPoolConfigurator contract
+   * - Only callable by the LendPoolConfigurator contract
    * @param asset The address of the underlying asset of the reserve
    * @param bTokenAddress The address of the bToken that will be assigned to the reserve
    * @param debtTokenAddress The address of the debtToken that will be assigned to the reserve
@@ -815,7 +887,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   /**
    * @dev Initializes a nft, activating it, assigning nft loan and an
    * interest rate strategy
-   * - Only callable by the LendingPoolConfigurator contract
+   * - Only callable by the LendPoolConfigurator contract
    * @param asset The address of the underlying asset of the nft
    **/
   function initNft(address asset, address bNftAddress) external override onlyLendPoolConfigurator {
@@ -891,109 +963,5 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
       _nftsCount = nftsCount + 1;
     }
-  }
-
-  struct ExecuteBorrowParams {
-    address user;
-    address onBehalfOf;
-    address asset;
-    uint256 amount;
-    address bTokenAddress;
-    address nftAsset;
-    uint256 nftTokenId;
-    address bNftAddress;
-    uint16 referralCode;
-    bool releaseUnderlying;
-  }
-
-  struct ExecuteBorrowLocalVars {
-    uint256 ltv;
-    uint256 liquidationThreshold;
-    uint256 liquidationBonus;
-    uint256 amountInETH;
-    uint256 reservePrice;
-    uint256 nftPrice;
-    uint256 thresholdPrice;
-    uint256 loanId;
-    address reserveOracle;
-    address nftOracle;
-    address loanAddress;
-  }
-
-  function _executeBorrow(ExecuteBorrowParams memory params) internal {
-    DataTypes.ReserveData storage reserve = _reserves[params.asset];
-    DataTypes.NftData storage nftData = _nfts[params.nftAsset];
-    ExecuteBorrowLocalVars memory vars;
-
-    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserve.updateState();
-
-    // Convert asset amount to ETH
-    vars.reserveOracle = _addressesProvider.getReserveOracle();
-    vars.nftOracle = _addressesProvider.getNFTOracle();
-    vars.loanAddress = _addressesProvider.getLendPoolLoan();
-
-    vars.reservePrice = IReserveOracleGetter(vars.reserveOracle).getAssetPrice(params.asset);
-    vars.amountInETH = (vars.reservePrice * params.amount) / 10**reserve.configuration.getDecimals();
-
-    vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(params.nftAsset, params.nftTokenId);
-
-    ValidationLogic.validateBorrow(
-      params.onBehalfOf,
-      params.asset,
-      params.amount,
-      vars.amountInETH,
-      reserve,
-      params.nftAsset,
-      nftData,
-      vars.loanAddress,
-      vars.loanId,
-      vars.reserveOracle,
-      vars.nftOracle
-    );
-
-    if (vars.loanId == 0) {
-      IERC721Upgradeable(params.nftAsset).safeTransferFrom(_msgSender(), address(this), params.nftTokenId);
-
-      vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
-        params.user,
-        params.onBehalfOf,
-        params.nftAsset,
-        params.nftTokenId,
-        params.bNftAddress,
-        params.asset,
-        params.amount,
-        reserve.variableBorrowIndex
-      );
-    } else {
-      ILendPoolLoan(vars.loanAddress).updateLoan(
-        params.user,
-        vars.loanId,
-        params.amount,
-        0,
-        reserve.variableBorrowIndex
-      );
-    }
-
-    IDebtToken(reserve.debtTokenAddress).mint(params.onBehalfOf, params.amount, reserve.variableBorrowIndex);
-
-    // update interest rate according latest borrow amount (utilizaton)
-    reserve.updateInterestRates(params.asset, params.bTokenAddress, 0, params.releaseUnderlying ? params.amount : 0);
-
-    if (params.releaseUnderlying) {
-      IBToken(params.bTokenAddress).transferUnderlyingTo(params.user, params.amount);
-    }
-
-    emit Borrow(
-      params.asset,
-      params.user,
-      params.onBehalfOf,
-      params.amount,
-      params.nftAsset,
-      params.nftTokenId,
-      reserve.currentVariableBorrowRate,
-      vars.loanId,
-      params.referralCode
-    );
   }
 }

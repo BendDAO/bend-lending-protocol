@@ -115,7 +115,7 @@ interface IBToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgra
   function mintToTreasury(uint256 amount, uint256 index) external;
 
   /**
-   * @dev Transfers the underlying asset to `target`. Used by the LendingPool to transfer
+   * @dev Transfers the underlying asset to `target`. Used by the LendPool to transfer
    * assets in borrow(), withdraw() and flashLoan()
    * @param user The recipient of the underlying
    * @param amount The amount getting transferred

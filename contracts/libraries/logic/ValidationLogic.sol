@@ -81,7 +81,7 @@ library ValidationLogic {
    * @dev Validates a borrow action
    * @param reserveAsset The address of the asset to borrow
    * @param amount The amount to be borrowed
-   * @param reserve The reserve state from which the user is borrowing
+   * @param reserveData The reserve state from which the user is borrowing
    * @param nftData The state of the user for the specific nft
    */
   function validateBorrow(
@@ -89,7 +89,7 @@ library ValidationLogic {
     address reserveAsset,
     uint256 amount,
     uint256 amountInETH,
-    DataTypes.ReserveData storage reserve,
+    DataTypes.ReserveData storage reserveData,
     address nftAsset,
     DataTypes.NftData storage nftData,
     address loanAddress,
@@ -99,6 +99,8 @@ library ValidationLogic {
   ) external view {
     ValidateBorrowLocalVars memory vars;
 
+    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(amount != 0, Errors.VL_INVALID_AMOUNT);
 
     if (loanId != 0) {
@@ -108,7 +110,7 @@ library ValidationLogic {
       require(reserveAsset == vars.loanReserveAsset, Errors.VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER);
     }
 
-    (vars.isActive, vars.isFrozen, vars.borrowingEnabled, vars.stableRateBorrowingEnabled) = reserve
+    (vars.isActive, vars.isFrozen, vars.borrowingEnabled, vars.stableRateBorrowingEnabled) = reserveData
       .configuration
       .getFlags();
     require(vars.isActive, Errors.VL_NO_ACTIVE_RESERVE);
@@ -127,7 +129,7 @@ library ValidationLogic {
       vars.healthFactor
     ) = GenericLogic.calculateLoanData(
       reserveAsset,
-      reserve,
+      reserveData,
       nftAsset,
       nftData,
       loanAddress,
@@ -155,16 +157,20 @@ library ValidationLogic {
 
   /**
    * @dev Validates a repay action
-   * @param reserve The reserve state from which the user is repaying
+   * @param reserveData The reserve state from which the user is repaying
    * @param amountSent The amount sent for the repayment. Can be an actual value or uint(-1)
    * @param variableDebt The borrow balance of the user
    */
   function validateRepay(
-    DataTypes.ReserveData storage reserve,
+    DataTypes.ReserveData storage reserveData,
+    DataTypes.NftData storage nftData,
     uint256 amountSent,
     uint256 variableDebt
   ) external view {
-    bool isActive = reserve.configuration.getActive();
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
+
+    bool isActive = reserveData.configuration.getActive();
 
     require(isActive, Errors.VL_NO_ACTIVE_RESERVE);
 
@@ -175,16 +181,19 @@ library ValidationLogic {
 
   /**
    * @dev Validates the auction action
-   * @param principalReserve The reserve data of the principal
-   * @param nftData The NFT configuration
+   * @param reserveData The reserve data of the principal
+   * @param nftData The nft data of the underlying nft
    * @param bidPrice Total variable debt balance of the user
    **/
   function validateAuction(
-    DataTypes.ReserveData storage principalReserve,
+    DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
     uint256 bidPrice
   ) internal view {
-    require(principalReserve.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
+
+    require(reserveData.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
 
     require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
@@ -193,20 +202,26 @@ library ValidationLogic {
 
   /**
    * @dev Validates the liquidation action
-   * @param principalReserve The reserve data of the principal
-   * @param nftData The NFT configuration
-   * @param paybackAmount Total variable debt balance of the user
+   * @param reserveData The reserve data of the principal
+   * @param nftData The data of the underlying NFT
+   * @param loanData The loan data of the underlying NFT
    **/
   function validateLiquidate(
-    DataTypes.ReserveData storage principalReserve,
+    DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
-    uint256 paybackAmount
+    DataTypes.LoanData memory loanData,
+    address onBehalfOf
   ) internal view {
-    require(principalReserve.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
+
+    require(reserveData.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
 
     require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
-    require(paybackAmount > 0, Errors.VL_INVALID_AMOUNT);
+    require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
+
+    require(onBehalfOf == loanData.bidLiquidator, Errors.LPL_BID_USER_NOT_SAME);
   }
 
   /**

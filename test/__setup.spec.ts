@@ -1,5 +1,6 @@
 import rawBRE from "hardhat";
 import { MockContract } from "ethereum-waffle";
+import "./helpers/utils/math";
 import { insertContractAddressInDb, registerContractInJsonDb } from "../helpers/contracts-helpers";
 import {
   deployLendPoolAddressesProvider,
