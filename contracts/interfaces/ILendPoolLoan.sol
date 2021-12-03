@@ -65,6 +65,18 @@ interface ILendPoolLoan {
   );
 
   /**
+   * @dev Emitted when a loan is undo auction by the borrower
+   */
+  event LoanUndoAuctioned(
+    address indexed user,
+    uint256 indexed loanId,
+    address nftAsset,
+    uint256 nftTokenId,
+    address previousUser,
+    uint256 previousPrice
+  );
+
+  /**
    * @dev Emitted when a loan is liquidate by the liquidator
    */
   event LoanLiquidated(
@@ -142,14 +154,23 @@ interface ILendPoolLoan {
    * @param user The user receiving the returned underlying asset
    * @param loanId The loan getting auctioned
    * @param price The bid price of this auction
-   * @param amount The payback amount of the loan
    */
   function auctionLoan(
     address user,
     uint256 loanId,
-    uint256 price,
-    uint256 amount
+    uint256 price
   ) external;
+
+  /**
+   * @dev Undo auction the given loan
+   *
+   * Requirements:
+   *  - The loan must be in state Auction
+   *
+   * @param user The user receiving the returned underlying asset
+   * @param loanId The loan getting auctioned
+   */
+  function undoAuctionLoan(address user, uint256 loanId) external;
 
   /**
    * @dev Liquidate the given loan

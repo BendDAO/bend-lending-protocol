@@ -9,7 +9,7 @@ import {BendUpgradeableProxy} from "../libraries/proxy/BendUpgradeableProxy.sol"
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title LendingPoolAddressesProvider contract
+ * @title LendPoolAddressesProvider contract
  * @dev Main registry of addresses part of or connected to the protocol, including permissioned roles
  * - Acting also as factory of proxies and admin of those, so with right to change its implementations
  * - Owned by the Bend Governance
@@ -42,7 +42,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   }
 
   /**
-   * @dev Allows to set the market which this LendingPoolAddressesProvider represents
+   * @dev Allows to set the market which this LendPoolAddressesProvider represents
    * @param marketId The market id
    */
   function setMarketId(string memory marketId) external override onlyOwner {

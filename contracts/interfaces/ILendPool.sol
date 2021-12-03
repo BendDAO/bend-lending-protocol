@@ -122,8 +122,8 @@ interface ILendPool {
   /**
    * @dev Emitted when the state of a reserve is updated. NOTE: This event is actually declared
    * in the ReserveLogic library and emitted in the updateInterestRates() function. Since the function is internal,
-   * the event will actually be fired by the LendingPool contract. The event is therefore replicated here so it
-   * gets added to the LendingPool ABI
+   * the event will actually be fired by the LendPool contract. The event is therefore replicated here so it
+   * gets added to the LendPool ABI
    * @param reserve The address of the underlying asset of the reserve
    * @param liquidityRate The new liquidity rate
    * @param variableBorrowRate The new variable borrow rate
@@ -325,13 +325,13 @@ interface ILendPool {
 
   /**
    * @dev Set the _pause state of a reserve
-   * - Only callable by the LendingPoolConfigurator contract
+   * - Only callable by the LendPool contract
    * @param val `true` to pause the reserve, `false` to un-pause it
    */
   function setPause(bool val) external;
 
   /**
-   * @dev Returns if the LendingPool is paused
+   * @dev Returns if the LendPool is paused
    */
   function paused() external view returns (bool);
 

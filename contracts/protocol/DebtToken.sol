@@ -143,7 +143,7 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
 
   /**
    * @dev Burns user variable debt
-   * - Only callable by the LendingPool
+   * - Only callable by the LendPool
    * @param user The user whose debt is getting burned
    * @param amount The amount getting burned
    * @param index The variable debt index of the reserve

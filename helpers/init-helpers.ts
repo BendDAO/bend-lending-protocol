@@ -246,6 +246,7 @@ export const configureReservesByHelper = async (
     borrowingEnabled: boolean;
   }[] = [];
 
+  console.log(`- Configure Reserves`);
   for (const [assetSymbol, { reserveFactor, borrowingEnabled }] of Object.entries(reservesParams) as [
     string,
     IReserveParams
@@ -267,6 +268,8 @@ export const configureReservesByHelper = async (
 
     tokens.push(tokenAddress);
     symbols.push(assetSymbol);
+
+    console.log(`  - Params for ${assetSymbol}:`, reserveFactor, borrowingEnabled);
   }
   if (tokens.length) {
     // Set helpDeployer as temporal admin
@@ -307,6 +310,7 @@ export const configureNftsByHelper = async (
     redeemFine: BigNumberish;
   }[] = [];
 
+  console.log(`- Configure NFTs`);
   for (const [
     assetSymbol,
     { baseLTVAsCollateral, liquidationBonus, liquidationThreshold, redeemDuration, auctionDuration, redeemFine },
@@ -333,6 +337,16 @@ export const configureNftsByHelper = async (
 
     tokens.push(tokenAddress);
     symbols.push(assetSymbol);
+
+    console.log(
+      `  - Params for ${assetSymbol}:`,
+      baseLTVAsCollateral,
+      liquidationThreshold,
+      liquidationBonus,
+      redeemDuration,
+      auctionDuration,
+      redeemFine
+    );
   }
   if (tokens.length) {
     // Set helpDeployer as temporal admin

@@ -4,10 +4,10 @@ import { parseEther } from "ethers/lib/utils";
 import DRE from "hardhat";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT, oneEther } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
 import { deploySelfdestructTransferMock } from "../helpers/contracts-deployments";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
-import { getNowTimeInSeconds, waitForTx } from "../helpers/misc-utils";
+import { getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import {
   borrow,
@@ -382,7 +382,9 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await setApprovalForAll(testEnv, user, "BAYC");
     await setApprovalForAllWETHGateway(testEnv, user, "BAYC");
 
-    const poolLoanDataBefore = await pool.getNftLoanData(bayc.address, tokenId);
+    const nftCfgData = await dataProvider.getNftConfigurationData(nftAsset);
+
+    const poolLoanDataBefore = await pool.getNftLoanData(nftAsset, tokenId);
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
     const amountBorrow = await convertToCurrencyDecimals(
@@ -420,8 +422,12 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await waitForTx(
       await wethGateway
         .connect(liquidator.signer)
-        .liquidateETH(nftAsset, tokenId, liquidator.address, { value: liquidateAmountSend })
+        .auctionETH(nftAsset, tokenId, liquidator.address, { value: liquidateAmountSend })
     );
+
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+
+    await waitForTx(await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, liquidator.address));
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");

@@ -173,11 +173,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     DataTypes.LoanData storage loan = _loans[loanId];
 
     // Ensure valid loan state
-    if (loan.bidStartTimestamp == 0) {
-      require(loan.state == DataTypes.LoanState.Active, Errors.LPL_INVALID_LOAN_STATE);
-    } else {
-      require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
-    }
+    require(loan.state == DataTypes.LoanState.Active, Errors.LPL_INVALID_LOAN_STATE);
 
     // state changes and cleanup
     // NOTE: these must be performed before assets are released to prevent reentrance
@@ -205,8 +201,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   function auctionLoan(
     address user,
     uint256 loanId,
-    uint256 price,
-    uint256 amount
+    uint256 price
   ) external override onlyLendPool {
     // Must use storage to change state
     DataTypes.LoanData storage loan = _loans[loanId];
@@ -219,7 +214,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
       loan.state = DataTypes.LoanState.Auction;
       loan.bidStartTimestamp = block.timestamp;
-      loan.bidPaybackAmount = amount;
     } else {
       require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
       require(price > loan.bidPrice, Errors.LPL_BID_PRICE_TOO_LOW);
@@ -229,6 +223,25 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     loan.bidPrice = price;
 
     emit LoanAuctioned(user, loanId, loan.nftAsset, loan.nftTokenId, price, previousLiquidator, previousPrice);
+  }
+
+  /**
+   * @inheritdoc ILendPoolLoan
+   */
+  function undoAuctionLoan(address user, uint256 loanId) external override onlyLendPool {
+    // Must use storage to change state
+    DataTypes.LoanData storage loan = _loans[loanId];
+    address previousLiquidator = loan.bidLiquidator;
+    uint256 previousPrice = loan.bidPrice;
+
+    require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
+
+    loan.state = DataTypes.LoanState.Active;
+    loan.bidStartTimestamp = 0;
+    loan.bidLiquidator = address(0);
+    loan.bidPrice = 0;
+
+    emit LoanUndoAuctioned(user, loanId, loan.nftAsset, loan.nftTokenId, previousLiquidator, previousPrice);
   }
 
   /**

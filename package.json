@@ -16,7 +16,7 @@
     "compile": "SKIP_LOAD=true hardhat compile",
     "test": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 hardhat test ./test/*.spec.ts",
     "test:localhost": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 npm run hardhat:localhost test ./test/*.spec.ts",
-    "test:file": "TS_NODE_TRANSPILE_ONLY=1 hardhat test ./test/__setup.spec.ts",
+    "test:file": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 hardhat test ./test/__setup.spec.ts ./test/${TEST_FILE}",
     "test:subgraph:localhost": "npm run compile && npm run hardhat:localhost test ./test/__setup.spec.ts ./test/subgraph-scenarios.spec.ts",
     "dev:coverage": "hardhat compile --force && hardhat coverage --network coverage",
     "dev:update-abis": "npm run compile && node ./scripts/updateAbis",

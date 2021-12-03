@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
-import { APPROVAL_AMOUNT_LENDING_POOL, oneEther } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
@@ -94,6 +94,8 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
+
     //mints WETH to the liquidator
     await weth.connect(liquidator.signer).mint(await convertToCurrencyDecimals(weth.address, "1000"));
 
@@ -109,7 +111,14 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     // accurate borrow index, increment interest to loanDataBefore.scaledAmount
     await increaseTime(100);
 
-    const tx = await pool.connect(liquidator.signer).liquidate(bayc.address, "101", liquidator.address);
+    const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
+
+    await pool.connect(liquidator.signer).auction(bayc.address, "101", liquidatePrice, liquidator.address);
+
+    // end auction duration
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "101", liquidator.address);
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 
@@ -117,11 +126,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     const ethReserveDataAfter = await dataProvider.getReserveData(weth.address);
 
-    if (!tx.blockNumber) {
-      expect(false, "Invalid block number");
-      return;
-    }
-    const txTimestamp = new BigNumber((await DRE.ethers.provider.getBlock(tx.blockNumber)).timestamp);
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
     const userVariableDebtAmountBeforeTx = new BigNumber(userReserveDataBefore.scaledVariableDebt).rayMul(
       new BigNumber(ethReserveDataAfter.variableBorrowIndex.toString())
@@ -131,8 +136,6 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const expectedLiquidateAmount = new BigNumber(loanDataBefore.scaledAmount.toString()).rayMul(
       new BigNumber(ethReserveDataAfter.variableBorrowIndex.toString())
     );
-
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
     expect(userReserveDataAfter.currentVariableDebt.toString()).to.be.bignumber.almostEqual(
       userVariableDebtAmountBeforeTx.minus(expectedLiquidateAmount).toString(),
@@ -232,6 +235,8 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
+
     //mints USDC to the liquidator
     await usdc.connect(liquidator.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
 
@@ -247,19 +252,19 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     // accurate borrow index, increment interest to loanDataBefore.scaledAmount
     await increaseTime(100);
 
-    const tx = await pool.connect(liquidator.signer).liquidate(bayc.address, "102", liquidator.address);
+    const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "102");
+
+    await pool.connect(liquidator.signer).auction(bayc.address, "102", liquidatePrice, liquidator.address);
+
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "102", liquidator.address);
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 
     const userReserveDataAfter = await getUserData(pool, dataProvider, usdc.address, borrower.address);
 
     const usdcReserveDataAfter = await dataProvider.getReserveData(usdc.address);
-
-    if (!tx.blockNumber) {
-      expect(false, "Invalid block number");
-      return;
-    }
-    const txTimestamp = new BigNumber((await DRE.ethers.provider.getBlock(tx.blockNumber)).timestamp);
 
     const userVariableDebtAmountBeforeTx = new BigNumber(userReserveDataBefore.scaledVariableDebt).rayMul(
       new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
