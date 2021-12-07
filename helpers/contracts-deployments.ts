@@ -1,6 +1,6 @@
 import { Contract } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
-import { DRE, notFalsyOrZeroAddress } from "./misc-utils";
+import { DRE, getDb, notFalsyOrZeroAddress } from "./misc-utils";
 import {
   tEthereumAddress,
   eContractid,
@@ -35,6 +35,7 @@ import {
   LendPoolFactory,
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
+  LendPoolLiquidatorFactory,
   BTokensAndBNFTsHelperFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
@@ -67,6 +68,7 @@ import {
   deployContract,
   verifyContract,
   getOptionalParamAddressPerNetwork,
+  getContractAddressInDb,
 } from "./contracts-helpers";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { LendPoolLibraryAddresses } from "../types/LendPoolFactory";
@@ -162,11 +164,18 @@ export const deployValidationLogic = async (reserveLogic: Contract, genericLogic
   return withSaveAndVerify(validationLogic, eContractid.ValidationLogic, [], verify);
 };
 
-export const deployBendLibraries = async (verify?: boolean): Promise<LendPoolLibraryAddresses> => {
+export const deployBendLibraries = async (verify?: boolean) => {
   const reserveLogic = await deployReserveLogicLibrary(verify);
   const nftLogic = await deployNftLogicLibrary(verify);
   const genericLogic = await deployGenericLogic(reserveLogic, verify);
   const validationLogic = await deployValidationLogic(reserveLogic, genericLogic, verify);
+};
+
+export const getBendLibraries = async (verify?: boolean): Promise<LendPoolLibraryAddresses> => {
+  const reserveLogicAddress = await getContractAddressInDb(eContractid.ReserveLogic);
+  const nftLogicAddress = await getContractAddressInDb(eContractid.NftLogic);
+  const validationLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
+  const genericLogicAddress = await getContractAddressInDb(eContractid.GenericLogic);
 
   // Hardcoded solidity placeholders, if any library changes path this will fail.
   // The '__$PLACEHOLDER$__ can be calculated via solidity keccak, but the LendPoolLibraryAddresses Type seems to
@@ -181,17 +190,24 @@ export const deployBendLibraries = async (verify?: boolean): Promise<LendPoolLib
   // libName example: GenericLogic
   return {
     //["__$4c26be947d349222af871a3168b3fe584b$__"]: genericLogic.address,
-    ["__$5201a97c05ba6aa659e2f36a933dd51801$__"]: validationLogic.address,
-    ["__$d3b4366daeb9cadc7528af6145b50b2183$__"]: reserveLogic.address,
-    ["__$eceb79063fab52ea3826f3ee75ecd7f36d$__"]: nftLogic.address,
+    ["__$5201a97c05ba6aa659e2f36a933dd51801$__"]: validationLogicAddress,
+    ["__$d3b4366daeb9cadc7528af6145b50b2183$__"]: reserveLogicAddress,
+    ["__$eceb79063fab52ea3826f3ee75ecd7f36d$__"]: nftLogicAddress,
   };
 };
 
 export const deployLendPool = async (verify?: boolean) => {
-  const libraries = await deployBendLibraries(verify);
+  const libraries = await getBendLibraries(verify);
   const lendPoolImpl = await new LendPoolFactory(libraries, await getFirstSigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImpl.address);
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
+};
+
+export const deployLendPoolLiquidator = async (verify?: boolean) => {
+  const libraries = await getBendLibraries(verify);
+  const collateralManagerImpl = await new LendPoolLiquidatorFactory(libraries, await getFirstSigner()).deploy();
+  await insertContractAddressInDb(eContractid.LendPoolLiquidatorImpl, collateralManagerImpl.address);
+  return withSaveAndVerify(collateralManagerImpl, eContractid.LendPoolLiquidator, [], verify);
 };
 
 export const deployReserveOracle = async (args: [], verify?: boolean) => {

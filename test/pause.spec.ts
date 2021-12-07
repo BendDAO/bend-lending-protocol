@@ -188,14 +188,24 @@ makeSuite("LendPool: Pause", (testEnv: TestEnv) => {
     );
 
     //mints usdc to the liquidator
-    await weth.mint(await convertToCurrencyDecimals(weth.address, "1000"));
-    await weth.approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
+    await weth.connect(liquidator.signer).mint(await convertToCurrencyDecimals(weth.address, "1000"));
+    await weth.connect(liquidator.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
     // Pause pool
     await configurator.connect(emergencyAdminSigner).setPoolPause(true);
 
+    // Do auction
+    await expect(
+      pool.connect(liquidator.signer).auction(bayc.address, "101", amountBorrow, liquidator.address)
+    ).revertedWith(ProtocolErrors.LP_IS_PAUSED);
+
+    // Do redeem
+    await expect(pool.connect(liquidator.signer).redeem(bayc.address, "101")).revertedWith(ProtocolErrors.LP_IS_PAUSED);
+
     // Do liquidation
-    await expect(pool.liquidate(bayc.address, "101", liquidator.address)).revertedWith(ProtocolErrors.LP_IS_PAUSED);
+    await expect(pool.connect(liquidator.signer).liquidate(bayc.address, "101")).revertedWith(
+      ProtocolErrors.LP_IS_PAUSED
+    );
 
     // Unpause pool
     await configurator.connect(emergencyAdminSigner).setPoolPause(false);

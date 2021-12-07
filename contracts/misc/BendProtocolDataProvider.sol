@@ -210,7 +210,7 @@ contract BendProtocolDataProvider {
       loanData.nftTokenId = data.nftTokenId;
       loanData.reserveAsset = data.reserveAsset;
       loanData.scaledAmount = data.scaledAmount;
-      loanData.currentAmount = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(
+      (, loanData.currentAmount) = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(
         loanData.loanId
       );
     }
@@ -225,6 +225,6 @@ contract BendProtocolDataProvider {
     loanData.nftTokenId = data.nftTokenId;
     loanData.reserveAsset = data.reserveAsset;
     loanData.scaledAmount = data.scaledAmount;
-    loanData.currentAmount = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(loanId);
+    (, loanData.currentAmount) = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(loanId);
   }
 }

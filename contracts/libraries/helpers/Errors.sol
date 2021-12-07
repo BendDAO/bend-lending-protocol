@@ -7,6 +7,13 @@ pragma solidity ^0.8.0;
  * @notice Defines the error messages emitted by the different contracts of the Bend protocol
  */
 library Errors {
+  enum ReturnCode {
+    SUCCESS,
+    FAILED
+  }
+
+  string public constant SUCCESS = "0";
+
   //common errors
   string public constant CALLER_NOT_POOL_ADMIN = "100"; // 'The caller must be the pool admin'
   string public constant CALLER_NOT_ADDRESS_PROVIDER = "101";
@@ -43,24 +50,30 @@ library Errors {
   string public constant LP_IS_PAUSED = "401"; // 'Pool is paused'
   string public constant LP_NO_MORE_RESERVES_ALLOWED = "402";
   string public constant LP_NOT_CONTRACT = "403";
-  string public constant LP_PRICE_TOO_LOW_TO_LIQUIDATE = "404";
-  string public constant LP_PRICE_TOO_HIGH_TO_LIQUIDATE = "405";
+  string public constant LP_BORROW_NOT_EXCEED_LIQUIDATION_THRESHOLD = "404";
+  string public constant LP_BORROW_IS_EXCEED_LIQUIDATION_PRICE = "405";
   string public constant LP_NO_MORE_NFTS_ALLOWED = "406";
   string public constant LP_INVALIED_USER_NFT_AMOUNT = "407";
   string public constant LP_INCONSISTENT_PARAMS = "408";
   string public constant LP_NFT_IS_NOT_USED_AS_COLLATERAL = "409";
   string public constant LP_CALLER_MUST_BE_AN_BTOKEN = "410";
   string public constant LP_INVALIED_NFT_AMOUNT = "411";
+  string public constant LP_NFT_HAS_USED_AS_COLLATERAL = "412";
+  string public constant LP_DELEGATE_CALL_FAILED = "413";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";
   string public constant LPL_INVALID_LOAN_AMOUNT = "481";
   string public constant LPL_INVALID_TAKEN_AMOUNT = "482";
   string public constant LPL_AMOUNT_OVERFLOW = "483";
-  string public constant LPL_BID_PRICE_TOO_LOW = "484";
-  string public constant LPL_BID_DURATION_EXCEED = "485";
-  string public constant LPL_BID_USER_NOT_SAME = "486";
-  string public constant LPL_BID_REPAY_AMOUNT_TOO_SMALL = "487";
+  string public constant LPL_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE = "484";
+  string public constant LPL_BID_PRICE_LESS_THAN_HIGHEST_PRICE = "485";
+  string public constant LPL_BID_REDEEM_DURATION_HAS_END = "486";
+  string public constant LPL_BID_USER_NOT_SAME = "487";
+  string public constant LPL_BID_REPAY_AMOUNT_NOT_ENOUGH = "488";
+  string public constant LPL_BID_AUCTION_DURATION_HAS_END = "489";
+  string public constant LPL_BID_AUCTION_DURATION_NOT_END = "490";
+  string public constant LPL_BID_PRICE_LESS_THAN_BORROW = "491";
 
   //common token errors
   string public constant CT_CALLER_MUST_BE_LEND_POOL = "500"; // 'The caller of this function must be a lending pool'

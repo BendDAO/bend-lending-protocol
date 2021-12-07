@@ -85,7 +85,7 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
     (, , address reserve, ) = _poolLoan.getLoanCollateralAndReserve(loanId);
-    uint256 debt = _poolLoan.getLoanReserveBorrowAmount(loanId);
+    (, uint256 debt) = _poolLoan.getLoanReserveBorrowAmount(loanId);
     address borrower = _poolLoan.borrowerOf(loanId);
 
     if (amount > debt) {
@@ -118,13 +118,15 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     _pool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
-  function liquidate(uint256 punkIndex, address onBehalfOf) external override {
+  function liquidate(uint256 punkIndex) external override {
     uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    _pool.liquidate(address(wrappedPunks), punkIndex, onBehalfOf);
+    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
 
-    _withdrawPunk(punkIndex, onBehalfOf);
+    _pool.liquidate(address(wrappedPunks), punkIndex);
+
+    _withdrawPunk(punkIndex, loan.bidderAddress);
   }
 
   function borrowETH(
@@ -165,10 +167,15 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
   }
 
-  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable override {
-    _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
+  function liquidateETH(uint256 punkIndex) external payable override {
+    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    _withdrawPunk(punkIndex, onBehalfOf);
+    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+
+    _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex);
+
+    _withdrawPunk(punkIndex, loan.bidderAddress);
   }
 
   function onERC721Received(

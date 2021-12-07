@@ -30,6 +30,7 @@ export enum eContractid {
   GenericLogic = "GenericLogic",
   LendPool = "LendPool",
   LendPoolLoan = "LendPoolLoan",
+  LendPoolLiquidator = "LendPoolLiquidator",
   ReserveOracle = "ReserveOracle",
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
@@ -64,6 +65,7 @@ export enum eContractid {
   LendPoolImpl = "LendPoolImpl",
   LendPoolConfiguratorImpl = "LendPoolConfiguratorImpl",
   LendPoolLoanImpl = "LendPoolLoanImpl",
+  LendPoolLiquidatorImpl = "LendPoolLiquidatorImpl",
   BNFTRegistry = "BNFTRegistry",
   BNFTRegistryImpl = "BNFTRegistryImpl",
   MockBNFTMinter = "MockBNFTMinter",
@@ -79,7 +81,7 @@ export enum eContractid {
 
 export enum ProtocolLoanState {
   // We need a default that is not 'Created' - this is the zero value
-  DUMMY_DO_NOT_USE,
+  None,
   // The loan data is stored, but not initiated yet.
   Created,
   // The loan has been initialized, funds have been delivered to the borrower and the collateral is held.
@@ -116,20 +118,40 @@ export enum ProtocolErrors {
   VL_NFT_FROZEN = "311",
   VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER = "312", // 'User did not borrow the specified currency'
   VL_INVALID_HEALTH_FACTOR = "313",
+  VL_INVALID_ONBEHALFOF_ADDRESS = "314",
+  VL_INVALID_TARGET_ADDRESS = "315",
+  VL_INVALID_RESERVE_ADDRESS = "316",
+  VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER = "317",
+  VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER = "318",
 
   //lend pool errors
   LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400", // 'The caller of the function is not the lending pool configurator'
   LP_IS_PAUSED = "401", // 'Pool is paused'
   LP_NO_MORE_RESERVES_ALLOWED = "402",
   LP_NOT_CONTRACT = "403",
-  LP_PRICE_TOO_LOW_TO_LIQUIDATE = "404",
-  LP_PRICE_TOO_HIGH_TO_LIQUIDATE = "405",
+  LP_BORROW_NOT_EXCEED_LIQUIDATION_THRESHOLD = "404",
+  LP_BORROW_IS_EXCEED_LIQUIDATION_PRICE = "405",
   LP_NO_MORE_NFTS_ALLOWED = "406",
   LP_INVALIED_USER_NFT_AMOUNT = "407",
   LP_INCONSISTENT_PARAMS = "408",
   LP_NFT_IS_NOT_USED_AS_COLLATERAL = "409",
   LP_CALLER_MUST_BE_AN_BTOKEN = "410",
   LP_INVALIED_NFT_AMOUNT = "411",
+  LP_NFT_HAS_USED_AS_COLLATERAL = "412",
+
+  //lend pool loan errors
+  LPL_INVALID_LOAN_STATE = "480",
+  LPL_INVALID_LOAN_AMOUNT = "481",
+  LPL_INVALID_TAKEN_AMOUNT = "482",
+  LPL_AMOUNT_OVERFLOW = "483",
+  LPL_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE = "484",
+  LPL_BID_PRICE_LESS_THAN_HIGHEST_PRICE = "485",
+  LPL_BID_REDEEM_DURATION_HAS_END = "486",
+  LPL_BID_USER_NOT_SAME = "487",
+  LPL_BID_REPAY_AMOUNT_NOT_ENOUGH = "488",
+  LPL_BID_AUCTION_DURATION_HAS_END = "489",
+  LPL_BID_AUCTION_DURATION_NOT_END = "490",
+  LPL_BID_PRICE_LESS_THAN_BORROW = "491",
 
   //common token errors
   CT_CALLER_MUST_BE_LEND_POOL = "500", // 'The caller of this function must be a lending pool'
@@ -156,10 +178,18 @@ export enum ProtocolErrors {
   RC_INVALID_LIQ_BONUS = "732",
   RC_INVALID_DECIMALS = "733",
   RC_INVALID_RESERVE_FACTOR = "734",
+  RC_INVALID_REDEEM_DURATION = "735",
+  RC_INVALID_AUCTION_DURATION = "736",
+  RC_INVALID_REDEEM_FINE = "737",
 
   //address provider erros
   LPAPR_PROVIDER_NOT_REGISTERED = "760", // 'Provider is not registered'
   LPAPR_INVALID_ADDRESSES_PROVIDER_ID = "761",
+
+  // Misc errors
+  INVALID_OWNER_REVERT_MSG = "Ownable: caller is not the owner",
+  TRANSFER_AMOUNT_EXCEEDS_BALANCE = "ERC20: transfer amount exceeds balance",
+  SAFEERC20_LOWLEVEL_CALL = "SafeERC20: low-level call failed",
 }
 
 export type tEthereumAddress = string;

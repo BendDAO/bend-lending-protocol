@@ -117,7 +117,7 @@ library GenericLogic {
 
     vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAddress);
 
-    vars.totalDebtInReserve = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(loanId);
+    (, vars.totalDebtInReserve) = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(loanId);
     vars.totalDebtInETH = (vars.reserveUnitPrice * vars.totalDebtInReserve) / vars.reserveUnit;
 
     return vars.totalDebtInETH;
@@ -234,7 +234,7 @@ library GenericLogic {
 
     vars.reserveDecimals = reserveData.configuration.getDecimals();
 
-    vars.borrowAmount = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanId);
+    (, vars.borrowAmount) = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanId);
 
     (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getCollateralParams();
 

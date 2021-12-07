@@ -159,13 +159,14 @@ library ValidationLogic {
    * @dev Validates a repay action
    * @param reserveData The reserve state from which the user is repaying
    * @param amountSent The amount sent for the repayment. Can be an actual value or uint(-1)
-   * @param variableDebt The borrow balance of the user
+   * @param borrowAmount The borrow balance of the user
    */
   function validateRepay(
     DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
+    DataTypes.LoanData memory loanData,
     uint256 amountSent,
-    uint256 variableDebt
+    uint256 borrowAmount
   ) external view {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
@@ -176,7 +177,9 @@ library ValidationLogic {
 
     require(amountSent > 0, Errors.VL_INVALID_AMOUNT);
 
-    require(variableDebt > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
+    require(borrowAmount > 0, Errors.VL_NO_DEBT_OF_SELECTED_TYPE);
+
+    require(loanData.state == DataTypes.LoanState.Active, Errors.LPL_INVALID_LOAN_STATE);
   }
 
   /**
@@ -188,6 +191,7 @@ library ValidationLogic {
   function validateAuction(
     DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
+    DataTypes.LoanData memory loanData,
     uint256 bidPrice
   ) internal view {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
@@ -197,7 +201,34 @@ library ValidationLogic {
 
     require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
+    require(
+      loanData.state == DataTypes.LoanState.Active || loanData.state == DataTypes.LoanState.Auction,
+      Errors.LPL_INVALID_LOAN_STATE
+    );
+
     require(bidPrice > 0, Errors.VL_INVALID_AMOUNT);
+  }
+
+  /**
+   * @dev Validates a redeem action
+   * @param reserveData The reserve state
+   * @param nftData The nft state
+   */
+  function validateRedeem(
+    DataTypes.ReserveData storage reserveData,
+    DataTypes.NftData storage nftData,
+    DataTypes.LoanData memory loanData
+  ) external view {
+    require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
+    require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
+
+    bool isActive = reserveData.configuration.getActive();
+
+    require(isActive, Errors.VL_NO_ACTIVE_RESERVE);
+
+    require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
+
+    require(loanData.bidderAddress != address(0), Errors.VL_INVALID_AMOUNT);
   }
 
   /**
@@ -209,8 +240,7 @@ library ValidationLogic {
   function validateLiquidate(
     DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
-    DataTypes.LoanData memory loanData,
-    address onBehalfOf
+    DataTypes.LoanData memory loanData
   ) internal view {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
@@ -221,7 +251,7 @@ library ValidationLogic {
 
     require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
-    require(onBehalfOf == loanData.bidLiquidator, Errors.LPL_BID_USER_NOT_SAME);
+    require(loanData.bidderAddress != address(0), Errors.VL_INVALID_AMOUNT);
   }
 
   /**

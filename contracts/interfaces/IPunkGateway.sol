@@ -50,7 +50,7 @@ interface IPunkGateway {
    * - E.g. User pays 100 USDC, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk used as collteral
    **/
-  function liquidate(uint256 punkIndex, address onBehalfOf) external;
+  function liquidate(uint256 punkIndex) external;
 
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -95,5 +95,5 @@ interface IPunkGateway {
    * - E.g. User pays 100 ETH, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk to repay
    **/
-  function liquidateETH(uint256 punkIndex, address onBehalfOf) external payable;
+  function liquidateETH(uint256 punkIndex) external payable;
 }

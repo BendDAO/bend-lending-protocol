@@ -27,6 +27,8 @@ import {
   deployAllMockNfts,
   deployUiPoolDataProvider,
   deployMockChainlinkOracle,
+  deployLendPoolLiquidator,
+  deployBendLibraries,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -161,6 +163,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   }
 
   //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare bend libraries...");
+  await deployBendLibraries();
+
   console.log("-> Prepare lend pool...");
   const lendPoolImpl = await deployLendPool();
   await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address));
@@ -170,8 +175,12 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
 
+  console.log("-> Prepare lend pool liquidator...");
+  const poolLiquidator = await deployLendPoolLiquidator();
+  await waitForTx(await addressesProvider.setLendPoolLiquidator(poolLiquidator.address));
+
   //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare lend loan...");
+  console.log("-> Prepare lend pool loan...");
   const lendPoolLoanImpl = await deployLendPoolLoan();
   await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address));
   // configurator will create proxy for implement

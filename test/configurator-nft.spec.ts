@@ -120,6 +120,36 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
+  it("Deactivates the BAYC NFT as auction", async () => {
+    const { configurator, dataProvider, bayc } = testEnv;
+    await configurator.configureNftAsAuction(bayc.address, 0, 0, 0);
+
+    const { redeemDuration, auctionDuration, redeemFine } = await dataProvider.getNftConfigurationData(bayc.address);
+
+    expect(redeemDuration).to.be.equal(0);
+    expect(auctionDuration).to.be.equal(0);
+    expect(redeemFine).to.be.equal(0);
+  });
+
+  it("Activates the BAYC NFT as auction", async () => {
+    const { configurator, dataProvider, bayc } = testEnv;
+    await configurator.configureNftAsAuction(bayc.address, "1", "1", "100");
+
+    const { redeemDuration, auctionDuration, redeemFine } = await dataProvider.getNftConfigurationData(bayc.address);
+
+    expect(redeemDuration).to.be.equal(1);
+    expect(auctionDuration).to.be.equal(1);
+    expect(redeemFine).to.be.equal(100);
+  });
+
+  it("Check the onlyAdmin on configureNftAsAuction ", async () => {
+    const { configurator, users, bayc } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).configureNftAsAuction(bayc.address, "1", "1", "100"),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
   it("Config setMaxNumberOfNfts valid value", async () => {
     const { configurator, users, pool } = testEnv;
     await configurator.setMaxNumberOfNfts(512);

@@ -24,24 +24,24 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const depositor = users[0];
     const borrower = users[1];
 
-    //user 3 mints WETH to depositor
+    //mints WETH to depositor
     await weth.connect(depositor.signer).mint(await convertToCurrencyDecimals(weth.address, "1000"));
 
-    //user 3 approve protocol to access depositor wallet
+    //approve protocol to access depositor wallet
     await weth.connect(depositor.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
-    //user 3 deposits WETH
+    //deposits WETH
     const amountDeposit = await convertToCurrencyDecimals(weth.address, "1000");
 
     await pool.connect(depositor.signer).deposit(weth.address, amountDeposit, depositor.address, "0");
 
-    //user 4 mints BAYC to borrower
+    //mints BAYC to borrower
     await bayc.connect(borrower.signer).mint("101");
 
-    //user 4 approve protocol to access borrower wallet
+    //approve protocol to access borrower wallet
     await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
 
-    //user 4 borrows
+    //borrows
     const loanDataBefore = await pool.getNftLoanData(bayc.address, "101");
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
@@ -118,7 +118,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     // end auction duration
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await pool.connect(liquidator.signer).liquidate(bayc.address, "101", liquidator.address);
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "101");
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 
@@ -165,24 +165,24 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const depositor = users[0];
     const borrower = users[1];
 
-    //user 3 mints USDC to depositor
+    //mints USDC to depositor
     await usdc.connect(depositor.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
 
-    //user 3 approve protocol to access depositor wallet
+    //approve protocol to access depositor wallet
     await usdc.connect(depositor.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
-    //user 3 deposits USDC
+    //deposits USDC
     const amountDeposit = await convertToCurrencyDecimals(usdc.address, "1000000");
 
     await pool.connect(depositor.signer).deposit(usdc.address, amountDeposit, depositor.address, "0");
 
-    //user 4 mints BAYC to borrower
+    //mints BAYC to borrower
     await bayc.connect(borrower.signer).mint("102");
 
-    //user 4 approve protocol to access borrower wallet
+    //uapprove protocol to access borrower wallet
     await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
 
-    //user 4 borrows
+    //borrows
     const loanDataBefore = await pool.getNftLoanData(bayc.address, "102");
 
     const usdcPrice = await reserveOracle.getAssetPrice(usdc.address);
@@ -258,7 +258,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await pool.connect(liquidator.signer).liquidate(bayc.address, "102", liquidator.address);
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "102");
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 

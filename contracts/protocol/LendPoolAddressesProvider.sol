@@ -28,6 +28,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   bytes32 private constant BEND_ORACLE = "BEND_ORACLE";
   bytes32 private constant LEND_POOL_LOAN = "LEND_POOL_LOAN";
   bytes32 private constant BNFT_REGISTRY = "BNFT_REGISTRY";
+  bytes32 private constant LEND_POOL_LIQUIDATOR = "LEND_POOL_LIQUIDATOR";
 
   constructor(string memory marketId) {
     _setMarketId(marketId);
@@ -175,6 +176,15 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   function setBNFTRegistry(address factory) external override onlyOwner {
     _addresses[BNFT_REGISTRY] = factory;
     emit BNFTRegistryUpdated(factory);
+  }
+
+  function getLendPoolLiquidator() external view override returns (address) {
+    return getAddress(LEND_POOL_LIQUIDATOR);
+  }
+
+  function setLendPoolLiquidator(address liquidator) external override onlyOwner {
+    _addresses[LEND_POOL_LIQUIDATOR] = liquidator;
+    emit LendPoolLiquidatorUpdated(liquidator);
   }
 
   /**

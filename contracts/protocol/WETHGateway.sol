@@ -84,7 +84,9 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     uint256 loanId = _poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
     require(loanId > 0, "collateral loan id not exist");
 
-    uint256 repayDebtAmount = _poolLoan.getLoanReserveBorrowAmount(loanId);
+    (address reserveAsset, uint256 repayDebtAmount) = _poolLoan.getLoanReserveBorrowAmount(loanId);
+    require(reserveAsset == address(WETH), "loan reserve not WETH");
+
     if (amount < repayDebtAmount) {
       repayDebtAmount = amount;
     }
@@ -107,18 +109,43 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
     uint256 nftTokenId,
     address onBehalfOf
   ) external payable override {
+    uint256 loanId = _poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
+    require(loanId > 0, "collateral loan id not exist");
+
+    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+    require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
+
     WETH.deposit{value: msg.value}();
     _pool.auction(nftAsset, nftTokenId, msg.value, onBehalfOf);
   }
 
-  function liquidateETH(
-    address nftAsset,
-    uint256 nftTokenId,
-    address onBehalfOf
-  ) external payable override {
-    onBehalfOf;
+  function redeemETH(address nftAsset, uint256 nftTokenId) external payable override returns (uint256) {
+    (uint256 loanId, , , uint256 bidBorrowAmount, uint256 bidFine) = _pool.getNftAuctionData(nftAsset, nftTokenId);
+    require(loanId > 0, "collateral loan id not exist");
 
-    _pool.liquidate(nftAsset, nftTokenId, onBehalfOf);
+    uint256 repayDebtAmount = bidBorrowAmount + bidFine;
+
+    require(msg.value >= repayDebtAmount, "msg.value is less than repayment amount");
+
+    WETH.deposit{value: repayDebtAmount}();
+    uint256 paybackAmount = _pool.redeem(nftAsset, nftTokenId);
+
+    // refund remaining dust eth
+    if (msg.value > repayDebtAmount) {
+      _safeTransferETH(msg.sender, msg.value - repayDebtAmount);
+    }
+
+    return (paybackAmount);
+  }
+
+  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override {
+    uint256 loanId = _poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
+    require(loanId > 0, "collateral loan id not exist");
+
+    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+    require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
+
+    _pool.liquidate(nftAsset, nftTokenId);
   }
 
   function onERC721Received(
