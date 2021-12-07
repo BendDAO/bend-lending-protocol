@@ -12,6 +12,7 @@ import {
   LendPoolConfiguratorFactory,
   LendPoolFactory,
   LendPoolLoanFactory,
+  LendPoolLiquidatorFactory,
   MintableERC20Factory,
   MintableERC721Factory,
   BTokensAndBNFTsHelperFactory,
@@ -98,6 +99,12 @@ export const getLendPoolLoanProxy = async (address?: tEthereumAddress) => {
 export const getLendPool = async (address?: tEthereumAddress) =>
   await LendPoolFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.LendPool}`).value()).address,
+    await getFirstSigner()
+  );
+
+export const getLendPoolLiquidator = async (address?: tEthereumAddress) =>
+  await LendPoolLiquidatorFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.LendPoolLiquidator}`).value()).address,
     await getFirstSigner()
   );
 

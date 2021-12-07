@@ -63,7 +63,7 @@ library DataTypes {
    */
   enum LoanState {
     // We need a default that is not 'Created' - this is the zero value
-    DUMMY_DO_NOT_USE,
+    None,
     // The loan data is stored, but not initiated yet.
     Created,
     // The loan has been initialized, funds have been delivered to the borrower and the collateral is held.
@@ -93,9 +93,11 @@ library DataTypes {
     uint256 scaledAmount;
     //start time of first bid time
     uint256 bidStartTimestamp;
-    //liquidator Address of higest bid
-    address bidLiquidator;
+    //bidder address of higest bid
+    address bidderAddress;
     //price of higest bid
     uint256 bidPrice;
+    //borrow amount of loan
+    uint256 bidBorrowAmount;
   }
 }

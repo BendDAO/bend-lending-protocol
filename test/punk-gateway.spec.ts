@@ -295,7 +295,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await waitForTx(await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex, liquidator.address));
+    await waitForTx(await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex));
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");

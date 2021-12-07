@@ -14,7 +14,7 @@ interface ILendPoolLoan {
    * @dev Emitted when a loan is created
    */
   event LoanCreated(
-    address indexed user,
+    address indexed initiator,
     address indexed onBehalfOf,
     uint256 indexed loanId,
     address nftAsset,
@@ -28,7 +28,7 @@ interface ILendPoolLoan {
    * @dev Emitted when a loan is updated
    */
   event LoanUpdated(
-    address indexed user,
+    address indexed initiator,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
@@ -42,7 +42,7 @@ interface ILendPoolLoan {
    * @dev Emitted when a loan is repaid by the borrower
    */
   event LoanRepaid(
-    address indexed user,
+    address indexed initiator,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
@@ -55,24 +55,15 @@ interface ILendPoolLoan {
    * @dev Emitted when a loan is auction by the liquidator
    */
   event LoanAuctioned(
-    address indexed user,
+    address indexed initiator,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
+    uint256 amount,
+    uint256 borrowIndex,
+    address bidder,
     uint256 price,
-    address previousUser,
-    uint256 previousPrice
-  );
-
-  /**
-   * @dev Emitted when a loan is undo auction by the borrower
-   */
-  event LoanUndoAuctioned(
-    address indexed user,
-    uint256 indexed loanId,
-    address nftAsset,
-    uint256 nftTokenId,
-    address previousUser,
+    address previousBidder,
     uint256 previousPrice
   );
 
@@ -80,25 +71,23 @@ interface ILendPoolLoan {
    * @dev Emitted when a loan is liquidate by the liquidator
    */
   event LoanLiquidated(
-    address indexed user,
+    address indexed initiator,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
     address reserveAsset,
-    uint256 amount,
-    uint256 borrowIndex
+    uint256 amount
   );
 
   function initNft(address nftAsset, address bNftAddress) external;
 
   /**
    * @dev Create store a loan object with some params
-   * @param user The address receiving the borrowed bTokens, being the delegatee in case
-   * of credit delegate, or same as `onBehalfOf` otherwise
+   * @param initiator The address of the user initiating the borrow
    * @param onBehalfOf The address receiving the loan
    */
   function createLoan(
-    address user,
+    address initiator,
     address onBehalfOf,
     address nftAsset,
     uint256 nftTokenId,
@@ -114,11 +103,10 @@ interface ILendPoolLoan {
    * Requirements:
    *  - The caller must be a holder of the loan
    *  - The loan must be in state Active
-   * @param user The address receiving the borrowed bTokens, being the delegatee in case
-   * of credit delegate, or same as `onBehalfOf` otherwise
+   * @param initiator The address of the user initiating the borrow
    */
   function updateLoan(
-    address user,
+    address initiator,
     uint256 loanId,
     uint256 amountAdded,
     uint256 amountTaken,
@@ -133,12 +121,12 @@ interface ILendPoolLoan {
    *  - The caller must send in principal + interest
    *  - The loan must be in state Active
    *
-   * @param user The user receiving the returned underlying asset
+   * @param initiator The address of the user initiating the repay
    * @param loanId The loan getting burned
    * @param bNftAddress The address of bNFT
    */
   function repayLoan(
-    address user,
+    address initiator,
     uint256 loanId,
     address bNftAddress,
     uint256 borrowIndex
@@ -151,26 +139,18 @@ interface ILendPoolLoan {
    *  - The price must be greater than current highest price
    *  - The loan must be in state Active or Auction
    *
-   * @param user The user receiving the returned underlying asset
+   * @param initiator The address of the user initiating the auction
    * @param loanId The loan getting auctioned
-   * @param price The bid price of this auction
+   * @param bidPrice The bid price of this auction
    */
   function auctionLoan(
-    address user,
+    address initiator,
     uint256 loanId,
-    uint256 price
+    address onBehalfOf,
+    uint256 bidPrice,
+    uint256 borrowAmount,
+    uint256 borrowIndex
   ) external;
-
-  /**
-   * @dev Undo auction the given loan
-   *
-   * Requirements:
-   *  - The loan must be in state Auction
-   *
-   * @param user The user receiving the returned underlying asset
-   * @param loanId The loan getting auctioned
-   */
-  function undoAuctionLoan(address user, uint256 loanId) external;
 
   /**
    * @dev Liquidate the given loan
@@ -179,15 +159,14 @@ interface ILendPoolLoan {
    *  - The caller must send in principal + interest
    *  - The loan must be in state Active
    *
-   * @param user The user receiving the returned underlying asset
+   * @param initiator The address of the user initiating the auction
    * @param loanId The loan getting burned
    * @param bNftAddress The address of bNFT
    */
   function liquidateLoan(
-    address user,
+    address initiator,
     uint256 loanId,
-    address bNftAddress,
-    uint256 borrowIndex
+    address bNftAddress
   ) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);
@@ -206,9 +185,11 @@ interface ILendPoolLoan {
       uint256 scaledAmount
     );
 
-  function getLoanReserveBorrowScaledAmount(uint256 loanId) external view returns (uint256);
+  function getLoanReserveBorrowScaledAmount(uint256 loanId) external view returns (address, uint256);
 
-  function getLoanReserveBorrowAmount(uint256 loanId) external view returns (uint256);
+  function getLoanReserveBorrowAmount(uint256 loanId) external view returns (address, uint256);
+
+  function getLoanHighestBid(uint256 loanId) external view returns (address, uint256);
 
   function getNftCollateralAmount(address nftAsset) external view returns (uint256);
 

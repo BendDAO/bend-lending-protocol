@@ -427,7 +427,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await waitForTx(await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, liquidator.address));
+    await waitForTx(await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId));
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
