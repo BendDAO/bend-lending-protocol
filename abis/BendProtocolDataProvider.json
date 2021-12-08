@@ -256,6 +256,21 @@
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "redeemDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "auctionDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "redeemFine",
+        "type": "uint256"
+      },
+      {
         "internalType": "bool",
         "name": "isActive",
         "type": "bool"
