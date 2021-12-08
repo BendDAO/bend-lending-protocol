@@ -258,7 +258,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   function liquidateLoan(
     address initiator,
     uint256 loanId,
-    address bNftAddress
+    address bNftAddress,
+    bool isRedeem
   ) external override onlyLendPool {
     // Must use storage to change state
     DataTypes.LoanData storage loan = _loans[loanId];
@@ -281,7 +282,11 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), initiator, loan.nftTokenId);
+    if (isRedeem) {
+      IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.borrower, loan.nftTokenId);
+    } else {
+      IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.bidderAddress, loan.nftTokenId);
+    }
 
     emit LoanLiquidated(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, loan.bidBorrowAmount);
   }

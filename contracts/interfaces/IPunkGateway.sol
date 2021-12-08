@@ -35,7 +35,6 @@ interface IPunkGateway {
 
   /**
    * @notice auction a unhealth punk loan with ERC20 reserve
-   * - E.g. User pays 100 USDC, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk used as collteral
    * @param bidPrice The bid price
    **/
@@ -46,8 +45,13 @@ interface IPunkGateway {
   ) external;
 
   /**
+   * @notice redeem a unhealth punk loan with ERC20 reserve
+   * @param punkIndex The index of the CryptoPunk used as collteral
+   **/
+  function redeem(uint256 punkIndex) external returns (uint256);
+
+  /**
    * @notice liquidate a unhealth punk loan with ERC20 reserve
-   * - E.g. User pays 100 USDC, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk used as collteral
    **/
   function liquidate(uint256 punkIndex) external;
@@ -83,7 +87,6 @@ interface IPunkGateway {
 
   /**
    * @notice auction a unhealth punk loan with native ETH
-   * - E.g. User pays 100 ETH, burning loan and receives collateral asset
    * @param punkIndex The index of the CryptoPunk to repay
    * @param onBehalfOf Address of the user who will receive the CryptoPunk. Should be the address of the user itself
    * calling the function if he wants to get collateral
@@ -92,7 +95,12 @@ interface IPunkGateway {
 
   /**
    * @notice liquidate a unhealth punk loan with native ETH
-   * - E.g. User pays 100 ETH, burning loan and receives collateral asset
+   * @param punkIndex The index of the CryptoPunk to repay
+   **/
+  function redeemETH(uint256 punkIndex) external payable returns (uint256);
+
+  /**
+   * @notice liquidate a unhealth punk loan with native ETH
    * @param punkIndex The index of the CryptoPunk to repay
    **/
   function liquidateETH(uint256 punkIndex) external payable;

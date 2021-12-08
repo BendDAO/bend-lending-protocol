@@ -56,8 +56,6 @@ makeSuite("LendPoolAddressesProvider", (testEnv: TestEnv) => {
         .setAddressAsProxy(proxiedAddressId, mockLendPool.address)
     );
 
-    console.log(proxiedAddressSetReceipt.events);
-
     if (!proxiedAddressSetReceipt.events || proxiedAddressSetReceipt.events?.length < 1) {
       throw new Error("INVALID_EVENT_EMMITED");
     }

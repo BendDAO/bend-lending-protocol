@@ -59,7 +59,7 @@ library DataTypes {
    * @dev Enum describing the current state of a loan
    * State change flow:
    *  Created -> Active -> Repaid
-   *                    -> Defaulted
+   *                    -> Auction -> Defaulted
    */
   enum LoanState {
     // We need a default that is not 'Created' - this is the zero value
@@ -68,12 +68,12 @@ library DataTypes {
     Created,
     // The loan has been initialized, funds have been delivered to the borrower and the collateral is held.
     Active,
+    // The loan is in auction, higest price liquidator will got chance to claim it.
+    Auction,
     // The loan has been repaid, and the collateral has been returned to the borrower. This is a terminal state.
     Repaid,
     // The loan was delinquent and collateral claimed by the liquidator. This is a terminal state.
-    Defaulted,
-    // The loan is in auction, higest price liquidator will got chance to claim it.
-    Auction
+    Defaulted
   }
 
   struct LoanData {
