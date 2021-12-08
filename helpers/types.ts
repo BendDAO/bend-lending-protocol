@@ -86,6 +86,8 @@ export enum ProtocolLoanState {
   Created,
   // The loan has been initialized, funds have been delivered to the borrower and the collateral is held.
   Active,
+  // The loan has been auctioned, debt have been repaid to the pool and the collateral is held.
+  Auction,
   // The loan has been repaid, and the collateral has been returned to the borrower. This is a terminal state.
   Repaid,
   // The loan was delinquent and collateral claimed by the liquidator. This is a terminal state.

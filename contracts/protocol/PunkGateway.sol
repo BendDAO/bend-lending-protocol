@@ -118,6 +118,24 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
     _pool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
+  function redeem(uint256 punkIndex) external override returns (uint256) {
+    (uint256 loanId, , , uint256 bidBorrowAmount, uint256 bidFine) = _pool.getNftAuctionData(
+      address(wrappedPunks),
+      punkIndex
+    );
+    require(loanId > 0, "PunkGateway: no loan with such punkIndex");
+
+    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+
+    IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), bidBorrowAmount + bidFine);
+
+    uint256 paybackAmount = _pool.redeem(address(wrappedPunks), punkIndex);
+
+    _withdrawPunk(punkIndex, loan.borrower);
+
+    return paybackAmount;
+  }
+
   function liquidate(uint256 punkIndex) external override {
     uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
@@ -165,6 +183,19 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
 
   function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override {
     _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
+  }
+
+  function redeemETH(uint256 punkIndex) external payable override returns (uint256) {
+    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    require(loanId != 0, "PunkGateway: no loan with such punkIndex");
+
+    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+
+    uint256 paybackAmount = _wethGateway.redeemETH{value: msg.value}(address(wrappedPunks), punkIndex);
+
+    _withdrawPunk(punkIndex, loan.borrower);
+
+    return paybackAmount;
   }
 
   function liquidateETH(uint256 punkIndex) external payable override {

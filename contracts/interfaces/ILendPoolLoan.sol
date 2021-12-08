@@ -166,7 +166,8 @@ interface ILendPoolLoan {
   function liquidateLoan(
     address initiator,
     uint256 loanId,
-    address bNftAddress
+    address bNftAddress,
+    bool isRedeem
   ) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);

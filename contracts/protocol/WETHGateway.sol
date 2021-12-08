@@ -91,7 +91,7 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
       repayDebtAmount = amount;
     }
 
-    require(msg.value >= repayDebtAmount, "msg.value is less than repayment amount");
+    require(msg.value >= repayDebtAmount, "msg.value is less than repay amount");
 
     WETH.deposit{value: repayDebtAmount}();
     (uint256 paybackAmount, bool burn) = _pool.repay(nftAsset, nftTokenId, amount);
@@ -125,7 +125,7 @@ contract WETHGateway is IERC721Receiver, Ownable, IWETHGateway {
 
     uint256 repayDebtAmount = bidBorrowAmount + bidFine;
 
-    require(msg.value >= repayDebtAmount, "msg.value is less than repayment amount");
+    require(msg.value >= repayDebtAmount, "msg.value is less than redeem amount");
 
     WETH.deposit{value: repayDebtAmount}();
     uint256 paybackAmount = _pool.redeem(nftAsset, nftTokenId);
