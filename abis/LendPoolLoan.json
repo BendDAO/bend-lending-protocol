@@ -18,7 +18,74 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "loanId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "nftTokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "borrowIndex",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "bidder",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "previousBidder",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "previousPrice",
+        "type": "uint256"
+      }
+    ],
+    "name": "LoanAuctioned",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -73,7 +140,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -105,12 +172,6 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "borrowIndex",
-        "type": "uint256"
       }
     ],
     "name": "LoanLiquidated",
@@ -122,7 +183,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -171,7 +232,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -223,6 +284,44 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "initiator",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "loanId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "onBehalfOf",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bidPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "borrowAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "borrowIndex",
+        "type": "uint256"
+      }
+    ],
+    "name": "auctionLoan",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "loanId",
         "type": "uint256"
@@ -243,7 +342,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -363,6 +462,26 @@
             "internalType": "uint256",
             "name": "scaledAmount",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidStartTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "bidderAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidBorrowAmount",
+            "type": "uint256"
           }
         ],
         "internalType": "struct DataTypes.LoanData",
@@ -415,8 +534,37 @@
         "type": "uint256"
       }
     ],
+    "name": "getLoanHighestBid",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "loanId",
+        "type": "uint256"
+      }
+    ],
     "name": "getLoanReserveBorrowAmount",
     "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
       {
         "internalType": "uint256",
         "name": "",
@@ -436,6 +584,11 @@
     ],
     "name": "getLoanReserveBorrowScaledAmount",
     "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
       {
         "internalType": "uint256",
         "name": "",
@@ -536,7 +689,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -550,9 +703,9 @@
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "borrowIndex",
-        "type": "uint256"
+        "internalType": "bool",
+        "name": "isRedeem",
+        "type": "bool"
       }
     ],
     "name": "liquidateLoan",
@@ -598,7 +751,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {
@@ -626,7 +779,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
+        "name": "initiator",
         "type": "address"
       },
       {

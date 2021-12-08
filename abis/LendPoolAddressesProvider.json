@@ -97,6 +97,19 @@
         "type": "address"
       }
     ],
+    "name": "LendPoolLiquidatorUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newAddress",
+        "type": "address"
+      }
+    ],
     "name": "LendPoolLoanUpdated",
     "type": "event"
   },
@@ -251,6 +264,19 @@
   {
     "inputs": [],
     "name": "getLendPoolConfigurator",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getLendPoolLiquidator",
     "outputs": [
       {
         "internalType": "address",
@@ -430,6 +456,19 @@
       }
     ],
     "name": "setLendPoolImpl",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "liquidator",
+        "type": "address"
+      }
+    ],
+    "name": "setLendPoolLiquidator",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
