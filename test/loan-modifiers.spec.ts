@@ -38,7 +38,7 @@ makeSuite("LendPoolLoan: Modifiers", (testEnv: TestEnv) => {
 
   it("Tries to invoke liquidateLoan not being the Pool", async () => {
     const { deployer, bayc, bBAYC, bWETH, loan } = testEnv;
-    await expect(loan.liquidateLoan(deployer.address, "1", bBAYC.address, false)).to.be.revertedWith(
+    await expect(loan.liquidateLoan(deployer.address, "1", bBAYC.address, 0)).to.be.revertedWith(
       CT_CALLER_MUST_BE_LEND_POOL
     );
   });

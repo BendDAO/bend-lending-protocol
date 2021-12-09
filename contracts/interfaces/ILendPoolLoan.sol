@@ -12,9 +12,10 @@ interface ILendPoolLoan {
 
   /**
    * @dev Emitted when a loan is created
+   * @param user The address initiating the action
    */
   event LoanCreated(
-    address indexed initiator,
+    address indexed user,
     address indexed onBehalfOf,
     uint256 indexed loanId,
     address nftAsset,
@@ -26,9 +27,10 @@ interface ILendPoolLoan {
 
   /**
    * @dev Emitted when a loan is updated
+   * @param user The address initiating the action
    */
   event LoanUpdated(
-    address indexed initiator,
+    address indexed user,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
@@ -40,9 +42,10 @@ interface ILendPoolLoan {
 
   /**
    * @dev Emitted when a loan is repaid by the borrower
+   * @param user The address initiating the action
    */
   event LoanRepaid(
-    address indexed initiator,
+    address indexed user,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
@@ -53,9 +56,10 @@ interface ILendPoolLoan {
 
   /**
    * @dev Emitted when a loan is auction by the liquidator
+   * @param user The address initiating the action
    */
   event LoanAuctioned(
-    address indexed initiator,
+    address indexed user,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
@@ -69,14 +73,16 @@ interface ILendPoolLoan {
 
   /**
    * @dev Emitted when a loan is liquidate by the liquidator
+   * @param user The address initiating the action
    */
   event LoanLiquidated(
-    address indexed initiator,
+    address indexed user,
     uint256 indexed loanId,
     address nftAsset,
     uint256 nftTokenId,
     address reserveAsset,
-    uint256 amount
+    uint256 amount,
+    uint256 liqType
   );
 
   function initNft(address nftAsset, address bNftAddress) external;
@@ -162,12 +168,13 @@ interface ILendPoolLoan {
    * @param initiator The address of the user initiating the auction
    * @param loanId The loan getting burned
    * @param bNftAddress The address of bNFT
+   * @param liqType The liquidate type, 0-liquidate, 1-redeem
    */
   function liquidateLoan(
     address initiator,
     uint256 loanId,
     address bNftAddress,
-    bool isRedeem
+    uint256 liqType
   ) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);

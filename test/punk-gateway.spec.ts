@@ -72,7 +72,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await approveERC20PunkGateway(testEnv, user, "USDC");
 
     const getDebtBalance = async () => {
-      const loan = await getLoanData(pool, dataProvider, wrappedPunk.address, `${punkIndex}`, user.address);
+      const loan = await getLoanData(pool, dataProvider, wrappedPunk.address, `${punkIndex}`, "0");
 
       return BN.from(loan.currentAmount.toFixed(0));
     };
@@ -320,7 +320,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const punkIndex = testEnv.punkIndexTracker++;
 
     const getDebtBalance = async () => {
-      const loan = await getLoanData(pool, dataProvider, wrappedPunk.address, `${punkIndex}`, user.address);
+      const loan = await getLoanData(pool, dataProvider, wrappedPunk.address, `${punkIndex}`, "0");
 
       return BN.from(loan.currentAmount.toFixed(0));
     };

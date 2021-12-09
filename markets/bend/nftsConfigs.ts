@@ -6,7 +6,7 @@ export const strategyWPUNKS: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "1", // 1 day
   auctionDuration: "1", // 1 day
-  redeemFine: "10", // 0.1%
+  redeemFine: "100", // 1%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -16,7 +16,7 @@ export const strategyBAYC: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "1", // 1 day,
   auctionDuration: "1", // 1 day
-  redeemFine: "10", // 0.1%
+  redeemFine: "100", // 1%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -26,7 +26,7 @@ export const strategyNftClassA: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "1", // 1 day
   auctionDuration: "1", // 1 day
-  redeemFine: "10", // 0.1%
+  redeemFine: "100", // 1%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -36,7 +36,7 @@ export const strategyNftClassB: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "1", // 1 day
   auctionDuration: "1", // 1 day
-  redeemFine: "10", // 0.1%
+  redeemFine: "100", // 1%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -46,7 +46,7 @@ export const strategyNftClassC: INftParams = {
   liquidationBonus: '1000', // 10%
   redeemDuration: "86400", // 1 day, 3600 * 24
   auctionDuration: "86400", // 1 day, 3600 * 24
-  redeemFine: "10", // 0.1%
+  redeemFine: "100", // 1%
   bNftImpl: eContractid.BNFT,
 };
 

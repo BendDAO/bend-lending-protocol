@@ -29,6 +29,7 @@ export interface ReserveData {
 }
 
 export interface LoanData {
+  loanId: BigNumber;
   state: BigNumber;
   borrower: string;
   nftAsset: string;
@@ -36,5 +37,8 @@ export interface LoanData {
   reserveAsset: string;
   scaledAmount: BigNumber;
   currentAmount: BigNumber;
+  bidderAddress: string;
+  bidPrice: BigNumber;
+  bidBorrowAmount: BigNumber;
   [key: string]: BigNumber | string | Boolean;
 }

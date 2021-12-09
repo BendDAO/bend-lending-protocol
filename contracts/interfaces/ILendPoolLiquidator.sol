@@ -4,64 +4,64 @@ pragma solidity ^0.8.0;
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 interface ILendPoolLiquidator {
+  // Following events copy from LendPool
   /**
    * @dev Emitted when a borrower's loan is auctioned.
-   * @param initiator The address of the user initiating the auction
+   * @param user The address of the user initiating the auction
    * @param reserve The address of the underlying asset of the reserve
-   * @param price The price of the underlying reserve given by the bidder
+   * @param bidPrice The price of the underlying reserve given by the bidder
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token id of the underlying NFT used as collateral
    * @param onBehalfOf The address that will be getting the NFT
    * @param loanId The loan ID of the NFT loans
    **/
   event Auction(
-    address initiator,
+    address user,
     address indexed reserve,
-    uint256 price,
+    uint256 bidPrice,
     address indexed nftAsset,
     uint256 nftTokenId,
     address onBehalfOf,
+    address indexed borrower,
     uint256 loanId
   );
 
   /**
    * @dev Emitted on redeem()
-   * @param initiator The address of the user initiating the redeem(), providing the funds
+   * @param user The address of the user initiating the redeem(), providing the funds
    * @param reserve The address of the underlying asset of the reserve
-   * @param amount The amount repaid
+   * @param borrowAmount The borrow amount repaid
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token id of the underlying NFT used as collateral
-   * @param borrower The beneficiary of the repayment, getting his debt reduced
    * @param loanId The loan ID of the NFT loans
    **/
   event Redeem(
-    address initiator,
+    address user,
     address indexed reserve,
-    uint256 amount,
+    uint256 borrowAmount,
+    uint256 fineAmount,
     address indexed nftAsset,
     uint256 nftTokenId,
     address indexed borrower,
-    uint256 loanId,
-    uint256 fine
+    uint256 loanId
   );
 
   /**
    * @dev Emitted when a borrower's loan is liquidated.
-   * @param initiator The address of the user initiating the auction
+   * @param user The address of the user initiating the auction
    * @param reserve The address of the underlying asset of the reserve
    * @param repayAmount The amount of reserve repaid by the liquidator
-   * @param borrowerAmount The amount of reserve received by the borrower
-   * @param borrower The address of the borrower getting liquidated
+   * @param remainAmount The amount of reserve received by the borrower
    * @param loanId The loan ID of the NFT loans
    **/
   event Liquidate(
-    address initiator,
+    address user,
     address indexed reserve,
     uint256 repayAmount,
-    uint256 borrowerAmount,
+    uint256 remainAmount,
     address indexed nftAsset,
     uint256 nftTokenId,
-    address borrower,
+    address indexed borrower,
     uint256 loanId
   );
 

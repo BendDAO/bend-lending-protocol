@@ -7,14 +7,14 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
 interface ILendPool {
   /**
    * @dev Emitted on deposit()
-   * @param initiator The address initiating the deposit
+   * @param user The address initiating the deposit
    * @param amount The amount deposited
    * @param reserve The address of the underlying asset of the reserve
    * @param onBehalfOf The beneficiary of the deposit, receiving the bTokens
    * @param referral The referral code used
    **/
   event Deposit(
-    address initiator,
+    address user,
     address indexed reserve,
     uint256 amount,
     address indexed onBehalfOf,
@@ -23,16 +23,16 @@ interface ILendPool {
 
   /**
    * @dev Emitted on withdraw()
-   * @param initiator The address initiating the withdrawal, owner of bTokens
+   * @param user The address initiating the withdrawal, owner of bTokens
    * @param reserve The address of the underlyng asset being withdrawn
    * @param amount The amount to be withdrawn
    * @param to Address that will receive the underlying
    **/
-  event Withdraw(address indexed initiator, address indexed reserve, uint256 amount, address indexed to);
+  event Withdraw(address indexed user, address indexed reserve, uint256 amount, address indexed to);
 
   /**
-   * @dev Emitted on borrow() and flashLoan() when loan needs to be opened
-   * @param initiator The address of the user initiating the borrow(), receiving the funds
+   * @dev Emitted on borrow() when loan needs to be opened
+   * @param user The address of the user initiating the borrow(), receiving the funds
    * @param reserve The address of the underlying asset being borrowed
    * @param amount The amount borrowed out
    * @param nftAsset The address of the underlying NFT used as collateral
@@ -41,7 +41,7 @@ interface ILendPool {
    * @param referral The referral code used
    **/
   event Borrow(
-    address initiator,
+    address user,
     address indexed reserve,
     uint256 amount,
     address nftAsset,
@@ -54,7 +54,7 @@ interface ILendPool {
 
   /**
    * @dev Emitted on repay()
-   * @param initiator The address of the user initiating the repay(), providing the funds
+   * @param user The address of the user initiating the repay(), providing the funds
    * @param reserve The address of the underlying asset of the reserve
    * @param amount The amount repaid
    * @param nftAsset The address of the underlying NFT used as collateral
@@ -63,7 +63,7 @@ interface ILendPool {
    * @param loanId The loan ID of the NFT loans
    **/
   event Repay(
-    address initiator,
+    address user,
     address indexed reserve,
     uint256 amount,
     address indexed nftAsset,
@@ -74,62 +74,61 @@ interface ILendPool {
 
   /**
    * @dev Emitted when a borrower's loan is auctioned.
-   * @param initiator The address of the user initiating the auction
+   * @param user The address of the user initiating the auction
    * @param reserve The address of the underlying asset of the reserve
-   * @param price The price of the underlying reserve given by the bidder
+   * @param bidPrice The price of the underlying reserve given by the bidder
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token id of the underlying NFT used as collateral
    * @param onBehalfOf The address that will be getting the NFT
    * @param loanId The loan ID of the NFT loans
    **/
   event Auction(
-    address initiator,
+    address user,
     address indexed reserve,
-    uint256 price,
+    uint256 bidPrice,
     address indexed nftAsset,
     uint256 nftTokenId,
     address onBehalfOf,
+    address indexed borrower,
     uint256 loanId
   );
 
   /**
    * @dev Emitted on redeem()
-   * @param initiator The address of the user initiating the redeem(), providing the funds
+   * @param user The address of the user initiating the redeem(), providing the funds
    * @param reserve The address of the underlying asset of the reserve
-   * @param amount The amount repaid
+   * @param borrowAmount The borrow amount repaid
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token id of the underlying NFT used as collateral
-   * @param borrower The beneficiary of the repayment, getting his debt reduced
    * @param loanId The loan ID of the NFT loans
    **/
   event Redeem(
-    address initiator,
+    address user,
     address indexed reserve,
-    uint256 amount,
+    uint256 borrowAmount,
+    uint256 fineAmount,
     address indexed nftAsset,
     uint256 nftTokenId,
     address indexed borrower,
-    uint256 loanId,
-    uint256 fine
+    uint256 loanId
   );
 
   /**
    * @dev Emitted when a borrower's loan is liquidated.
-   * @param initiator The address of the user initiating the auction
+   * @param user The address of the user initiating the auction
    * @param reserve The address of the underlying asset of the reserve
    * @param repayAmount The amount of reserve repaid by the liquidator
-   * @param borrowerAmount The amount of reserve received by the borrower
-   * @param borrower The address of the borrower getting liquidated
+   * @param remainAmount The amount of reserve received by the borrower
    * @param loanId The loan ID of the NFT loans
    **/
   event Liquidate(
-    address initiator,
+    address user,
     address indexed reserve,
     uint256 repayAmount,
-    uint256 borrowerAmount,
+    uint256 remainAmount,
     address indexed nftAsset,
     uint256 nftTokenId,
-    address borrower,
+    address indexed borrower,
     uint256 loanId
   );
 
