@@ -11,7 +11,7 @@
 ........:::........::..::::..::........:::                              
 ```
 
-# Bend Protocol V1
+# Bend Protocol
 
 This repository contains the smart contracts source code and markets configuration for Bend Protocol. The repository uses Hardhat as development enviroment for compilation, testing and deployment tasks.
 
@@ -21,9 +21,9 @@ Bend is a decentralized non-custodial NFT lending protocol where users can parti
 
 ## Documentation
 
-The documentation of Bend Protocol is in the following [Bend V1 documentation](https://docs.bend.fi/developers/v/1.0/) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
+The documentation of Bend Protocol is in the following [Bend documentation](https://docs.bend.fi/developers) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
 
-For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.fi/developers/v/1.0/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
+For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.fi/developers/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
 
 A more detailed and technical description of the protocol can be found in this repository, [here](./bend-v1-whitepaper.pdf)
 
@@ -32,7 +32,7 @@ TODO
 
 ## Connect with the community
 
-You can join at the [Discord](http://bend.fi/discord) channel or at the [Governance Forum](https://governance.bend.fi/) for asking questions about the protocol or talk about Bend with other peers.
+You can join at the [Discord](https://bend.fi/discord) channel or at the [Governance Forum](https://governance.bend.fi/) for asking questions about the protocol or talk about Bend with other peers.
 
 ## Getting Started
 

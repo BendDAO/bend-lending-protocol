@@ -18,7 +18,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "initiator",
+        "name": "user",
         "type": "address"
       },
       {
@@ -85,7 +85,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "initiator",
+        "name": "user",
         "type": "address"
       },
       {
@@ -140,7 +140,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "initiator",
+        "name": "user",
         "type": "address"
       },
       {
@@ -172,6 +172,12 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "liqType",
+        "type": "uint256"
       }
     ],
     "name": "LoanLiquidated",
@@ -183,7 +189,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "initiator",
+        "name": "user",
         "type": "address"
       },
       {
@@ -232,7 +238,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "initiator",
+        "name": "user",
         "type": "address"
       },
       {
@@ -703,9 +709,9 @@
         "type": "address"
       },
       {
-        "internalType": "bool",
-        "name": "isRedeem",
-        "type": "bool"
+        "internalType": "uint256",
+        "name": "liqType",
+        "type": "uint256"
       }
     ],
     "name": "liquidateLoan",

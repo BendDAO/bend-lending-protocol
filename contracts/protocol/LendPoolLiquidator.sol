@@ -165,7 +165,16 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       }
     }
 
-    emit Auction(vars.initiator, nftAsset, nftTokenId, loanData.reserveAsset, bidPrice, onBehalfOf, vars.loanId);
+    emit Auction(
+      vars.initiator,
+      loanData.reserveAsset,
+      bidPrice,
+      nftAsset,
+      nftTokenId,
+      onBehalfOf,
+      loanData.borrower,
+      vars.loanId
+    );
   }
 
   struct RedeemLocalVars {
@@ -208,7 +217,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
 
     vars.repayAmountWithFine = loanData.bidBorrowAmount + vars.bidFine;
 
-    ILendPoolLoan(vars.poolLoan).liquidateLoan(vars.initiator, vars.loanId, nftData.bNftAddress, true);
+    ILendPoolLoan(vars.poolLoan).liquidateLoan(vars.initiator, vars.loanId, nftData.bNftAddress, 1);
 
     // transfer repay amount to pool
     IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(vars.initiator, address(this), vars.repayAmountWithFine);
@@ -222,11 +231,11 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       vars.initiator,
       loanData.reserveAsset,
       loanData.bidBorrowAmount,
+      vars.bidFine,
       loanData.nftAsset,
       loanData.nftTokenId,
       loanData.borrower,
-      vars.loanId,
-      vars.bidFine
+      vars.loanId
     );
 
     return (vars.repayAmountWithFine);
@@ -270,7 +279,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       vars.remainAmount = loanData.bidPrice - loanData.bidBorrowAmount;
     }
 
-    ILendPoolLoan(vars.poolLoan).liquidateLoan(loanData.bidderAddress, vars.loanId, nftData.bNftAddress, false);
+    ILendPoolLoan(vars.poolLoan).liquidateLoan(loanData.bidderAddress, vars.loanId, nftData.bNftAddress, 0);
 
     // transfer remain amount to borrower
     if (vars.remainAmount > 0) {

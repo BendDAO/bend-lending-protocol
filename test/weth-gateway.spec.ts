@@ -159,7 +159,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await mintERC721(testEnv, user, "BAYC", tokenId);
     await setApprovalForAll(testEnv, user, "BAYC");
     const getDebtBalance = async () => {
-      const loan = await getLoanData(pool, dataProvider, nftAsset, tokenId, user.address);
+      const loan = await getLoanData(pool, dataProvider, nftAsset, tokenId, "0");
 
       return BN.from(loan.currentAmount.toFixed(0));
     };
@@ -215,7 +215,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await setApprovalForAll(testEnv, user, "BAYC");
     await setApprovalForAllWETHGateway(testEnv, user, "BAYC");
     const getDebtBalance = async () => {
-      const loan = await getLoanData(pool, dataProvider, nftAsset, tokenId, user.address);
+      const loan = await getLoanData(pool, dataProvider, nftAsset, tokenId, "0");
 
       return BN.from(loan.currentAmount.toFixed(0));
     };

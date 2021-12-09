@@ -11,6 +11,9 @@ import {
   calcExpectedUserDataAfterWithdraw,
   calcExpectedLoanDataAfterBorrow,
   calcExpectedLoanDataAfterRepay,
+  calcExpectedReserveDataAfterAuction,
+  calcExpectedUserDataAfterAuction,
+  calcExpectedLoanDataAfterAuction,
 } from "./utils/calculations";
 import {
   getReserveAddressFromSymbol,
@@ -20,11 +23,18 @@ import {
   getLoanData,
 } from "./utils/helpers";
 
-import { convertToCurrencyDecimals } from "../../helpers/contracts-helpers";
+import { convertToCurrencyDecimals, getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 import { getBToken, getMintableERC20, getMintableERC721, getLendPoolLoanProxy } from "../../helpers/contracts-getters";
-import { MAX_UINT_AMOUNT, ONE_YEAR } from "../../helpers/constants";
+import { MAX_UINT_AMOUNT, ONE_DAY, ONE_HOUR, ONE_YEAR } from "../../helpers/constants";
 import { SignerWithAddress, TestEnv } from "./make-suite";
-import { advanceTimeAndBlock, DRE, timeLatest, waitForTx } from "../../helpers/misc-utils";
+import {
+  advanceTimeAndBlock,
+  DRE,
+  getNowTimeInMilliSeconds,
+  increaseTime,
+  timeLatest,
+  waitForTx,
+} from "../../helpers/misc-utils";
 
 import chai from "chai";
 import { ReserveData, UserReserveData, LoanData } from "./utils/interfaces";
@@ -158,6 +168,88 @@ export const setApprovalForAllWETHGateway = async (testEnv: TestEnv, user: Signe
   const token = await getMintableERC721(nftAsset);
 
   await waitForTx(await token.connect(user.signer).setApprovalForAll(wethGateway.address, true));
+};
+
+export const setNftAssetPriceForDebt = async (
+  testEnv: TestEnv,
+  nftSymbol: string,
+  reserveSymbol: string,
+  debtAmount: string,
+  healthPercent: string
+): Promise<{ oldNftPrice: string; newNftPrice: string }> => {
+  const { nftOracle, dataProvider } = testEnv;
+
+  const priceAdmin = await getEthersSignerByAddress(await nftOracle.priceFeedAdmin());
+
+  const reserve = await getReserveAddressFromSymbol(reserveSymbol);
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
+
+  const debtAmountDecimals = await convertToCurrencyDecimals(reserve, debtAmount);
+
+  const { liquidationThreshold } = await dataProvider.getNftConfigurationData(nftAsset);
+
+  // (Price * LH / Debt = HF) => (Price * LH = Debt * HF) => (Price = Debt * HF / LH)
+  // LH is 2 decimals
+  const nftPrice = new BigNumber(debtAmountDecimals.toString())
+    .percentMul(new BigNumber(healthPercent).multipliedBy(100))
+    .percentDiv(new BigNumber(liquidationThreshold.toString()))
+    .toFixed(0);
+
+  const latestTime = new BigNumber(await getNowTimeInMilliSeconds());
+  await waitForTx(
+    await nftOracle
+      .connect(priceAdmin)
+      .setAssetData(nftAsset, nftPrice, latestTime.plus(1).toString(), latestTime.plus(1).toString())
+  );
+
+  return { oldNftPrice: oldNftPrice.toString(), newNftPrice: nftPrice };
+};
+
+export const setNftAssetPrice = async (testEnv: TestEnv, nftSymbol: string, price: string): Promise<string> => {
+  const { nftOracle, dataProvider } = testEnv;
+
+  const priceAdmin = await getEthersSignerByAddress(await nftOracle.priceFeedAdmin());
+
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
+
+  const latestTime = new BigNumber(await getNowTimeInMilliSeconds());
+  await waitForTx(
+    await nftOracle
+      .connect(priceAdmin)
+      .setAssetData(nftAsset, price, latestTime.plus(1).toString(), latestTime.plus(1).toString())
+  );
+
+  return oldNftPrice.toString();
+};
+
+export const increaseRedeemDuration = async (testEnv: TestEnv, nftSymbol: string, isEnd: Boolean) => {
+  const { dataProvider } = testEnv;
+
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const nftCfgData = await dataProvider.getNftConfigurationData(nftAsset);
+  if (isEnd) {
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).add(ONE_HOUR).toNumber());
+  } else {
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
+  }
+};
+
+export const increaseAuctionDuration = async (testEnv: TestEnv, nftSymbol: string, isEnd: Boolean) => {
+  const { dataProvider } = testEnv;
+
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const nftCfgData = await dataProvider.getNftConfigurationData(nftAsset);
+  if (isEnd) {
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(ONE_HOUR).toNumber());
+  } else {
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
+  }
 };
 
 export const deposit = async (
@@ -311,7 +403,7 @@ export const borrow = async (
     reserveData: reserveDataBefore,
     userData: userDataBefore,
     loanData: loanDataBefore,
-  } = await getContractsDataWithLoan(reserve, onBehalfOf, nftAsset, nftTokenId, testEnv, user.address);
+  } = await getContractsDataWithLoan(reserve, onBehalfOf, nftAsset, nftTokenId, "0", testEnv, user.address);
 
   const amountToBorrow = await convertToCurrencyDecimals(reserve, amount);
 
@@ -333,7 +425,7 @@ export const borrow = async (
       userData: userDataAfter,
       loanData: loanDataAfter,
       timestamp,
-    } = await getContractsDataWithLoan(reserve, onBehalfOf, nftAsset, nftTokenId, testEnv, user.address);
+    } = await getContractsDataWithLoan(reserve, onBehalfOf, nftAsset, nftTokenId, "0", testEnv, user.address);
 
     const expectedReserveData = calcExpectedReserveDataAfterBorrow(
       amountToBorrow.toString(),
@@ -360,7 +452,7 @@ export const borrow = async (
       txTimestamp,
       timestamp
     );
-    //console.log("actual", reserveDataAfter, "expected", expectedReserveData);
+    //console.log("borrow", "actual", reserveDataAfter, "expected", expectedReserveData);
     //console.log("borrow", "actual", loanDataAfter, "expected", expectedLoanData);
 
     expectEqual(reserveDataAfter, expectedReserveData);
@@ -389,13 +481,13 @@ export const repay = async (
 
   const nftAsset = await getNftAddressFromSymbol(nftSymbol);
 
-  const { reserveAsset } = await getLoanData(pool, dataProvider, nftAsset, nftTokenId, onBehalfOf.address);
+  const { reserveAsset } = await getLoanData(pool, dataProvider, nftAsset, nftTokenId, "0");
 
   const {
     reserveData: reserveDataBefore,
     userData: userDataBefore,
     loanData: loanDataBefore,
-  } = await getContractsDataWithLoan(reserveAsset, onBehalfOf.address, nftAsset, nftTokenId, testEnv);
+  } = await getContractsDataWithLoan(reserveAsset, onBehalfOf.address, nftAsset, nftTokenId, "0", testEnv);
 
   let amountToRepay = "0";
 
@@ -425,7 +517,14 @@ export const repay = async (
       userData: userDataAfter,
       loanData: loanDataAfter,
       timestamp,
-    } = await getContractsDataWithLoan(reserveAsset, onBehalfOf.address, nftAsset, nftTokenId, testEnv);
+    } = await getContractsDataWithLoan(
+      reserveAsset,
+      onBehalfOf.address,
+      nftAsset,
+      nftTokenId,
+      loanDataBefore.loanId.toString(),
+      testEnv
+    );
 
     const expectedReserveData = calcExpectedReserveDataAfterRepay(
       amountToRepay,
@@ -465,6 +564,145 @@ export const repay = async (
   } else if (expectedResult === "revert") {
     await expect(pool.connect(user.signer).repay(nftAsset, nftTokenId, amountToRepay, txOptions), revertMessage).to.be
       .reverted;
+  }
+};
+
+export const auction = async (
+  testEnv: TestEnv,
+  user: SignerWithAddress,
+  nftSymbol: string,
+  nftTokenId: string,
+  price: string,
+  onBehalfOf: SignerWithAddress,
+  isFirstTime: Boolean,
+  expectedResult: string,
+  revertMessage?: string
+) => {
+  const { pool, dataProvider } = testEnv;
+
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const { reserveAsset, borrower } = await getLoanData(pool, dataProvider, nftAsset, nftTokenId, "0");
+
+  const {
+    reserveData: reserveDataBefore,
+    userData: userDataBefore,
+    loanData: loanDataBefore,
+  } = await getContractsDataWithLoan(reserveAsset, borrower, nftAsset, nftTokenId, "0", testEnv, user.address);
+
+  let amountToAuction = (await convertToCurrencyDecimals(reserveAsset, price)).toString();
+
+  amountToAuction = "0x" + new BigNumber(amountToAuction).toString(16);
+
+  if (isFirstTime && expectedResult === "success") {
+    const txResult = await waitForTx(
+      await pool.connect(user.signer).auction(nftAsset, nftTokenId, amountToAuction, onBehalfOf.address)
+    );
+
+    const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
+
+    const {
+      reserveData: reserveDataAfter,
+      userData: userDataAfter,
+      loanData: loanDataAfter,
+      timestamp,
+    } = await getContractsDataWithLoan(
+      reserveAsset,
+      borrower,
+      nftAsset,
+      nftTokenId,
+      loanDataBefore.loanId.toString(),
+      testEnv,
+      user.address
+    );
+
+    const expectedReserveData = calcExpectedReserveDataAfterAuction(
+      reserveDataBefore,
+      userDataBefore,
+      loanDataBefore,
+      txTimestamp,
+      timestamp
+    );
+
+    const expectedUserData = calcExpectedUserDataAfterAuction(
+      reserveDataBefore,
+      expectedReserveData,
+      userDataBefore,
+      loanDataBefore,
+      user.address,
+      amountToAuction,
+      txTimestamp,
+      timestamp
+    );
+
+    const expectedLoanData = calcExpectedLoanDataAfterAuction(
+      amountToAuction,
+      reserveDataBefore,
+      expectedReserveData,
+      loanDataBefore,
+      loanDataAfter,
+      user.address,
+      onBehalfOf.address,
+      txTimestamp,
+      timestamp
+    );
+
+    expectEqual(reserveDataAfter, expectedReserveData);
+    expectEqual(userDataAfter, expectedUserData);
+    expectEqual(loanDataAfter, expectedLoanData);
+  } else if (expectedResult === "success") {
+    const txResult = await waitForTx(
+      await pool.connect(user.signer).auction(nftAsset, nftTokenId, amountToAuction, onBehalfOf.address)
+    );
+
+    const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
+  } else if (expectedResult === "revert") {
+    await expect(
+      pool.connect(user.signer).auction(nftAsset, nftTokenId, amountToAuction, onBehalfOf.address),
+      revertMessage
+    ).to.be.reverted;
+  }
+};
+
+export const redeem = async (
+  testEnv: TestEnv,
+  user: SignerWithAddress,
+  nftSymbol: string,
+  nftTokenId: string,
+  expectedResult: string,
+  revertMessage?: string
+) => {
+  const { pool, dataProvider } = testEnv;
+
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  if (expectedResult === "success") {
+    const txResult = await waitForTx(await pool.connect(user.signer).redeem(nftAsset, nftTokenId));
+
+    const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
+  } else if (expectedResult === "revert") {
+    await expect(pool.connect(user.signer).redeem(nftAsset, nftTokenId), revertMessage).to.be.reverted;
+  }
+};
+
+export const liquidate = async (
+  testEnv: TestEnv,
+  user: SignerWithAddress,
+  nftSymbol: string,
+  nftTokenId: string,
+  expectedResult: string,
+  revertMessage?: string
+) => {
+  const { pool, dataProvider } = testEnv;
+
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  if (expectedResult === "success") {
+    const txResult = await waitForTx(await pool.connect(user.signer).liquidate(nftAsset, nftTokenId));
+
+    const { txCost, txTimestamp } = await getTxCostAndTimestamp(txResult);
+  } else if (expectedResult === "revert") {
+    await expect(pool.connect(user.signer).liquidate(nftAsset, nftTokenId), revertMessage).to.be.reverted;
   }
 };
 
@@ -541,6 +779,7 @@ export const getContractsDataWithLoan = async (
   user: string,
   nftAsset: string,
   nftTokenId: string,
+  loanId: string,
   testEnv: TestEnv,
   sender?: string
 ) => {
@@ -549,7 +788,7 @@ export const getContractsDataWithLoan = async (
   const [userData, reserveData, loanData, timestamp] = await Promise.all([
     getUserData(pool, dataProvider, reserve, user, sender || user),
     getReserveData(dataProvider, reserve),
-    getLoanData(pool, dataProvider, nftAsset, nftTokenId, user, sender || user),
+    getLoanData(pool, dataProvider, nftAsset, nftTokenId, loanId),
     timeLatest(),
   ]);
 

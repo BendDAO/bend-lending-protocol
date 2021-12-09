@@ -89,12 +89,25 @@ export const getLoanData = async (
   helper: BendProtocolDataProvider,
   nftAsset: string,
   nftTokenId: string,
-  user: tEthereumAddress,
-  sender?: tEthereumAddress
+  loanId: string
 ): Promise<LoanData> => {
-  const [loanData] = await Promise.all([helper.getLoanDataByCollateral(nftAsset, nftTokenId)]);
+  let loanData;
+  let auctionData;
+
+  if (loanId == undefined || loanId == "0") {
+    [loanData, auctionData] = await Promise.all([
+      helper.getLoanDataByCollateral(nftAsset, nftTokenId),
+      pool.getNftAuctionData(nftAsset, nftTokenId),
+    ]);
+  } else {
+    [loanData, auctionData] = await Promise.all([
+      helper.getLoanDataByLoanId(loanId),
+      pool.getNftAuctionData(nftAsset, nftTokenId),
+    ]);
+  }
 
   return {
+    loanId: new BigNumber(loanData.loanId.toString()),
     state: new BigNumber(loanData.state),
     borrower: loanData.borrower,
     nftAsset: loanData.nftAsset,
@@ -102,6 +115,9 @@ export const getLoanData = async (
     reserveAsset: loanData.reserveAsset,
     scaledAmount: new BigNumber(loanData.scaledAmount.toString()),
     currentAmount: new BigNumber(loanData.currentAmount.toString()),
+    bidderAddress: auctionData.bidderAddres,
+    bidPrice: new BigNumber(auctionData.bidPrice.toString()),
+    bidBorrowAmount: new BigNumber(auctionData.bidBorrowAmount.toString()),
   };
 };
 
