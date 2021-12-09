@@ -19,8 +19,9 @@ import { ReserveOracle, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
+  .addFlag("skipOracle", "Skip deploy oracles")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, pool }, DRE) => {
+  .setAction(async ({ verify, skipOracle, pool }, DRE) => {
     try {
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
@@ -30,10 +31,20 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
       const { ReserveAssets, ReserveAggregators } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
+      const reserveOracleAddress = getParamPerNetwork(poolConfig.ReserveOracle, network);
+
+      if (skipOracle) {
+        if (reserveOracleAddress == undefined || !notFalsyOrZeroAddress(reserveOracleAddress)) {
+          throw Error("Invalid Reserve Oracle address in pool config");
+        }
+        console.log("Reuse existed reserve oracle proxy:", reserveOracleAddress);
+        await waitForTx(await addressesProvider.setReserveOracle(reserveOracleAddress));
+        return;
+      }
+
       const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
       const proxyOwnerAddress = await proxyAdmin.owner();
 
-      const reserveOracleAddress = getParamPerNetwork(poolConfig.ReserveOracle, network);
       const reserveAssets = getParamPerNetwork(ReserveAssets, network);
       const reserveAssetsWithUSD = {
         ...reserveAssets,

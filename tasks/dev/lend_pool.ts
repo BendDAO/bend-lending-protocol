@@ -6,6 +6,8 @@ import {
   deployLendPool,
   deployLendPoolConfigurator,
   deployLendPoolLoan,
+  deployLendPoolLiquidator,
+  deployBendLibraries,
 } from "../../helpers/contracts-deployments";
 import { eContractid } from "../../helpers/types";
 import { waitForTx } from "../../helpers/misc-utils";
@@ -31,6 +33,9 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
     await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistryProxy.address));
 
     ////////////////////////////////////////////////////////////////////////////
+    console.log("Deploying new libraries implementation...");
+    await deployBendLibraries();
+
     // deploy lend pool
     const lendPoolImpl = await deployLendPool(verify);
 
@@ -41,6 +46,11 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
     const lendPoolProxy = await getLendPool(address);
 
     await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
+
+    ////////////////////////////////////////////////////////////////////////////
+    // deploy lend pool liquidator
+    const lendPoolLiquidatorImpl = await deployLendPoolLiquidator(verify);
+    await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiquidatorImpl.address));
 
     ////////////////////////////////////////////////////////////////////////////
     // deploy lend pool configurator

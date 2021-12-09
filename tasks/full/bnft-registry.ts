@@ -18,13 +18,24 @@ import { BNFTRegistry, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
+  .addFlag("skipBnft", "Skip deploy bnft registry and tokens")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, pool }, DRE) => {
+  .setAction(async ({ verify, skipBnft, pool }, DRE) => {
     await DRE.run("set-DRE");
     const network = <eNetwork>DRE.network.name;
 
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
+    let bnftRegistryProxyAddress = getParamPerNetwork(poolConfig.BNFTRegistry, network);
+
+    if (skipBnft) {
+      if (bnftRegistryProxyAddress == undefined || !notFalsyOrZeroAddress(bnftRegistryProxyAddress)) {
+        throw Error("Invalid BNFT Registry address in pool config");
+      }
+      console.log("Reuse existed bnft registry proxy:", bnftRegistryProxyAddress);
+      await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistryProxyAddress));
+      return;
+    }
 
     const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminBNFT);
     const proxyOwnerAddress = await proxyAdmin.owner();
@@ -41,7 +52,6 @@ task("full:deploy-bnft-registry", "Deploy bnft registry for full enviroment")
     let bnftRegistry: BNFTRegistry;
     let bnftRegistryProxy: BendUpgradeableProxy;
 
-    let bnftRegistryProxyAddress = getParamPerNetwork(poolConfig.BNFTRegistry, network);
     if (bnftRegistryProxyAddress == undefined || !notFalsyOrZeroAddress(bnftRegistryProxyAddress)) {
       console.log("Deploying new bnft registry proxy & implementation...");
 

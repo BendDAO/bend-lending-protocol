@@ -10,7 +10,9 @@ import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 task("bend:mainnet", "Deploy full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addFlag("skipRegistry", "Skip addresses provider registration at Addresses Provider Registry")
-  .setAction(async ({ verify, skipRegistry }, DRE) => {
+  .addFlag("skipBnft", "Skip deploy bnft registry and tokens")
+  .addFlag("skipOracle", "Skip deploy oracles")
+  .setAction(async ({ verify, skipRegistry, skipBnft, skipOracle }, DRE) => {
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
     const poolConfig = loadPoolConfig(POOL_NAME);
@@ -51,24 +53,24 @@ task("bend:mainnet", "Deploy full enviroment")
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy address provider");
-    await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry });
+    await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry: skipRegistry });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy bnft registry");
-    await DRE.run("full:deploy-bnft-registry", { pool: POOL_NAME });
+    await DRE.run("full:deploy-bnft-registry", { pool: POOL_NAME, skipBnft });
 
     console.log("\n\nDeploy bnft tokens");
-    await DRE.run("full:deploy-bnft-tokens", { pool: POOL_NAME });
+    await DRE.run("full:deploy-bnft-tokens", { pool: POOL_NAME, skipBnft });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy lend pool");
     await DRE.run("full:deploy-lend-pool", { pool: POOL_NAME });
 
     console.log("\n\nDeploy reserve oracle");
-    await DRE.run("full:deploy-oracle-reserve", { pool: POOL_NAME });
+    await DRE.run("full:deploy-oracle-reserve", { pool: POOL_NAME, skipOracle });
 
     console.log("\n\nDeploy nft oracle");
-    await DRE.run("full:deploy-oracle-nft", { pool: POOL_NAME });
+    await DRE.run("full:deploy-oracle-nft", { pool: POOL_NAME, skipOracle });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy WETH Gateway");
