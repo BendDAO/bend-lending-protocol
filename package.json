@@ -39,8 +39,8 @@
     "main:verify:nfts": "npm run hardhat:main verify:nfts -- --pool Bend",
     "print-contracts:rinkeby": "npm run hardhat:rinkeby -- print-contracts",
     "print-contracts:main": "npm run hardhat:main -- print-contracts",
-    "print-config:rinkeby": "hardhat --network rinkeby print-config --pool Bend --data-provider ${DATA_PROVIDER}",
-    "print-config:main": "hardhat --network main print-config --pool Bend --data-provider ${DATA_PROVIDER}",
+    "print-config:rinkeby": "hardhat --network rinkeby print-config --pool Bend",
+    "print-config:main": "hardhat --network main print-config --pool Bend",
     "prepublishOnly": "npm run compile"
   },
   "devDependencies": {

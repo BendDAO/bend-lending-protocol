@@ -43,29 +43,12 @@ task("dev:custom-task", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
+    //await generateEventsForSubgraph(addressesProvider);
+
     //await printUISimpleData(addressesProvider);
   });
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
-
-const setLendPoolPause = async (
-  DRE: HardhatRuntimeEnvironment,
-  network: eNetwork,
-  poolConfig: PoolConfiguration,
-  addressesProvider: LendPoolAddressesProvider,
-  pause: boolean
-) => {
-  const emAdmin = await DRE.ethers.getSigner(await getEmergencyAdmin(poolConfig));
-
-  const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
-    await addressesProvider.getLendPoolConfigurator()
-  );
-
-  const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());
-
-  await waitForTx(await lendPoolConfiguratorProxy.connect(emAdmin).setPoolPause(pause));
-  console.log("LendPool Pause:", await lendPoolProxy.paused());
-};
 
 const feedNftOraclePrice = async (
   network: eNetwork,
@@ -382,9 +365,9 @@ const generateEventsForSubgraph = async (addressesProvider: LendPoolAddressesPro
   const bayc = await getMintableERC721(await getContractAddressInDb("BAYC"));
   const borrowerBayc = bayc.connect(borrower);
   await waitForTx(await borrowerBayc.setApprovalForAll(pool.address, true));
-  await waitForTx(await borrowerBayc.mint("5001"));
+  await waitForTx(await borrowerBayc.mint("6001"));
   await waitForTx(
-    await borrowerPool.borrow(dai.address, "500000000000000000000", bayc.address, "5001", borrowerAddress, "0")
+    await borrowerPool.borrow(dai.address, "500000000000000000000", bayc.address, "6001", borrowerAddress, "0")
   ); // 500 DAI
 
   // repay partly
@@ -392,7 +375,7 @@ const generateEventsForSubgraph = async (addressesProvider: LendPoolAddressesPro
   //await delay(200000);
   await waitForTx(await borrowerDai.approve(pool.address, "100000000000000000000000000000"));
   await waitForTx(await borrowerDai.mint("1000000000000000000000")); // 1000 DAI, 18 decimals
-  await waitForTx(await borrowerPool.repay(bayc.address, "5001", "100000000000000000000")); // 100 DAI
+  await waitForTx(await borrowerPool.repay(bayc.address, "6001", "100000000000000000000")); // 100 DAI
 
   // withdraw partly
   console.log("Delay 20 seconds, withdraw partly");

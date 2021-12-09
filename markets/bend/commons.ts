@@ -100,7 +100,7 @@ export const CommonsConfig: ICommonConfiguration = {
   ProviderRegistry: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.rinkeby]: '0x800Ad9f20c396592FccC8C0f7cc418F7fDcF70f2',
+    [eEthereumNetwork.rinkeby]: '0x7f87344614bB4A3b97440790E9546c837BF8F723',
     [eEthereumNetwork.main]: '',
   },
   ProviderRegistryOwner: {

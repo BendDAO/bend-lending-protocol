@@ -9,17 +9,16 @@ import { DRE } from "../../helpers/misc-utils";
 import { eEthereumNetwork, eNetwork } from "../../helpers/types";
 
 task("print-nft", "Print data of specified nft")
-  .addParam("dataProvider", "Address of BendProtocolDataProvider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addOptionalParam("asset", `NFT address`)
   .addOptionalParam("tokenId", `NFT Token ID`)
   .addOptionalParam("loanId", `NFT Loan ID`)
-  .setAction(async ({ pool, dataProvider, asset, tokenId, loanId }, localBRE) => {
+  .setAction(async ({ pool, asset, tokenId, loanId }, localBRE) => {
     await localBRE.run("set-DRE");
     const network = process.env.FORK ? (process.env.FORK as eNetwork) : (localBRE.network.name as eNetwork);
     const poolConfig = loadPoolConfig(pool);
 
-    const protocolDataProvider = await getBendProtocolDataProvider(dataProvider);
+    const protocolDataProvider = await getBendProtocolDataProvider();
 
     let loanData;
     if (loanId != undefined) {
