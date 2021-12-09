@@ -183,7 +183,7 @@ export const CommonsConfig: ICommonConfiguration = {
   IncentivesController: {
     [eEthereumNetwork.coverage]: ZERO_ADDRESS,
     [eEthereumNetwork.hardhat]: ZERO_ADDRESS,
-    [eEthereumNetwork.rinkeby]: '0x3914b761079Ad67c5e0928BB3337B481c69e3CdE',
+    [eEthereumNetwork.rinkeby]: '0x06b0C0aEE6A2DDf5cb4fc76764e8107bA36B22b7',
     [eEthereumNetwork.main]: ZERO_ADDRESS,
   },
 };

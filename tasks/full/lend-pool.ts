@@ -7,6 +7,8 @@ import {
   deployLendPoolLoan,
   deployLendPoolConfigurator,
   deployBNFTImplementations,
+  deployLendPoolLiquidator,
+  deployBendLibraries,
 } from "../../helpers/contracts-deployments";
 import { eContractid, eNetwork } from "../../helpers/types";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
@@ -30,6 +32,9 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const addressesProvider = await getLendPoolAddressesProvider();
 
       //////////////////////////////////////////////////////////////////////////
+      console.log("Deploying new libraries implementation...");
+      await deployBendLibraries();
+
       // Reuse/deploy lend pool implementation
       console.log("Deploying new lend pool implementation & libraries...");
       const lendPoolImpl = await deployLendPool(verify);
@@ -41,6 +46,12 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const lendPoolProxy = await getLendPool(address);
 
       await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
+
+      ////////////////////////////////////////////////////////////////////////////
+      // deploy lend pool liquidator
+      console.log("Deploying new liquidator implementation...");
+      const lendPoolLiquidatorImpl = await deployLendPoolLiquidator(verify);
+      await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiquidatorImpl.address));
 
       //////////////////////////////////////////////////////////////////////////
       // Reuse/deploy lend pool loan

@@ -48,11 +48,12 @@ task("dev:custom-task", "Doing custom task")
 
 const dummyFunction = async (addressesProvider: LendPoolAddressesProvider) => {};
 
-const lendPoolUnpause = async (
+const setLendPoolPause = async (
   DRE: HardhatRuntimeEnvironment,
   network: eNetwork,
   poolConfig: PoolConfiguration,
-  addressesProvider: LendPoolAddressesProvider
+  addressesProvider: LendPoolAddressesProvider,
+  pause: boolean
 ) => {
   const emAdmin = await DRE.ethers.getSigner(await getEmergencyAdmin(poolConfig));
 
@@ -62,7 +63,7 @@ const lendPoolUnpause = async (
 
   const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());
 
-  await waitForTx(await lendPoolConfiguratorProxy.connect(emAdmin).setPoolPause(false));
+  await waitForTx(await lendPoolConfiguratorProxy.connect(emAdmin).setPoolPause(pause));
   console.log("LendPool Pause:", await lendPoolProxy.paused());
 };
 

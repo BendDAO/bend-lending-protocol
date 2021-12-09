@@ -10,13 +10,19 @@ import { BNFTRegistry } from "../../types";
 
 task("full:deploy-bnft-tokens", "Deploy bnft tokens for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
+  .addFlag("skipBnft", "Skip deploy bnft registry and tokens")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, pool }, DRE) => {
+  .setAction(async ({ verify, skipBnft, pool }, DRE) => {
     await DRE.run("set-DRE");
     const network = <eNetwork>DRE.network.name;
     const ownerSigner = await getPoolOwnerSigner();
 
     const poolConfig = loadPoolConfig(pool);
+
+    if (skipBnft) {
+      console.log("Reuse existed bnft tokens proxy");
+      return;
+    }
 
     let bnftRegistryProxy: BNFTRegistry;
     // try to get from config

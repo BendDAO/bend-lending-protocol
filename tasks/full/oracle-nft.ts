@@ -14,8 +14,9 @@ import { NFTOracle, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
+  .addFlag("skipOracle", "Skip deploy oracles")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, pool }, DRE) => {
+  .setAction(async ({ verify, skipOracle, pool }, DRE) => {
     try {
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
@@ -23,11 +24,21 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       const { NftsAssets } = poolConfig as ICommonConfiguration;
 
       const addressesProvider = await getLendPoolAddressesProvider();
+      const nftOracleAddress = getParamPerNetwork(poolConfig.NFTOracle, network);
+
+      if (skipOracle) {
+        if (nftOracleAddress == undefined || !notFalsyOrZeroAddress(nftOracleAddress)) {
+          throw Error("Invalid NFT Oracle address in pool config");
+        }
+        console.log("Reuse existed nft oracle proxy:", nftOracleAddress);
+        await waitForTx(await addressesProvider.setNFTOracle(nftOracleAddress));
+        return;
+      }
+
       const poolAdmin = await getGenesisPoolAdmin(poolConfig);
       const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
       const proxyOwnerAddress = await proxyAdmin.owner();
 
-      const nftOracleAddress = getParamPerNetwork(poolConfig.NFTOracle, network);
       const nftsAssets = getParamPerNetwork(NftsAssets, network);
 
       const tokens = Object.entries(nftsAssets).map(([tokenSymbol, tokenAddress]) => {
