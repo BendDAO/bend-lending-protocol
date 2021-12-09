@@ -7,7 +7,7 @@ import {
 } from "../../helpers/contracts-getters";
 import { waitForTx } from "../../helpers/misc-utils";
 
-task("pool-amdin:pause", "Doing lend pool pause task")
+task("pool-amdin:pause", "Doing lend pool admin task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("pause", "Verify contracts at Etherscan")
   .setAction(async ({ pool, pause }, DRE) => {

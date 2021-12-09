@@ -98,4 +98,23 @@ task("bend:mainnet", "Deploy full enviroment")
 
     console.log("\n\nFinished migrations");
     printContracts();
+
+    console.log(
+      "Deployer:",
+      await deployerSigner.getAddress(),
+      "Balance:",
+      formatEther(await deployerSigner.getBalance())
+    );
+    console.log(
+      "PoolAdmin:",
+      await poolAdminSigner.getAddress(),
+      "Balance:",
+      formatEther(await poolAdminSigner.getBalance())
+    );
+    console.log(
+      "EmergencyAdmin:",
+      await emergencyAdminSigner.getAddress(),
+      "Balance:",
+      formatEther(await emergencyAdminSigner.getBalance())
+    );
   });
