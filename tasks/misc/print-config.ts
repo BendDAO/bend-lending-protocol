@@ -11,9 +11,8 @@ import { DRE } from "../../helpers/misc-utils";
 import { eEthereumNetwork, eNetwork } from "../../helpers/types";
 
 task("print-config", "Print config of all reserves and nfts")
-  .addParam("dataProvider", "Address of BendProtocolDataProvider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ pool, dataProvider }, localBRE) => {
+  .setAction(async ({ pool }, localBRE) => {
     await localBRE.run("set-DRE");
     const network = process.env.FORK ? (process.env.FORK as eNetwork) : (localBRE.network.name as eNetwork);
     const poolConfig = loadPoolConfig(pool);
@@ -22,6 +21,7 @@ task("print-config", "Print config of all reserves and nfts")
     const providerRegistry = await getLendPoolAddressesProviderRegistry(providerRegistryAddress);
     const providers = await providerRegistry.getAddressesProvidersList();
     const addressesProvider = await getLendPoolAddressesProvider(providers[0]); // Checks first provider
+    const protocolDataProvider = await getBendProtocolDataProvider();
 
     console.log("Provider Registry: ", providerRegistry.address);
     console.log("Address Provider: ", addressesProvider.address);
@@ -31,11 +31,11 @@ task("print-config", "Print config of all reserves and nfts")
     console.log("Lend Pool Proxy:", await addressesProvider.getLendPool());
     console.log("Lend Pool Loan Proxy", await addressesProvider.getLendPoolLoan());
     console.log("Lend Pool Configurator Proxy", await addressesProvider.getLendPoolConfigurator());
+    console.log("Lend Pool Liquidator", await addressesProvider.getLendPoolLiquidator());
     console.log("Reserve Oracle Proxy", await addressesProvider.getReserveOracle());
     console.log("NFT Oracle Proxy", await addressesProvider.getNFTOracle());
     console.log("BNFT Registry Proxy", await addressesProvider.getBNFTRegistry());
-    console.log("Lend Pool Data Provider", dataProvider);
-    const protocolDataProvider = await getBendProtocolDataProvider(dataProvider);
+    console.log("Lend Pool Data Provider", protocolDataProvider.address);
 
     const reserveFields = ["decimals", "reserveFactor", "borrowingEnabled", "isActive", "isFrozen"];
     const reserveTokensFields = ["bTokenSymbol", "bTokenAddress", "debtTokenSymbol", "debtTokenAddress"];

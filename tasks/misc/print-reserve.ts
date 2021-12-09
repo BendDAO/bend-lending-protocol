@@ -6,16 +6,15 @@ import { DRE } from "../../helpers/misc-utils";
 import { eEthereumNetwork, eNetwork } from "../../helpers/types";
 
 task("print-reserve", "Print data of specified reserve and user")
-  .addParam("dataProvider", "Address of BendProtocolDataProvider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", `Reserve address`)
   .addOptionalParam("user", `User address`)
-  .setAction(async ({ pool, dataProvider, asset, user }, localBRE) => {
+  .setAction(async ({ pool, asset, user }, localBRE) => {
     await localBRE.run("set-DRE");
     const network = process.env.FORK ? (process.env.FORK as eNetwork) : (localBRE.network.name as eNetwork);
     const poolConfig = loadPoolConfig(pool);
 
-    const protocolDataProvider = await getBendProtocolDataProvider(dataProvider);
+    const protocolDataProvider = await getBendProtocolDataProvider();
 
     const reserveData = await protocolDataProvider.getReserveData(asset);
 
