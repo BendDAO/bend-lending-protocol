@@ -29,7 +29,6 @@ import {
   DebtTokenFactory,
   BNFTFactory,
   BNFTRegistryFactory,
-  MockBNFTMinterFactory,
   InterestRateFactory,
   LendPoolConfiguratorFactory,
   LendPoolFactory,
@@ -47,7 +46,6 @@ import {
   WalletBalanceProviderFactory,
   WETH9MockedFactory,
   WETHGatewayFactory,
-  MockFlashLoanReceiverFactory,
   CryptoPunksMarketFactory,
   WrappedPunkFactory,
   PunkGatewayFactory,
@@ -477,21 +475,6 @@ export const deployRateStrategy = async (
   }
 };
 
-export const deployMockBNFTMinter = async (args: [tEthereumAddress, tEthereumAddress], verify?: boolean) =>
-  withSaveAndVerify(
-    await new MockBNFTMinterFactory(await getFirstSigner()).deploy(...args),
-    eContractid.MockBNFTMinter,
-    args,
-    verify
-  );
-
-export const deployMockFlashLoanReceiver = async (args: [tEthereumAddress], verify?: boolean) =>
-  withSaveAndVerify(
-    await new MockFlashLoanReceiverFactory(await getFirstSigner()).deploy(...args),
-    eContractid.MockFlashLoanReceiver,
-    args,
-    verify
-  );
 export const deployCryptoPunksMarket = async (args: [], verify?: boolean) =>
   withSaveAndVerify(
     await new CryptoPunksMarketFactory(await getFirstSigner()).deploy(...args),

@@ -11,17 +11,18 @@ import {
   getLendPoolAddressesProvider,
   getBNFTRegistryProxy,
   getBendProxyAdminById,
+  getConfigMockedNfts,
+  getProxyAdminSigner,
 } from "../../helpers/contracts-getters";
+import { MintableERC721 } from "../../types";
 
-task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
+task("dev:deploy-mock-bnft-registry", "Deploy bnft registry for dev enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
 
-    const addressesProvider = await getLendPoolAddressesProvider();
-
-    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminBNFT);
+    const proxyAdminAddress = await (await getProxyAdminSigner()).getAddress();
 
     const poolConfig = loadPoolConfig(pool);
 
@@ -37,13 +38,28 @@ task("dev:deploy-bnft-registry", "Deploy bnft registry for dev enviroment")
 
     const bnftRegistryProxy = await deployBendUpgradeableProxy(
       eContractid.BNFTRegistry,
-      proxyAdmin.address,
+      proxyAdminAddress,
       bnftRegistryImpl.address,
       initEncodedData,
       verify
     );
+  });
 
-    const bnftRegistry = await getBNFTRegistryProxy(bnftRegistryProxy.address);
+task("dev:deploy-mock-bnft-tokens", "Deploy bnft tokens for dev enviroment")
+  .addFlag("verify", "Verify contracts at Etherscan")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .setAction(async ({ verify, pool }, localBRE) => {
+    await localBRE.run("set-DRE");
 
-    await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
+    const poolConfig = loadPoolConfig(pool);
+
+    const bnftRegistryProxy = await getBNFTRegistryProxy();
+
+    const mockedNfts = await getConfigMockedNfts(poolConfig);
+
+    for (const [nftSymbol, mockedNft] of Object.entries(mockedNfts) as [string, MintableERC721][]) {
+      await waitForTx(await bnftRegistryProxy.createBNFT(mockedNft.address, []));
+      const { bNftProxy } = await bnftRegistryProxy.getBNFTAddresses(mockedNft.address);
+      console.log("BNFT Token:", nftSymbol, bNftProxy);
+    }
   });

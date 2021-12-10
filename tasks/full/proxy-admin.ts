@@ -17,18 +17,6 @@ task("full:deploy-proxy-admin", "Deploy proxy admin contract")
 
     {
       let proxyAdmin: BendProxyAdmin;
-      const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdminBNFT, network);
-      if (proxyAdminAddress == undefined || !notFalsyOrZeroAddress(proxyAdminAddress)) {
-        proxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminBNFT, verify);
-      } else {
-        await insertContractAddressInDb(eContractid.BendProxyAdminBNFT, proxyAdminAddress);
-        proxyAdmin = await getBendProxyAdminByAddress(proxyAdminAddress);
-      }
-      console.log("ProxyAdminBNFT Address:", proxyAdmin.address, "Owner Address:", await proxyAdmin.owner());
-    }
-
-    {
-      let proxyAdmin: BendProxyAdmin;
       const proxyAdminAddress = getParamPerNetwork(poolConfig.ProxyAdminPool, network);
       if (proxyAdminAddress == undefined || !notFalsyOrZeroAddress(proxyAdminAddress)) {
         proxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminPool, verify);

@@ -27,6 +27,7 @@
     "ci:clean": "rm -rf ./artifacts ./cache ./types && hardhat clean",
     "bend:hardhat:dev:migration": "npm run compile && npm run hardhat -- bend:dev",
     "bend:localhost:dev:migration": "npm run compile && npm run hardhat:localhost -- bend:dev",
+    "bend:localhost:full:migration": "npm run compile && npm run hardhat:localhost -- bend:mainnet",
     "bend:rinkeby:full:migration": "npm run compile && npm run hardhat:rinkeby -- bend:mainnet",
     "bend:main:full:migration": "npm run compile && npm run hardhat:main -- bend:mainnet --verify",
     "bend:fork:main": "npm run compile && FORK=main hardhat bend:mainnet",
