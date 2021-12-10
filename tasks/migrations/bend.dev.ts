@@ -25,19 +25,19 @@ task("bend:dev", "Deploy development enviroment")
     await localBRE.run("dev:deploy-mock-nfts", { verify });
 
     //////////////////////////////////////////////////////////////////////////
+    console.log("\n\nDeploy mock bnft registry");
+    await localBRE.run("dev:deploy-mock-bnft-registry", { verify, pool: POOL_NAME });
+
+    console.log("\n\nDeploy mock bnft tokens");
+    await localBRE.run("dev:deploy-mock-bnft-tokens", { verify, pool: POOL_NAME });
+
+    //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy proxy admin");
     await localBRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy address provider");
     await localBRE.run("dev:deploy-address-provider", { verify, pool: POOL_NAME });
-
-    //////////////////////////////////////////////////////////////////////////
-    console.log("\n\nDeploy bnft registry");
-    await localBRE.run("dev:deploy-bnft-registry", { verify, pool: POOL_NAME });
-
-    console.log("\n\nDeploy bnft tokens");
-    await localBRE.run("dev:deploy-bnft-tokens", { verify, pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy lend pool");

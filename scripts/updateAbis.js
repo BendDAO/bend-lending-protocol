@@ -12,15 +12,13 @@ const protocolContractList = [
   "NFTOracle",
   "BToken",
   "DebtToken",
-  "BNFTRegistry",
-  "BNFT",
   "PunkGateway",
   "WETHGateway",
 ];
 
 const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "WalletBalanceProvider"];
 
-const interfacesContractList = ["IERC20Detailed", "IERC721Detailed", "IFlashLoanReceiver", "IIncentivesController"];
+const interfacesContractList = ["IERC20Detailed", "IERC721Detailed", "IIncentivesController"];
 
 const updateAbis = async (subDir, contractList) => {
   contractList.forEach((contract) => {

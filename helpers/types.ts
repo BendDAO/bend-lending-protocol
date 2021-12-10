@@ -7,10 +7,11 @@ export interface SymbolMap<T> {
 export type eNetwork = eEthereumNetwork;
 
 export enum eEthereumNetwork {
-  rinkeby = "rinkeby",
-  main = "main",
   coverage = "coverage",
   hardhat = "hardhat",
+  localhost = "localhost",
+  rinkeby = "rinkeby",
+  main = "main",
 }
 
 export enum BendPools {
@@ -42,7 +43,6 @@ export enum eContractid {
   InterestRate = "InterestRate",
   BendUpgradeableProxy = "BendUpgradeableProxy",
   BendProxyAdminTest = "BendProxyAdminTest",
-  BendProxyAdminBNFT = "BendProxyAdminBNFT", //BNFT(Registry)
   BendProxyAdminPool = "BendProxyAdminPool", //LendPool Contracts, etc Oracle(Reserve, NFT)
   BendProxyAdminFund = "BendProxyAdminFund", //Treasury Fundings, etc Collector
   WalletBalanceProvider = "WalletBalanceProvider",
@@ -68,8 +68,6 @@ export enum eContractid {
   LendPoolLiquidatorImpl = "LendPoolLiquidatorImpl",
   BNFTRegistry = "BNFTRegistry",
   BNFTRegistryImpl = "BNFTRegistryImpl",
-  MockBNFTMinter = "MockBNFTMinter",
-  MockFlashLoanReceiver = "MockFlashLoanReceiver",
   CryptoPunksMarket = "CryptoPunksMarket",
   WrappedPunk = "WrappedPunk",
   PunkGateway = "PunkGateway",
@@ -304,9 +302,10 @@ export interface iParamsPerNetworkAll<T> extends iEthereumParamsPerNetwork<T> {}
 
 export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.coverage]: T;
+  [eEthereumNetwork.hardhat]: T;
+  [eEthereumNetwork.localhost]: T;
   [eEthereumNetwork.rinkeby]: T;
   [eEthereumNetwork.main]: T;
-  [eEthereumNetwork.hardhat]: T;
 }
 
 export interface iParamsPerPool<T> {
@@ -348,12 +347,11 @@ export interface ICommonConfiguration {
   ProtocolGlobalParams: IProtocolGlobalConfig;
   Mocks: IMocksConfig;
 
-  ProxyAdminBNFT: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProxyAdminPool: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProxyAdminFund: iParamsPerNetwork<tEthereumAddress | undefined>;
 
   BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
-  BNFTRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
+
   ProviderRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProviderRegistryOwner: iParamsPerNetwork<tEthereumAddress | undefined>;
 

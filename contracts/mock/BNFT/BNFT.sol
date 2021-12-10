@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {IBNFT} from "../interfaces/IBNFT.sol";
-import {IFlashLoanReceiver} from "../interfaces/IFlashLoanReceiver.sol";
+import {IBNFT} from "../../interfaces/IBNFT.sol";
+import {IFlashLoanReceiver} from "../../interfaces/IFlashLoanReceiver.sol";
 
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";

@@ -111,25 +111,13 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const incentivesControllerAddress = mockIncentivesController.address;
 
   //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare address provider...");
-  const addressesProviderRegistry = await deployLendPoolAddressesProviderRegistry();
-
-  const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId);
-  await waitForTx(await addressesProvider.setPoolAdmin(poolAdmin));
-  await waitForTx(await addressesProvider.setEmergencyAdmin(emergencyAdmin));
-
-  await waitForTx(
-    await addressesProviderRegistry.registerAddressesProvider(addressesProvider.address, BendConfig.ProviderId)
-  );
-
-  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare proxy admin...");
   const bendProxyAdmin = await deployBendProxyAdmin(eContractid.BendProxyAdminTest);
   console.log("bendProxyAdmin:", bendProxyAdmin.address);
 
   //////////////////////////////////////////////////////////////////////////////
   // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
-  console.log("-> Prepare bnft registry...");
+  console.log("-> Prepare mock bnft registry...");
   const bnftGenericImpl = await deployGenericBNFTImpl(false);
 
   const bnftRegistryImpl = await deployBNFTRegistry();
@@ -151,16 +139,28 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(await bnftRegistry.transferOwnership(poolAdmin));
 
   //////////////////////////////////////////////////////////////////////////////
-  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
-  await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
-
-  //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare bnft tokens...");
+  console.log("-> Prepare mock bnft tokens...");
   for (const [nftSymbol, mockedNft] of Object.entries(mockNfts) as [string, MintableERC721][]) {
     await waitForTx(await bnftRegistry.createBNFT(mockedNft.address, []));
     const bnftAddresses = await bnftRegistry.getBNFTAddresses(mockedNft.address);
     console.log("createBNFT:", nftSymbol, bnftAddresses.bNftProxy, bnftAddresses.bNftImpl);
   }
+
+  //////////////////////////////////////////////////////////////////////////////
+  console.log("-> Prepare address provider...");
+  const addressesProviderRegistry = await deployLendPoolAddressesProviderRegistry();
+
+  const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId);
+  await waitForTx(await addressesProvider.setPoolAdmin(poolAdmin));
+  await waitForTx(await addressesProvider.setEmergencyAdmin(emergencyAdmin));
+
+  await waitForTx(
+    await addressesProviderRegistry.registerAddressesProvider(addressesProvider.address, BendConfig.ProviderId)
+  );
+
+  //////////////////////////////////////////////////////////////////////////////
+  // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
+  await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bend libraries...");

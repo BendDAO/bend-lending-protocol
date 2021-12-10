@@ -39,9 +39,6 @@
     "address": "0x6b81840bc2E607C1Ea099D7BD93957608CEB3947",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
-  "BendProxyAdminBNFT": {
-    "address": "0x57310Fa646Ed3B45B3b70c70F23bf57d3E305F42"
-  },
   "BendProxyAdminPool": {
     "address": "0x60C7eb6362D4fD6dFa53f6610784924eFaA1d178"
   },

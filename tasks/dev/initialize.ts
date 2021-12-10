@@ -1,6 +1,5 @@
 import { task } from "hardhat/config";
 import {
-  deployMockFlashLoanReceiver,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   deployUiPoolDataProvider,
@@ -48,6 +47,9 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     const addressesProvider = await getLendPoolAddressesProvider();
     const admin = await addressesProvider.getPoolAdmin();
     const treasuryAddress = await getTreasuryAddress(poolConfig);
+    if (treasuryAddress == undefined || !notFalsyOrZeroAddress(treasuryAddress)) {
+      throw Error("Invalid treasury address in pool config");
+    }
 
     const dataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
     await insertContractAddressInDb(eContractid.BendProtocolDataProvider, dataProvider.address);
@@ -118,9 +120,4 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     for (const [assetSymbol, assetAddress] of Object.entries(allTokenAddresses) as [string, string][]) {
       await waitForTx(await punkGateway.authorizeLendPoolERC20(assetAddress));
     }
-
-    ////////////////////////////////////////////////////////////////////////////
-    const bnftRegistry = await addressesProvider.getBNFTRegistry();
-    const mockFlashLoanReceiver = await deployMockFlashLoanReceiver([bnftRegistry], verify);
-    await insertContractAddressInDb(eContractid.MockFlashLoanReceiver, mockFlashLoanReceiver.address);
   });

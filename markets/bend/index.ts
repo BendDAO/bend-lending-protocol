@@ -33,6 +33,11 @@ export const BendConfig: IBendConfiguration = {
   ReserveAssets: {
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
+    [eEthereumNetwork.localhost]: {
+      DAI: '0x51bda59320165617F7209a38D08b11ccefF58F1a',
+      USDC: '0x816b2d94590fbcE4C06a70FBb770323166867549',
+      WETH: '0x7326573C3689831ADBf8050F1e5a2fB31C8441d8',
+    },
     [eEthereumNetwork.rinkeby]: {
       DAI: '0x56C0dab0209Ad53C8de55480167667b4884e3d0F',
       USDC: '0xA535aA6A943706c589616f982d0d05f50710C8A7',
@@ -47,6 +52,10 @@ export const BendConfig: IBendConfiguration = {
   NftsAssets: {
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
+    [eEthereumNetwork.localhost]: {
+      WPUNKS: '0xD024caf0B8667D0D50e87C35Da1AF295ccd96CeC',
+      BAYC: '0xb16101f4b859580B810b683264102c49e12d0732',
+    },
     [eEthereumNetwork.rinkeby]: {
       WPUNKS: '0x5b4FaC380a2A79EE0ddA713a31cbA7A74Cba7Cd0',
       BAYC: '0x6b81840bc2E607C1Ea099D7BD93957608CEB3947',

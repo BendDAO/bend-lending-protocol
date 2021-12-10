@@ -1,11 +1,13 @@
 import { ethers } from "ethers";
-import { tEthereumAddress, iAssetAggregatorBase, SymbolMap } from "./types";
+import { tEthereumAddress, iAssetAggregatorBase, SymbolMap, PoolConfiguration } from "./types";
 
 import { ReserveOracle } from "../types/ReserveOracle";
 import { NFTOracle } from "../types/NFTOracle";
 import { MockChainlinkOracle } from "../types/MockChainlinkOracle";
 import { deployMockChainlinkOracle } from "./contracts-deployments";
 import { getNowTimeInSeconds, waitForTx } from "./misc-utils";
+import { getAllMockedTokens } from "./contracts-getters";
+import { MOCK_USD_PRICE, USD_ADDRESS } from "./constants";
 
 export const setPricesInChainlinkMockAggregator = async (
   prices: SymbolMap<string>,
@@ -101,4 +103,33 @@ export const deployChainlinkMockAggregator = async (
   console.log("ChainlinkMockAggregator,", tokenName, aggregator.address, initialPrice, tokenDecimal);
   await aggregator.mockAddAnswer(1, initialPrice, latestTime, latestTime, "1");
   return aggregator;
+};
+
+export const deployAllReservesMockAggregatorsInPoolConfig = async (poolConfig: PoolConfiguration, verify?: boolean) => {
+  const allTokenDecimals = Object.entries(poolConfig.ReservesConfig).reduce(
+    (accum: { [tokenSymbol: string]: string }, [tokenSymbol, tokenConfig]) => ({
+      ...accum,
+      [tokenSymbol]: tokenConfig.reserveDecimals,
+    }),
+    {}
+  );
+
+  const mockAggregators = await deployAllChainlinkMockAggregators(
+    allTokenDecimals,
+    poolConfig.Mocks.AllAssetsInitialPrices,
+    verify
+  );
+  const usdMockAggregator = await deployChainlinkMockAggregator("USD", "8", MOCK_USD_PRICE);
+
+  const allAggregatorsAddresses = Object.entries(mockAggregators).reduce(
+    (accum: { [tokenSymbol: string]: tEthereumAddress }, [tokenSymbol, aggregator]) => ({
+      ...accum,
+      [tokenSymbol]: aggregator.address,
+    }),
+    {
+      USD: usdMockAggregator.address,
+    }
+  );
+
+  return allAggregatorsAddresses;
 };

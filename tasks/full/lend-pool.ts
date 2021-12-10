@@ -17,6 +17,7 @@ import {
   getLendPool,
   getLendPoolLoanProxy,
   getLendPoolConfiguratorProxy,
+  getBNFTRegistryProxy,
 } from "../../helpers/contracts-getters";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { loadPoolConfig, ConfigNames, getGenesisPoolAdmin, getEmergencyAdmin } from "../../helpers/configuration";
@@ -30,6 +31,16 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
       const addressesProvider = await getLendPoolAddressesProvider();
+
+      //////////////////////////////////////////////////////////////////////////
+      const bnftRegistryAddress = getParamPerNetwork(poolConfig.BNFTRegistry, network);
+      console.log("BNFTRegistry", poolConfig.BNFTRegistry);
+      if (bnftRegistryAddress == undefined || !notFalsyOrZeroAddress(bnftRegistryAddress)) {
+        throw Error("Invalid BNFT Registry address in pool config");
+      }
+      const bnftRegistryProxy = await getBNFTRegistryProxy(bnftRegistryAddress);
+      console.log("Setting BNFT Registry to address provider...");
+      await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistryProxy.address));
 
       //////////////////////////////////////////////////////////////////////////
       console.log("Deploying new libraries implementation...");

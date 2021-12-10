@@ -56,13 +56,6 @@ task("bend:mainnet", "Deploy full enviroment")
     await DRE.run("full:deploy-address-provider", { pool: POOL_NAME, skipRegistry: skipRegistry });
 
     //////////////////////////////////////////////////////////////////////////
-    console.log("\n\nDeploy bnft registry");
-    await DRE.run("full:deploy-bnft-registry", { pool: POOL_NAME, skipBnft });
-
-    console.log("\n\nDeploy bnft tokens");
-    await DRE.run("full:deploy-bnft-tokens", { pool: POOL_NAME, skipBnft });
-
-    //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy lend pool");
     await DRE.run("full:deploy-lend-pool", { pool: POOL_NAME });
 
