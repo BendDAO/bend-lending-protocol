@@ -124,7 +124,7 @@ docker-compose exec contracts-env bash
 # npm run xxx
 ```
 
-### Localhost deployment
+### Localhost dev deployment
 ```
 # In first terminal
 npm run hardhat:node
@@ -133,7 +133,28 @@ npm run hardhat:node
 npm run bend:localhost:dev:migration
 ```
 
-### Rinkeby deployment
+### Localhost full deployment
+```
+# In first terminal
+npm run hardhat:node
+
+# In second terminal
+npx hardhat --network localhost "dev:deploy-mock-reserves"
+# then update pool config reserve address
+
+npx hardhat --network localhost "dev:deploy-mock-nfts"
+# then update pool config nft address
+
+npx hardhat --network localhost "dev:deploy-mock-aggregators" --pool Bend
+# then update pool config reserve aggregators address
+
+npx hardhat --network localhost "dev:deploy-mock-bnft-registry" --pool Bend
+# then update pool config bnft registry address
+
+npx hardhat --network localhost "dev:deploy-mock-bnft-tokens" --pool Bend
+```
+
+### Rinkeby full deployment
 ```
 # In one terminal
 npm run bend:rinkeby:full:migration
