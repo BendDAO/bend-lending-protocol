@@ -41,11 +41,31 @@ export const strategyNftClassB: INftParams = {
 };
 
 export const strategyNftClassC: INftParams = {
-  baseLTVAsCollateral: '2000', // 20%
-  liquidationThreshold: '4500', // 35%
+  baseLTVAsCollateral: '3000', // 30%
+  liquidationThreshold: '5500', // 55%
   liquidationBonus: '1000', // 10%
-  redeemDuration: "86400", // 1 day, 3600 * 24
-  auctionDuration: "86400", // 1 day, 3600 * 24
+  redeemDuration: "1", // 1 day
+  auctionDuration: "1", // 1 day
+  redeemFine: "100", // 1%
+  bNftImpl: eContractid.BNFT,
+};
+
+export const strategyNftClassD: INftParams = {
+  baseLTVAsCollateral: '2000', // 20%
+  liquidationThreshold: '4500', // 45%
+  liquidationBonus: '1000', // 10%
+  redeemDuration: "1", // 1 day
+  auctionDuration: "1", // 1 day
+  redeemFine: "100", // 1%
+  bNftImpl: eContractid.BNFT,
+};
+
+export const strategyNftClassE: INftParams = {
+  baseLTVAsCollateral: '1000', // 10%
+  liquidationThreshold: '3500', // 35%
+  liquidationBonus: '1000', // 10%
+  redeemDuration: "1", // 1 day
+  auctionDuration: "1", // 1 day
   redeemFine: "100", // 1%
   bNftImpl: eContractid.BNFT,
 };
@@ -54,4 +74,6 @@ export const strategyNftParams: SymbolMap<INftParams> = {
   "ClassA": strategyNftClassA,
   "ClassB": strategyNftClassB,
   "ClassC": strategyNftClassC,
+  "ClassD": strategyNftClassD,
+  "ClassE": strategyNftClassE,
 };

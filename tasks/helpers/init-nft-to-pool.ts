@@ -3,32 +3,30 @@ import { task } from "hardhat/config";
 import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../helpers/configuration";
 import {
   getBNFTRegistryProxy,
+  getBTokensAndBNFTsHelper,
+  getIErc721Detailed,
   getLendPoolAddressesProvider,
   getLendPoolAddressesProviderRegistry,
   getLendPoolConfiguratorProxy,
 } from "../../helpers/contracts-getters";
+import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { eContractid, eNetwork } from "../../helpers/types";
+import { eContractid, eNetwork, INftParams } from "../../helpers/types";
 import { strategyNftParams } from "../../markets/bend/nftsConfigs";
 
-task("init-new-nft", "Init and config new nft asset to lend pool")
+task("init-nft-to-pool", "Init and config new nft asset to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of underlying nft asset contract")
-  .addParam("strategy", "Name of nft strategy, supported: ClassA, ClassB, ClassC")
+  .addOptionalParam("strategy", "Name of nft strategy, supported: ClassA, ClassB, ClassC, ClassD, ClassE")
   .setAction(async ({ pool, asset, strategy }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
 
-    const providerRegistryAddress = await getProviderRegistryAddress(poolConfig);
-    if (providerRegistryAddress == undefined || !notFalsyOrZeroAddress(providerRegistryAddress)) {
-      throw new Error("The address of provider registry is not exist");
-    }
-    const providerRegistry = await getLendPoolAddressesProviderRegistry(providerRegistryAddress);
-    const addressProviders = providerRegistry.getAddressesProvidersList();
+    const addressesProvider = await getLendPoolAddressesProvider();
 
-    const addressesProvider = await getLendPoolAddressesProvider(addressProviders[0]);
+    const poolAdminSigner = await getEthersSignerByAddress(await addressesProvider.getPoolAdmin());
 
     const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
       await addressesProvider.getLendPoolConfigurator()
@@ -41,10 +39,20 @@ task("init-new-nft", "Init and config new nft asset to lend pool")
       throw new Error("The BNFT of asset is not created");
     }
 
-    const nftParam = strategyNftParams[strategy];
+    const nftContract = await getIErc721Detailed(asset);
+    const nftSymbol = await nftContract.symbol();
+
+    let nftParam: INftParams;
+    if (strategy != undefined && strategy != "") {
+      nftParam = strategyNftParams[strategy];
+    } else {
+      nftParam = poolConfig.NftsConfig[nftSymbol];
+    }
     if (nftParam == undefined) {
       throw new Error("The strategy of asset is not exist");
     }
+
+    console.log("NFT Strategy:", nftParam);
 
     console.log("Initialize nft to lend pool");
     const initInputParams: {
@@ -54,15 +62,26 @@ task("init-new-nft", "Init and config new nft asset to lend pool")
         underlyingAsset: asset,
       },
     ];
-    await waitForTx(await lendPoolConfiguratorProxy.batchInitNft(initInputParams));
+    await waitForTx(await lendPoolConfiguratorProxy.connect(poolAdminSigner).batchInitNft(initInputParams));
 
-    console.log("Configure nft to lend pool");
+    console.log("Configure nft collateral parameters to lend pool");
     await waitForTx(
-      await lendPoolConfiguratorProxy.configureNftAsCollateral(
-        asset,
-        nftParam.baseLTVAsCollateral,
-        nftParam.liquidationThreshold,
-        nftParam.liquidationBonus
-      )
+      await lendPoolConfiguratorProxy
+        .connect(poolAdminSigner)
+        .configureNftAsCollateral(
+          asset,
+          nftParam.baseLTVAsCollateral,
+          nftParam.liquidationThreshold,
+          nftParam.liquidationBonus
+        )
     );
+
+    console.log("Configure nft auction parameters to lend pool");
+    await waitForTx(
+      await lendPoolConfiguratorProxy
+        .connect(poolAdminSigner)
+        .configureNftAsAuction(asset, nftParam.redeemDuration, nftParam.auctionDuration, nftParam.redeemFine)
+    );
+
+    console.log("OK");
   });

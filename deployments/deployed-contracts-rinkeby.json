@@ -32,7 +32,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "MintableERC721": {
-    "address": "0x6b81840bc2E607C1Ea099D7BD93957608CEB3947",
+    "address": "0x4a0e0813F88b25e8e740fbaa268a1Cd487126c9d",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "BAYC": {
@@ -162,6 +162,22 @@
   },
   "LendPoolLiquidator": {
     "address": "0x7fe761637ecDf4F65Bb72027b2DEA16a8a1B6b55",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "DOODLE": {
+    "address": "0x7b5f4f9fb286a77A57127FEfE01E36155164D718",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "COOL": {
+    "address": "0xf976e5355d10F90c189c5527abc4F89EE8967A95",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "MEEBITS": {
+    "address": "0x84BBb2a522D71DffAeea24B582Ef6d7AfA8aE9a1",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "MAYC": {
+    "address": "0x4a0e0813F88b25e8e740fbaa268a1Cd487126c9d",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
