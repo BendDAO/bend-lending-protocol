@@ -51,6 +51,25 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     });
   });
 
+  it("Owner can do emergency CryptoPunks recovery", async () => {
+    const { users, cryptoPunksMarket, punkGateway, deployer } = testEnv;
+    const user = users[0];
+
+    const punkIndex = testEnv.punkIndexTracker++;
+    await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
+
+    await waitForTx(await cryptoPunksMarket.connect(user.signer).transferPunk(punkGateway.address, punkIndex));
+    const tokenOwnerAfterBadTransfer = await cryptoPunksMarket.punkIndexToAddress(punkIndex);
+    expect(tokenOwnerAfterBadTransfer).to.be.eq(punkGateway.address, "User should have lost the punk here.");
+
+    await punkGateway
+      .connect(deployer.signer)
+      .emergencyPunksTransfer(cryptoPunksMarket.address, user.address, punkIndex);
+    const tokenOwnerAfterRecovery = await cryptoPunksMarket.punkIndexToAddress(punkIndex);
+
+    expect(tokenOwnerAfterRecovery).to.be.eq(user.address, "User should recover the punk due emergency transfer");
+  });
+
   it("Borrow USDC and repay it", async () => {
     const { users, cryptoPunksMarket, wrappedPunk, punkGateway, pool, dataProvider, loan } = testEnv;
 
@@ -543,7 +562,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await waitForTx(
       await nftOracle.setAssetData(
         wrappedPunk.address,
-        new BigNumber(punkPrice.toString()).multipliedBy(0.55).toFixed(0),
+        new BigNumber(punkPrice.toString()).multipliedBy(0.5).toFixed(0),
         latestTime,
         latestTime
       )

@@ -15,7 +15,9 @@ import {IPunkGateway} from "../interfaces/IPunkGateway.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 
-contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
+import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
+
+contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRecovery {
   ILendPoolAddressesProvider internal _addressProvider;
   ILendPool internal _pool;
   ILendPoolLoan internal _poolLoan;
@@ -230,31 +232,6 @@ contract PunkGateway is IERC721Receiver, Ownable, IPunkGateway {
   function _safeTransferETH(address to, uint256 value) internal {
     (bool success, ) = to.call{value: value}(new bytes(0));
     require(success, "ETH_TRANSFER_FAILED");
-  }
-
-  /**
-   * @dev transfer ERC20 from the utility contract, for ERC20 recovery in case of stuck tokens due
-   * direct transfers to the contract address.
-   * @param token token to transfer
-   * @param to recipient of the transfer
-   * @param amount amount to send
-   */
-  function emergencyTokenTransfer(
-    address token,
-    address to,
-    uint256 amount
-  ) external onlyOwner {
-    IERC20(token).transfer(to, amount);
-  }
-
-  /**
-   * @dev transfer native Ether from the utility contract, for native Ether recovery in case of stuck Ether
-   * due selfdestructs or transfer ether to pre-computated contract address before deployment.
-   * @param to recipient of the transfer
-   * @param amount amount to send
-   */
-  function emergencyEtherTransfer(address to, uint256 amount) external onlyOwner {
-    _safeTransferETH(to, amount);
   }
 
   /**

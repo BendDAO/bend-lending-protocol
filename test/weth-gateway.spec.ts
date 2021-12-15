@@ -304,7 +304,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     ).to.be.revertedWith("Fallback not allowed");
   });
 
-  it("Owner can do emergency token recovery", async () => {
+  it("Owner can do emergency ERC20 recovery", async () => {
     const { users, dai, wethGateway, deployer } = testEnv;
     const user = users[0];
     const amount = parseEther("1");
@@ -319,13 +319,32 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
       "User should have lost the funds here."
     );
 
-    await wethGateway.connect(deployer.signer).emergencyTokenTransfer(dai.address, user.address, amount);
+    await wethGateway.connect(deployer.signer).emergencyERC20Transfer(dai.address, user.address, amount);
     const daiBalanceAfterRecovery = await dai.balanceOf(user.address);
 
     expect(daiBalanceAfterRecovery).to.be.eq(
       daiBalanceAfterMint,
-      "User should recover the funds due emergency token transfer"
+      "User should recover the funds due emergency transfer"
     );
+  });
+
+  it("Owner can do emergency ERC721 recovery", async () => {
+    const { users, bayc, wethGateway, deployer } = testEnv;
+    const user = users[0];
+
+    const tokenId = testEnv.tokenIdTracker++;
+    await bayc.connect(user.signer).mint(tokenId);
+
+    await bayc
+      .connect(user.signer)
+      ["safeTransferFrom(address,address,uint256)"](user.address, wethGateway.address, tokenId);
+    const tokenOwnerAfterBadTransfer = await bayc.ownerOf(tokenId);
+    expect(tokenOwnerAfterBadTransfer).to.be.eq(wethGateway.address, "User should have lost the token here.");
+
+    await wethGateway.connect(deployer.signer).emergencyERC721Transfer(bayc.address, user.address, tokenId);
+    const tokenOwnerAfterRecovery = await bayc.ownerOf(tokenId);
+
+    expect(tokenOwnerAfterRecovery).to.be.eq(user.address, "User should recover the token due emergency transfer");
   });
 
   it("Owner can do emergency native ETH recovery", async () => {
