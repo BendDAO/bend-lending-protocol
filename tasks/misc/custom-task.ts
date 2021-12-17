@@ -221,81 +221,86 @@ task("dev:borrow-usdc-using-punk", "Doing custom task")
     ); // 100 DAI
   });
 
-const printUISimpleData = async (addressesProvider: LendPoolAddressesProvider) => {
-  const dataProvider = await getBendProtocolDataProvider();
-  const uiProvider = await getUIPoolDataProvider();
+task("dev:print-ui-reserve-data", "Doing custom task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("user", "Address of user")
+  .setAction(async ({ pool, user }, DRE) => {
+    await DRE.run("set-DRE");
 
-  console.log("--------------------------------------------------------------------------------");
-  const simpleNftsData = await uiProvider.getSimpleNftsData(addressesProvider.address);
-  console.log(simpleNftsData);
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const dataProvider = await getBendProtocolDataProvider();
+    const uiProvider = await getUIPoolDataProvider();
 
-  console.log("--------------------------------------------------------------------------------");
-  const userNftData = await uiProvider.getUserNftsData(
-    addressesProvider.address,
-    "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
-  );
-  console.log(userNftData);
+    console.log("--------------------------------------------------------------------------------");
+    console.log("SimpleReservesData:");
+    const simpleReservesData = await uiProvider.getSimpleReservesData(addressesProvider.address);
+    console.log(simpleReservesData);
 
-  console.log("--------------------------------------------------------------------------------");
-  const simpleReservesData = await uiProvider.getSimpleReservesData(addressesProvider.address);
-  console.log(simpleReservesData);
+    console.log("--------------------------------------------------------------------------------");
+    console.log("UserReservesData:");
+    const userReserveData = await uiProvider.getUserReservesData(addressesProvider.address, user);
+    console.log(userReserveData);
+  });
 
-  console.log("--------------------------------------------------------------------------------");
-  const userReserveData = await uiProvider.getUserReservesData(
-    addressesProvider.address,
-    "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
-  );
-  console.log(userReserveData);
+task("dev:print-ui-nft-data", "Doing custom task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("user", "Address of user")
+  .setAction(async ({ pool, user }, DRE) => {
+    await DRE.run("set-DRE");
 
-  console.log("--------------------------------------------------------------------------------");
-  const baycAddress = await getContractAddressInDb("BAYC");
-  const simpleLoansData = await uiProvider.getSimpleLoansData(addressesProvider.address, [baycAddress], ["5001"]);
-  console.log(simpleLoansData);
-};
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const dataProvider = await getBendProtocolDataProvider();
+    const uiProvider = await getUIPoolDataProvider();
 
-const printWalletBatchToken = async () => {
-  const user0signer = await getFirstSigner();
-  const user0Address = await user0signer.getAddress();
-  const user = "0x8b04B42962BeCb429a4dBFb5025b66D3d7D31d27";
+    console.log("--------------------------------------------------------------------------------");
+    console.log("SimpleNftsData:");
+    const simpleNftsData = await uiProvider.getSimpleNftsData(addressesProvider.address);
+    console.log(simpleNftsData);
 
-  const walletProvider = await getWalletProvider("0xcdAeD24a337CC35006b5CF79a7A858561686E783");
-  {
-    const punkIndexs = await walletProvider.batchPunkOfOwner(
-      user,
-      "0x6AB60B1E965d9Aa445d637Ac5034Eba605FF0b82",
-      0,
-      2000
-    );
-    console.log("batchPunkOfOwner:", punkIndexs.join(","));
-  }
-  {
-    const tokenIds = await walletProvider.batchTokenOfOwner(
-      user,
-      "0x6f9a28ACE211122CfD6f115084507b44FDBc12C7",
-      0,
-      2000
-    );
-    console.log("batchTokenOfOwner(BAYC):", tokenIds.join(","));
-  }
-  {
-    const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(user, "0xEF307D349b242b6967a75A4f19Cdb692170F1106");
-    console.log("batchTokenOfOwnerByIndex(COOL):", tokenIds.join(","));
-  }
+    console.log("--------------------------------------------------------------------------------");
+    console.log("UserNftsData:");
+    const userNftData = await uiProvider.getUserNftsData(addressesProvider.address, user);
+    console.log(userNftData);
+  });
 
-  {
-    const tokenIds = await walletProvider.batchTokenOfOwner(
-      user0Address,
-      "0x42258A4ab69a6570381277d384D6F1419d765fEA",
-      5000,
-      2000
-    );
-    console.log("batchTokenOfOwner(bBAYC):", tokenIds.join(","));
-  }
-  {
-    const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(
-      user0Address,
-      "0x42258A4ab69a6570381277d384D6F1419d765fEA"
-    );
-    console.log("batchTokenOfOwnerByIndex(bBAYC):", tokenIds.join(","));
-  }
-};
+task("dev:print-ui-loan-data", "Doing custom task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("token", "Address of token")
+  .addParam("id", "ID of token")
+  .setAction(async ({ pool, token, id }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const uiProvider = await getUIPoolDataProvider();
+
+    const simpleLoansData = await uiProvider.getSimpleLoansData(addressesProvider.address, [token], [id]);
+    console.log(simpleLoansData);
+  });
+
+task("dev:print-wallet-balance", "Doing custom task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("method", "Name of method")
+  .addParam("user", "Address of user")
+  .addParam("token", "Address of token")
+  .addOptionalParam("start", "Start offset of token id range")
+  .addOptionalParam("count", "Count of token id range(<=2000)")
+  .setAction(async ({ pool, method, user, token, start, count }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const walletProvider = await getWalletProvider();
+
+    if (method == "batchPunkOfOwner") {
+      const punkIndexs = await walletProvider.batchPunkOfOwner(user, token, start, count);
+      console.log("batchPunkOfOwner:", punkIndexs.join(","));
+    } else if (method == "batchTokenOfOwner") {
+      const tokenIds = await walletProvider.batchTokenOfOwner(user, token, start, count);
+      console.log("batchTokenOfOwner:", tokenIds.join(","));
+    } else if (method == "batchTokenOfOwnerByIndex") {
+      const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(user, token);
+      console.log("batchTokenOfOwnerByIndex:", tokenIds.join(","));
+    }
+  });
