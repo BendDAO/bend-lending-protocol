@@ -164,13 +164,13 @@ makeSuite("LendPool: Pause", (testEnv: TestEnv) => {
     await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
 
     //user 4 borrows
-    const loanData = await pool.getNftLoanData(bayc.address, "101");
+    const loanData = await pool.getNftCollateralData(bayc.address, weth.address);
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
 
     const amountBorrow = await convertToCurrencyDecimals(
       weth.address,
-      new BigNumber(loanData.availableBorrowsETH.toString()).div(wethPrice.toString()).multipliedBy(0.2).toFixed(0)
+      new BigNumber(loanData.availableBorrowsInETH.toString()).div(wethPrice.toString()).multipliedBy(0.2).toFixed(0)
     );
 
     await pool

@@ -42,13 +42,13 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
 
     //borrows
-    const loanDataBefore = await pool.getNftLoanData(bayc.address, "101");
+    const nftColDataBefore = await pool.getNftCollateralData(bayc.address, weth.address);
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
 
     const amountBorrow = await convertToCurrencyDecimals(
       weth.address,
-      new BigNumber(loanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(nftColDataBefore.availableBorrowsInETH.toString())
         .div(wethPrice.toString())
         .multipliedBy(0.95)
         .toFixed(0)
@@ -58,9 +58,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       .connect(borrower.signer)
       .borrow(weth.address, amountBorrow.toString(), bayc.address, "101", borrower.address, "0");
 
-    const loanDataAfter = await pool.getNftLoanData(bayc.address, "101");
+    const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "101");
 
-    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.gt(
+    expect(nftDebtDataAfter.healthFactor.toString()).to.be.bignumber.gt(
       oneEther.toFixed(0),
       ProtocolErrors.VL_INVALID_HEALTH_FACTOR
     );
@@ -81,9 +81,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       )
     );
 
-    const loanDataAfter = await pool.getNftLoanData(bayc.address, "101");
+    const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "101");
 
-    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.lt(
+    expect(nftDebtDataAfter.healthFactor.toString()).to.be.bignumber.lt(
       oneEther.toFixed(0),
       ProtocolErrors.VL_INVALID_HEALTH_FACTOR
     );
@@ -212,13 +212,13 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
 
     //borrows
-    const loanDataBefore = await pool.getNftLoanData(bayc.address, "102");
+    const nftColDataBefore = await pool.getNftCollateralData(bayc.address, usdc.address);
 
     const usdcPrice = await reserveOracle.getAssetPrice(usdc.address);
 
     const amountBorrow = await convertToCurrencyDecimals(
       usdc.address,
-      new BigNumber(loanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(nftColDataBefore.availableBorrowsInETH.toString())
         .div(usdcPrice.toString())
         .multipliedBy(0.95)
         .toFixed(0)
@@ -228,9 +228,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       .connect(borrower.signer)
       .borrow(usdc.address, amountBorrow.toString(), bayc.address, "102", borrower.address, "0");
 
-    const loanDataAfter = await pool.getNftLoanData(bayc.address, "102");
+    const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "102");
 
-    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.gt(
+    expect(nftDebtDataAfter.healthFactor.toString()).to.be.bignumber.gt(
       oneEther.toFixed(0),
       ProtocolErrors.VL_INVALID_HEALTH_FACTOR
     );
@@ -251,9 +251,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       )
     );
 
-    const loanDataAfter = await pool.getNftLoanData(bayc.address, "102");
+    const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "102");
 
-    expect(loanDataAfter.healthFactor.toString()).to.be.bignumber.lt(
+    expect(nftDebtDataAfter.healthFactor.toString()).to.be.bignumber.lt(
       oneEther.toFixed(0),
       ProtocolErrors.VL_INVALID_HEALTH_FACTOR
     );
@@ -325,6 +325,18 @@ makeSuite("LendPool: Redeem", (testEnv) => {
 
     const tokenOwner = await bayc.ownerOf("102");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
+
+    /*
+    const nftColData = await testEnv.pool.getNftCollateralData(bayc.address, usdc.address);
+    console.log("nftColData:", nftColData);
+
+    const simpleLoansData = await testEnv.uiProvider.getSimpleLoansData(
+      testEnv.addressesProvider.address,
+      [bayc.address],
+      ["102"],
+      );
+    console.log("simpleLoansData:", simpleLoansData);
+    */
   });
 
   it("USDC - Redeems the borrow", async () => {

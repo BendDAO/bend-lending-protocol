@@ -129,6 +129,11 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -138,7 +143,7 @@
         "type": "uint256"
       }
     ],
-    "name": "emergencyEtherTransfer",
+    "name": "emergencyERC20Transfer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -157,11 +162,52 @@
       },
       {
         "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "emergencyERC721Transfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
       }
     ],
-    "name": "emergencyERC20Transfer",
+    "name": "emergencyEtherTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "punks",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
+    "name": "emergencyPunksTransfer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

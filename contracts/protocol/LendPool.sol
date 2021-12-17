@@ -520,58 +520,106 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   /**
    * @dev Returns the loan data of the NFT
    * @param nftAsset The address of the NFT
-   * @param nftTokenId The token id of the NFT
-   * @return totalCollateralETH the total collateral in ETH of the NFT
-   * @return totalDebtETH the total debt in ETH of the NFT
-   * @return availableBorrowsETH the borrowing power left of the NFT
+   * @param reserveAsset The address of the Reserve
+   * @return totalCollateralInETH the total collateral in ETH of the NFT
+   * @return totalCollateralInReserve the total collateral in Reserve of the NFT
+   * @return availableBorrowsInETH the borrowing power in ETH of the NFT
+   * @return availableBorrowsInReserve the borrowing power in Reserve of the NFT
    * @return ltv the loan to value of the user
    * @return liquidationThreshold the liquidation threshold of the NFT
-   * @return loanId the loan id of the NFT
-   * @return healthFactor the current health factor of the NFT
+   * @return liquidationBonus the liquidation bonus of the NFT
    **/
-  function getNftLoanData(address nftAsset, uint256 nftTokenId)
+  function getNftCollateralData(address nftAsset, address reserveAsset)
     external
     view
     override
     returns (
-      uint256 totalCollateralETH,
-      uint256 totalDebtETH,
-      uint256 availableBorrowsETH,
+      uint256 totalCollateralInETH,
+      uint256 totalCollateralInReserve,
+      uint256 availableBorrowsInETH,
+      uint256 availableBorrowsInReserve,
       uint256 ltv,
       uint256 liquidationThreshold,
-      uint256 loanId,
-      uint256 healthFactor,
-      address reserveAsset
+      uint256 liquidationBonus
     )
   {
     DataTypes.NftData storage nftData = _nfts[nftAsset];
 
-    loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
-    if (loanId != 0) {
-      (, , reserveAsset, ) = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoanCollateralAndReserve(loanId);
-      DataTypes.ReserveData storage reserveData = _reserves[reserveAsset];
-      totalDebtETH = GenericLogic.calculateNftDebtData(
-        reserveAsset,
-        reserveData,
-        _addressesProvider.getLendPoolLoan(),
-        loanId,
-        _addressesProvider.getReserveOracle()
-      );
-    }
+    DataTypes.ReserveData storage reserveData = _reserves[reserveAsset];
 
-    (totalCollateralETH, ltv, liquidationThreshold) = GenericLogic.calculateNftCollateralData(
+    (ltv, liquidationThreshold, liquidationBonus) = nftData.configuration.getCollateralParams();
+
+    (totalCollateralInETH, totalCollateralInReserve) = GenericLogic.calculateNftCollateralData(
+      reserveAsset,
+      reserveData,
       nftAsset,
       nftData,
+      _addressesProvider.getReserveOracle(),
       _addressesProvider.getNFTOracle()
     );
 
-    availableBorrowsETH = GenericLogic.calculateAvailableBorrowsETH(totalCollateralETH, totalDebtETH, ltv);
+    availableBorrowsInETH = GenericLogic.calculateAvailableBorrows(totalCollateralInETH, 0, ltv);
+    availableBorrowsInReserve = GenericLogic.calculateAvailableBorrows(totalCollateralInReserve, 0, ltv);
+  }
 
-    healthFactor = GenericLogic.calculateHealthFactorFromBalances(
-      totalCollateralETH,
-      totalDebtETH,
-      liquidationThreshold
+  /**
+   * @dev Returns the debt data of the NFT
+   * @param nftAsset The address of the NFT
+   * @param nftTokenId The token id of the NFT
+   * @return loanId the loan id of the NFT
+   * @return reserveAsset the address of the Reserve
+   * @return totalCollateral the total power of the NFT
+   * @return totalDebt the total debt of the NFT
+   * @return availableBorrows the borrowing power left of the NFT
+   * @return healthFactor the current health factor of the NFT
+   **/
+  function getNftDebtData(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    override
+    returns (
+      uint256 loanId,
+      address reserveAsset,
+      uint256 totalCollateral,
+      uint256 totalDebt,
+      uint256 availableBorrows,
+      uint256 healthFactor
+    )
+  {
+    DataTypes.NftData storage nftData = _nfts[nftAsset];
+
+    (uint256 ltv, uint256 liquidationThreshold, ) = nftData.configuration.getCollateralParams();
+
+    loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
+    if (loanId == 0) {
+      return (0, address(0), 0, 0, 0, 0);
+    }
+
+    DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
+
+    reserveAsset = loan.reserveAsset;
+    DataTypes.ReserveData storage reserveData = _reserves[reserveAsset];
+
+    (, totalCollateral) = GenericLogic.calculateNftCollateralData(
+      reserveAsset,
+      reserveData,
+      nftAsset,
+      nftData,
+      _addressesProvider.getReserveOracle(),
+      _addressesProvider.getNFTOracle()
     );
+
+    (, totalDebt) = GenericLogic.calculateNftDebtData(
+      reserveAsset,
+      reserveData,
+      _addressesProvider.getLendPoolLoan(),
+      loanId,
+      _addressesProvider.getReserveOracle()
+    );
+
+    availableBorrows = GenericLogic.calculateAvailableBorrows(totalCollateral, totalDebt, ltv);
+
+    healthFactor = GenericLogic.calculateHealthFactorFromBalances(totalCollateral, totalDebt, liquidationThreshold);
   }
 
   /**
@@ -627,7 +675,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     vars.poolLoan = _addressesProvider.getLendPoolLoan();
     vars.loanId = ILendPoolLoan(vars.poolLoan).getCollateralLoanId(nftAsset, nftTokenId);
-    require(vars.loanId > 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
+    if (vars.loanId == 0) {
+      return (0, 0);
+    }
 
     DataTypes.LoanData memory loanData = ILendPoolLoan(vars.poolLoan).getLoan(vars.loanId);
 

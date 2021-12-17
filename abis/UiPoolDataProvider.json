@@ -348,32 +348,32 @@
         "components": [
           {
             "internalType": "uint256",
-            "name": "totalCollateralETH",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "totalDebtETH",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "availableBorrowsETH",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "ltv",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "liquidationThreshold",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
             "name": "loanId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "state",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "reserveAsset",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalCollateralInReserve",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalDebtInReserve",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "availableBorrowsInReserve",
             "type": "uint256"
           },
           {
@@ -382,9 +382,29 @@
             "type": "uint256"
           },
           {
+            "internalType": "uint256",
+            "name": "liquidatePrice",
+            "type": "uint256"
+          },
+          {
             "internalType": "address",
-            "name": "reserveAsset",
+            "name": "bidderAddress",
             "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidBorrowAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidFine",
+            "type": "uint256"
           }
         ],
         "internalType": "struct IUiPoolDataProvider.AggregatedLoanData[]",

@@ -610,6 +610,60 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "reserveAsset",
+        "type": "address"
+      }
+    ],
+    "name": "getNftCollateralData",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "totalCollateralInETH",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCollateralInReserve",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "availableBorrowsInETH",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "availableBorrowsInReserve",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ltv",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidationThreshold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidationBonus",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "asset",
         "type": "address"
       }
@@ -688,16 +742,36 @@
         "type": "uint256"
       }
     ],
-    "name": "getNftLiquidatePrice",
+    "name": "getNftDebtData",
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "liquidatePrice",
+        "name": "loanId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "reserveAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalCollateral",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "paybackAmount",
+        "name": "totalDebt",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "availableBorrows",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "healthFactor",
         "type": "uint256"
       }
     ],
@@ -717,47 +791,17 @@
         "type": "uint256"
       }
     ],
-    "name": "getNftLoanData",
+    "name": "getNftLiquidatePrice",
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "totalCollateralETH",
+        "name": "liquidatePrice",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "totalDebtETH",
+        "name": "paybackAmount",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "availableBorrowsETH",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "ltv",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "liquidationThreshold",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "loanId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "healthFactor",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "reserveAsset",
-        "type": "address"
       }
     ],
     "stateMutability": "view",
