@@ -121,13 +121,9 @@ library ValidationLogic {
     require(vars.nftIsActive, Errors.VL_NO_ACTIVE_NFT);
     require(!vars.nftIsFrozen, Errors.VL_NFT_FROZEN);
 
-    (
-      vars.userCollateralBalanceETH,
-      vars.userBorrowBalanceETH,
-      vars.currentLtv,
-      vars.currentLiquidationThreshold,
-      vars.healthFactor
-    ) = GenericLogic.calculateLoanData(
+    (vars.currentLtv, vars.currentLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
+
+    (vars.userCollateralBalanceETH, vars.userBorrowBalanceETH, vars.healthFactor) = GenericLogic.calculateLoanData(
       reserveAsset,
       reserveData,
       nftAsset,

@@ -67,22 +67,31 @@ library GenericLogic {
     returns (
       uint256,
       uint256,
-      uint256,
-      uint256,
       uint256
     )
   {
     CalculateLoanDataVars memory vars;
 
+    (vars.nftLtv, vars.nftLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
+
     // calculate total borrow balance for the loan
     if (loanId != 0) {
-      vars.totalDebtInETH = calculateNftDebtData(reserveAddress, reserveData, loanAddress, loanId, reserveOracle);
+      (vars.totalDebtInETH, vars.totalDebtInReserve) = calculateNftDebtData(
+        reserveAddress,
+        reserveData,
+        loanAddress,
+        loanId,
+        reserveOracle
+      );
     }
 
     // calculate total collateral balance for the nft
-    (vars.totalCollateralInETH, vars.nftLtv, vars.nftLiquidationThreshold) = calculateNftCollateralData(
+    (vars.totalCollateralInETH, vars.totalDebtInReserve) = calculateNftCollateralData(
+      reserveAddress,
+      reserveData,
       nftAddress,
       nftData,
+      reserveOracle,
       nftOracle
     );
 
@@ -93,13 +102,7 @@ library GenericLogic {
       vars.nftLiquidationThreshold
     );
 
-    return (
-      vars.totalCollateralInETH,
-      vars.totalDebtInETH,
-      vars.nftLtv,
-      vars.nftLiquidationThreshold,
-      vars.healthFactor
-    );
+    return (vars.totalCollateralInETH, vars.totalDebtInETH, vars.healthFactor);
   }
 
   function calculateNftDebtData(
@@ -108,85 +111,92 @@ library GenericLogic {
     address loanAddress,
     uint256 loanId,
     address reserveOracle
-  ) internal view returns (uint256) {
+  ) internal view returns (uint256, uint256) {
     CalculateLoanDataVars memory vars;
 
-    vars.reserveDecimals = reserveData.configuration.getDecimals();
     // all asset price has converted to ETH based, unit is in WEI (18 decimals)
+
+    vars.reserveDecimals = reserveData.configuration.getDecimals();
     vars.reserveUnit = 10**vars.reserveDecimals;
 
     vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAddress);
 
     (, vars.totalDebtInReserve) = ILendPoolLoan(loanAddress).getLoanReserveBorrowAmount(loanId);
-    vars.totalDebtInETH = (vars.reserveUnitPrice * vars.totalDebtInReserve) / vars.reserveUnit;
+    vars.totalDebtInETH = (vars.totalDebtInReserve * vars.reserveUnitPrice) / vars.reserveUnit;
 
-    return vars.totalDebtInETH;
+    return (vars.totalDebtInETH, vars.totalDebtInReserve);
   }
 
   function calculateNftCollateralData(
+    address reserveAddress,
+    DataTypes.ReserveData storage reserveData,
     address nftAddress,
     DataTypes.NftData storage nftData,
+    address reserveOracle,
     address nftOracle
-  )
-    internal
-    view
-    returns (
-      uint256,
-      uint256,
-      uint256
-    )
-  {
-    CalculateLoanDataVars memory vars;
+  ) internal view returns (uint256, uint256) {
+    reserveData;
+    nftData;
 
-    (vars.nftLtv, vars.nftLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
+    CalculateLoanDataVars memory vars;
 
     // calculate total collateral balance for the nft
     // all asset price has converted to ETH based, unit is in WEI (18 decimals)
+
     vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPrice(nftAddress);
     vars.totalCollateralInETH = vars.nftUnitPrice;
 
-    return (vars.totalCollateralInETH, vars.nftLtv, vars.nftLiquidationThreshold);
+    if (reserveAddress != address(0)) {
+      vars.reserveDecimals = reserveData.configuration.getDecimals();
+      vars.reserveUnit = 10**vars.reserveDecimals;
+
+      vars.reserveUnitPrice = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAddress);
+
+      vars.totalCollateralInReserve = (vars.totalCollateralInETH * vars.reserveUnit) / vars.reserveUnitPrice;
+    }
+
+    return (vars.totalCollateralInETH, vars.totalCollateralInReserve);
   }
 
   /**
    * @dev Calculates the health factor from the corresponding balances
-   * @param totalCollateralInETH The total collateral in ETH
-   * @param totalDebtInETH The total debt in ETH
+   * @param totalCollateral The total collateral
+   * @param totalDebt The total debt
    * @param liquidationThreshold The avg liquidation threshold
    * @return The health factor calculated from the balances provided
    **/
   function calculateHealthFactorFromBalances(
-    uint256 totalCollateralInETH,
-    uint256 totalDebtInETH,
+    uint256 totalCollateral,
+    uint256 totalDebt,
     uint256 liquidationThreshold
   ) internal pure returns (uint256) {
-    if (totalDebtInETH == 0) return type(uint256).max;
+    if (totalDebt == 0) return type(uint256).max;
 
-    return (totalCollateralInETH.percentMul(liquidationThreshold)).wadDiv(totalDebtInETH);
+    return (totalCollateral.percentMul(liquidationThreshold)).wadDiv(totalDebt);
   }
 
   /**
-   * @dev Calculates the equivalent amount in ETH that an user can borrow, depending on the available collateral and the
+   * @dev Calculates the equivalent amount that an user can borrow, depending on the available collateral and the
    * average Loan To Value
-   * @param totalCollateralInETH The total collateral in ETH
-   * @param totalDebtInETH The total borrow balance
+   * @param totalCollateral The total collateral
+   * @param totalDebt The total borrow balance
    * @param ltv The average loan to value
-   * @return the amount available to borrow in ETH for the user
+   * @return the amount available to borrow for the user
    **/
 
-  function calculateAvailableBorrowsETH(
-    uint256 totalCollateralInETH,
-    uint256 totalDebtInETH,
+  function calculateAvailableBorrows(
+    uint256 totalCollateral,
+    uint256 totalDebt,
     uint256 ltv
   ) internal pure returns (uint256) {
-    uint256 availableBorrowsETH = totalCollateralInETH.percentMul(ltv);
+    uint256 availableBorrows = totalCollateral.percentMul(ltv);
 
-    if (availableBorrowsETH < totalDebtInETH) {
+    if (availableBorrows < totalDebt) {
       return 0;
     }
 
-    availableBorrowsETH = availableBorrowsETH - totalDebtInETH;
-    return availableBorrowsETH;
+    availableBorrows = availableBorrows - totalDebt;
+    return availableBorrows;
   }
 
   struct CalcLiquidatePriceLocalVars {

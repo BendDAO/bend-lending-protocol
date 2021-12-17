@@ -282,21 +282,31 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     require(nftAssets.length == nftTokenIds.length, Errors.LP_INCONSISTENT_PARAMS);
 
     ILendPool lendPool = ILendPool(provider.getLendPool());
+    ILendPoolLoan poolLoan = ILendPoolLoan(provider.getLendPoolLoan());
 
     AggregatedLoanData[] memory loansData = new AggregatedLoanData[](nftAssets.length);
 
     for (uint256 i = 0; i < nftAssets.length; i++) {
       AggregatedLoanData memory loanData = loansData[i];
+
+      // NFT debt data
       (
-        loanData.totalCollateralETH,
-        loanData.totalDebtETH,
-        loanData.availableBorrowsETH,
-        loanData.ltv,
-        loanData.liquidationThreshold,
         loanData.loanId,
-        loanData.healthFactor,
-        loanData.reserveAsset
-      ) = lendPool.getNftLoanData(nftAssets[i], nftTokenIds[i]);
+        loanData.reserveAsset,
+        loanData.totalCollateralInReserve,
+        loanData.totalDebtInReserve,
+        loanData.availableBorrowsInReserve,
+        loanData.healthFactor
+      ) = lendPool.getNftDebtData(nftAssets[i], nftTokenIds[i]);
+
+      DataTypes.LoanData memory loan = poolLoan.getLoan(loanData.loanId);
+      loanData.state = uint256(loan.state);
+
+      (loanData.liquidatePrice, ) = lendPool.getNftLiquidatePrice(nftAssets[i], nftTokenIds[i]);
+
+      // NFT auction data
+      (, loanData.bidderAddress, loanData.bidPrice, loanData.bidBorrowAmount, loanData.bidFine) = lendPool
+        .getNftAuctionData(nftAssets[i], nftTokenIds[i]);
     }
 
     return loansData;

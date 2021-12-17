@@ -61,14 +61,18 @@ interface IUiPoolDataProvider {
   }
 
   struct AggregatedLoanData {
-    uint256 totalCollateralETH;
-    uint256 totalDebtETH;
-    uint256 availableBorrowsETH;
-    uint256 ltv;
-    uint256 liquidationThreshold;
     uint256 loanId;
-    uint256 healthFactor;
+    uint256 state;
     address reserveAsset;
+    uint256 totalCollateralInReserve;
+    uint256 totalDebtInReserve;
+    uint256 availableBorrowsInReserve;
+    uint256 healthFactor;
+    uint256 liquidatePrice;
+    address bidderAddress;
+    uint256 bidPrice;
+    uint256 bidBorrowAmount;
+    uint256 bidFine;
   }
 
   function getReservesList(ILendPoolAddressesProvider provider) external view returns (address[] memory);

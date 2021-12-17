@@ -41,13 +41,13 @@ makeSuite("DataProvider", (testEnv) => {
     await bayc.connect(borrower.signer).setApprovalForAll(pool.address, true);
 
     //Borrower borrows
-    const loanDataBefore = await pool.getNftLoanData(bayc.address, "101");
+    const loanColDataBefore = await pool.getNftCollateralData(bayc.address, weth.address);
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
 
     const amountBorrow = await convertToCurrencyDecimals(
       weth.address,
-      new BigNumber(loanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(loanColDataBefore.availableBorrowsInETH.toString())
         .div(wethPrice.toString())
         .multipliedBy(0.5)
         .toFixed(0)
@@ -179,21 +179,14 @@ makeSuite("DataProvider", (testEnv) => {
       const loanData4Nft102 = simpleLoansData[1];
 
       expect(loanData4Nft101.loanId).to.be.gt(0);
-      expect(loanData4Nft101.totalCollateralETH).to.be.gt(0);
-      expect(loanData4Nft101.availableBorrowsETH).to.be.gt(0);
-      expect(loanData4Nft101.totalDebtETH).to.be.gt(0);
-      expect(loanData4Nft101.ltv).to.be.gt(0);
-      expect(loanData4Nft101.liquidationThreshold).to.be.gt(0);
+      expect(loanData4Nft101.totalCollateralInReserve).to.be.gt(0);
+      expect(loanData4Nft101.availableBorrowsInReserve).to.be.gt(0);
+      expect(loanData4Nft101.totalDebtInReserve).to.be.gt(0);
       expect(loanData4Nft101.reserveAsset).to.be.eq(weth.address);
 
       expect(loanData4Nft102.loanId).to.be.equal(0);
-      expect(loanData4Nft102.totalCollateralETH).to.be.gt(0);
-      expect(loanData4Nft102.availableBorrowsETH).to.be.gt(0);
-      expect(loanData4Nft102.totalDebtETH).to.be.equal(0);
+      expect(loanData4Nft102.totalDebtInReserve).to.be.equal(0);
       expect(loanData4Nft102.reserveAsset).to.be.eq(ZERO_ADDRESS);
-
-      expect(loanData4Nft101.ltv).to.be.equal(loanData4Nft102.ltv);
-      expect(loanData4Nft101.liquidationThreshold).to.be.equal(loanData4Nft102.liquidationThreshold);
     }
   });
 

@@ -320,28 +320,49 @@ interface ILendPool {
   /**
    * @dev Returns the loan data of the NFT
    * @param nftAsset The address of the NFT
-   * @param nftTokenId The token id of the NFT
-   * @return totalCollateralETH the total collateral in ETH of the NFT
-   * @return totalDebtETH the total borrowed debt in ETH of the NFT
-   * @return availableBorrowsETH the borrowing power left of the NFT
+   * @param reserveAsset The address of the Reserve
+   * @return totalCollateralInETH the total collateral in ETH of the NFT
+   * @return totalCollateralInReserve the total collateral in Reserve of the NFT
+   * @return availableBorrowsInETH the borrowing power in ETH of the NFT
+   * @return availableBorrowsInReserve the borrowing power in Reserve of the NFT
    * @return ltv the loan to value of the user
    * @return liquidationThreshold the liquidation threshold of the NFT
-   * @return loanId the loan id of the NFT
-   * @return healthFactor the current health factor of the NFT
-   * @return reserveAsset the current borrowed reserve of the NFT
+   * @return liquidationBonus the liquidation bonus of the NFT
    **/
-  function getNftLoanData(address nftAsset, uint256 nftTokenId)
+  function getNftCollateralData(address nftAsset, address reserveAsset)
     external
     view
     returns (
-      uint256 totalCollateralETH,
-      uint256 totalDebtETH,
-      uint256 availableBorrowsETH,
+      uint256 totalCollateralInETH,
+      uint256 totalCollateralInReserve,
+      uint256 availableBorrowsInETH,
+      uint256 availableBorrowsInReserve,
       uint256 ltv,
       uint256 liquidationThreshold,
+      uint256 liquidationBonus
+    );
+
+  /**
+   * @dev Returns the debt data of the NFT
+   * @param nftAsset The address of the NFT
+   * @param nftTokenId The token id of the NFT
+   * @return loanId the loan id of the NFT
+   * @return reserveAsset the address of the Reserve
+   * @return totalCollateral the total power of the NFT
+   * @return totalDebt the total debt of the NFT
+   * @return availableBorrows the borrowing power left of the NFT
+   * @return healthFactor the current health factor of the NFT
+   **/
+  function getNftDebtData(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    returns (
       uint256 loanId,
-      uint256 healthFactor,
-      address reserveAsset
+      address reserveAsset,
+      uint256 totalCollateral,
+      uint256 totalDebt,
+      uint256 availableBorrows,
+      uint256 healthFactor
     );
 
   /**

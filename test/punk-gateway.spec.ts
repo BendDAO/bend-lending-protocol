@@ -180,12 +180,12 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
 
     // borrow usdc, health factor above 1
-    const poolLoanDataBefore = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+    const nftColDataBefore = await pool.getNftCollateralData(wrappedPunk.address, usdc.address);
 
     const usdcPrice = await reserveOracle.getAssetPrice(usdc.address);
     const amountBorrow = await convertToCurrencyDecimals(
       usdc.address,
-      new BigNumber(poolLoanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(nftColDataBefore.availableBorrowsInETH.toString())
         .div(usdcPrice.toString())
         .multipliedBy(0.95)
         .toFixed(0)
@@ -197,8 +197,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await wrappedPunk.connect(liquidator.signer).setApprovalForAll(punkGateway.address, true));
 
-    const poolLoanDataAfterBorrow = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
+    const nftDebtDataAfterBorrow = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
 
     // Drop the health factor below 1
     const punkPrice = await nftOracle.getAssetPrice(wrappedPunk.address);
@@ -211,8 +211,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
         latestTime
       )
     );
-    const poolLoanDataAfterLiquidate = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
+    const nftDebtDataAfterLiquidate = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Liquidate USDC loan
     await mintERC20(testEnv, liquidator, "USDC", depositSize.toString());
@@ -228,7 +228,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await punkGateway.connect(liquidator.signer).liquidate(punkIndex));
 
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
     const punkOwner = await getPunkOwner();
@@ -263,13 +263,13 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
 
-    // borrow eth, health factor above 1
-    const poolLoanDataBefore = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+    // borrow usdc, health factor above 1
+    const nftColDataBefore = await pool.getNftCollateralData(wrappedPunk.address, usdc.address);
 
     const usdcPrice = await reserveOracle.getAssetPrice(usdc.address);
     const amountBorrow = await convertToCurrencyDecimals(
       usdc.address,
-      new BigNumber(poolLoanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(nftColDataBefore.availableBorrowsInETH.toString())
         .div(usdcPrice.toString())
         .multipliedBy(0.95)
         .toFixed(0)
@@ -281,8 +281,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await wrappedPunk.connect(liquidator.signer).setApprovalForAll(punkGateway.address, true));
 
-    const poolLoanDataAfterBorrow = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
+    const nftDebtDataAfterBorrow = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
 
     // Drop the health factor below 1
     const punkPrice = await nftOracle.getAssetPrice(wrappedPunk.address);
@@ -295,8 +295,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
         latestTime
       )
     );
-    const poolLoanDataAfterLiquidate = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
+    const nftDebtDataAfterLiquidate = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Auction loan
     await mintERC20(testEnv, liquidator, "USDC", depositSize.toString());
@@ -316,7 +316,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await punkGateway.connect(user.signer).redeem(punkIndex));
 
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after redeem");
 
     const punkOwner = await getPunkOwner();
@@ -445,12 +445,12 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
 
     // borrow eth, health factor above 1
-    const poolLoanDataBefore = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+    const nftColDataBefore = await pool.getNftCollateralData(wrappedPunk.address, weth.address);
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
     const amountBorrow = await convertToCurrencyDecimals(
       weth.address,
-      new BigNumber(poolLoanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(nftColDataBefore.availableBorrowsInETH.toString())
         .div(wethPrice.toString())
         .multipliedBy(0.95)
         .toFixed(0)
@@ -460,8 +460,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await wrappedPunk.connect(liquidator.signer).setApprovalForAll(punkGateway.address, true));
 
-    const poolLoanDataAfterBorrow = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
+    const nftDebtDataAfterBorrow = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
 
     // Drop the health factor below 1
     const punkPrice = await nftOracle.getAssetPrice(wrappedPunk.address);
@@ -474,8 +474,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
         latestTime
       )
     );
-    const poolLoanDataAfterLiquidate = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
+    const nftDebtDataAfterLiquidate = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Liquidate ETH loan with native ETH
     const { liquidatePrice } = await pool.getNftLiquidatePrice(wrappedPunk.address, punkIndex);
@@ -490,7 +490,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex));
 
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
     const punkOwner = await getPunkOwner();
@@ -538,12 +538,12 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
 
     // borrow eth, health factor above 1
-    const poolLoanDataBefore = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
+    const nftColDataBefore = await pool.getNftCollateralData(wrappedPunk.address, weth.address);
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
     const amountBorrow = await convertToCurrencyDecimals(
       weth.address,
-      new BigNumber(poolLoanDataBefore.availableBorrowsETH.toString())
+      new BigNumber(nftColDataBefore.availableBorrowsInETH.toString())
         .div(wethPrice.toString())
         .multipliedBy(0.95)
         .toFixed(0)
@@ -553,8 +553,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     await waitForTx(await wrappedPunk.connect(liquidator.signer).setApprovalForAll(punkGateway.address, true));
 
-    const poolLoanDataAfterBorrow = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
+    const nftDebtDataAfterBorrow = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
 
     // Drop the health factor below 1
     const punkPrice = await nftOracle.getAssetPrice(wrappedPunk.address);
@@ -567,8 +567,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
         latestTime
       )
     );
-    const poolLoanDataAfterLiquidate = await pool.getNftLoanData(wrappedPunk.address, punkIndex);
-    expect(poolLoanDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
+    const nftDebtDataAfterLiquidate = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    expect(nftDebtDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Auction ETH loan with native ETH
     const { liquidatePrice } = await pool.getNftLiquidatePrice(wrappedPunk.address, punkIndex);
@@ -586,7 +586,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const redeemAmountSend = auctionData.bidBorrowAmount.add(auctionData.bidFine);
     await waitForTx(await punkGateway.connect(user.signer).redeemETH(punkIndex, { value: redeemAmountSend }));
 
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(poolLoanDataAfterBorrow.loanId);
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after redeem");
 
     const punkOwner = await getPunkOwner();

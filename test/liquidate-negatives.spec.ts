@@ -114,8 +114,8 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   it("Drop loan health factor below 1", async () => {
     const { bayc, nftOracle, pool, users } = testEnv;
 
-    const poolLoanData = await pool.getNftLoanData(bayc.address, "101");
-    const baycPrice = new BigNumber(poolLoanData.totalDebtETH.toString())
+    const poolLoanData = await pool.getNftDebtData(bayc.address, "101");
+    const baycPrice = new BigNumber(poolLoanData.totalDebt.toString())
       .percentMul(new BigNumber(5000)) // 50%
       .toFixed(0);
 
@@ -135,15 +135,16 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("User 2 auction price is less than liquidate price", async () => {
-    const { bayc, nftOracle, pool, users } = testEnv;
+    const { weth, bayc, nftOracle, pool, users } = testEnv;
     const user2 = users[2];
 
-    const poolLoanData = await pool.getNftLoanData(bayc.address, "101");
+    const nftColData = await pool.getNftCollateralData(bayc.address, weth.address);
+    const nftDebtData = await pool.getNftDebtData(bayc.address, "101");
     // Price * LH / Debt = HF => Price * LH = Debt * HF => Price = Debt * HF / LH
     // LH is 2 decimals
-    const baycPrice = new BigNumber(poolLoanData.totalDebtETH.toString())
+    const baycPrice = new BigNumber(nftDebtData.totalDebt.toString())
       .percentMul(new BigNumber(9500)) //95%
-      .percentDiv(new BigNumber(poolLoanData.liquidationThreshold.toString()))
+      .percentDiv(new BigNumber(nftColData.liquidationThreshold.toString()))
       .toFixed(0);
 
     const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
