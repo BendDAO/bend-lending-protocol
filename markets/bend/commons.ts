@@ -86,7 +86,7 @@ export const CommonsConfig: ICommonConfiguration = {
   BNFTRegistry: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.localhost]: '0x82EEc0C56D8E48ae007bEb6A896B98Ade36BC51c',
+    [eEthereumNetwork.localhost]: '0xF987BB0A726905576623BA8f92B3456cd1d317F6',
     [eEthereumNetwork.rinkeby]: '0x683f73Ddb5272049e392603d55593511Fd503D61',
     [eEthereumNetwork.main]: '',
   },
@@ -192,7 +192,7 @@ export const CommonsConfig: ICommonConfiguration = {
   IncentivesController: {
     [eEthereumNetwork.coverage]: ZERO_ADDRESS,
     [eEthereumNetwork.hardhat]: ZERO_ADDRESS,
-    [eEthereumNetwork.localhost]: "0x6be4a054629ff10Af2680696A5a5Dc8C525D977F",
+    [eEthereumNetwork.localhost]: "0xCE1e5D792d24F62b29D35DeB85eC04b1F66447b1",
     [eEthereumNetwork.rinkeby]: '0x06b0C0aEE6A2DDf5cb4fc76764e8107bA36B22b7',
     [eEthereumNetwork.main]: ZERO_ADDRESS,
   },
