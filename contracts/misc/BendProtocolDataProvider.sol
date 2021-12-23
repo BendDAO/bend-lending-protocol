@@ -202,29 +202,25 @@ contract BendProtocolDataProvider {
     returns (LoanData memory loanData)
   {
     loanData.loanId = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
-    if (loanData.loanId != 0) {
-      DataTypes.LoanData memory data = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoan(loanData.loanId);
-      loanData.state = uint8(data.state);
-      loanData.borrower = data.borrower;
-      loanData.nftAsset = data.nftAsset;
-      loanData.nftTokenId = data.nftTokenId;
-      loanData.reserveAsset = data.reserveAsset;
-      loanData.scaledAmount = data.scaledAmount;
-      (, loanData.currentAmount) = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(
-        loanData.loanId
-      );
-    }
+    DataTypes.LoanData memory loan = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoan(loanData.loanId);
+    _fillLoanData(loanData, loan);
   }
 
   function getLoanDataByLoanId(uint256 loanId) external view returns (LoanData memory loanData) {
-    DataTypes.LoanData memory data = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoan(loanId);
-    loanData.loanId = loanId;
-    loanData.state = uint8(data.state);
-    loanData.borrower = data.borrower;
-    loanData.nftAsset = data.nftAsset;
-    loanData.nftTokenId = data.nftTokenId;
-    loanData.reserveAsset = data.reserveAsset;
-    loanData.scaledAmount = data.scaledAmount;
-    (, loanData.currentAmount) = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(loanId);
+    DataTypes.LoanData memory loan = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoan(loanId);
+    _fillLoanData(loanData, loan);
+  }
+
+  function _fillLoanData(LoanData memory loanData, DataTypes.LoanData memory loan) internal view {
+    loanData.loanId = loan.loanId;
+    loanData.state = uint8(loan.state);
+    loanData.borrower = loan.borrower;
+    loanData.nftAsset = loan.nftAsset;
+    loanData.nftTokenId = loan.nftTokenId;
+    loanData.reserveAsset = loan.reserveAsset;
+    loanData.scaledAmount = loan.scaledAmount;
+    (, loanData.currentAmount) = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(
+      loan.loanId
+    );
   }
 }

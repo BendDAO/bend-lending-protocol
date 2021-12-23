@@ -154,7 +154,14 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       // bid price must greater than highest bid
       require(bidPrice > loanData.bidPrice, Errors.LPL_BID_PRICE_LESS_THAN_HIGHEST_PRICE);
 
-      ILendPoolLoan(vars.loanAddress).auctionLoan(vars.initiator, vars.loanId, onBehalfOf, bidPrice, 0, 0);
+      ILendPoolLoan(vars.loanAddress).auctionLoan(
+        vars.initiator,
+        vars.loanId,
+        onBehalfOf,
+        bidPrice,
+        vars.borrowAmount,
+        reserveData.variableBorrowIndex
+      );
 
       // lock highest bidder bid price amount to pool
       IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(vars.initiator, address(this), bidPrice);
