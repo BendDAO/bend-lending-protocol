@@ -30,6 +30,12 @@
         "internalType": "bool",
         "name": "hasProxy",
         "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "AddressSet",
@@ -46,6 +52,19 @@
       }
     ],
     "name": "BNFTRegistryUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newAddress",
+        "type": "address"
+      }
+    ],
+    "name": "BendDataProviderUpdated",
     "type": "event"
   },
   {
@@ -84,6 +103,25 @@
         "type": "address"
       }
     ],
+    "name": "IncentivesControllerUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
+      }
+    ],
     "name": "LendPoolConfiguratorUpdated",
     "type": "event"
   },
@@ -108,6 +146,12 @@
         "internalType": "address",
         "name": "newAddress",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "LendPoolLoanUpdated",
@@ -121,6 +165,12 @@
         "internalType": "address",
         "name": "newAddress",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "LendPoolUpdated",
@@ -204,6 +254,32 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newAddress",
+        "type": "address"
+      }
+    ],
+    "name": "UIDataProviderUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newAddress",
+        "type": "address"
+      }
+    ],
+    "name": "WalletBalanceProviderUpdated",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -237,7 +313,52 @@
   },
   {
     "inputs": [],
+    "name": "getBendDataProvider",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getEmergencyAdmin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "proxyAddress",
+        "type": "address"
+      }
+    ],
+    "name": "getImplementation",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getIncentivesController",
     "outputs": [
       {
         "internalType": "address",
@@ -354,6 +475,32 @@
   },
   {
     "inputs": [],
+    "name": "getUIDataProvider",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getWalletBalanceProvider",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "owner",
     "outputs": [
       {
@@ -401,6 +548,11 @@
         "internalType": "address",
         "name": "implementationAddress",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "setAddressAsProxy",
@@ -425,6 +577,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "provider",
+        "type": "address"
+      }
+    ],
+    "name": "setBendDataProvider",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "emergencyAdmin",
         "type": "address"
       }
@@ -438,8 +603,26 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "controller",
+        "type": "address"
+      }
+    ],
+    "name": "setIncentivesController",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "configurator",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "setLendPoolConfiguratorImpl",
@@ -453,6 +636,11 @@
         "internalType": "address",
         "name": "pool",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "setLendPoolImpl",
@@ -479,6 +667,11 @@
         "internalType": "address",
         "name": "loanAddress",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "encodedCallData",
+        "type": "bytes"
       }
     ],
     "name": "setLendPoolLoanImpl",
@@ -534,6 +727,32 @@
       }
     ],
     "name": "setReserveOracle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "provider",
+        "type": "address"
+      }
+    ],
+    "name": "setUIDataProvider",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "provider",
+        "type": "address"
+      }
+    ],
+    "name": "setWalletBalanceProvider",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

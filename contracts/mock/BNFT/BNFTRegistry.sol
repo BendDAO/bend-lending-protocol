@@ -17,6 +17,7 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   string public namePrefix;
   string public symbolPrefix;
   address public bNftGenericImpl;
+  mapping(address => string) public customSymbols;
 
   function getBNFTAddresses(address nftAsset) external view override returns (address bNftProxy, address bNftImpl) {
     bNftProxy = bNftProxys[nftAsset];
@@ -57,12 +58,12 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   /**
    * @dev See {IBNFTRegistry-createBNFT}.
    */
-  function createBNFT(address nftAsset, bytes memory params) external override returns (address bNftProxy) {
+  function createBNFT(address nftAsset) external override returns (address bNftProxy) {
     _requireAddressIsERC721(nftAsset);
     require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
     require(bNftGenericImpl != address(0), "BNFTR: impl is zero address");
 
-    bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftGenericImpl, params);
+    bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftGenericImpl);
 
     emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftAssetLists.length);
   }
@@ -80,16 +81,17 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   /**
    * @dev See {IBNFTRegistry-createBNFTWithImpl}.
    */
-  function createBNFTWithImpl(
-    address nftAsset,
-    address bNftImpl,
-    bytes memory params
-  ) external override onlyOwner returns (address bNftProxy) {
+  function createBNFTWithImpl(address nftAsset, address bNftImpl)
+    external
+    override
+    onlyOwner
+    returns (address bNftProxy)
+  {
     _requireAddressIsERC721(nftAsset);
     require(bNftImpl != address(0), "BNFTR: implement is zero address");
     require(bNftProxys[nftAsset] == address(0), "BNFTR: asset exist");
 
-    bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftImpl, params);
+    bNftProxy = _createProxyAndInitWithImpl(nftAsset, bNftImpl);
 
     emit BNFTCreated(nftAsset, bNftImpls[nftAsset], bNftProxy, bNftAssetLists.length);
   }
@@ -100,15 +102,15 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
   function upgradeBNFTWithImpl(
     address nftAsset,
     address bNftImpl,
-    bytes memory data
+    bytes memory encodedCallData
   ) external override onlyOwner {
     address bNftProxy = bNftProxys[nftAsset];
     require(bNftProxy != address(0), "BNFTR: asset nonexist");
 
     TransparentUpgradeableProxy proxy = TransparentUpgradeableProxy(payable(bNftProxy));
 
-    if (data.length > 0) {
-      proxy.upgradeToAndCall(bNftImpl, data);
+    if (encodedCallData.length > 0) {
+      proxy.upgradeToAndCall(bNftImpl, encodedCallData);
     } else {
       proxy.upgradeTo(bNftImpl);
     }
@@ -118,12 +120,19 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     emit BNFTUpgraded(nftAsset, bNftImpl, bNftProxy, bNftAssetLists.length);
   }
 
-  function _createProxyAndInitWithImpl(
-    address nftAsset,
-    address bNftImpl,
-    bytes memory params
-  ) internal returns (address bNftProxy) {
-    bytes memory initParams = _buildInitParams(nftAsset, params);
+  /**
+   * @dev See {IBNFTRegistry-addCustomeSymbols}.
+   */
+  function addCustomeSymbols(address[] memory nftAssets_, string[] memory symbols_) external override onlyOwner {
+    require(nftAssets_.length == symbols_.length, "BNFTR: inconsistent parameters");
+
+    for (uint256 i = 0; i < nftAssets_.length; i++) {
+      customSymbols[nftAssets_[i]] = symbols_[i];
+    }
+  }
+
+  function _createProxyAndInitWithImpl(address nftAsset, address bNftImpl) internal returns (address bNftProxy) {
+    bytes memory initParams = _buildInitParams(nftAsset);
 
     TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(bNftImpl, address(this), initParams);
 
@@ -134,11 +143,15 @@ contract BNFTRegistry is IBNFTRegistry, Initializable, OwnableUpgradeable {
     bNftAssetLists.push(nftAsset);
   }
 
-  function _buildInitParams(address nftAsset, bytes memory params) internal view returns (bytes memory initParams) {
-    string memory bNftName = string(abi.encodePacked(namePrefix, " ", IERC721MetadataUpgradeable(nftAsset).name()));
-    string memory bNftSymbol = string(abi.encodePacked(symbolPrefix, IERC721MetadataUpgradeable(nftAsset).symbol()));
+  function _buildInitParams(address nftAsset) internal view returns (bytes memory initParams) {
+    string memory nftSymbol = customSymbols[nftAsset];
+    if (bytes(nftSymbol).length == 0) {
+      nftSymbol = IERC721MetadataUpgradeable(nftAsset).symbol();
+    }
+    string memory bNftName = string(abi.encodePacked(namePrefix, " ", nftSymbol));
+    string memory bNftSymbol = string(abi.encodePacked(symbolPrefix, nftSymbol));
 
-    initParams = abi.encodeWithSelector(IBNFT.initialize.selector, nftAsset, bNftName, bNftSymbol, params);
+    initParams = abi.encodeWithSelector(IBNFT.initialize.selector, nftAsset, bNftName, bNftSymbol);
   }
 
   function _requireAddressIsERC721(address nftAsset) internal view {

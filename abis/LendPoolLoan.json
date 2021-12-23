@@ -681,19 +681,6 @@
   {
     "inputs": [
       {
-        "internalType": "contract ILendPoolAddressesProvider",
-        "name": "provider",
-        "type": "address"
-      }
-    ],
-    "name": "initializeAfterUpgrade",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "initiator",
         "type": "address"

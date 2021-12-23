@@ -58,7 +58,7 @@ task("dev:deploy-mock-bnft-tokens", "Deploy bnft tokens for dev enviroment")
     const mockedNfts = await getConfigMockedNfts(poolConfig);
 
     for (const [nftSymbol, mockedNft] of Object.entries(mockedNfts) as [string, MintableERC721][]) {
-      await waitForTx(await bnftRegistryProxy.createBNFT(mockedNft.address, []));
+      await waitForTx(await bnftRegistryProxy.createBNFT(mockedNft.address));
       const { bNftProxy } = await bnftRegistryProxy.getBNFTAddresses(mockedNft.address);
       console.log("BNFT Token:", nftSymbol, bNftProxy);
     }

@@ -26,31 +26,32 @@ interface IBNFTRegistry {
   /**
    * @dev Create bNFT proxy and implement, then initialize it
    * @param nftAsset The address of the underlying asset of the BNFT
-   * @param params The additional parameters for the initialize
    **/
-  function createBNFT(address nftAsset, bytes memory params) external returns (address bNftProxy);
+  function createBNFT(address nftAsset) external returns (address bNftProxy);
 
   /**
    * @dev Create bNFT proxy with already deployed implement, then initialize it
    * @param nftAsset The address of the underlying asset of the BNFT
    * @param bNftImpl The address of the deployed implement of the BNFT
-   * @param params The additional parameters for the initialize
    **/
-  function createBNFTWithImpl(
-    address nftAsset,
-    address bNftImpl,
-    bytes memory params
-  ) external returns (address bNftProxy);
+  function createBNFTWithImpl(address nftAsset, address bNftImpl) external returns (address bNftProxy);
 
   /**
    * @dev Update bNFT proxy to an new deployed implement, then initialize it
    * @param nftAsset The address of the underlying asset of the BNFT
    * @param bNftImpl The address of the deployed implement of the BNFT
-   * @param data The encoded function call.
+   * @param encodedCallData The encoded function call.
    **/
   function upgradeBNFTWithImpl(
     address nftAsset,
     address bNftImpl,
-    bytes memory data
+    bytes memory encodedCallData
   ) external;
+
+  /**
+   * @dev Adding custom symbol for some special NFTs like CryptoPunks
+   * @param nftAssets_ The addresses of the NFTs
+   * @param symbols_ The custom symbols of the NFTs
+   **/
+  function addCustomeSymbols(address[] memory nftAssets_, string[] memory symbols_) external;
 }
