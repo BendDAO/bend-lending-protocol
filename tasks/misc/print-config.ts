@@ -21,21 +21,24 @@ task("print-config", "Print config of all reserves and nfts")
     const providerRegistry = await getLendPoolAddressesProviderRegistry(providerRegistryAddress);
     const providers = await providerRegistry.getAddressesProvidersList();
     const addressesProvider = await getLendPoolAddressesProvider(providers[0]); // Checks first provider
-    const protocolDataProvider = await getBendProtocolDataProvider();
+    const protocolDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
 
     console.log("Provider Registry: ", providerRegistry.address);
     console.log("Address Provider: ", addressesProvider.address);
     console.log("Market Id: ", await addressesProvider.getMarketId());
     console.log("Pool Admin", await addressesProvider.getPoolAdmin());
-    console.log("Emergency Admin", await addressesProvider.getEmergencyAdmin());
+    console.log("Emergency Admin:", await addressesProvider.getEmergencyAdmin());
     console.log("Lend Pool Proxy:", await addressesProvider.getLendPool());
-    console.log("Lend Pool Loan Proxy", await addressesProvider.getLendPoolLoan());
-    console.log("Lend Pool Configurator Proxy", await addressesProvider.getLendPoolConfigurator());
-    console.log("Lend Pool Liquidator", await addressesProvider.getLendPoolLiquidator());
-    console.log("Reserve Oracle Proxy", await addressesProvider.getReserveOracle());
-    console.log("NFT Oracle Proxy", await addressesProvider.getNFTOracle());
-    console.log("BNFT Registry Proxy", await addressesProvider.getBNFTRegistry());
-    console.log("Lend Pool Data Provider", protocolDataProvider.address);
+    console.log("Lend Pool Loan Proxy:", await addressesProvider.getLendPoolLoan());
+    console.log("Lend Pool Configurator Proxy:", await addressesProvider.getLendPoolConfigurator());
+    console.log("Lend Pool Liquidator:", await addressesProvider.getLendPoolLiquidator());
+    console.log("Reserve Oracle Proxy:", await addressesProvider.getReserveOracle());
+    console.log("NFT Oracle Proxy:", await addressesProvider.getNFTOracle());
+    console.log("BNFT Registry Proxy:", await addressesProvider.getBNFTRegistry());
+    console.log("Incentives Controller:", await addressesProvider.getIncentivesController());
+    console.log("Bend Data Provider:", protocolDataProvider.address);
+    console.log("UI Data Provider:", await addressesProvider.getUIDataProvider());
+    console.log("Wallet Balance Provider:", await addressesProvider.getWalletBalanceProvider());
 
     const reserveFields = ["decimals", "reserveFactor", "borrowingEnabled", "isActive", "isFrozen"];
     const reserveTokensFields = ["bTokenSymbol", "bTokenAddress", "debtTokenSymbol", "debtTokenAddress"];
