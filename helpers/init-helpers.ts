@@ -37,7 +37,6 @@ export const initReservesByHelper = async (
   debtTokenSymbolPrefix: string,
   admin: tEthereumAddress,
   treasuryAddress: tEthereumAddress,
-  incentivesController: tEthereumAddress,
   poolName: ConfigNames,
   verify: boolean
 ) => {
@@ -56,13 +55,11 @@ export const initReservesByHelper = async (
     interestRateAddress: string;
     underlyingAsset: string;
     treasury: string;
-    incentivesController: string;
     underlyingAssetName: string;
     bTokenName: string;
     bTokenSymbol: string;
     debtTokenName: string;
     debtTokenSymbol: string;
-    params: string;
   }[] = [];
 
   let strategyRates: [
@@ -110,13 +107,11 @@ export const initReservesByHelper = async (
       interestRateAddress: strategyAddresses[strategy.name],
       underlyingAsset: tokenAddresses[symbol],
       treasury: treasuryAddress,
-      incentivesController: incentivesController,
       underlyingAssetName: symbol,
       bTokenName: `${bTokenNamePrefix} ${symbol}`,
       bTokenSymbol: `${bTokenSymbolPrefix}${symbol}`,
       debtTokenName: `${debtTokenNamePrefix} ${symbol}`,
       debtTokenSymbol: `${debtTokenSymbolPrefix}${symbol}`,
-      params: await getBTokenExtraParams(bTokenImpl, tokenAddresses[symbol]),
     };
     initInputParams.push(initParam);
     //console.log("initInputParams:", symbol, bTokenImpl, initParam);

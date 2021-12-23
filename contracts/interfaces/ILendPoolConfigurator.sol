@@ -9,13 +9,11 @@ interface ILendPoolConfigurator {
     address interestRateAddress;
     address underlyingAsset;
     address treasury;
-    address incentivesController;
     string underlyingAssetName;
     string bTokenName;
     string bTokenSymbol;
     string debtTokenName;
     string debtTokenSymbol;
-    bytes params;
   }
 
   struct InitNftInput {
@@ -24,21 +22,14 @@ interface ILendPoolConfigurator {
 
   struct UpdateBTokenInput {
     address asset;
-    address treasury;
-    address incentivesController;
-    string name;
-    string symbol;
     address implementation;
-    bytes params;
+    bytes encodedCallData;
   }
 
   struct UpdateDebtTokenInput {
     address asset;
-    address incentivesController;
-    string name;
-    string symbol;
     address implementation;
-    bytes params;
+    bytes encodedCallData;
   }
 
   /**

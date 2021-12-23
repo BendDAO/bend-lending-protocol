@@ -86,7 +86,7 @@ export const CommonsConfig: ICommonConfiguration = {
   BNFTRegistry: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.localhost]: '0xeBA083F8f5485f8c7e3722FAEf9760c956903938',
+    [eEthereumNetwork.localhost]: '0x82EEc0C56D8E48ae007bEb6A896B98Ade36BC51c',
     [eEthereumNetwork.rinkeby]: '0x683f73Ddb5272049e392603d55593511Fd503D61',
     [eEthereumNetwork.main]: '',
   },
@@ -127,9 +127,9 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.localhost]: {
-      DAI: '0x8Fe994bA879dF436bDA80d1fc559d192608939f6',
-      USDC: '0xF79a1ab14b401d7032bdDD20D8Eb061557fa8D87',
-      USD: '0xF07191639A5ca3d5D28206429Df3E3adCc020b3f',
+      DAI: '0x10F6794a3Df86bD8B97c7d6D625BAB54677D443b',
+      USDC: '0x2cC3790f7CF280fA898E4913CA980410cF38e53b',
+      USD: '0x6B8dcBD1bb131ED184221902df1Fe21019ccD7dc',
     },
     [eEthereumNetwork.rinkeby]: {
       DAI: '0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D',
@@ -162,7 +162,7 @@ export const CommonsConfig: ICommonConfiguration = {
   WrappedNativeToken: { //WETH
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.localhost]: '0x7326573C3689831ADBf8050F1e5a2fB31C8441d8',
+    [eEthereumNetwork.localhost]: '0xB4B4ead1A260F1572b88b9D8ABa5A152D166c104',
     [eEthereumNetwork.rinkeby]: '0x585d17A346cb99849a539F553f4d542D7e5B5B28',
     [eEthereumNetwork.main]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
   },
@@ -170,14 +170,14 @@ export const CommonsConfig: ICommonConfiguration = {
   CryptoPunksMarket: {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.localhost]: '0xa438453157E27d48e6E7cB74BF8B808D4e2F56eD',
+    [eEthereumNetwork.localhost]: '0xb2f97A3c2E48cd368901657e31Faaa93035CE390',
     [eEthereumNetwork.rinkeby]: '0xF85EeD76C0D2b3f0C50140BEdB2aF489E5eaaeB8',
     [eEthereumNetwork.main]: '0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb',
   },
   WrappedPunkToken: {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
-    [eEthereumNetwork.localhost]: '0xD024caf0B8667D0D50e87C35Da1AF295ccd96CeC',
+    [eEthereumNetwork.localhost]: '0x5a60c5d89A0A0e08ae0CAe73453e3AcC9C335847',
     [eEthereumNetwork.rinkeby]: '0x5b4FaC380a2A79EE0ddA713a31cbA7A74Cba7Cd0',
     [eEthereumNetwork.main]: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
   },
@@ -192,7 +192,7 @@ export const CommonsConfig: ICommonConfiguration = {
   IncentivesController: {
     [eEthereumNetwork.coverage]: ZERO_ADDRESS,
     [eEthereumNetwork.hardhat]: ZERO_ADDRESS,
-    [eEthereumNetwork.localhost]: ZERO_ADDRESS,
+    [eEthereumNetwork.localhost]: "0x6be4a054629ff10Af2680696A5a5Dc8C525D977F",
     [eEthereumNetwork.rinkeby]: '0x06b0C0aEE6A2DDf5cb4fc76764e8107bA36B22b7',
     [eEthereumNetwork.main]: ZERO_ADDRESS,
   },

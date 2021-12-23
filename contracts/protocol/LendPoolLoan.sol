@@ -20,7 +20,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   using CountersUpgradeable for CountersUpgradeable.Counter;
 
   ILendPoolAddressesProvider private _addressesProvider;
-  ILendPool private _pool;
 
   CountersUpgradeable.Counter private _loanIdTracker;
   mapping(uint256 => DataTypes.LoanData) private _loans;
@@ -47,23 +46,12 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   function initialize(ILendPoolAddressesProvider provider) external initializer {
     __Context_init();
 
-    _setAddressProvider(provider);
+    _addressesProvider = provider;
 
     // Avoid having loanId = 0
     _loanIdTracker.increment();
 
-    emit Initialized(address(_pool));
-  }
-
-  function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
-    _setAddressProvider(provider);
-
-    emit Initialized(address(_pool));
-  }
-
-  function _setAddressProvider(ILendPoolAddressesProvider provider) internal {
-    _addressesProvider = provider;
-    _pool = ILendPool(_addressesProvider.getLendPool());
+    emit Initialized(address(_getLendPool()));
   }
 
   function initNft(address nftAsset, address bNftAddress) external override onlyLendPool {
@@ -348,7 +336,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     if (scaledAmount == 0) {
       return (_loans[loanId].reserveAsset, 0);
     }
-    uint256 amount = scaledAmount.rayMul(_pool.getReserveNormalizedVariableDebt(_loans[loanId].reserveAsset));
+    uint256 amount = scaledAmount.rayMul(_getLendPool().getReserveNormalizedVariableDebt(_loans[loanId].reserveAsset));
 
     return (_loans[loanId].reserveAsset, amount);
   }
@@ -370,6 +358,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   }
 
   function _getLendPool() internal view returns (ILendPool) {
-    return _pool;
+    return ILendPool(_addressesProvider.getLendPool());
   }
 }
