@@ -1,4 +1,5 @@
 import { entropyToMnemonic, getAccountPath } from "@ethersproject/hdnode";
+import { formatEther } from "@ethersproject/units";
 import { Wallet } from "@ethersproject/wallet";
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
@@ -11,7 +12,8 @@ task("print-accounts", "Print accounts").setAction(async ({}, DRE) => {
   let index = 0;
   for (const signer of allSigners) {
     const address = await signer.getAddress();
-    console.log("index:", index, "address:", address);
+    const balance = formatEther(await signer.getBalance());
+    console.log("index:", index, "address:", address, "balance:", balance);
     index++;
   }
 });
@@ -21,6 +23,7 @@ task("generate-accounts", "Generate accounts by mnemonic or random").setAction(a
   const mnemonic = process.env.MNEMONIC;
 
   if (mnemonic != undefined && mnemonic != "") {
+    console.log("Generating accounts by mnemonic:");
     for (let index = 0; index < 20; index++) {
       const mpath = "m/44'/60'/0'/0/" + index.toString();
       const wallet = Wallet.fromMnemonic(mnemonic, mpath);
@@ -36,6 +39,7 @@ task("generate-accounts", "Generate accounts by mnemonic or random").setAction(a
       );
     }
   } else {
+    console.log("Generating accounts by random:");
     for (let index = 0; index < 20; index++) {
       const wallet = Wallet.createRandom();
       console.log(

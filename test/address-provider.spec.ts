@@ -19,15 +19,16 @@ makeSuite("LendPoolAddressesProvider", (testEnv: TestEnv) => {
 
     for (const contractFunction of [
       addressesProvider.setMarketId,
-      addressesProvider.setLendPoolImpl,
-      addressesProvider.setLendPoolLoanImpl,
-      addressesProvider.setLendPoolConfiguratorImpl,
       addressesProvider.setLendPoolLiquidator,
       addressesProvider.setBNFTRegistry,
       addressesProvider.setReserveOracle,
       addressesProvider.setNFTOracle,
       addressesProvider.setPoolAdmin,
       addressesProvider.setEmergencyAdmin,
+      addressesProvider.setIncentivesController,
+      addressesProvider.setUIDataProvider,
+      addressesProvider.setBendDataProvider,
+      addressesProvider.setWalletBalanceProvider,
     ]) {
       await expect(contractFunction(mockAddress)).to.be.revertedWith(INVALID_OWNER_REVERT_MSG);
     }
@@ -37,8 +38,16 @@ makeSuite("LendPoolAddressesProvider", (testEnv: TestEnv) => {
     ).to.be.revertedWith(INVALID_OWNER_REVERT_MSG);
 
     await expect(
-      addressesProvider.setAddressAsProxy(utils.keccak256(utils.toUtf8Bytes("RANDOM_ID")), mockAddress)
+      addressesProvider.setAddressAsProxy(utils.keccak256(utils.toUtf8Bytes("RANDOM_ID")), mockAddress, [])
     ).to.be.revertedWith(INVALID_OWNER_REVERT_MSG);
+
+    await expect(addressesProvider.setLendPoolImpl(mockAddress, [])).to.be.revertedWith(INVALID_OWNER_REVERT_MSG);
+
+    await expect(addressesProvider.setLendPoolLoanImpl(mockAddress, [])).to.be.revertedWith(INVALID_OWNER_REVERT_MSG);
+
+    await expect(addressesProvider.setLendPoolConfiguratorImpl(mockAddress, [])).to.be.revertedWith(
+      INVALID_OWNER_REVERT_MSG
+    );
   });
 
   it("Tests adding a proxied address with `setAddressAsProxy()`", async () => {
@@ -53,7 +62,7 @@ makeSuite("LendPoolAddressesProvider", (testEnv: TestEnv) => {
     const proxiedAddressSetReceipt = await waitForTx(
       await addressesProvider
         .connect(currentAddressesProviderOwner.signer)
-        .setAddressAsProxy(proxiedAddressId, mockLendPool.address)
+        .setAddressAsProxy(proxiedAddressId, mockLendPool.address, [])
     );
 
     if (!proxiedAddressSetReceipt.events || proxiedAddressSetReceipt.events?.length < 1) {

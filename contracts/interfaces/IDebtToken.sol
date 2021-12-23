@@ -22,7 +22,6 @@ interface IDebtToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUp
    * @param debtTokenDecimals the decimals of the debt token
    * @param debtTokenName the name of the debt token
    * @param debtTokenSymbol the symbol of the debt token
-   * @param params A set of encoded parameters for additional initialization
    **/
   event Initialized(
     address indexed underlyingAsset,
@@ -30,15 +29,13 @@ interface IDebtToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUp
     address incentivesController,
     uint8 debtTokenDecimals,
     string debtTokenName,
-    string debtTokenSymbol,
-    bytes params
+    string debtTokenSymbol
   );
 
   /**
    * @dev Initializes the debt token.
    * @param addressProvider The address of the lend pool
    * @param underlyingAsset The address of the underlying asset
-   * @param incentivesController The smart contract managing potential incentives distribution
    * @param debtTokenDecimals The decimals of the debtToken, same as the underlying asset's
    * @param debtTokenName The name of the token
    * @param debtTokenSymbol The symbol of the token
@@ -46,21 +43,9 @@ interface IDebtToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUp
   function initialize(
     ILendPoolAddressesProvider addressProvider,
     address underlyingAsset,
-    IIncentivesController incentivesController,
     uint8 debtTokenDecimals,
     string memory debtTokenName,
-    string memory debtTokenSymbol,
-    bytes calldata params
-  ) external;
-
-  function initializeAfterUpgrade(
-    ILendPoolAddressesProvider addressProvider,
-    address underlyingAsset,
-    IIncentivesController incentivesController,
-    uint8 debtTokenDecimals,
-    string memory debtTokenName,
-    string memory debtTokenSymbol,
-    bytes calldata params
+    string memory debtTokenSymbol
   ) external;
 
   /**

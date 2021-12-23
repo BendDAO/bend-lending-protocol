@@ -27,7 +27,6 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
       const network = <eNetwork>localBRE.network.name;
       const poolConfig = loadPoolConfig(pool);
 
-      const incentivesController = getParamPerNetwork(poolConfig.IncentivesController, network);
       const addressesProvider = await getLendPoolAddressesProvider();
 
       const admin = await addressesProvider.getPoolAdmin();
@@ -50,7 +49,6 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
         poolConfig.DebtTokenSymbolPrefix,
         admin,
         treasuryAddress,
-        incentivesController,
         pool,
         verify
       );
@@ -81,14 +79,17 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
 
       const walletBalanceProvider = await deployWalletBalancerProvider(verify);
       console.log("WalletBalancerProvider deployed at:", walletBalanceProvider.address);
+      await waitForTx(await addressesProvider.setWalletBalanceProvider(walletBalanceProvider.address));
 
       // this contract is not support upgrade, just deploy new contract
       const bendProtocolDataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
       console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
+      await waitForTx(await addressesProvider.setBendDataProvider(bendProtocolDataProvider.address));
 
       // this contract is not support upgrade, just deploy new contract
       const uiPoolDataProvider = await deployUiPoolDataProvider(reserveOracle, nftOracle, verify);
       console.log("UiPoolDataProvider deployed at:", uiPoolDataProvider.address);
+      await waitForTx(await addressesProvider.setUIDataProvider(uiPoolDataProvider.address));
 
       //////////////////////////////////////////////////////////////////////////
       console.log("Init & Config Gateways");

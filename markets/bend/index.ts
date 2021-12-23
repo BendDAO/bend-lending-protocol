@@ -38,9 +38,9 @@ export const BendConfig: IBendConfiguration = {
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.localhost]: {
-      DAI: '0x51bda59320165617F7209a38D08b11ccefF58F1a',
-      USDC: '0x816b2d94590fbcE4C06a70FBb770323166867549',
-      WETH: '0x7326573C3689831ADBf8050F1e5a2fB31C8441d8',
+      DAI: '0xa05ffF82bcC0C599984b0839218DC6ee9328d1Fb',
+      USDC: '0x025FE4760c6f14dE878C22cEb09A3235F16dAe53',
+      WETH: '0xB4B4ead1A260F1572b88b9D8ABa5A152D166c104',
     },
     [eEthereumNetwork.rinkeby]: {
       DAI: '0x56C0dab0209Ad53C8de55480167667b4884e3d0F',
@@ -57,8 +57,12 @@ export const BendConfig: IBendConfiguration = {
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.localhost]: {
-      WPUNKS: '0xD024caf0B8667D0D50e87C35Da1AF295ccd96CeC',
-      BAYC: '0xb16101f4b859580B810b683264102c49e12d0732',
+      WPUNKS: '0x5a60c5d89A0A0e08ae0CAe73453e3AcC9C335847',
+      BAYC: '0x4e07D87De1CF586D51C3665e6a4d36eB9d99a457',
+      DOODLE: '0x2F7f69a3cd22FcfFB5E0C0fB7Ae5Eb278b3919Ff',
+      COOL: '0xC7F247a33C79BB0fABc3605479372D3Ba188fcbc',
+      MEEBITS: '0x69D1108D37825212736aC101B445b6B57a390d13',
+      MAYC: '0x8b89F971cA1A5dE1B7df7f554a3024eE84FeeB05',
     },
     [eEthereumNetwork.rinkeby]: {
       WPUNKS: '0x5b4FaC380a2A79EE0ddA713a31cbA7A74Cba7Cd0',

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 import {IncentivizedERC20} from "./IncentivizedERC20.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
@@ -20,17 +21,15 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   using WadRayMath for uint256;
 
   ILendPoolAddressesProvider internal _addressProvider;
-  IIncentivesController internal _incentivesController;
-  ILendPool internal _pool;
   address internal _underlyingAsset;
 
   modifier onlyLendPool() {
-    require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LEND_POOL);
+    require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LEND_POOL);
     _;
   }
 
   modifier onlyLendPoolConfigurator() {
-    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
+    require(_msgSender() == address(_getLendPoolConfigurator()), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
     _;
   }
 
@@ -38,7 +37,6 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
    * @dev Initializes the debt token.
    * @param addressProvider The address of the lend pool
    * @param underlyingAsset The address of the underlying asset
-   * @param incentivesController The smart contract managing potential incentives distribution
    * @param debtTokenDecimals The decimals of the debtToken, same as the underlying asset's
    * @param debtTokenName The name of the token
    * @param debtTokenSymbol The symbol of the token
@@ -46,71 +44,23 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   function initialize(
     ILendPoolAddressesProvider addressProvider,
     address underlyingAsset,
-    IIncentivesController incentivesController,
     uint8 debtTokenDecimals,
     string memory debtTokenName,
-    string memory debtTokenSymbol,
-    bytes calldata params
+    string memory debtTokenSymbol
   ) public override initializer {
     __IncentivizedERC20_init(debtTokenName, debtTokenSymbol, debtTokenDecimals);
 
-    _initialize(
-      addressProvider,
-      underlyingAsset,
-      incentivesController,
-      debtTokenDecimals,
-      debtTokenName,
-      debtTokenSymbol,
-      params
-    );
-  }
-
-  function initializeAfterUpgrade(
-    ILendPoolAddressesProvider addressProvider,
-    address underlyingAsset,
-    IIncentivesController incentivesController,
-    uint8 debtTokenDecimals,
-    string memory debtTokenName,
-    string memory debtTokenSymbol,
-    bytes calldata params
-  ) public override onlyLendPoolConfigurator {
-    _initialize(
-      addressProvider,
-      underlyingAsset,
-      incentivesController,
-      debtTokenDecimals,
-      debtTokenName,
-      debtTokenSymbol,
-      params
-    );
-  }
-
-  function _initialize(
-    ILendPoolAddressesProvider addressProvider,
-    address underlyingAsset,
-    IIncentivesController incentivesController,
-    uint8 debtTokenDecimals,
-    string memory debtTokenName,
-    string memory debtTokenSymbol,
-    bytes calldata params
-  ) internal {
-    _setName(debtTokenName);
-    _setSymbol(debtTokenSymbol);
-    _setDecimals(debtTokenDecimals);
+    _underlyingAsset = underlyingAsset;
 
     _addressProvider = addressProvider;
-    _pool = ILendPool(_addressProvider.getLendPool());
-    _underlyingAsset = underlyingAsset;
-    _incentivesController = incentivesController;
 
     emit Initialized(
       underlyingAsset,
-      address(_pool),
-      address(incentivesController),
+      address(_getLendPool()),
+      address(_getIncentivesController()),
       debtTokenDecimals,
       debtTokenName,
-      debtTokenSymbol,
-      params
+      debtTokenSymbol
     );
   }
 
@@ -173,7 +123,8 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
       return 0;
     }
 
-    return scaledBalance.rayMul(_pool.getReserveNormalizedVariableDebt(_underlyingAsset));
+    ILendPool pool = _getLendPool();
+    return scaledBalance.rayMul(pool.getReserveNormalizedVariableDebt(_underlyingAsset));
   }
 
   /**
@@ -189,7 +140,8 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
    * @return The total supply
    **/
   function totalSupply() public view virtual override returns (uint256) {
-    return super.totalSupply().rayMul(_pool.getReserveNormalizedVariableDebt(_underlyingAsset));
+    ILendPool pool = _getLendPool();
+    return super.totalSupply().rayMul(pool.getReserveNormalizedVariableDebt(_underlyingAsset));
   }
 
   /**
@@ -228,11 +180,11 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
    * @dev Returns the address of the lend pool where this token is used
    **/
   function POOL() public view returns (ILendPool) {
-    return _pool;
+    return _getLendPool();
   }
 
   function _getIncentivesController() internal view override returns (IIncentivesController) {
-    return _incentivesController;
+    return IIncentivesController(_addressProvider.getIncentivesController());
   }
 
   function _getUnderlyingAssetAddress() internal view override returns (address) {
@@ -240,7 +192,11 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   }
 
   function _getLendPool() internal view returns (ILendPool) {
-    return _pool;
+    return ILendPool(_addressProvider.getLendPool());
+  }
+
+  function _getLendPoolConfigurator() internal view returns (ILendPoolConfigurator) {
+    return ILendPoolConfigurator(_addressProvider.getLendPoolConfigurator());
   }
 
   /**

@@ -161,6 +161,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   // !!! MUST BEFORE LendPoolConfigurator which will getBNFTRegistry from address provider when init
   await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistry.address));
+  await waitForTx(await addressesProvider.setIncentivesController(incentivesControllerAddress));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare bend libraries...");
@@ -168,7 +169,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   console.log("-> Prepare lend pool...");
   const lendPoolImpl = await deployLendPool();
-  await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address));
+  await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
   // configurator will create proxy for implement
   const lendPoolAddress = await addressesProvider.getLendPool();
   const lendPoolProxy = await getLendPool(lendPoolAddress);
@@ -182,7 +183,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare lend pool loan...");
   const lendPoolLoanImpl = await deployLendPoolLoan();
-  await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address));
+  await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address, []));
   // configurator will create proxy for implement
   const lendPoolLoanProxy = await getLendPoolLoanProxy(await addressesProvider.getLendPoolLoan());
   await insertContractAddressInDb(eContractid.LendPoolLoan, lendPoolLoanProxy.address);
@@ -190,7 +191,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare pool configurator...");
   const lendPoolConfiguratorImpl = await deployLendPoolConfigurator();
-  await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolConfiguratorImpl.address));
+  await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolConfiguratorImpl.address, []));
   // configurator will create proxy for implement
   const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
     await addressesProvider.getLendPoolConfigurator()
@@ -306,7 +307,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     DebtTokenSymbolPrefix,
     poolAdmin,
     treasuryAddress,
-    incentivesControllerAddress,
     ConfigNames.Bend,
     false
   );
@@ -341,9 +341,14 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare wallet & data & ui provider...");
-  await deployWalletBalancerProvider();
-  await deployBendProtocolDataProvider(addressesProvider.address);
-  await deployUiPoolDataProvider(reserveOracleImpl.address, nftOracleImpl.address, false);
+  const walletProvider = await deployWalletBalancerProvider();
+  await waitForTx(await addressesProvider.setWalletBalanceProvider(walletProvider.address));
+
+  const bendDataProvider = await deployBendProtocolDataProvider(addressesProvider.address);
+  await waitForTx(await addressesProvider.setBendDataProvider(bendDataProvider.address));
+
+  const uiDataProvider = await deployUiPoolDataProvider(reserveOracleImpl.address, nftOracleImpl.address, false);
+  await waitForTx(await addressesProvider.setUIDataProvider(uiDataProvider.address));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare WETH gateway...");

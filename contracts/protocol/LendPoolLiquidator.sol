@@ -23,8 +23,6 @@ import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ER
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title LendPoolLiquidator contract
  * @dev Implements the actions involving management of liquidation in the Bend Protocol

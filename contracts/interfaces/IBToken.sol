@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity ^0.8.0;
 
-import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILendPoolAddressesProvider} from "./ILendPoolAddressesProvider.sol";
 import {IIncentivesController} from "./IIncentivesController.sol";
 import {IScaledBalanceToken} from "./IScaledBalanceToken.sol";
 
@@ -15,14 +15,12 @@ interface IBToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgra
    * @param pool The address of the associated lending pool
    * @param treasury The address of the treasury
    * @param incentivesController The address of the incentives controller for this bToken
-   * @param params A set of encoded parameters for additional initialization
    **/
   event Initialized(
     address indexed underlyingAsset,
     address indexed pool,
     address treasury,
-    address incentivesController,
-    bytes params
+    address incentivesController
   );
 
   /**
@@ -30,28 +28,14 @@ interface IBToken is IScaledBalanceToken, IERC20Upgradeable, IERC20MetadataUpgra
    * @param addressProvider The address of the address provider where this bToken will be used
    * @param treasury The address of the Bend treasury, receiving the fees on this bToken
    * @param underlyingAsset The address of the underlying asset of this bToken
-   * @param incentivesController The smart contract managing potential incentives distribution
    */
   function initialize(
     ILendPoolAddressesProvider addressProvider,
     address treasury,
     address underlyingAsset,
-    IIncentivesController incentivesController,
     uint8 bTokenDecimals,
     string calldata bTokenName,
-    string calldata bTokenSymbol,
-    bytes calldata params
-  ) external;
-
-  function initializeAfterUpgrade(
-    ILendPoolAddressesProvider addressProvider,
-    address treasury,
-    address underlyingAsset,
-    IIncentivesController incentivesController,
-    uint8 bTokenDecimals,
-    string calldata bTokenName,
-    string calldata bTokenSymbol,
-    bytes calldata params
+    string calldata bTokenSymbol
   ) external;
 
   /**

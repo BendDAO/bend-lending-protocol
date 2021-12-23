@@ -14,8 +14,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title ERC20 BToken
  * @dev Implementation of the interest bearing token for the Bend protocol
@@ -26,18 +24,16 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   ILendPoolAddressesProvider internal _addressProvider;
-  ILendPool internal _pool;
   address internal _treasury;
   address internal _underlyingAsset;
-  IIncentivesController internal _incentivesController;
 
   modifier onlyLendPool() {
-    require(_msgSender() == address(_pool), Errors.CT_CALLER_MUST_BE_LEND_POOL);
+    require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LEND_POOL);
     _;
   }
 
   modifier onlyLendPoolConfigurator() {
-    require(_addressProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
+    require(_msgSender() == address(_getLendPoolConfigurator()), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
     _;
   }
 
@@ -46,75 +42,28 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
    * @param addressProvider The address of the address provider where this bToken will be used
    * @param treasury The address of the Bend treasury, receiving the fees on this bToken
    * @param underlyingAsset The address of the underlying asset of this bToken
-   * @param incentivesController The smart contract managing potential incentives distribution
    */
   function initialize(
     ILendPoolAddressesProvider addressProvider,
     address treasury,
     address underlyingAsset,
-    IIncentivesController incentivesController,
     uint8 bTokenDecimals,
     string calldata bTokenName,
-    string calldata bTokenSymbol,
-    bytes calldata params
+    string calldata bTokenSymbol
   ) external override initializer {
     __IncentivizedERC20_init(bTokenName, bTokenSymbol, bTokenDecimals);
 
-    _initialize(
-      addressProvider,
-      treasury,
-      underlyingAsset,
-      incentivesController,
-      bTokenDecimals,
-      bTokenName,
-      bTokenSymbol,
-      params
-    );
-  }
-
-  function initializeAfterUpgrade(
-    ILendPoolAddressesProvider addressProvider,
-    address treasury,
-    address underlyingAsset,
-    IIncentivesController incentivesController,
-    uint8 bTokenDecimals,
-    string calldata bTokenName,
-    string calldata bTokenSymbol,
-    bytes calldata params
-  ) external override onlyLendPoolConfigurator {
-    _initialize(
-      addressProvider,
-      treasury,
-      underlyingAsset,
-      incentivesController,
-      bTokenDecimals,
-      bTokenName,
-      bTokenSymbol,
-      params
-    );
-  }
-
-  function _initialize(
-    ILendPoolAddressesProvider addressProvider,
-    address treasury,
-    address underlyingAsset,
-    IIncentivesController incentivesController,
-    uint8 bTokenDecimals,
-    string calldata bTokenName,
-    string calldata bTokenSymbol,
-    bytes calldata params
-  ) internal {
-    _setName(bTokenName);
-    _setSymbol(bTokenSymbol);
-    _setDecimals(bTokenDecimals);
-
-    _addressProvider = addressProvider;
-    _pool = ILendPool(addressProvider.getLendPool());
     _treasury = treasury;
     _underlyingAsset = underlyingAsset;
-    _incentivesController = incentivesController;
 
-    emit Initialized(underlyingAsset, address(_pool), treasury, address(incentivesController), params);
+    _addressProvider = addressProvider;
+
+    emit Initialized(
+      underlyingAsset,
+      _addressProvider.getLendPool(),
+      treasury,
+      _addressProvider.getIncentivesController()
+    );
   }
 
   /**
@@ -195,7 +144,8 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
    * @return The balance of the user
    **/
   function balanceOf(address user) public view override returns (uint256) {
-    return super.balanceOf(user).rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
+    ILendPool pool = _getLendPool();
+    return super.balanceOf(user).rayMul(pool.getReserveNormalizedIncome(_underlyingAsset));
   }
 
   /**
@@ -231,7 +181,8 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
       return 0;
     }
 
-    return currentSupplyScaled.rayMul(_pool.getReserveNormalizedIncome(_underlyingAsset));
+    ILendPool pool = _getLendPool();
+    return currentSupplyScaled.rayMul(pool.getReserveNormalizedIncome(_underlyingAsset));
   }
 
   /**
@@ -260,14 +211,14 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
    * @dev Returns the address of the lending pool where this bToken is used
    **/
   function POOL() public view returns (ILendPool) {
-    return _pool;
+    return _getLendPool();
   }
 
   /**
    * @dev For internal usage in the logic of the parent contract IncentivizedERC20
    **/
   function _getIncentivesController() internal view override returns (IIncentivesController) {
-    return _incentivesController;
+    return IIncentivesController(_addressProvider.getIncentivesController());
   }
 
   function _getUnderlyingAssetAddress() internal view override returns (address) {
@@ -293,6 +244,14 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
     return amount;
   }
 
+  function _getLendPool() internal view returns (ILendPool) {
+    return ILendPool(_addressProvider.getLendPool());
+  }
+
+  function _getLendPoolConfigurator() internal view returns (ILendPoolConfigurator) {
+    return ILendPoolConfigurator(_addressProvider.getLendPoolConfigurator());
+  }
+
   /**
    * @dev Transfers the bTokens between two users. Validates the transfer
    * (ie checks for valid HF after the transfer) if required
@@ -308,7 +267,7 @@ contract BToken is Initializable, IBToken, IncentivizedERC20 {
     bool validate
   ) internal {
     address underlyingAsset = _underlyingAsset;
-    ILendPool pool = _pool;
+    ILendPool pool = _getLendPool();
 
     uint256 index = pool.getReserveNormalizedIncome(underlyingAsset);
 

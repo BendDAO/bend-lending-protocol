@@ -14,16 +14,17 @@ import { NFTOracle, BendUpgradeableProxy } from "../../types";
 
 task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
-  .addFlag("skipOracle", "Skip deploy oracles")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, skipOracle, pool }, DRE) => {
+  .addFlag("skipOracle", "Skip deploy oracles")
+  .addFlag("skipProvider", "Skip set oracles to address provider")
+  .addOptionalParam("feedAdmin", "Address of price feed")
+  .setAction(async ({ verify, pool, skipOracle, skipProvider, feedAdmin }, DRE) => {
     try {
       await DRE.run("set-DRE");
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
       const { NftsAssets } = poolConfig as ICommonConfiguration;
 
-      const addressesProvider = await getLendPoolAddressesProvider();
       const nftOracleAddress = getParamPerNetwork(poolConfig.NFTOracle, network);
 
       if (skipOracle) {
@@ -31,13 +32,21 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
           throw Error("Invalid NFT Oracle address in pool config");
         }
         console.log("Reuse existed nft oracle proxy:", nftOracleAddress);
+        const addressesProvider = await getLendPoolAddressesProvider();
         await waitForTx(await addressesProvider.setNFTOracle(nftOracleAddress));
         return;
       }
 
-      const poolAdmin = await getGenesisPoolAdmin(poolConfig);
       const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
-      const proxyOwnerAddress = await proxyAdmin.owner();
+      if (proxyAdmin == undefined || !notFalsyOrZeroAddress(proxyAdmin.address)) {
+        throw Error("Invalid pool proxy admin in config");
+      }
+      const proxyAdminOwnerAddress = await proxyAdmin.owner();
+      const proxyAdminOwnerSigner = DRE.ethers.provider.getSigner(proxyAdminOwnerAddress);
+
+      if (feedAdmin == undefined || !notFalsyOrZeroAddress(feedAdmin)) {
+        feedAdmin = await getGenesisPoolAdmin(poolConfig);
+      }
 
       const nftsAssets = getParamPerNetwork(NftsAssets, network);
 
@@ -46,7 +55,7 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       }) as string[];
 
       const nftOracleImpl = await deployNFTOracle(verify);
-      const initEncodedData = nftOracleImpl.interface.encodeFunctionData("initialize", [poolAdmin]);
+      const initEncodedData = nftOracleImpl.interface.encodeFunctionData("initialize", [feedAdmin]);
 
       let nftOracle: NFTOracle;
       let nftOracleProxy: BendUpgradeableProxy;
@@ -59,8 +68,9 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
         nftOracleProxy = await getBendUpgradeableProxy(nftOracleAddress);
 
         // only proxy admin can do upgrading
-        const ownerSigner = DRE.ethers.provider.getSigner(proxyOwnerAddress);
-        await waitForTx(await proxyAdmin.connect(ownerSigner).upgrade(nftOracleProxy.address, nftOracleImpl.address));
+        await waitForTx(
+          await proxyAdmin.connect(proxyAdminOwnerSigner).upgrade(nftOracleProxy.address, nftOracleImpl.address)
+        );
 
         nftOracle = await getNFTOracle(nftOracleProxy.address);
       } else {
@@ -76,12 +86,17 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
 
         nftOracle = await getNFTOracle(nftOracleProxy.address);
 
-        const poolAdminSigner = DRE.ethers.provider.getSigner(poolAdmin);
-        await waitForTx(await nftOracle.connect(poolAdminSigner).setAssets(tokens));
+        // only oracle owner can add assets
+        const oracleOwnerAddress = await nftOracle.owner();
+        const oracleOwnerSigner = DRE.ethers.provider.getSigner(oracleOwnerAddress);
+        await waitForTx(await nftOracle.connect(oracleOwnerSigner).setAssets(tokens));
       }
 
       // Register the proxy oracle on the addressesProvider
-      await waitForTx(await addressesProvider.setNFTOracle(nftOracle.address));
+      if (!skipProvider) {
+        const addressesProvider = await getLendPoolAddressesProvider();
+        await waitForTx(await addressesProvider.setNFTOracle(nftOracle.address));
+      }
 
       console.log("NFT Oracle: proxy %s, implementation %s", nftOracle.address, nftOracleImpl.address);
     } catch (error) {

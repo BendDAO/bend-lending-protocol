@@ -44,7 +44,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
 
       if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address));
+        await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
         await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
       }
     }
@@ -54,7 +54,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       console.log("LendPoolConfigurator implementation address:", lendPoolCfgImpl.address);
 
       if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolCfgImpl.address));
+        await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolCfgImpl.address, []));
       }
     }
 
@@ -63,7 +63,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       console.log("LendPoolLoan implementation address:", lendPoolLoanImpl.address);
 
       if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address));
+        await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address, []));
       }
     }
 

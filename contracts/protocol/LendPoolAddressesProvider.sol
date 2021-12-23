@@ -7,6 +7,7 @@ import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvid
 import {BendUpgradeableProxy} from "../libraries/proxy/BendUpgradeableProxy.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * @title LendPoolAddressesProvider contract
@@ -29,6 +30,10 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   bytes32 private constant LEND_POOL_LOAN = "LEND_POOL_LOAN";
   bytes32 private constant BNFT_REGISTRY = "BNFT_REGISTRY";
   bytes32 private constant LEND_POOL_LIQUIDATOR = "LEND_POOL_LIQUIDATOR";
+  bytes32 private constant INCENTIVES_CONTROLLER = "INCENTIVES_CONTROLLER";
+  bytes32 private constant BEND_DATA_PROVIDER = "BEND_DATA_PROVIDER";
+  bytes32 private constant UI_DATA_PROVIDER = "UI_DATA_PROVIDER";
+  bytes32 private constant WALLET_BALANCE_PROVIDER = "WALLET_BALANCE_PROVIDER";
 
   constructor(string memory marketId) {
     _setMarketId(marketId);
@@ -59,9 +64,17 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
    * @param id The id
    * @param implementationAddress The address of the new implementation
    */
-  function setAddressAsProxy(bytes32 id, address implementationAddress) external override onlyOwner {
+  function setAddressAsProxy(
+    bytes32 id,
+    address implementationAddress,
+    bytes memory encodedCallData
+  ) external override onlyOwner {
     _updateImpl(id, implementationAddress);
-    emit AddressSet(id, implementationAddress, true);
+    emit AddressSet(id, implementationAddress, true, encodedCallData);
+
+    if (encodedCallData.length > 0) {
+      Address.functionCall(_addresses[id], encodedCallData);
+    }
   }
 
   /**
@@ -72,7 +85,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
    */
   function setAddress(bytes32 id, address newAddress) external override onlyOwner {
     _addresses[id] = newAddress;
-    emit AddressSet(id, newAddress, false);
+    emit AddressSet(id, newAddress, false, new bytes(0));
   }
 
   /**
@@ -96,9 +109,13 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
    * setting the new `pool` implementation on the first time calling it
    * @param pool The new LendPool implementation
    **/
-  function setLendPoolImpl(address pool) external override onlyOwner {
+  function setLendPoolImpl(address pool, bytes memory encodedCallData) external override onlyOwner {
     _updateImpl(LEND_POOL, pool);
-    emit LendPoolUpdated(pool);
+    emit LendPoolUpdated(pool, encodedCallData);
+
+    if (encodedCallData.length > 0) {
+      Address.functionCall(_addresses[LEND_POOL], encodedCallData);
+    }
   }
 
   /**
@@ -114,9 +131,13 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
    * setting the new `configurator` implementation on the first time calling it
    * @param configurator The new LendPoolConfigurator implementation
    **/
-  function setLendPoolConfiguratorImpl(address configurator) external override onlyOwner {
+  function setLendPoolConfiguratorImpl(address configurator, bytes memory encodedCallData) external override onlyOwner {
     _updateImpl(LEND_POOL_CONFIGURATOR, configurator);
-    emit LendPoolConfiguratorUpdated(configurator);
+    emit LendPoolConfiguratorUpdated(configurator, encodedCallData);
+
+    if (encodedCallData.length > 0) {
+      Address.functionCall(_addresses[LEND_POOL_CONFIGURATOR], encodedCallData);
+    }
   }
 
   /**
@@ -164,9 +185,13 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     return getAddress(LEND_POOL_LOAN);
   }
 
-  function setLendPoolLoanImpl(address loanAddress) external override onlyOwner {
+  function setLendPoolLoanImpl(address loanAddress, bytes memory encodedCallData) external override onlyOwner {
     _updateImpl(LEND_POOL_LOAN, loanAddress);
-    emit LendPoolLoanUpdated(loanAddress);
+    emit LendPoolLoanUpdated(loanAddress, encodedCallData);
+
+    if (encodedCallData.length > 0) {
+      Address.functionCall(_addresses[LEND_POOL_LOAN], encodedCallData);
+    }
   }
 
   function getBNFTRegistry() external view override returns (address) {
@@ -187,12 +212,53 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     emit LendPoolLiquidatorUpdated(liquidator);
   }
 
+  function getIncentivesController() external view override returns (address) {
+    return getAddress(INCENTIVES_CONTROLLER);
+  }
+
+  function setIncentivesController(address controller) external override onlyOwner {
+    _addresses[INCENTIVES_CONTROLLER] = controller;
+    emit IncentivesControllerUpdated(controller);
+  }
+
+  function getUIDataProvider() external view override returns (address) {
+    return getAddress(UI_DATA_PROVIDER);
+  }
+
+  function setUIDataProvider(address provider) external override onlyOwner {
+    _addresses[UI_DATA_PROVIDER] = provider;
+    emit UIDataProviderUpdated(provider);
+  }
+
+  function getBendDataProvider() external view override returns (address) {
+    return getAddress(BEND_DATA_PROVIDER);
+  }
+
+  function setBendDataProvider(address provider) external override onlyOwner {
+    _addresses[BEND_DATA_PROVIDER] = provider;
+    emit BendDataProviderUpdated(provider);
+  }
+
+  function getWalletBalanceProvider() external view override returns (address) {
+    return getAddress(WALLET_BALANCE_PROVIDER);
+  }
+
+  function setWalletBalanceProvider(address provider) external override onlyOwner {
+    _addresses[WALLET_BALANCE_PROVIDER] = provider;
+    emit WalletBalanceProviderUpdated(provider);
+  }
+
+  function getImplementation(address proxyAddress) external view onlyOwner returns (address) {
+    BendUpgradeableProxy proxy = BendUpgradeableProxy(payable(proxyAddress));
+    return proxy.getImplementation();
+  }
+
   /**
    * @dev Internal function to update the implementation of a specific proxied component of the protocol
    * - If there is no proxy registered in the given `id`, it creates the proxy setting `newAdress`
    *   as implementation and calls the initialize() function on the proxy
    * - If there is already a proxy registered, it just updates the implementation to `newAddress` and
-   *   calls the initialize() function via upgradeToAndCall() in the proxy
+   *   calls the encoded method function via upgradeToAndCall() in the proxy
    * @param id The id of the proxy to be updated
    * @param newAddress The address of the new implementation
    **/
@@ -208,12 +274,10 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
       _addresses[id] = address(proxy);
       emit ProxyCreated(id, address(proxy));
     } else {
-      bytes memory params = abi.encodeWithSignature("initializeAfterUpgrade(address)", address(this));
-
-      // upgrade & init implementation
+      // upgrade implementation
       BendUpgradeableProxy proxy = BendUpgradeableProxy(proxyAddress);
 
-      proxy.upgradeToAndCall(newAddress, params);
+      proxy.upgradeTo(newAddress);
     }
   }
 

@@ -39,8 +39,16 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
         throw Error("Invalid BNFT Registry address in pool config");
       }
       const bnftRegistryProxy = await getBNFTRegistryProxy(bnftRegistryAddress);
-      console.log("Setting BNFT Registry to address provider...");
+      console.log("Setting BNFTRegistry to address provider...");
       await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistryProxy.address));
+
+      const incentivesControllerAddress = getParamPerNetwork(poolConfig.IncentivesController, network);
+      console.log("IncentivesController", poolConfig.IncentivesController);
+      if (incentivesControllerAddress == undefined || !notFalsyOrZeroAddress(incentivesControllerAddress)) {
+        throw Error("Invalid IncentivesController address in pool config");
+      }
+      console.log("Setting IncentivesController to address provider...");
+      await waitForTx(await addressesProvider.setIncentivesController(incentivesControllerAddress));
 
       //////////////////////////////////////////////////////////////////////////
       console.log("Deploying new libraries implementation...");
@@ -51,7 +59,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const lendPoolImpl = await deployLendPool(verify);
       console.log("Setting lend pool implementation with address:", lendPoolImpl.address);
       // Set lending pool impl to Address provider
-      await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address));
+      await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
 
       const address = await addressesProvider.getLendPool();
       const lendPoolProxy = await getLendPool(address);
@@ -70,7 +78,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const lendPoolLoanImpl = await deployLendPoolLoan(verify);
       console.log("Setting lend pool loan implementation with address:", lendPoolLoanImpl.address);
       // Set lend pool conf impl to Address Provider
-      await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address));
+      await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address, []));
 
       const lendPoolLoanProxy = await getLendPoolLoanProxy(await addressesProvider.getLendPoolLoan());
 
@@ -82,7 +90,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const lendPoolConfiguratorImpl = await deployLendPoolConfigurator(verify);
       console.log("Setting lend pool configurator implementation with address:", lendPoolConfiguratorImpl.address);
       // Set lend pool conf impl to Address Provider
-      await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolConfiguratorImpl.address));
+      await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolConfiguratorImpl.address, []));
 
       const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
         await addressesProvider.getLendPoolConfigurator()

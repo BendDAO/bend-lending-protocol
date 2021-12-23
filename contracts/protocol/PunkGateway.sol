@@ -19,8 +19,6 @@ import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
 
 contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRecovery {
   ILendPoolAddressesProvider internal _addressProvider;
-  ILendPool internal _pool;
-  ILendPoolLoan internal _poolLoan;
   IWETHGateway internal _wethGateway;
 
   IPunks public punks;
@@ -34,8 +32,6 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     address _wrappedPunks
   ) {
     _addressProvider = ILendPoolAddressesProvider(addressProvider);
-    _pool = ILendPool(_addressProvider.getLendPool());
-    _poolLoan = ILendPoolLoan(_addressProvider.getLendPoolLoan());
     _wethGateway = IWETHGateway(wethGateway);
 
     punks = IPunks(_punks);
@@ -43,12 +39,20 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     wrappedPunks.registerProxy();
     proxy = wrappedPunks.proxyInfo(address(this));
 
-    IERC721(address(wrappedPunks)).setApprovalForAll(address(_pool), true);
+    IERC721(address(wrappedPunks)).setApprovalForAll(address(_getLendPool()), true);
     IERC721(address(wrappedPunks)).setApprovalForAll(address(_wethGateway), true);
   }
 
+  function _getLendPool() internal view returns (ILendPool) {
+    return ILendPool(_addressProvider.getLendPool());
+  }
+
+  function _getLendPoolLoan() internal view returns (ILendPoolLoan) {
+    return ILendPoolLoan(_addressProvider.getLendPoolLoan());
+  }
+
   function authorizeLendPoolERC20(address token) external onlyOwner {
-    IERC20(token).approve(address(_pool), type(uint256).max);
+    IERC20(token).approve(address(_getLendPool()), type(uint256).max);
   }
 
   function _depositPunk(uint256 punkIndex) internal {
@@ -68,9 +72,11 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     address onBehalfOf,
     uint16 referralCode
   ) external override {
+    ILendPool cachedPool = _getLendPool();
+
     _depositPunk(punkIndex);
 
-    _pool.borrow(reserveAsset, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
+    cachedPool.borrow(reserveAsset, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
     IERC20(reserveAsset).transfer(onBehalfOf, amount);
   }
 
@@ -84,11 +90,14 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function repay(uint256 punkIndex, uint256 amount) external override returns (uint256, bool) {
-    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
-    (, , address reserve, ) = _poolLoan.getLoanCollateralAndReserve(loanId);
-    (, uint256 debt) = _poolLoan.getLoanReserveBorrowAmount(loanId);
-    address borrower = _poolLoan.borrowerOf(loanId);
+    (, , address reserve, ) = cachedPoolLoan.getLoanCollateralAndReserve(loanId);
+    (, uint256 debt) = cachedPoolLoan.getLoanReserveBorrowAmount(loanId);
+    address borrower = cachedPoolLoan.borrowerOf(loanId);
 
     if (amount > debt) {
       amount = debt;
@@ -96,7 +105,7 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
 
     IERC20(reserve).transferFrom(msg.sender, address(this), amount);
 
-    (uint256 paybackAmount, bool burn) = _pool.repay(address(wrappedPunks), punkIndex, amount);
+    (uint256 paybackAmount, bool burn) = cachedPool.repay(address(wrappedPunks), punkIndex, amount);
 
     if (burn) {
       _withdrawPunk(punkIndex, borrower);
@@ -110,28 +119,34 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     uint256 bidPrice,
     address onBehalfOf
   ) external override {
-    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    (, , address reserve, ) = _poolLoan.getLoanCollateralAndReserve(loanId);
+    (, , address reserve, ) = cachedPoolLoan.getLoanCollateralAndReserve(loanId);
 
     IERC20(reserve).transferFrom(msg.sender, address(this), bidPrice);
 
-    _pool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
+    cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
   function redeem(uint256 punkIndex) external override returns (uint256) {
-    (uint256 loanId, , , uint256 bidBorrowAmount, uint256 bidFine) = _pool.getNftAuctionData(
+    ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    (uint256 loanId, , , uint256 bidBorrowAmount, uint256 bidFine) = cachedPool.getNftAuctionData(
       address(wrappedPunks),
       punkIndex
     );
     require(loanId > 0, "PunkGateway: no loan with such punkIndex");
 
-    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+    DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
     IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), bidBorrowAmount + bidFine);
 
-    uint256 paybackAmount = _pool.redeem(address(wrappedPunks), punkIndex);
+    uint256 paybackAmount = cachedPool.redeem(address(wrappedPunks), punkIndex);
 
     _withdrawPunk(punkIndex, loan.borrower);
 
@@ -139,12 +154,15 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function liquidate(uint256 punkIndex) external override {
-    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+    DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    _pool.liquidate(address(wrappedPunks), punkIndex);
+    cachedPool.liquidate(address(wrappedPunks), punkIndex);
 
     _withdrawPunk(punkIndex, loan.bidderAddress);
   }
@@ -160,10 +178,12 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function repayETH(uint256 punkIndex, uint256 amount) external payable override returns (uint256, bool) {
-    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    address borrower = _poolLoan.borrowerOf(loanId);
+    address borrower = cachedPoolLoan.borrowerOf(loanId);
 
     (uint256 paybackAmount, bool burn) = _wethGateway.repayETH{value: msg.value}(
       address(wrappedPunks),
@@ -188,10 +208,12 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function redeemETH(uint256 punkIndex) external payable override returns (uint256) {
-    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+    DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
     uint256 paybackAmount = _wethGateway.redeemETH{value: msg.value}(address(wrappedPunks), punkIndex);
 
@@ -201,10 +223,12 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function liquidateETH(uint256 punkIndex) external payable override {
-    uint256 loanId = _poolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    DataTypes.LoanData memory loan = _poolLoan.getLoan(loanId);
+    DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
     _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex);
 

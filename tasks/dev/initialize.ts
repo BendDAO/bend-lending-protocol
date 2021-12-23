@@ -68,7 +68,6 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       DebtTokenSymbolPrefix,
       admin,
       treasuryAddress,
-      ZERO_ADDRESS,
       pool,
       verify
     );

@@ -2,9 +2,16 @@ import { expect } from "chai";
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { ProtocolErrors, eContractid } from "../helpers/types";
 import { deployContract, getContract } from "../helpers/contracts-helpers";
-import { ZERO_ADDRESS } from "../helpers/constants";
-import { getFirstSigner, getBToken, getLendPoolLoanProxy, getDebtToken } from "../helpers/contracts-getters";
+import { MAX_UINT_AMOUNT, ZERO_ADDRESS } from "../helpers/constants";
+import {
+  getFirstSigner,
+  getBToken,
+  getLendPoolLoanProxy,
+  getDebtToken,
+  getBendUpgradeableProxy,
+} from "../helpers/contracts-getters";
 import { BTokenFactory, LendPoolLoanFactory, LendPoolLoan, BToken, DebtToken, DebtTokenFactory } from "../types";
+import { BytesLike } from "@ethersproject/bytes";
 
 makeSuite("Upgradeability", (testEnv: TestEnv) => {
   const { CALLER_NOT_POOL_ADMIN } = ProtocolErrors;
@@ -29,20 +36,12 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
 
     const updateBTokenInputParams: {
       asset: string;
-      treasury: string;
-      incentivesController: string;
-      name: string;
-      symbol: string;
       implementation: string;
-      params: string;
+      encodedCallData: BytesLike;
     } = {
       asset: dai.address,
-      treasury: ZERO_ADDRESS,
-      incentivesController: mockIncentivesController.address,
-      name: "Bend Market DAI updated",
-      symbol: "bDAI",
       implementation: newBTokenInstance.address,
-      params: "0x10",
+      encodedCallData: [],
     };
     await expect(configurator.connect(users[1].signer).updateBToken(updateBTokenInputParams)).to.be.revertedWith(
       CALLER_NOT_POOL_ADMIN
@@ -50,48 +49,36 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
   });
 
   it("Upgrades the DAI BToken implementation ", async () => {
-    const { dai, configurator, bDai } = testEnv;
+    const { dai, configurator, dataProvider } = testEnv;
+
+    const { bTokenAddress } = await dataProvider.getReserveTokenData(dai.address);
 
     const updateBTokenInputParams: {
       asset: string;
-      treasury: string;
-      incentivesController: string;
-      name: string;
-      symbol: string;
       implementation: string;
-      params: string;
+      encodedCallData: BytesLike;
     } = {
       asset: dai.address,
-      treasury: ZERO_ADDRESS,
-      incentivesController: ZERO_ADDRESS,
-      name: "Bend Market DAI updated",
-      symbol: "bDAI",
       implementation: newBTokenInstance.address,
-      params: "0x10",
+      encodedCallData: [],
     };
     await configurator.updateBToken(updateBTokenInputParams);
 
-    const tokenName = await bDai.name();
-    expect(tokenName).to.be.eq("Bend Market DAI updated", "Invalid token name");
+    const checkImpl = await configurator.getTokenImplementation(bTokenAddress);
+    expect(checkImpl).to.be.eq(newBTokenInstance.address, "Invalid token implementation");
   });
 
   it("Tries to update the DAI DebtToken implementation with a different address than the configuator", async () => {
-    const { dai, configurator, users, mockIncentivesController } = testEnv;
+    const { dai, configurator, users } = testEnv;
 
     const updateDebtTokenInputParams: {
       asset: string;
-      incentivesController: string;
-      name: string;
-      symbol: string;
       implementation: string;
-      params: string;
+      encodedCallData: BytesLike;
     } = {
       asset: dai.address,
-      incentivesController: mockIncentivesController.address,
-      name: "Bend Market DebtDAI updated",
-      symbol: "bDebtDAI",
       implementation: newBTokenInstance.address,
-      params: "0x10",
+      encodedCallData: [],
     };
     await expect(configurator.connect(users[1].signer).updateDebtToken(updateDebtTokenInputParams)).to.be.revertedWith(
       CALLER_NOT_POOL_ADMIN
@@ -99,34 +86,30 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
   });
 
   it("Upgrades the DAI DebtToken implementation ", async () => {
-    const { dai, configurator, bDai, mockIncentivesController } = testEnv;
+    const { dai, configurator, dataProvider } = testEnv;
+
+    const { debtTokenAddress } = await dataProvider.getReserveTokenData(dai.address);
 
     const updateDebtTokenInputParams: {
       asset: string;
-      incentivesController: string;
-      name: string;
-      symbol: string;
       implementation: string;
-      params: string;
+      encodedCallData: BytesLike;
     } = {
       asset: dai.address,
-      incentivesController: mockIncentivesController.address,
-      name: "Bend Market DebtDAI updated",
-      symbol: "bDebtDAI",
       implementation: newDebtTokenInstance.address,
-      params: "0x10",
+      encodedCallData: [],
     };
     await configurator.updateDebtToken(updateDebtTokenInputParams);
 
-    const tokenName = await debtDai.name();
-    expect(tokenName).to.be.eq("Bend Market DebtDAI updated", "Invalid token name");
+    const checkImpl = await configurator.getTokenImplementation(debtTokenAddress);
+    expect(checkImpl).to.be.eq(newDebtTokenInstance.address, "Invalid token implementation");
   });
 
   it("Tries to update the LendPoolLoan implementation with a different address than the address provider", async () => {
     const { addressesProvider, users } = testEnv;
 
     await expect(
-      addressesProvider.connect(users[1].signer).setLendPoolLoanImpl(newLoanInstance.address)
+      addressesProvider.connect(users[1].signer).setLendPoolLoanImpl(newLoanInstance.address, [])
     ).to.be.revertedWith("Ownable: caller is not the owner");
   });
 
@@ -136,11 +119,14 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
     const loanProxyAddressBefore = await addressesProvider.getLendPoolLoan();
     const loanProxyBefore = await getLendPoolLoanProxy(loanProxyAddressBefore);
 
-    await addressesProvider.setLendPoolLoanImpl(newLoanInstance.address);
+    await addressesProvider.setLendPoolLoanImpl(newLoanInstance.address, []);
 
     const loanProxyAddressAfter = await addressesProvider.getLendPoolLoan();
     const loanProxyAfter = await getLendPoolLoanProxy(loanProxyAddressAfter);
 
+    const checkImpl = await addressesProvider.getImplementation(loanProxyAddressBefore);
+
     expect(loanProxyAddressAfter).to.be.eq(loanProxyAddressBefore, "Invalid addresses provider");
+    expect(checkImpl).to.be.eq(newLoanInstance.address, "Invalid loan implementation");
   });
 });

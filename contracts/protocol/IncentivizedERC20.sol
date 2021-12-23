@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
+import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -14,8 +15,6 @@ import {IERC20MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/tok
  * @author Bend
  **/
 abstract contract IncentivizedERC20 is Initializable, IERC20MetadataUpgradeable, ERC20Upgradeable {
-  string private _customName;
-  string private _customSymbol;
   uint8 private _customDecimals;
 
   function __IncentivizedERC20_init(
@@ -25,24 +24,7 @@ abstract contract IncentivizedERC20 is Initializable, IERC20MetadataUpgradeable,
   ) internal initializer {
     __ERC20_init(name_, symbol_);
 
-    _customName = name_;
-    _customSymbol = symbol_;
     _customDecimals = decimals_;
-  }
-
-  /**
-   * @dev Returns the name of the token.
-   */
-  function name() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (string memory) {
-    return _customName;
-  }
-
-  /**
-   * @dev Returns the symbol of the token, usually a shorter version of the
-   * name.
-   */
-  function symbol() public view virtual override(ERC20Upgradeable, IERC20MetadataUpgradeable) returns (string memory) {
-    return _customSymbol;
   }
 
   /**
@@ -99,18 +81,6 @@ abstract contract IncentivizedERC20 is Initializable, IERC20MetadataUpgradeable,
     if (address(_getIncentivesController()) != address(0)) {
       _getIncentivesController().handleAction(account, oldTotalSupply, oldAccountBalance);
     }
-  }
-
-  function _setName(string memory newName) internal {
-    _customName = newName;
-  }
-
-  function _setSymbol(string memory newSymbol) internal {
-    _customSymbol = newSymbol;
-  }
-
-  function _setDecimals(uint8 newDecimals) internal {
-    _customDecimals = newDecimals;
   }
 
   uint256[45] private __gap;

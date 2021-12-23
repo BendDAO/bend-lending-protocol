@@ -83,16 +83,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param provider The address of the LendPoolAddressesProvider
    **/
   function initialize(ILendPoolAddressesProvider provider) public initializer {
-    _setAddressProvider(provider);
     _maxNumberOfReserves = 32;
     _maxNumberOfNfts = 256;
-  }
 
-  function initializeAfterUpgrade(ILendPoolAddressesProvider provider) public onlyAddressProvider {
-    _setAddressProvider(provider);
-  }
-
-  function _setAddressProvider(ILendPoolAddressesProvider provider) internal {
     _addressesProvider = provider;
   }
 
