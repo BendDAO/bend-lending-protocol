@@ -56,6 +56,10 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function _depositPunk(uint256 punkIndex) internal {
+    if (wrappedPunks.ownerOf(punkIndex) == _msgSender()) {
+      return;
+    }
+
     address owner = punks.punkIndexToAddress(punkIndex);
     require(owner == _msgSender(), "PunkGateway: not owner of punkIndex");
 
