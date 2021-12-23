@@ -112,12 +112,6 @@
         "internalType": "address",
         "name": "incentivesController",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "params",
-        "type": "bytes"
       }
     ],
     "name": "Initialized",
@@ -423,11 +417,6 @@
         "type": "address"
       },
       {
-        "internalType": "contract IIncentivesController",
-        "name": "incentivesController",
-        "type": "address"
-      },
-      {
         "internalType": "uint8",
         "name": "bTokenDecimals",
         "type": "uint8"
@@ -441,62 +430,9 @@
         "internalType": "string",
         "name": "bTokenSymbol",
         "type": "string"
-      },
-      {
-        "internalType": "bytes",
-        "name": "params",
-        "type": "bytes"
       }
     ],
     "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "contract ILendPoolAddressesProvider",
-        "name": "addressProvider",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "treasury",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "underlyingAsset",
-        "type": "address"
-      },
-      {
-        "internalType": "contract IIncentivesController",
-        "name": "incentivesController",
-        "type": "address"
-      },
-      {
-        "internalType": "uint8",
-        "name": "bTokenDecimals",
-        "type": "uint8"
-      },
-      {
-        "internalType": "string",
-        "name": "bTokenName",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "bTokenSymbol",
-        "type": "string"
-      },
-      {
-        "internalType": "bytes",
-        "name": "params",
-        "type": "bytes"
-      }
-    ],
-    "name": "initializeAfterUpgrade",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -10,7 +10,7 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
    * @dev Emitted when an bNFT is initialized
    * @param underlyingAsset The address of the underlying asset
    **/
-  event Initialized(address indexed underlyingAsset, bytes params);
+  event Initialized(address indexed underlyingAsset);
 
   /**
    * @dev Emitted on mint
@@ -46,8 +46,7 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
   function initialize(
     address underlyingAsset,
     string calldata bNftName,
-    string calldata bNftSymbol,
-    bytes calldata params
+    string calldata bNftSymbol
   ) external;
 
   /**

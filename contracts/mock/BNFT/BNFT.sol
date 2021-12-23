@@ -27,14 +27,13 @@ contract BNFT is ERC721EnumerableUpgradeable, IBNFT {
   function initialize(
     address underlyingAsset,
     string calldata bNftName,
-    string calldata bNftSymbol,
-    bytes calldata params
+    string calldata bNftSymbol
   ) external override initializer {
     __ERC721_init(bNftName, bNftSymbol);
 
     _underlyingAsset = underlyingAsset;
 
-    emit Initialized(underlyingAsset, params);
+    emit Initialized(underlyingAsset);
   }
 
   /**

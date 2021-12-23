@@ -429,11 +429,6 @@
             "type": "address"
           },
           {
-            "internalType": "address",
-            "name": "incentivesController",
-            "type": "address"
-          },
-          {
             "internalType": "string",
             "name": "underlyingAssetName",
             "type": "string"
@@ -457,11 +452,6 @@
             "internalType": "string",
             "name": "debtTokenSymbol",
             "type": "string"
-          },
-          {
-            "internalType": "bytes",
-            "name": "params",
-            "type": "bytes"
           }
         ],
         "internalType": "struct ILendPoolConfigurator.InitReserveInput[]",
@@ -611,14 +601,20 @@
   {
     "inputs": [
       {
-        "internalType": "contract ILendPoolAddressesProvider",
-        "name": "provider",
+        "internalType": "address",
+        "name": "proxyAddress",
         "type": "address"
       }
     ],
-    "name": "initialize",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "getTokenImplementation",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -629,7 +625,7 @@
         "type": "address"
       }
     ],
-    "name": "initializeAfterUpgrade",
+    "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -746,32 +742,12 @@
           },
           {
             "internalType": "address",
-            "name": "treasury",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "incentivesController",
-            "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "internalType": "address",
             "name": "implementation",
             "type": "address"
           },
           {
             "internalType": "bytes",
-            "name": "params",
+            "name": "encodedCallData",
             "type": "bytes"
           }
         ],
@@ -796,27 +772,12 @@
           },
           {
             "internalType": "address",
-            "name": "incentivesController",
-            "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "symbol",
-            "type": "string"
-          },
-          {
-            "internalType": "address",
             "name": "implementation",
             "type": "address"
           },
           {
             "internalType": "bytes",
-            "name": "params",
+            "name": "encodedCallData",
             "type": "bytes"
           }
         ],
