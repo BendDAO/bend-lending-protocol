@@ -76,6 +76,10 @@ task("bend:mainnet", "Deploy full enviroment")
     console.log("\n\nInitialize lend pool");
     await DRE.run("full:initialize-lend-pool", { pool: POOL_NAME });
 
+    //////////////////////////////////////////////////////////////////////////
+    console.log("\n\nInitialize gateway");
+    await DRE.run("full:initialize-gateway", { pool: POOL_NAME });
+
     if (verify) {
       printContracts();
 

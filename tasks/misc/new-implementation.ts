@@ -1,6 +1,12 @@
 import { task } from "hardhat/config";
-import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { getFirstSigner, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
+import {
+  ConfigNames,
+  getCryptoPunksMarketAddress,
+  getWrappedNativeTokenAddress,
+  getWrappedPunkTokenAddress,
+  loadPoolConfig,
+} from "../../helpers/configuration";
+import { getFirstSigner, getLendPoolAddressesProvider, getWETHGateway } from "../../helpers/contracts-getters";
 import { eNetwork } from "../../helpers/types";
 import {
   deployLendPool,
@@ -14,6 +20,8 @@ import {
   deployUiPoolDataProvider,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
+  deployPunkGateway,
+  deployWETHGateway,
 } from "../../helpers/contracts-deployments";
 import { waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
@@ -85,22 +93,47 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
     }
 
+    if (contract == "PunkGateway") {
+      const wethGateWay = await getWETHGateway();
+      console.log("WETHGateway.address", wethGateWay.address);
+
+      const punkAddress = await getCryptoPunksMarketAddress(poolConfig);
+      console.log("CryptoPunksMarket.address", punkAddress);
+
+      const wpunkAddress = await getWrappedPunkTokenAddress(poolConfig, punkAddress);
+      console.log("WPUNKS.address", wpunkAddress);
+
+      const punkGatewayImpl = await deployPunkGateway(
+        [addressesProvider.address, wethGateWay.address, punkAddress, wpunkAddress],
+        verify
+      );
+      console.log("PunkGateway implementation address:", punkGatewayImpl.address);
+    }
+
+    if (contract == "WETHGateway") {
+      const wethAddress = await getWrappedNativeTokenAddress(poolConfig);
+      console.log("WETH.address", wethAddress);
+
+      const wethGatewayImpl = await deployWETHGateway([addressesProvider.address, wethAddress], verify);
+      console.log("WETHGateway implementation address:", wethGatewayImpl.address);
+    }
+
     if (contract == "UiPoolDataProvider") {
-      const nftOracleImpl = await deployUiPoolDataProvider(
+      const contractImpl = await deployUiPoolDataProvider(
         await addressesProvider.getReserveOracle(),
         await addressesProvider.getNFTOracle(),
         verify
       );
-      console.log("UiPoolDataProvider implementation address:", nftOracleImpl.address);
+      console.log("UiPoolDataProvider implementation address:", contractImpl.address);
     }
 
     if (contract == "BendProtocolDataProvider") {
-      const nftOracleImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
-      console.log("WalletBalancerProvider implementation address:", nftOracleImpl.address);
+      const contractImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
+      console.log("WalletBalancerProvider implementation address:", contractImpl.address);
     }
 
     if (contract == "WalletBalancerProvider") {
-      const nftOracleImpl = await deployWalletBalancerProvider(verify);
-      console.log("WalletBalancerProvider implementation address:", nftOracleImpl.address);
+      const contractImpl = await deployWalletBalancerProvider(verify);
+      console.log("WalletBalancerProvider implementation address:", contractImpl.address);
     }
   });

@@ -56,7 +56,10 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
   }
 
   function _depositPunk(uint256 punkIndex) internal {
-    if (wrappedPunks.ownerOf(punkIndex) == _msgSender()) {
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    if (loanId != 0) {
       return;
     }
 

@@ -196,8 +196,10 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const { users, wethGateway, pool, loan, bWETH, bayc, dataProvider } = testEnv;
     const depositor = users[0];
     const user = users[1];
-    const borrowSize = parseEther("1");
-    const repaySize = borrowSize.add(borrowSize.mul(5).div(100));
+    const borrowSize1 = parseEther("1");
+    const borrowSize2 = parseEther("2");
+    const borrowSizeAll = borrowSize1.add(borrowSize2);
+    const repaySize = borrowSizeAll.add(borrowSizeAll.mul(5).div(100));
 
     // Deposit with native ETH
     await waitForTx(
@@ -222,13 +224,20 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     const ethBalanceBefore = await user.signer.getBalance();
 
-    // Borrow with NFT
-    await waitForTx(await wethGateway.connect(user.signer).borrowETH(borrowSize, nftAsset, tokenId, user.address, "0"));
+    // Borrow first ETH with NFT
+    await waitForTx(
+      await wethGateway.connect(user.signer).borrowETH(borrowSize1, nftAsset, tokenId, user.address, "0")
+    );
+
+    // Borrow more ETH with NFT
+    await waitForTx(
+      await wethGateway.connect(user.signer).borrowETH(borrowSize2, nftAsset, tokenId, user.address, "0")
+    );
 
     expect(await user.signer.getBalance(), "current eth balance shoud increase").to.be.gt(ethBalanceBefore);
 
     const debtBalance = await getDebtBalance();
-    expect(debtBalance, "debt should gte borrowSize").to.be.gte(borrowSize);
+    expect(debtBalance, "debt should gte borrowSize").to.be.gte(borrowSizeAll);
 
     // Repay with antive ETH
     // Partial Repay ETH loan with native ETH
