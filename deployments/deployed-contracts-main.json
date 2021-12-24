@@ -1,1 +1,13 @@
-{}
+{
+  "BendProxyAdminPool": {
+    "address": "0x5e0785D84e60f4c94f970ac8a7A8561D761c0171",
+    "deployer": "0x8Bd671Ff94fCF7cAFF7e396A3aC38db2720DB3a7"
+  },
+  "NFTOracleImpl": {
+    "address": "0x607D113a67F456292939c636BEccCFb3656Ca80F"
+  },
+  "NFTOracle": {
+    "address": "0xF0DFc149FEAb7bC2380f8D53b6353C6743F159a0",
+    "deployer": "0x8Bd671Ff94fCF7cAFF7e396A3aC38db2720DB3a7"
+  }
+}
