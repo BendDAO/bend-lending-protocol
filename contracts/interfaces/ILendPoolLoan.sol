@@ -135,6 +135,7 @@ interface ILendPoolLoan {
     address initiator,
     uint256 loanId,
     address bNftAddress,
+    uint256 amount,
     uint256 borrowIndex
   ) external;
 

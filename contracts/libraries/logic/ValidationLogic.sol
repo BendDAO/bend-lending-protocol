@@ -62,9 +62,9 @@ library ValidationLogic {
   struct ValidateBorrowLocalVars {
     uint256 currentLtv;
     uint256 currentLiquidationThreshold;
-    uint256 amountOfCollateralNeededETH;
-    uint256 userCollateralBalanceETH;
-    uint256 userBorrowBalanceETH;
+    uint256 amountOfCollateralNeeded;
+    uint256 userCollateralBalance;
+    uint256 userBorrowBalance;
     uint256 availableLiquidity;
     uint256 healthFactor;
     bool isActive;
@@ -88,7 +88,6 @@ library ValidationLogic {
     address user,
     address reserveAsset,
     uint256 amount,
-    uint256 amountInETH,
     DataTypes.ReserveData storage reserveData,
     address nftAsset,
     DataTypes.NftData storage nftData,
@@ -101,13 +100,14 @@ library ValidationLogic {
 
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
-    require(amount != 0, Errors.VL_INVALID_AMOUNT);
+    require(amount > 0, Errors.VL_INVALID_AMOUNT);
 
     if (loanId != 0) {
-      vars.loanBorrower = ILendPoolLoan(loanAddress).borrowerOf(loanId);
-      require(user == vars.loanBorrower, Errors.VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER);
-      (, , vars.loanReserveAsset, ) = ILendPoolLoan(loanAddress).getLoanCollateralAndReserve(loanId);
-      require(reserveAsset == vars.loanReserveAsset, Errors.VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER);
+      DataTypes.LoanData memory loanData = ILendPoolLoan(loanAddress).getLoan(loanId);
+
+      require(loanData.state == DataTypes.LoanState.Active, Errors.LPL_INVALID_LOAN_STATE);
+      require(reserveAsset == loanData.reserveAsset, Errors.VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER);
+      require(user == loanData.borrower, Errors.VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER);
     }
 
     (vars.isActive, vars.isFrozen, vars.borrowingEnabled, vars.stableRateBorrowingEnabled) = reserveData
@@ -123,7 +123,7 @@ library ValidationLogic {
 
     (vars.currentLtv, vars.currentLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
 
-    (vars.userCollateralBalanceETH, vars.userBorrowBalanceETH, vars.healthFactor) = GenericLogic.calculateLoanData(
+    (vars.userCollateralBalance, vars.userBorrowBalance, vars.healthFactor) = GenericLogic.calculateLoanData(
       reserveAsset,
       reserveData,
       nftAsset,
@@ -134,7 +134,7 @@ library ValidationLogic {
       nftOracle
     );
 
-    require(vars.userCollateralBalanceETH > 0, Errors.VL_COLLATERAL_BALANCE_IS_0);
+    require(vars.userCollateralBalance > 0, Errors.VL_COLLATERAL_BALANCE_IS_0);
 
     require(
       vars.healthFactor > GenericLogic.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
@@ -143,12 +143,9 @@ library ValidationLogic {
 
     //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
     //LTV is calculated in percentage
-    vars.amountOfCollateralNeededETH = (vars.userBorrowBalanceETH + (amountInETH)).percentDiv(vars.currentLtv);
+    vars.amountOfCollateralNeeded = (vars.userBorrowBalance + amount).percentDiv(vars.currentLtv);
 
-    require(
-      vars.amountOfCollateralNeededETH <= vars.userCollateralBalanceETH,
-      Errors.VL_COLLATERAL_CANNOT_COVER_NEW_BORROW
-    );
+    require(vars.amountOfCollateralNeeded <= vars.userCollateralBalance, Errors.VL_COLLATERAL_CANNOT_COVER_NEW_BORROW);
   }
 
   /**

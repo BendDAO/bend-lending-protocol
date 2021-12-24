@@ -759,6 +759,11 @@
       },
       {
         "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
         "name": "borrowIndex",
         "type": "uint256"
       }

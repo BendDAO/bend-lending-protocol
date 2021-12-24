@@ -44,6 +44,7 @@ library Errors {
   string public constant VL_INVALID_RESERVE_ADDRESS = "316";
   string public constant VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER = "317";
   string public constant VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER = "318";
+  string public constant VL_HEALTH_FACTOR_HIGHER_THAN_LIQUIDATION_THRESHOLD = "319";
 
   //lend pool errors
   string public constant LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400"; // 'The caller of the function is not the lending pool configurator'
