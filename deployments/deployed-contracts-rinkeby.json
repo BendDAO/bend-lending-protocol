@@ -125,11 +125,11 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "WETHGateway": {
-    "address": "0x7a325F9327ED7d30CD74c6ce374909ef94B09622",
+    "address": "0xc2855be739779d1031c64765A04412f6fd1e82e7",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGateway": {
-    "address": "0x0fB3877687f7063e56bF1cF059c4317CACc472D2",
+    "address": "0x94a675Fa2eFe076E99C126be1Bc80aedf4684190",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "InterestRate": {

@@ -77,10 +77,15 @@ contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRe
     address onBehalfOf,
     uint16 referralCode
   ) external override {
-    ILendPool cachedPool = _getLendPool();
     require(address(onBehalfOf) != address(0), "WETHGateway: `onBehalfOf` should not be zero");
 
-    IERC721(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
+    ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAsset, nftTokenId);
+    if (loanId == 0) {
+      IERC721(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
+    }
     cachedPool.borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
     WETH.withdraw(amount);
     _safeTransferETH(onBehalfOf, amount);

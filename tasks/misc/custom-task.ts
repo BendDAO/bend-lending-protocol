@@ -181,7 +181,9 @@ task("dev:borrow-usdc-using-bayc", "Doing custom task")
 
 task("dev:borrow-eth-using-punk", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ pool }, DRE) => {
+  .addParam("id", "Punk index of CryptoPunks")
+  .addFlag("borrowMore", "Borrow more ETH using existed NFT")
+  .setAction(async ({ pool, id, borrowMore }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -191,11 +193,36 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
     const signer = await getFirstSigner();
 
     const punk = await getCryptoPunksMarket();
+    const wpunk = await getWrappedPunk();
     const punkGateway = await getPunkGateway();
 
-    await waitForTx(await punk.getPunk("5001"));
-    await waitForTx(await punk.offerPunkForSaleToAddress("5001", "0", punkGateway.address));
-    await waitForTx(await punkGateway.borrowETH("50000000000000000", "5001", await signer.getAddress(), "0")); // 0.05 ETH
+    const isApproveOk = await wpunk.isApprovedForAll(await signer.getAddress(), punkGateway.address);
+    if (!isApproveOk) {
+      console.log("setApprovalForAll");
+      await waitForTx(await wpunk.setApprovalForAll(punkGateway.address, true));
+    }
+
+    if (!borrowMore) {
+      console.log("punkIndexToAddress:", await punk.punkIndexToAddress(id));
+
+      console.log("mint punk");
+      await waitForTx(await punk.getPunk(id));
+      await waitForTx(await punk.offerPunkForSaleToAddress(id, "0", punkGateway.address));
+
+      console.log("borrow first 0.05 ETH");
+      const txBorrow = await waitForTx(
+        await punkGateway.borrowETH("50000000000000000", id, await signer.getAddress(), "0")
+      ); // 0.05 ETH
+      console.log("txBorrow:", txBorrow.transactionHash);
+    } else {
+      console.log("ownerOf:", await wpunk.ownerOf(id));
+
+      console.log("borrow more 0.05 ETH");
+      const txBorrow = await waitForTx(
+        await punkGateway.borrowETH("50000000000000000", id, await signer.getAddress(), "0")
+      ); // 0.05 ETH
+      console.log("txBorrow:", txBorrow.transactionHash);
+    }
   });
 
 task("dev:borrow-usdc-using-punk", "Doing custom task")

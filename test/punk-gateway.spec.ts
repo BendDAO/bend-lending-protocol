@@ -82,12 +82,14 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await approveERC20(testEnv, depositor, "USDC");
     await deposit(testEnv, depositor, "", "USDC", depositSize.toString(), depositor.address, "success", "");
 
-    const borrowSize = await convertToCurrencyDecimals(usdcAddress, "1");
-    const repaySize = borrowSize.add(borrowSize.mul(5).div(100));
+    const borrowSize1 = await convertToCurrencyDecimals(usdcAddress, "1");
+    const borrowSize2 = await convertToCurrencyDecimals(usdcAddress, "2");
+    const borrowSizeAll = borrowSize1.add(borrowSize2);
+    const repaySize = borrowSizeAll.add(borrowSizeAll.mul(5).div(100));
     const punkIndex = testEnv.punkIndexTracker++;
 
     // Mint for interest
-    await mintERC20(testEnv, user, "USDC", repaySize.sub(borrowSize).toString());
+    await mintERC20(testEnv, user, "USDC", repaySize.sub(borrowSizeAll).toString());
     await approveERC20PunkGateway(testEnv, user, "USDC");
 
     const getDebtBalance = async () => {
@@ -107,23 +109,28 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     };
 
     await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
-
-    const usdcBalanceBefore = await getERC20TokenBalance(usdcAddress, user.address);
-
-    // borrow usdc
     await waitForTx(
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
+
+    const usdcBalanceBefore = await getERC20TokenBalance(usdcAddress, user.address);
+
+    // borrow first usdc
     await waitForTx(
-      await punkGateway.connect(user.signer).borrow(usdcAddress, borrowSize, punkIndex, user.address, "0")
+      await punkGateway.connect(user.signer).borrow(usdcAddress, borrowSize1, punkIndex, user.address, "0")
+    );
+
+    // borrow more usdc
+    await waitForTx(
+      await punkGateway.connect(user.signer).borrow(usdcAddress, borrowSize2, punkIndex, user.address, "0")
     );
 
     const usdcBalanceAfterBorrow = await getERC20TokenBalance(usdcAddress, user.address);
     const debtAfterBorrow = await getDebtBalance();
     const wrapperPunkOwner = await getWrappedPunkOwner();
 
-    expect(usdcBalanceAfterBorrow).to.be.gte(usdcBalanceBefore.add(borrowSize));
-    expect(debtAfterBorrow).to.be.gte(borrowSize);
+    expect(usdcBalanceAfterBorrow).to.be.gte(usdcBalanceBefore.add(borrowSizeAll));
+    expect(debtAfterBorrow).to.be.gte(borrowSizeAll);
 
     // Repay partial
     await waitForTx(await punkGateway.connect(user.signer).repay(punkIndex, repaySize.div(2)));
@@ -334,8 +341,10 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
       await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize })
     );
 
-    const borrowSize = parseEther("1");
-    const repaySize = borrowSize.add(borrowSize.mul(5).div(100));
+    const borrowSize1 = parseEther("1");
+    const borrowSize2 = parseEther("2");
+    const borrowSizeAll = borrowSize1.add(borrowSize2);
+    const repaySize = borrowSizeAll.add(borrowSizeAll.mul(5).div(100));
     const punkIndex = testEnv.punkIndexTracker++;
 
     const getDebtBalance = async () => {
@@ -355,13 +364,19 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     };
 
     await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
-
-    const ethBalanceBefore = await user.signer.getBalance();
-    // borrow eth
     await waitForTx(
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
-    await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize, punkIndex, user.address, "0"));
+
+    const ethBalanceBefore = await user.signer.getBalance();
+
+    // borrow first eth
+    await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize1, punkIndex, user.address, "0"));
+
+    // borrow more eth
+    await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize2, punkIndex, user.address, "0"));
+
+    // Check debt
     const loanDataAfterBorrow = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex);
     expect(loanDataAfterBorrow.state).to.be.eq(ProtocolLoanState.Active);
 
@@ -369,7 +384,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const debtAfterBorrow = await getDebtBalance();
 
     expect(await user.signer.getBalance(), "current eth balance shoud increase").to.be.gt(ethBalanceBefore);
-    expect(debtAfterBorrow, "debt should gte borrowSize").to.be.gte(borrowSize);
+    expect(debtAfterBorrow, "debt should gte borrowSize").to.be.gte(borrowSizeAll);
 
     // Repay partial
     await waitForTx(
