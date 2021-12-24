@@ -2,7 +2,7 @@ import { task } from "hardhat/config";
 import { eNetwork, eContractid } from "../../helpers/types";
 import {
   getCryptoPunksMarket,
-  getFirstSigner,
+  getDeploySigner,
   getMintableERC20,
   getMintableERC721,
   getWrappedPunk,
@@ -27,7 +27,7 @@ task("dev:mint-mock-nfts", "Mint mock nfts for dev enviroment")
       throw new Error("Mint mock not used at mainnet configuration.");
     }
 
-    const deployerSigner = await getFirstSigner();
+    const deployerSigner = await getDeploySigner();
     const deployerAddress = await deployerSigner.getAddress();
 
     // PUNK
@@ -73,7 +73,7 @@ task("dev:mint-mock-reserves", "Mint mock reserves for dev enviroment")
       throw new Error("Mint mock not used at mainnet configuration.");
     }
 
-    const deployerSigner = await getFirstSigner();
+    const deployerSigner = await getDeploySigner();
     const deployerAddress = await deployerSigner.getAddress();
 
     // DAI

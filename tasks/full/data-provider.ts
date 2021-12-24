@@ -7,7 +7,7 @@ import {
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { getFirstSigner, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
+import { getDeploySigner, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 import { eNetwork } from "../../helpers/types";
 
 task("full:deploy-data-provider", "Deploy data provider for full enviroment")

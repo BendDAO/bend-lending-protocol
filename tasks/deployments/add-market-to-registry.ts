@@ -4,7 +4,7 @@ import { waitForTx } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
 import { eNetwork } from "../../helpers/types";
 import {
-  getFirstSigner,
+  getDeploySigner,
   getLendPoolAddressesProvider,
   getLendPoolAddressesProviderRegistry,
 } from "../../helpers/contracts-getters";
@@ -27,7 +27,7 @@ task("add-market-to-registry", "Adds address provider to registry")
 
     let providerRegistryAddress = getParamPerNetwork(poolConfig.ProviderRegistry, network);
     let providerRegistryOwner = getParamPerNetwork(poolConfig.ProviderRegistryOwner, network);
-    const currentSignerAddress = await (await (await getFirstSigner()).getAddress()).toLocaleLowerCase();
+    const currentSignerAddress = await (await (await getDeploySigner()).getAddress()).toLocaleLowerCase();
     let deployed = false;
 
     if (
@@ -41,7 +41,7 @@ task("add-market-to-registry", "Adds address provider to registry")
       await DRE.run("full:deploy-address-provider-registry", { verify, pool });
 
       providerRegistryAddress = (await getLendPoolAddressesProviderRegistry()).address;
-      providerRegistryOwner = await (await getFirstSigner()).getAddress();
+      providerRegistryOwner = await (await getDeploySigner()).getAddress();
       deployed = true;
     }
 
@@ -56,7 +56,7 @@ task("add-market-to-registry", "Adds address provider to registry")
         params: [providerRegistryOwner],
       });
       signer = DRE.ethers.provider.getSigner(providerRegistryOwner);
-      const firstAccount = await getFirstSigner();
+      const firstAccount = await getDeploySigner();
       await firstAccount.sendTransaction({ value: parseEther("10"), to: providerRegistryOwner });
     } else if (!deployed && providerRegistryOwner.toLocaleLowerCase() !== currentSignerAddress.toLocaleLowerCase()) {
       console.error("ProviderRegistryOwner config does not match current signer:");

@@ -6,7 +6,7 @@ import {
   getWrappedPunkTokenAddress,
   loadPoolConfig,
 } from "../../helpers/configuration";
-import { getFirstSigner, getLendPoolAddressesProvider, getWETHGateway } from "../../helpers/contracts-getters";
+import { getDeploySigner, getLendPoolAddressesProvider, getWETHGateway } from "../../helpers/contracts-getters";
 import { eNetwork } from "../../helpers/types";
 import {
   deployLendPool,

@@ -4,7 +4,7 @@ import { ProtocolErrors, eContractid } from "../helpers/types";
 import { deployContract, getContract } from "../helpers/contracts-helpers";
 import { MAX_UINT_AMOUNT, ZERO_ADDRESS } from "../helpers/constants";
 import {
-  getFirstSigner,
+  getDeploySigner,
   getBToken,
   getLendPoolLoanProxy,
   getDebtToken,
@@ -25,10 +25,10 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
     const debtDaiAddress = allReserveTokens.find((tokenData) => tokenData.tokenSymbol === "DAI")?.debtTokenAddress;
     debtDai = await getDebtToken(debtDaiAddress);
 
-    newBTokenInstance = await new BTokenFactory(await getFirstSigner()).deploy();
-    newDebtTokenInstance = await new DebtTokenFactory(await getFirstSigner()).deploy();
+    newBTokenInstance = await new BTokenFactory(await getDeploySigner()).deploy();
+    newDebtTokenInstance = await new DebtTokenFactory(await getDeploySigner()).deploy();
 
-    newLoanInstance = await new LendPoolLoanFactory(await getFirstSigner()).deploy();
+    newLoanInstance = await new LendPoolLoanFactory(await getDeploySigner()).deploy();
   });
 
   it("Tries to update the DAI BToken implementation with a different address than the configuator", async () => {

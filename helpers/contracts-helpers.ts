@@ -20,7 +20,7 @@ import { MintableERC20 } from "../types/MintableERC20";
 import { MintableERC721 } from "../types/MintableERC721";
 import { Artifact } from "hardhat/types";
 import { verifyEtherscanContract } from "./etherscan-verification";
-import { getFirstSigner, getIErc20Detailed } from "./contracts-getters";
+import { getDeploySigner, getIErc20Detailed } from "./contracts-getters";
 import { ConfigNames, loadPoolConfig } from "./configuration";
 import { string } from "hardhat/internal/core/params/argumentTypes";
 
@@ -120,7 +120,7 @@ export const deployContract = async <ContractType extends Contract>(
 ): Promise<ContractType> => {
   console.log("contracts-helpers:deployContract,", "contractName", contractName);
   const contract = (await (await DRE.ethers.getContractFactory(contractName))
-    .connect(await getFirstSigner())
+    .connect(await getDeploySigner())
     .deploy(...args)) as ContractType;
   await waitForTx(contract.deployTransaction);
   await registerContractInJsonDb(<eContractid>contractName, contract);

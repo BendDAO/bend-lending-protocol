@@ -4,7 +4,7 @@ import {
   deployLendPoolAddressesProvider,
   deployLendPoolAddressesProviderRegistry,
 } from "../../helpers/contracts-deployments";
-import { getFirstSigner } from "../../helpers/contracts-getters";
+import { getDeploySigner } from "../../helpers/contracts-getters";
 import { waitForTx } from "../../helpers/misc-utils";
 
 task("dev:deploy-address-provider", "Deploy address provider for dev enviroment")
@@ -13,7 +13,7 @@ task("dev:deploy-address-provider", "Deploy address provider for dev enviroment"
   .setAction(async ({ verify, pool }, localBRE) => {
     await localBRE.run("set-DRE");
     const poolConfig = loadPoolConfig(pool);
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
     const admin = await signer.getAddress();
 
     const addressesProvider = await deployLendPoolAddressesProvider(poolConfig.MarketId, verify);

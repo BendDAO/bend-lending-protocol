@@ -6,7 +6,7 @@ import {
   getMintableERC721,
   getBToken,
   getLendPoolLoanProxy,
-  getFirstSigner,
+  getDeploySigner,
   getDebtToken,
 } from "../../../helpers/contracts-getters";
 import { tEthereumAddress } from "../../../helpers/types";
@@ -149,7 +149,7 @@ const getBTokenUserData = async (reserve: string, user: string, dataProvider: Be
 };
 
 export const getERC20TokenBalance = async (reserve: string, user: tEthereumAddress) => {
-  const token = await ERC20Factory.connect(reserve, await getFirstSigner()).balanceOf(user);
+  const token = await ERC20Factory.connect(reserve, await getDeploySigner()).balanceOf(user);
 
   return token;
 };
