@@ -9,7 +9,7 @@ import {
   getBNFTRegistryProxy,
   getBToken,
   getCryptoPunksMarket,
-  getFirstSigner,
+  getDeploySigner,
   getLendPool,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
@@ -93,7 +93,7 @@ task("dev:deposit-eth", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     const wethGateway = await getWETHGateway();
 
@@ -113,7 +113,7 @@ task("dev:withdraw-eth", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     const lendPool = await getLendPool(await addressesProvider.getLendPool());
 
@@ -138,7 +138,7 @@ task("dev:borrow-eth-using-bayc", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     const wethGateway = await getWETHGateway();
     const baycAddress = await getContractAddressInDb("BAYC");
@@ -162,7 +162,7 @@ task("dev:borrow-usdc-using-bayc", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     const lendPool = await getLendPool(await addressesProvider.getLendPool());
 
@@ -190,7 +190,7 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     const punk = await getCryptoPunksMarket();
     const wpunk = await getWrappedPunk();
@@ -234,7 +234,7 @@ task("dev:borrow-usdc-using-punk", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     const daiAddress = await getContractAddressInDb("DAI");
 

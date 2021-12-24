@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { getFirstSigner, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
+import { getDeploySigner, getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 import { waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
@@ -18,7 +18,7 @@ task("dev:transfer-owner", "Transfer ownership")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const contractInst = OwnableFactory.connect(contract, await getFirstSigner());
+    const contractInst = OwnableFactory.connect(contract, await getDeploySigner());
     const currentOwnerAddress = await contractInst.owner();
     console.log("Current Owner Address:", currentOwnerAddress, "Target Owner Address:", target);
 

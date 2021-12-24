@@ -3,7 +3,7 @@ import { formatEther } from "ethers/lib/utils";
 import { deployLendPoolAddressesProvider } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { ConfigNames, loadPoolConfig, getGenesisPoolAdmin, getEmergencyAdmin } from "../../helpers/configuration";
-import { getFirstSigner } from "../../helpers/contracts-getters";
+import { getDeploySigner } from "../../helpers/contracts-getters";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { eNetwork } from "../../helpers/types";
 
@@ -15,7 +15,7 @@ task("full:deploy-address-provider", "Deploy address provider for full enviromen
     await DRE.run("set-DRE");
     const network = <eNetwork>DRE.network.name;
     const poolConfig = loadPoolConfig(pool);
-    const signer = await getFirstSigner();
+    const signer = await getDeploySigner();
 
     // this contract is not support upgrade, just deploy new contract
     // Deploy address provider and set genesis manager

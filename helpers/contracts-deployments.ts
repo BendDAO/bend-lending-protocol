@@ -16,7 +16,7 @@ import {
 } from "./types";
 import { MockContract } from "ethereum-waffle";
 import { ConfigNames, getReservesConfigByPool, getNftsConfigByPool, loadPoolConfig } from "./configuration";
-import { getFirstSigner } from "./contracts-getters";
+import { getDeploySigner } from "./contracts-getters";
 import { ZERO_ADDRESS } from "./constants";
 import {
   LendPoolAddressesProviderRegistryFactory,
@@ -78,7 +78,7 @@ const readArtifact = async (id: string) => {
 
 export const deployLendPoolAddressesProviderRegistry = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new LendPoolAddressesProviderRegistryFactory(await getFirstSigner()).deploy(),
+    await new LendPoolAddressesProviderRegistryFactory(await getDeploySigner()).deploy(),
     eContractid.LendPoolAddressesProviderRegistry,
     [],
     verify
@@ -86,33 +86,33 @@ export const deployLendPoolAddressesProviderRegistry = async (verify?: boolean) 
 
 export const deployLendPoolAddressesProvider = async (marketId: string, verify?: boolean) =>
   withSaveAndVerify(
-    await new LendPoolAddressesProviderFactory(await getFirstSigner()).deploy(marketId),
+    await new LendPoolAddressesProviderFactory(await getDeploySigner()).deploy(marketId),
     eContractid.LendPoolAddressesProvider,
     [marketId],
     verify
   );
 
 export const deployLendPoolConfigurator = async (verify?: boolean) => {
-  const lendPoolConfiguratorImpl = await new LendPoolConfiguratorFactory(await getFirstSigner()).deploy();
+  const lendPoolConfiguratorImpl = await new LendPoolConfiguratorFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolConfiguratorImpl, lendPoolConfiguratorImpl.address);
   return withSaveAndVerify(lendPoolConfiguratorImpl, eContractid.LendPoolConfigurator, [], verify);
 };
 
 export const deployLendPoolLoan = async (verify?: boolean) => {
-  const lendPoolLoanImpl = await new LendPoolLoanFactory(await getFirstSigner()).deploy();
+  const lendPoolLoanImpl = await new LendPoolLoanFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolLoanImpl, lendPoolLoanImpl.address);
   return withSaveAndVerify(lendPoolLoanImpl, eContractid.LendPoolLoan, [], verify);
 };
 
 export const deployBNFTRegistry = async (verify?: boolean) => {
-  const bnftRegistryImpl = await new BNFTRegistryFactory(await getFirstSigner()).deploy();
+  const bnftRegistryImpl = await new BNFTRegistryFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.BNFTRegistryImpl, bnftRegistryImpl.address);
   return withSaveAndVerify(bnftRegistryImpl, eContractid.BNFTRegistry, [], verify);
 };
 
 export const deployReserveLogicLibrary = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new ReserveLogicFactory(await getFirstSigner()).deploy(),
+    await new ReserveLogicFactory(await getDeploySigner()).deploy(),
     eContractid.ReserveLogic,
     [],
     verify
@@ -126,7 +126,7 @@ export const deployNftLogicLibrary = async (verify?: boolean) => {
 
   const nftLogicFactory = await DRE.ethers.getContractFactory(nftLogicArtifact.abi, linkedNftLogicByteCode);
 
-  const nftLogic = await (await nftLogicFactory.connect(await getFirstSigner()).deploy()).deployed();
+  const nftLogic = await (await nftLogicFactory.connect(await getDeploySigner()).deploy()).deployed();
 
   return withSaveAndVerify(nftLogic, eContractid.NftLogic, [], verify);
 };
@@ -140,7 +140,7 @@ export const deployGenericLogic = async (reserveLogic: Contract, verify?: boolea
 
   const genericLogicFactory = await DRE.ethers.getContractFactory(genericLogicArtifact.abi, linkedGenericLogicByteCode);
 
-  const genericLogic = await (await genericLogicFactory.connect(await getFirstSigner()).deploy()).deployed();
+  const genericLogic = await (await genericLogicFactory.connect(await getDeploySigner()).deploy()).deployed();
   return withSaveAndVerify(genericLogic, eContractid.GenericLogic, [], verify);
 };
 
@@ -157,7 +157,7 @@ export const deployValidationLogic = async (reserveLogic: Contract, genericLogic
     linkedValidationLogicByteCode
   );
 
-  const validationLogic = await (await validationLogicFactory.connect(await getFirstSigner()).deploy()).deployed();
+  const validationLogic = await (await validationLogicFactory.connect(await getDeploySigner()).deploy()).deployed();
 
   return withSaveAndVerify(validationLogic, eContractid.ValidationLogic, [], verify);
 };
@@ -196,27 +196,27 @@ export const getBendLibraries = async (verify?: boolean): Promise<LendPoolLibrar
 
 export const deployLendPool = async (verify?: boolean) => {
   const libraries = await getBendLibraries(verify);
-  const lendPoolImpl = await new LendPoolFactory(libraries, await getFirstSigner()).deploy();
+  const lendPoolImpl = await new LendPoolFactory(libraries, await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImpl.address);
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
 };
 
 export const deployLendPoolLiquidator = async (verify?: boolean) => {
   const libraries = await getBendLibraries(verify);
-  const collateralManagerImpl = await new LendPoolLiquidatorFactory(libraries, await getFirstSigner()).deploy();
+  const collateralManagerImpl = await new LendPoolLiquidatorFactory(libraries, await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolLiquidatorImpl, collateralManagerImpl.address);
   return withSaveAndVerify(collateralManagerImpl, eContractid.LendPoolLiquidator, [], verify);
 };
 
 export const deployReserveOracle = async (args: [], verify?: boolean) => {
-  const oracleImpl = await new ReserveOracleFactory(await getFirstSigner()).deploy();
+  const oracleImpl = await new ReserveOracleFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.ReserveOracleImpl, oracleImpl.address);
   return withSaveAndVerify(oracleImpl, eContractid.ReserveOracle, [], verify);
 };
 
 export const deployMockReserveOracle = async (args: [], verify?: boolean) =>
   withSaveAndVerify(
-    await new MockReserveOracleFactory(await getFirstSigner()).deploy(...args),
+    await new MockReserveOracleFactory(await getDeploySigner()).deploy(...args),
     eContractid.MockReserveOracle,
     args,
     verify
@@ -224,21 +224,21 @@ export const deployMockReserveOracle = async (args: [], verify?: boolean) =>
 
 export const deployMockChainlinkOracle = async (decimals: string, verify?: boolean) =>
   withSaveAndVerify(
-    await new MockChainlinkOracleFactory(await getFirstSigner()).deploy(decimals),
+    await new MockChainlinkOracleFactory(await getDeploySigner()).deploy(decimals),
     eContractid.MockChainlinkOracle,
     [decimals],
     verify
   );
 
 export const deployNFTOracle = async (verify?: boolean) => {
-  const oracleImpl = await new NFTOracleFactory(await getFirstSigner()).deploy();
+  const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.NFTOracleImpl, oracleImpl.address);
   return withSaveAndVerify(oracleImpl, eContractid.NFTOracle, [], verify);
 };
 
 export const deployMockNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new MockNFTOracleFactory(await getFirstSigner()).deploy(),
+    await new MockNFTOracleFactory(await getDeploySigner()).deploy(),
     eContractid.MockNFTOracle,
     [],
     verify
@@ -246,7 +246,7 @@ export const deployMockNFTOracle = async (verify?: boolean) =>
 
 export const deployWalletBalancerProvider = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new WalletBalanceProviderFactory(await getFirstSigner()).deploy(),
+    await new WalletBalanceProviderFactory(await getDeploySigner()).deploy(),
     eContractid.WalletBalanceProvider,
     [],
     verify
@@ -254,7 +254,7 @@ export const deployWalletBalancerProvider = async (verify?: boolean) =>
 
 export const deployBendProtocolDataProvider = async (addressesProvider: tEthereumAddress, verify?: boolean) =>
   withSaveAndVerify(
-    await new BendProtocolDataProviderFactory(await getFirstSigner()).deploy(addressesProvider),
+    await new BendProtocolDataProviderFactory(await getDeploySigner()).deploy(addressesProvider),
     eContractid.BendProtocolDataProvider,
     [addressesProvider],
     verify
@@ -266,7 +266,7 @@ export const deployUiPoolDataProvider = async (
   verify?: boolean
 ) =>
   withSaveAndVerify(
-    await new UiPoolDataProviderFactory(await getFirstSigner()).deploy(reserveOracle, nftOracle),
+    await new UiPoolDataProviderFactory(await getDeploySigner()).deploy(reserveOracle, nftOracle),
     eContractid.UIPoolDataProvider,
     [reserveOracle, nftOracle],
     verify
@@ -274,7 +274,7 @@ export const deployUiPoolDataProvider = async (
 
 export const deployMintableERC20 = async (args: [string, string, string], verify?: boolean): Promise<MintableERC20> =>
   withSaveAndVerify(
-    await new MintableERC20Factory(await getFirstSigner()).deploy(...args),
+    await new MintableERC20Factory(await getDeploySigner()).deploy(...args),
     eContractid.MintableERC20,
     args,
     verify
@@ -282,7 +282,7 @@ export const deployMintableERC20 = async (args: [string, string, string], verify
 
 export const deployMintableERC721 = async (args: [string, string], verify?: boolean): Promise<MintableERC721> =>
   withSaveAndVerify(
-    await new MintableERC721Factory(await getFirstSigner()).deploy(...args),
+    await new MintableERC721Factory(await getDeploySigner()).deploy(...args),
     eContractid.MintableERC721,
     args,
     verify
@@ -290,20 +290,20 @@ export const deployMintableERC721 = async (args: [string, string], verify?: bool
 
 export const deployInterestRate = async (args: [tEthereumAddress, string, string, string, string], verify: boolean) =>
   withSaveAndVerify(
-    await new InterestRateFactory(await getFirstSigner()).deploy(...args),
+    await new InterestRateFactory(await getDeploySigner()).deploy(...args),
     eContractid.InterestRate,
     args,
     verify
   );
 
 export const deployGenericDebtToken = async (verify?: boolean) =>
-  withSaveAndVerify(await new DebtTokenFactory(await getFirstSigner()).deploy(), eContractid.DebtToken, [], verify);
+  withSaveAndVerify(await new DebtTokenFactory(await getDeploySigner()).deploy(), eContractid.DebtToken, [], verify);
 
 export const deployGenericBTokenImpl = async (verify: boolean) =>
-  withSaveAndVerify(await new BTokenFactory(await getFirstSigner()).deploy(), eContractid.BToken, [], verify);
+  withSaveAndVerify(await new BTokenFactory(await getDeploySigner()).deploy(), eContractid.BToken, [], verify);
 
 export const deployGenericBNFTImpl = async (verify: boolean) =>
-  withSaveAndVerify(await new BNFTFactory(await getFirstSigner()).deploy(), eContractid.BNFT, [], verify);
+  withSaveAndVerify(await new BNFTFactory(await getDeploySigner()).deploy(), eContractid.BNFT, [], verify);
 
 export const deployAllMockTokens = async (verify?: boolean) => {
   const tokens: { [symbol: string]: MockContract | MintableERC20 | WETH9Mocked } = {};
@@ -356,7 +356,7 @@ export const deployBTokensAndBNFTsHelper = async (
   verify?: boolean
 ) =>
   withSaveAndVerify(
-    await new BTokensAndBNFTsHelperFactory(await getFirstSigner()).deploy(...args),
+    await new BTokensAndBNFTsHelperFactory(await getDeploySigner()).deploy(...args),
     eContractid.BTokensAndBNFTsHelper,
     args,
     verify
@@ -364,18 +364,18 @@ export const deployBTokensAndBNFTsHelper = async (
 
 export const deployWETHGateway = async (args: [tEthereumAddress, tEthereumAddress], verify?: boolean) =>
   withSaveAndVerify(
-    await new WETHGatewayFactory(await getFirstSigner()).deploy(...args),
+    await new WETHGatewayFactory(await getDeploySigner()).deploy(...args),
     eContractid.WETHGateway,
     args,
     verify
   );
 
 export const deployWETHMocked = async (verify?: boolean) =>
-  withSaveAndVerify(await new WETH9MockedFactory(await getFirstSigner()).deploy(), eContractid.WETHMocked, [], verify);
+  withSaveAndVerify(await new WETH9MockedFactory(await getDeploySigner()).deploy(), eContractid.WETHMocked, [], verify);
 
 export const deploySelfdestructTransferMock = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new SelfdestructTransferFactory(await getFirstSigner()).deploy(),
+    await new SelfdestructTransferFactory(await getDeploySigner()).deploy(),
     eContractid.SelfdestructTransferMock,
     [],
     verify
@@ -477,7 +477,7 @@ export const deployRateStrategy = async (
 
 export const deployCryptoPunksMarket = async (args: [], verify?: boolean) =>
   withSaveAndVerify(
-    await new CryptoPunksMarketFactory(await getFirstSigner()).deploy(...args),
+    await new CryptoPunksMarketFactory(await getDeploySigner()).deploy(...args),
     eContractid.CryptoPunksMarket,
     args,
     verify
@@ -485,7 +485,7 @@ export const deployCryptoPunksMarket = async (args: [], verify?: boolean) =>
 
 export const deployWrappedPunk = async (args: [tEthereumAddress], verify?: boolean) =>
   withSaveAndVerify(
-    await new WrappedPunkFactory(await getFirstSigner()).deploy(...args),
+    await new WrappedPunkFactory(await getDeploySigner()).deploy(...args),
     eContractid.WrappedPunk,
     args,
     verify
@@ -496,7 +496,7 @@ export const deployPunkGateway = async (
   verify?: boolean
 ) =>
   withSaveAndVerify(
-    await new PunkGatewayFactory(await getFirstSigner()).deploy(...args),
+    await new PunkGatewayFactory(await getDeploySigner()).deploy(...args),
     eContractid.PunkGateway,
     args,
     verify
@@ -510,25 +510,25 @@ export const deployBendUpgradeableProxy = async (
   verify?: boolean
 ) =>
   withSaveAndVerify(
-    await new BendUpgradeableProxyFactory(await getFirstSigner()).deploy(logic, admin, data),
+    await new BendUpgradeableProxyFactory(await getDeploySigner()).deploy(logic, admin, data),
     id,
     [logic, admin, DRE.ethers.utils.hexlify(data)],
     verify
   );
 
 export const deployBendProxyAdmin = async (id: string, verify?: boolean) =>
-  withSaveAndVerify(await new BendProxyAdminFactory(await getFirstSigner()).deploy(), id, [], verify);
+  withSaveAndVerify(await new BendProxyAdminFactory(await getDeploySigner()).deploy(), id, [], verify);
 
 export const deployMockIncentivesController = async (verify?: boolean) =>
   withSaveAndVerify(
-    await new MockIncentivesControllerFactory(await getFirstSigner()).deploy(),
+    await new MockIncentivesControllerFactory(await getDeploySigner()).deploy(),
     eContractid.MockIncentivesController,
     [],
     verify
   );
 
 export const deployBendCollector = async (args: [], verify?: boolean) => {
-  const bendCollectorImpl = await new BendCollectorFactory(await getFirstSigner()).deploy();
+  const bendCollectorImpl = await new BendCollectorFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.BendCollectorImpl, bendCollectorImpl.address);
   return withSaveAndVerify(bendCollectorImpl, eContractid.BendCollector, [], verify);
 };

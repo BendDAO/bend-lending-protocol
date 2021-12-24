@@ -1,6 +1,6 @@
 import { TestEnv, makeSuite } from "./helpers/make-suite";
 import { ZERO_ADDRESS } from "../helpers/constants";
-import { getFirstSigner, getMockChainlinkOracle } from "../helpers/contracts-getters";
+import { getDeploySigner, getMockChainlinkOracle } from "../helpers/contracts-getters";
 import { MockChainlinkOracle, MockChainlinkOracleFactory, MockReserveOracle } from "../types";
 
 const { expect } = require("chai");
@@ -12,7 +12,7 @@ makeSuite("ReserveOracle", (testEnv: TestEnv) => {
 
   before(async () => {
     mockReserveOracle = testEnv.mockReserveOracle;
-    mockChainlinkOracle = await new MockChainlinkOracleFactory(await getFirstSigner()).deploy("18");
+    mockChainlinkOracle = await new MockChainlinkOracleFactory(await getDeploySigner()).deploy("18");
     addresses = testEnv.users;
   });
 
