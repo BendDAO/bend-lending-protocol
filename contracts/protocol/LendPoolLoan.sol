@@ -158,6 +158,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     address initiator,
     uint256 loanId,
     address bNftAddress,
+    uint256 amount,
     uint256 borrowIndex
   ) external override onlyLendPool {
     // Must use storage to change state
@@ -183,15 +184,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
     IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.borrower, loan.nftTokenId);
 
-    emit LoanRepaid(
-      initiator,
-      loanId,
-      loan.nftAsset,
-      loan.nftTokenId,
-      loan.reserveAsset,
-      loan.scaledAmount,
-      borrowIndex
-    );
+    emit LoanRepaid(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amount, borrowIndex);
   }
 
   /**
@@ -231,7 +224,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       loanId,
       loan.nftAsset,
       loan.nftTokenId,
-      loan.scaledAmount,
+      loan.bidBorrowAmount,
       borrowIndex,
       onBehalfOf,
       bidPrice,

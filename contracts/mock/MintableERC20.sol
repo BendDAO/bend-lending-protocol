@@ -9,6 +9,7 @@ import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  */
 contract MintableERC20 is ERC20 {
   uint8 private _decimals;
+  mapping(address => uint256) public mintValues;
 
   constructor(
     string memory name,
@@ -32,6 +33,8 @@ contract MintableERC20 is ERC20 {
    * @return A boolean that indicates if the operation was successful.
    */
   function mint(uint256 value) public returns (bool) {
+    require(mintValues[_msgSender()] <= (1000000 * (10**_decimals)), "exceed balance limit");
+    mintValues[_msgSender()] += value;
     _mint(_msgSender(), value);
     return true;
   }

@@ -44,13 +44,13 @@ library GenericLogic {
 
   /**
    * @dev Calculates the nft loan data.
-   * this includes the total collateral/borrow balances in ETH,
+   * this includes the total collateral/borrow balances in Reserve,
    * the Loan To Value, the Liquidation Ratio, and the Health factor.
    * @param reserveData Data of the reserve
    * @param nftData Data of the nft
    * @param reserveOracle The price oracle address of reserve
    * @param nftOracle The price oracle address of nft
-   * @return The total collateral and total debt of the loan in ETH, the ltv, liquidation threshold and the HF
+   * @return The total collateral and total debt of the loan in Reserve, the ltv, liquidation threshold and the HF
    **/
   function calculateLoanData(
     address reserveAddress,
@@ -86,7 +86,7 @@ library GenericLogic {
     }
 
     // calculate total collateral balance for the nft
-    (vars.totalCollateralInETH, vars.totalDebtInReserve) = calculateNftCollateralData(
+    (vars.totalCollateralInETH, vars.totalCollateralInReserve) = calculateNftCollateralData(
       reserveAddress,
       reserveData,
       nftAddress,
@@ -97,12 +97,12 @@ library GenericLogic {
 
     // calculate health by borrow and collateral
     vars.healthFactor = calculateHealthFactorFromBalances(
-      vars.totalCollateralInETH,
-      vars.totalDebtInETH,
+      vars.totalCollateralInReserve,
+      vars.totalDebtInReserve,
       vars.nftLiquidationThreshold
     );
 
-    return (vars.totalCollateralInETH, vars.totalDebtInETH, vars.healthFactor);
+    return (vars.totalCollateralInReserve, vars.totalDebtInReserve, vars.healthFactor);
   }
 
   function calculateNftDebtData(

@@ -71,26 +71,26 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
   });
 
   it("Borrow USDC and repay it", async () => {
-    const { users, cryptoPunksMarket, wrappedPunk, punkGateway, pool, dataProvider, loan } = testEnv;
+    const { users, cryptoPunksMarket, wrappedPunk, punkGateway, pool, dataProvider, usdc } = testEnv;
 
-    const [depositor, user, anotherUser] = users;
+    const [depositor, borrower] = users;
     const usdcAddress = await getReserveAddressFromSymbol("USDC");
-    const depositSize = await convertToCurrencyDecimals(usdcAddress, "100");
+    const depositSize = await convertToCurrencyDecimals(usdcAddress, "200000");
 
     // Deposit USDC
     await mintERC20(testEnv, depositor, "USDC", depositSize.toString());
     await approveERC20(testEnv, depositor, "USDC");
     await deposit(testEnv, depositor, "", "USDC", depositSize.toString(), depositor.address, "success", "");
 
-    const borrowSize1 = await convertToCurrencyDecimals(usdcAddress, "1");
-    const borrowSize2 = await convertToCurrencyDecimals(usdcAddress, "2");
+    const borrowSize1 = await convertToCurrencyDecimals(usdcAddress, "1000");
+    const borrowSize2 = await convertToCurrencyDecimals(usdcAddress, "2000");
     const borrowSizeAll = borrowSize1.add(borrowSize2);
     const repaySize = borrowSizeAll.add(borrowSizeAll.mul(5).div(100));
     const punkIndex = testEnv.punkIndexTracker++;
 
     // Mint for interest
-    await mintERC20(testEnv, user, "USDC", repaySize.sub(borrowSizeAll).toString());
-    await approveERC20PunkGateway(testEnv, user, "USDC");
+    await mintERC20(testEnv, borrower, "USDC", repaySize.sub(borrowSizeAll).toString());
+    await approveERC20PunkGateway(testEnv, borrower, "USDC");
 
     const getDebtBalance = async () => {
       const loan = await getLoanData(pool, dataProvider, wrappedPunk.address, `${punkIndex}`, "0");
@@ -108,24 +108,24 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
       return owner;
     };
 
-    await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
+    await waitForTx(await cryptoPunksMarket.connect(borrower.signer).getPunk(punkIndex));
     await waitForTx(
-      await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
+      await cryptoPunksMarket.connect(borrower.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
 
-    const usdcBalanceBefore = await getERC20TokenBalance(usdcAddress, user.address);
+    const usdcBalanceBefore = await getERC20TokenBalance(usdcAddress, borrower.address);
 
     // borrow first usdc
     await waitForTx(
-      await punkGateway.connect(user.signer).borrow(usdcAddress, borrowSize1, punkIndex, user.address, "0")
+      await punkGateway.connect(borrower.signer).borrow(usdcAddress, borrowSize1, punkIndex, borrower.address, "0")
     );
 
     // borrow more usdc
     await waitForTx(
-      await punkGateway.connect(user.signer).borrow(usdcAddress, borrowSize2, punkIndex, user.address, "0")
+      await punkGateway.connect(borrower.signer).borrow(usdcAddress, borrowSize2, punkIndex, borrower.address, "0")
     );
 
-    const usdcBalanceAfterBorrow = await getERC20TokenBalance(usdcAddress, user.address);
+    const usdcBalanceAfterBorrow = await getERC20TokenBalance(usdcAddress, borrower.address);
     const debtAfterBorrow = await getDebtBalance();
     const wrapperPunkOwner = await getWrappedPunkOwner();
 
@@ -133,8 +133,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     expect(debtAfterBorrow).to.be.gte(borrowSizeAll);
 
     // Repay partial
-    await waitForTx(await punkGateway.connect(user.signer).repay(punkIndex, repaySize.div(2)));
-    const usdcBalanceAfterPartialRepay = await getERC20TokenBalance(usdcAddress, user.address);
+    await waitForTx(await punkGateway.connect(borrower.signer).repay(punkIndex, repaySize.div(2)));
+    const usdcBalanceAfterPartialRepay = await getERC20TokenBalance(usdcAddress, borrower.address);
     const debtAfterPartialRepay = await getDebtBalance();
 
     expect(usdcBalanceAfterPartialRepay).to.be.lt(usdcBalanceAfterBorrow);
@@ -146,29 +146,24 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     // Repay full
     await waitForTx(
-      await ERC721Factory.connect(wrappedPunk.address, user.signer).setApprovalForAll(punkGateway.address, true)
+      await ERC721Factory.connect(wrappedPunk.address, borrower.signer).setApprovalForAll(punkGateway.address, true)
     );
-    await waitForTx(await punkGateway.connect(user.signer).repay(punkIndex, repaySize));
-    const usdcBalanceAfterFullRepay = await getERC20TokenBalance(usdcAddress, user.address);
+    await waitForTx(await punkGateway.connect(borrower.signer).repay(punkIndex, repaySize));
+    const usdcBalanceAfterFullRepay = await getERC20TokenBalance(usdcAddress, borrower.address);
     const debtAfterFullRepay = await getDebtBalance();
 
     expect(usdcBalanceAfterFullRepay).to.be.lt(usdcBalanceAfterPartialRepay);
     expect(debtAfterFullRepay).to.be.eq(zero);
-    expect(await getPunkOwner()).to.be.eq(user.address);
+    expect(await getPunkOwner()).to.be.eq(borrower.address);
   });
 
   it("Borrow USDC and liquidate it", async () => {
     const { users, cryptoPunksMarket, wrappedPunk, punkGateway, usdc, pool, dataProvider, reserveOracle, nftOracle } =
       testEnv;
 
-    const [depositor, user] = users;
+    const [depositor, borrower] = users;
     const liquidator = users[4];
-    const depositSize = await convertToCurrencyDecimals(usdc.address, "1000000");
-
-    // Deposit USDC
-    await mintERC20(testEnv, depositor, "USDC", depositSize.toString());
-    await approveERC20(testEnv, depositor, "USDC");
-    await deposit(testEnv, depositor, "", "USDC", depositSize.toString(), depositor.address, "success", "");
+    const depositSize = await convertToCurrencyDecimals(usdc.address, "200000");
 
     const punkIndex = testEnv.punkIndexTracker++;
 
@@ -179,9 +174,9 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     };
 
     // mint native punk
-    await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
+    await waitForTx(await cryptoPunksMarket.connect(borrower.signer).getPunk(punkIndex));
     await waitForTx(
-      await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
+      await cryptoPunksMarket.connect(borrower.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
 
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
@@ -199,7 +194,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     );
 
     await waitForTx(
-      await punkGateway.connect(user.signer).borrow(usdc.address, amountBorrow, punkIndex, user.address, "0")
+      await punkGateway.connect(borrower.signer).borrow(usdc.address, amountBorrow, punkIndex, borrower.address, "0")
     );
 
     await waitForTx(await wrappedPunk.connect(liquidator.signer).setApprovalForAll(punkGateway.address, true));
@@ -246,14 +241,9 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const { users, cryptoPunksMarket, wrappedPunk, punkGateway, usdc, pool, dataProvider, reserveOracle, nftOracle } =
       testEnv;
 
-    const [depositor, user] = users;
+    const [depositor, borrower] = users;
     const liquidator = users[4];
-    const depositSize = await convertToCurrencyDecimals(usdc.address, "1000000");
-
-    // Deposit USDC
-    await mintERC20(testEnv, depositor, "USDC", depositSize.toString());
-    await approveERC20(testEnv, depositor, "USDC");
-    await deposit(testEnv, depositor, "", "USDC", depositSize.toString(), depositor.address, "success", "");
+    const depositSize = await convertToCurrencyDecimals(usdc.address, "200000");
 
     const punkIndex = testEnv.punkIndexTracker++;
 
@@ -263,9 +253,9 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     };
 
     // mint native punk
-    await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
+    await waitForTx(await cryptoPunksMarket.connect(borrower.signer).getPunk(punkIndex));
     await waitForTx(
-      await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
+      await cryptoPunksMarket.connect(borrower.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
 
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
@@ -283,7 +273,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     );
 
     await waitForTx(
-      await punkGateway.connect(user.signer).borrow(usdc.address, amountBorrow, punkIndex, user.address, "0")
+      await punkGateway.connect(borrower.signer).borrow(usdc.address, amountBorrow, punkIndex, borrower.address, "0")
     );
 
     await waitForTx(await wrappedPunk.connect(liquidator.signer).setApprovalForAll(punkGateway.address, true));
@@ -306,7 +296,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     expect(nftDebtDataAfterLiquidate.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Auction loan
-    await mintERC20(testEnv, liquidator, "USDC", depositSize.toString());
+    //await mintERC20(testEnv, liquidator, "USDC", depositSize.toString());
     await approveERC20PunkGateway(testEnv, liquidator, "USDC");
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(wrappedPunk.address, punkIndex);
@@ -316,18 +306,17 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     );
 
     // Redeem loan
-    await mintERC20(testEnv, user, "USDC", depositSize.toString());
-    await approveERC20PunkGateway(testEnv, user, "USDC");
+    await approveERC20PunkGateway(testEnv, borrower, "USDC");
 
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(3600).toNumber());
 
-    await waitForTx(await punkGateway.connect(user.signer).redeem(punkIndex));
+    await waitForTx(await punkGateway.connect(borrower.signer).redeem(punkIndex));
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after redeem");
 
     const punkOwner = await getPunkOwner();
-    expect(punkOwner).to.be.equal(user.address, "Invalid punk owner after redeem");
+    expect(punkOwner).to.be.equal(borrower.address, "Invalid punk owner after redeem");
   });
 
   it("Borrow ETH and repay it", async () => {

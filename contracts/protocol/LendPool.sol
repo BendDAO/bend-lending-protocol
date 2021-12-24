@@ -172,10 +172,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 ltv;
     uint256 liquidationThreshold;
     uint256 liquidationBonus;
-    uint256 amountInETH;
-    uint256 reservePrice;
-    uint256 nftPrice;
-    uint256 thresholdPrice;
     uint256 loanId;
     address reserveOracle;
     address nftOracle;
@@ -219,16 +215,12 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     vars.nftOracle = _addressesProvider.getNFTOracle();
     vars.loanAddress = _addressesProvider.getLendPoolLoan();
 
-    vars.reservePrice = IReserveOracleGetter(vars.reserveOracle).getAssetPrice(asset);
-    vars.amountInETH = (vars.reservePrice * amount) / 10**reserveData.configuration.getDecimals();
-
     vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(nftAsset, nftTokenId);
 
     ValidationLogic.validateBorrow(
       onBehalfOf,
       asset,
       amount,
-      vars.amountInETH,
       reserveData,
       nftAsset,
       nftData,
@@ -343,6 +335,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
         vars.initiator,
         vars.loanId,
         nftData.bNftAddress,
+        vars.repayAmount,
         reserveData.variableBorrowIndex
       );
     }
@@ -612,7 +605,9 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
     availableBorrows = GenericLogic.calculateAvailableBorrows(totalCollateral, totalDebt, ltv);
 
-    healthFactor = GenericLogic.calculateHealthFactorFromBalances(totalCollateral, totalDebt, liquidationThreshold);
+    if (loan.state == DataTypes.LoanState.Active) {
+      healthFactor = GenericLogic.calculateHealthFactorFromBalances(totalCollateral, totalDebt, liquidationThreshold);
+    }
   }
 
   /**
