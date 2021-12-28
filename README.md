@@ -104,6 +104,9 @@ docker-compose up
 # Open another tab or terminal
 docker-compose exec contracts-env bash
 
+# install dependencies
+yarn install
+
 # A new Bash terminal is prompted, connected to the container
 npm run test
 ```
@@ -119,6 +122,9 @@ docker-compose up
 
 # Open another tab or terminal
 docker-compose exec contracts-env bash
+
+# install dependencies
+yarn install
 
 # Runing NPM task
 # npm run xxx

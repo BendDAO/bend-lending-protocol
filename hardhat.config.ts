@@ -20,7 +20,7 @@ import { fork } from "child_process";
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
 const DEFAULT_BLOCK_GAS_LIMIT = 12450000;
 const DEFAULT_GAS_MUL = 5;
-const HARDFORK = "istanbul";
+const HARDFORK = "london";
 const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || "";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const MNEMONIC = process.env.MNEMONIC || "";
@@ -65,15 +65,6 @@ const buidlerConfig: HardhatUserConfig = {
           evmVersion: "istanbul",
         },
       },
-      {
-        version: "0.4.11",
-      },
-      {
-        version: "0.5.11",
-        settings: {
-          evmVersion: "petersburg",
-        },
-      },
     ],
   },
   typechain: {
@@ -88,10 +79,12 @@ const buidlerConfig: HardhatUserConfig = {
   },
   networks: {
     coverage: {
+      hardfork: "istanbul",
       url: "http://localhost:8555",
       chainId: COVERAGE_CHAINID,
     },
     localhost: {
+      hardfork: "london",
       url: "http://localhost:8545",
       chainId: BUIDLEREVM_CHAINID,
       accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => (secretKey)),
@@ -99,7 +92,7 @@ const buidlerConfig: HardhatUserConfig = {
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     hardhat: {
-      hardfork: "berlin",
+      hardfork: "london",
       blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
       gas: DEFAULT_BLOCK_GAS_LIMIT,
       gasPrice: NETWORKS_DEFAULT_GAS[eEthereumNetwork.hardhat],
@@ -114,6 +107,7 @@ const buidlerConfig: HardhatUserConfig = {
       forking: buildForkConfig(),
     },
     ganache: {
+      hardfork: "istanbul",
       url: "http://ganache:8545",
       accounts: {
         mnemonic: "fox sight canyon orphan hotel grow hedgehog build bless august weather swarm",
