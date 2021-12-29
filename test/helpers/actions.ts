@@ -24,13 +24,20 @@ import {
 } from "./utils/helpers";
 
 import { convertToCurrencyDecimals, getEthersSignerByAddress } from "../../helpers/contracts-helpers";
-import { getBToken, getMintableERC20, getMintableERC721, getLendPoolLoanProxy } from "../../helpers/contracts-getters";
-import { MAX_UINT_AMOUNT, ONE_DAY, ONE_HOUR, ONE_YEAR } from "../../helpers/constants";
+import {
+  getBToken,
+  getMintableERC20,
+  getMintableERC721,
+  getLendPoolLoanProxy,
+  getIErc20Detailed,
+} from "../../helpers/contracts-getters";
+import { MAX_UINT_AMOUNT, oneEther, ONE_DAY, ONE_HOUR, ONE_YEAR } from "../../helpers/constants";
 import { SignerWithAddress, TestEnv } from "./make-suite";
 import {
   advanceTimeAndBlock,
   DRE,
   getNowTimeInMilliSeconds,
+  getNowTimeInSeconds,
   increaseTime,
   timeLatest,
   waitForTx,
@@ -170,6 +177,10 @@ export const setApprovalForAllWETHGateway = async (testEnv: TestEnv, user: Signe
   await waitForTx(await token.connect(user.signer).setApprovalForAll(wethGateway.address, true));
 };
 
+/* Param:
+ * debtAmount: without decimals
+ * healthPercent: 0.5 -> 50% -> 50
+ */
 export const setNftAssetPriceForDebt = async (
   testEnv: TestEnv,
   nftSymbol: string,
@@ -177,32 +188,37 @@ export const setNftAssetPriceForDebt = async (
   debtAmount: string,
   healthPercent: string
 ): Promise<{ oldNftPrice: string; newNftPrice: string }> => {
-  const { nftOracle, dataProvider } = testEnv;
+  const { nftOracle, reserveOracle, dataProvider } = testEnv;
 
   const priceAdmin = await getEthersSignerByAddress(await nftOracle.priceFeedAdmin());
 
   const reserve = await getReserveAddressFromSymbol(reserveSymbol);
   const nftAsset = await getNftAddressFromSymbol(nftSymbol);
 
+  const reserveToken = await getIErc20Detailed(reserve);
+  const reservePrice = await reserveOracle.getAssetPrice(reserve);
+
   const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
 
   const debtAmountDecimals = await convertToCurrencyDecimals(reserve, debtAmount);
+
+  const oneReserve = new BigNumber(Math.pow(10, await reserveToken.decimals()));
+  const ethAmountDecimals = new BigNumber(debtAmountDecimals.toString())
+    .multipliedBy(new BigNumber(reservePrice.toString()))
+    .dividedBy(new BigNumber(oneReserve))
+    .toFixed(0);
 
   const { liquidationThreshold } = await dataProvider.getNftConfigurationData(nftAsset);
 
   // (Price * LH / Debt = HF) => (Price * LH = Debt * HF) => (Price = Debt * HF / LH)
   // LH is 2 decimals
-  const nftPrice = new BigNumber(debtAmountDecimals.toString())
+  const nftPrice = new BigNumber(ethAmountDecimals.toString())
     .percentMul(new BigNumber(healthPercent).multipliedBy(100))
     .percentDiv(new BigNumber(liquidationThreshold.toString()))
     .toFixed(0);
 
-  const latestTime = new BigNumber(await getNowTimeInMilliSeconds());
-  await waitForTx(
-    await nftOracle
-      .connect(priceAdmin)
-      .setAssetData(nftAsset, nftPrice, latestTime.plus(1).toString(), latestTime.plus(1).toString())
-  );
+  const latestTime = await getNowTimeInSeconds();
+  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice, latestTime, latestTime));
 
   return { oldNftPrice: oldNftPrice.toString(), newNftPrice: nftPrice };
 };
@@ -216,12 +232,8 @@ export const setNftAssetPrice = async (testEnv: TestEnv, nftSymbol: string, pric
 
   const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
 
-  const latestTime = new BigNumber(await getNowTimeInMilliSeconds());
-  await waitForTx(
-    await nftOracle
-      .connect(priceAdmin)
-      .setAssetData(nftAsset, price, latestTime.plus(1).toString(), latestTime.plus(1).toString())
-  );
+  const latestTime = await getNowTimeInSeconds();
+  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, price, latestTime, latestTime));
 
   return oldNftPrice.toString();
 };

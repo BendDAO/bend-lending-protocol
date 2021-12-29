@@ -37,8 +37,8 @@ task("verify:nfts", "Verify nfts contracts at Etherscan")
       addressesProvider.address,
       bnftRegistryImpl.interface.encodeFunctionData("initialize", [
         bnftGenericImpl.address,
-        poolConfig.BNftNamePrefix,
-        poolConfig.BNftSymbolPrefix,
+        poolConfig.Mocks.BNftNamePrefix,
+        poolConfig.Mocks.BNftSymbolPrefix,
       ]),
     ]);
 

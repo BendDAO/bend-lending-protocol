@@ -19,8 +19,6 @@ export const CommonsConfig: ICommonConfiguration = {
   BTokenSymbolPrefix: 'b',
   DebtTokenNamePrefix: 'Bend debt bearing',
   DebtTokenSymbolPrefix: "bDebt",
-  BNftNamePrefix: 'Bend promissory note',
-  BNftSymbolPrefix: 'b',
 
   ProviderId: 0, // Overriden in index.ts
   OracleQuoteCurrency: 'ETH',
@@ -30,7 +28,6 @@ export const CommonsConfig: ICommonConfiguration = {
     UsdAddress: '0x9ceb4d4c184d1786614a593a03621b7f37f8685f', //index 19, lowercase
     NilAddress: '0x0000000000000000000000000000000000000000',
     OneAddress: '0x0000000000000000000000000000000000000001',
-    BendReferral: '0',
   },
 
   // ----------------
@@ -38,6 +35,8 @@ export const CommonsConfig: ICommonConfiguration = {
   // ----------------
 
   Mocks: {
+    BNftNamePrefix: 'BNFT promissory note',
+    BNftSymbolPrefix: 'b',
     AllAssetsInitialPrices: {
       ...MOCK_RESERVE_AGGREGATORS_PRICES,
     },
@@ -54,14 +53,14 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: undefined,
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.localhost]: undefined,
-    [eEthereumNetwork.rinkeby]: '0x60C7eb6362D4fD6dFa53f6610784924eFaA1d178',
+    [eEthereumNetwork.rinkeby]: '0xC019619F15aF1f96A695aBA39478e64ABcAa474b',
     [eEthereumNetwork.main]: undefined,
   },
   ProxyAdminFund: {
     [eEthereumNetwork.coverage]: undefined,
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.localhost]: undefined,
-    [eEthereumNetwork.rinkeby]: '0xa9A3b239CC1C2Fc9D40E6258464a9c180aaA3A19',
+    [eEthereumNetwork.rinkeby]: '0x64DA9D7651CA78caAB756740C6057e2b7B1E63De',
     [eEthereumNetwork.main]: undefined,
   },
 
@@ -86,8 +85,8 @@ export const CommonsConfig: ICommonConfiguration = {
   BNFTRegistry: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
-    [eEthereumNetwork.localhost]: '0xF987BB0A726905576623BA8f92B3456cd1d317F6',
-    [eEthereumNetwork.rinkeby]: '0x683f73Ddb5272049e392603d55593511Fd503D61',
+    [eEthereumNetwork.localhost]: '0xCE1e5D792d24F62b29D35DeB85eC04b1F66447b1',
+    [eEthereumNetwork.rinkeby]: '0xB873F088EB721261bc88BbC739B5C794e02e414b',
     [eEthereumNetwork.main]: '',
   },
 
@@ -95,7 +94,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '',
-    [eEthereumNetwork.rinkeby]: '0x7fd1dCDe1bc38cA18975f5fe8Ed80A7f1dd797b1',
+    [eEthereumNetwork.rinkeby]: '',
     [eEthereumNetwork.main]: '',
   },
   ProviderRegistryOwner: {
@@ -110,14 +109,14 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '',
-    [eEthereumNetwork.rinkeby]: '0xF8cbFf1Ef3e84a50E3F5e0b8617aa85162FDF5D3',
+    [eEthereumNetwork.rinkeby]: '',
     [eEthereumNetwork.main]: '',
   },
   NFTOracle: {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '',
-    [eEthereumNetwork.rinkeby]: '0xb55ea3D072Fd8943fa7DEf37b8da4a20A9d9ebF9',
+    [eEthereumNetwork.rinkeby]: '',
     [eEthereumNetwork.main]: '',
   },
 
@@ -163,7 +162,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.localhost]: '0xB4B4ead1A260F1572b88b9D8ABa5A152D166c104',
-    [eEthereumNetwork.rinkeby]: '0x585d17A346cb99849a539F553f4d542D7e5B5B28',
+    [eEthereumNetwork.rinkeby]: '0xaD1908f909B5C5D2B1032a215d611773F26f089F',
     [eEthereumNetwork.main]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
   },
 
@@ -171,14 +170,14 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.localhost]: '0xb2f97A3c2E48cd368901657e31Faaa93035CE390',
-    [eEthereumNetwork.rinkeby]: '0xF85EeD76C0D2b3f0C50140BEdB2aF489E5eaaeB8',
+    [eEthereumNetwork.rinkeby]: '0x6389eA3Cf6dE815ba76d7Cf4C6Db6A7093471bcb',
     [eEthereumNetwork.main]: '0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb',
   },
   WrappedPunkToken: {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.localhost]: '0x5a60c5d89A0A0e08ae0CAe73453e3AcC9C335847',
-    [eEthereumNetwork.rinkeby]: '0x5b4FaC380a2A79EE0ddA713a31cbA7A74Cba7Cd0',
+    [eEthereumNetwork.rinkeby]: '0x74e4418A41169Fb951Ca886976ccd8b36968c4Ab',
     [eEthereumNetwork.main]: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
   },
 
@@ -186,14 +185,14 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.hardhat]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.localhost]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
-    [eEthereumNetwork.rinkeby]: '0x707D1a914ea67855617557bd700F01537353a74E',
+    [eEthereumNetwork.rinkeby]: '0x7A02EE743Aadca63d60945971B7eD12c7f26b6d2',
     [eEthereumNetwork.main]: '',
   },
   IncentivesController: {
     [eEthereumNetwork.coverage]: ZERO_ADDRESS,
     [eEthereumNetwork.hardhat]: ZERO_ADDRESS,
-    [eEthereumNetwork.localhost]: "0xCE1e5D792d24F62b29D35DeB85eC04b1F66447b1",
-    [eEthereumNetwork.rinkeby]: '0x06b0C0aEE6A2DDf5cb4fc76764e8107bA36B22b7',
+    [eEthereumNetwork.localhost]: "0x1eaA4a267eDcde0eB5e08D08810Aa1696b123a2D",
+    [eEthereumNetwork.rinkeby]: '0xD800e97aE32b06C1e89ca5126c7bF6aEF89D6B24',
     [eEthereumNetwork.main]: ZERO_ADDRESS,
   },
 };

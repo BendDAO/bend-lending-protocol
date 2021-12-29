@@ -32,8 +32,8 @@ task("dev:deploy-mock-bnft-registry", "Deploy bnft registry for dev enviroment")
 
     const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
       bnftGenericImpl.address,
-      poolConfig.BNftNamePrefix,
-      poolConfig.BNftSymbolPrefix,
+      poolConfig.Mocks.BNftNamePrefix,
+      poolConfig.Mocks.BNftSymbolPrefix,
     ]);
 
     const bnftRegistryProxy = await deployBendUpgradeableProxy(

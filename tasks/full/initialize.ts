@@ -61,15 +61,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
         throw "NFT assets is undefined. Check NftsAssets configuration at config directory";
       }
 
-      await initNftsByHelper(
-        poolConfig.NftsConfig,
-        nftsAssets,
-        poolConfig.BNftNamePrefix,
-        poolConfig.BNftSymbolPrefix,
-        admin,
-        pool,
-        verify
-      );
+      await initNftsByHelper(poolConfig.NftsConfig, nftsAssets, admin, pool, verify);
       await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, admin);
 
       //////////////////////////////////////////////////////////////////////////

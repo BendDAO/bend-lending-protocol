@@ -2,7 +2,7 @@ import { TestEnv, makeSuite } from "./helpers/make-suite";
 import { APPROVAL_AMOUNT_LENDING_POOL, RAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { ProtocolErrors } from "../helpers/types";
-import { strategyBAYC } from "../markets/bend/nftsConfigs";
+import { strategyNftClassB } from "../markets/bend/nftsConfigs";
 
 const { expect } = require("chai");
 
@@ -47,11 +47,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
       await dataProvider.getNftConfigurationData(bayc.address);
 
-    expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(true);
-    expect(ltv).to.be.equal(strategyBAYC.baseLTVAsCollateral);
-    expect(liquidationThreshold).to.be.equal(strategyBAYC.liquidationThreshold);
-    expect(liquidationBonus).to.be.equal(strategyBAYC.liquidationBonus);
   });
 
   it("Unfreezes the BAYC NFT", async () => {
@@ -61,11 +57,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     const { ltv, liquidationBonus, liquidationThreshold, isActive, isFrozen } =
       await dataProvider.getNftConfigurationData(bayc.address);
 
-    expect(isActive).to.be.equal(true);
     expect(isFrozen).to.be.equal(false);
-    expect(ltv).to.be.equal(strategyBAYC.baseLTVAsCollateral);
-    expect(liquidationThreshold).to.be.equal(strategyBAYC.liquidationThreshold);
-    expect(liquidationBonus).to.be.equal(strategyBAYC.liquidationBonus);
   });
 
   it("Check the onlyAdmin on freezeNft ", async () => {

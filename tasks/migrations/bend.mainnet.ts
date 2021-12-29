@@ -10,9 +10,8 @@ import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 task("bend:mainnet", "Deploy full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addFlag("skipRegistry", "Skip addresses provider registration at Addresses Provider Registry")
-  .addFlag("skipBnft", "Skip deploy bnft registry and tokens")
   .addFlag("skipOracle", "Skip deploy oracles")
-  .setAction(async ({ verify, skipRegistry, skipBnft, skipOracle }, DRE) => {
+  .setAction(async ({ verify, skipRegistry, skipOracle }, DRE) => {
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
     const poolConfig = loadPoolConfig(POOL_NAME);

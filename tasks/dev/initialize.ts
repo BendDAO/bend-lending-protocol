@@ -39,8 +39,6 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       BTokenSymbolPrefix,
       DebtTokenNamePrefix,
       DebtTokenSymbolPrefix,
-      BNftNamePrefix,
-      BNftSymbolPrefix,
       ReservesConfig,
       NftsConfig,
     } = poolConfig;
@@ -78,15 +76,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     const mockNfts = await getAllMockedNfts();
     const allNftAddresses = getAllNftAddresses(mockNfts);
 
-    await initNftsByHelper(
-      NftsConfig,
-      allNftAddresses,
-      BNftNamePrefix,
-      BNftSymbolPrefix,
-      admin,
-      ConfigNames.Bend,
-      verify
-    );
+    await initNftsByHelper(NftsConfig, allNftAddresses, admin, ConfigNames.Bend, verify);
 
     await configureNftsByHelper(NftsConfig, allNftAddresses, admin);
 

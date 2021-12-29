@@ -1,12 +1,8 @@
 import { task } from "hardhat/config";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/configuration";
 import { MOCK_NFT_AGGREGATORS_PRICES, USD_ADDRESS, MAX_UINT_AMOUNT } from "../../helpers/constants";
-import { deployBNFTRegistry, deployGenericBNFTImpl, deployLendPool } from "../../helpers/contracts-deployments";
 import {
   getBendProtocolDataProvider,
-  getBendProxyAdminByAddress,
-  getBNFTRegistryProxy,
   getBToken,
   getCryptoPunksMarket,
   getDeploySigner,
@@ -18,21 +14,23 @@ import {
   getNFTOracle,
   getPunkGateway,
   getReserveOracle,
-  getThirdSigner,
   getUIPoolDataProvider,
   getWalletProvider,
   getWETHGateway,
   getWrappedPunk,
 } from "../../helpers/contracts-getters";
-import {
-  getContractAddressInDb,
-  getEthersSigners,
-  getParamPerNetwork,
-  verifyContract,
-} from "../../helpers/contracts-helpers";
+import { convertToCurrencyDecimals, getContractAddressInDb, getEthersSigners } from "../../helpers/contracts-helpers";
 import { getNowTimeInSeconds, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork, PoolConfiguration } from "../../helpers/types";
-import { LendPoolAddressesProvider, MintableERC721Factory } from "../../types";
+
+task("dev:cryptopunks-init", "Doing CryptoPunks init task").setAction(async ({}, DRE) => {
+  await DRE.run("set-DRE");
+
+  const punks = await getCryptoPunksMarket();
+  await punks.allInitialOwnersAssigned();
+
+  await waitForTx(await punks.allInitialOwnersAssigned());
+});
 
 task("dev:generate-subgraph-events", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -86,7 +84,8 @@ task("dev:generate-subgraph-events", "Doing custom task")
 
 task("dev:deposit-eth", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ pool }, DRE) => {
+  .addParam("amount", "Amount to deposit, like 0.01")
+  .setAction(async ({ pool, amount }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -101,12 +100,15 @@ task("dev:deposit-eth", "Doing custom task")
     const weth = await getMintableERC20(wethAddress);
     await waitForTx(await weth.approve(wethGateway.address, MAX_UINT_AMOUNT));
 
-    await waitForTx(await wethGateway.depositETH(await signer.getAddress(), "0", { value: "100000000000000000" })); // 0.1 ETH
+    const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+
+    await waitForTx(await wethGateway.depositETH(await signer.getAddress(), "0", { value: amountDecimals }));
   });
 
 task("dev:withdraw-eth", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ pool }, DRE) => {
+  .addParam("amount", "Amount to withdraw, like 0.01")
+  .setAction(async ({ pool, amount }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -126,7 +128,9 @@ task("dev:withdraw-eth", "Doing custom task")
     const bWeth = await getBToken(wethResData.bTokenAddress);
     await waitForTx(await bWeth.approve(wethGateway.address, MAX_UINT_AMOUNT));
 
-    await waitForTx(await wethGateway.withdrawETH("10000000000000000", await signer.getAddress())); // 0.01 ETH
+    const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+
+    await waitForTx(await wethGateway.withdrawETH(amountDecimals, await signer.getAddress()));
   });
 
 task("dev:borrow-eth-using-bayc", "Doing custom task")
@@ -182,8 +186,9 @@ task("dev:borrow-usdc-using-bayc", "Doing custom task")
 task("dev:borrow-eth-using-punk", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("id", "Punk index of CryptoPunks")
+  .addParam("amount", "Amount to borrow, like 0.01")
   .addFlag("borrowMore", "Borrow more ETH using existed NFT")
-  .setAction(async ({ pool, id, borrowMore }, DRE) => {
+  .setAction(async ({ pool, id, amount, borrowMore }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -196,11 +201,16 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
     const wpunk = await getWrappedPunk();
     const punkGateway = await getPunkGateway();
 
+    const wethAddress = await getContractAddressInDb("WETH");
+    const weth = await getMintableERC20(wethAddress);
+
     const isApproveOk = await wpunk.isApprovedForAll(await signer.getAddress(), punkGateway.address);
     if (!isApproveOk) {
       console.log("setApprovalForAll");
       await waitForTx(await wpunk.setApprovalForAll(punkGateway.address, true));
     }
+
+    const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
 
     if (!borrowMore) {
       console.log("punkIndexToAddress:", await punk.punkIndexToAddress(id));
@@ -209,18 +219,14 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
       await waitForTx(await punk.getPunk(id));
       await waitForTx(await punk.offerPunkForSaleToAddress(id, "0", punkGateway.address));
 
-      console.log("borrow first 0.05 ETH");
-      const txBorrow = await waitForTx(
-        await punkGateway.borrowETH("50000000000000000", id, await signer.getAddress(), "0")
-      ); // 0.05 ETH
+      console.log("borrow ETH at first time");
+      const txBorrow = await waitForTx(await punkGateway.borrowETH(amountDecimals, id, await signer.getAddress(), "0")); // 0.05 ETH
       console.log("txBorrow:", txBorrow.transactionHash);
     } else {
       console.log("ownerOf:", await wpunk.ownerOf(id));
 
-      console.log("borrow more 0.05 ETH");
-      const txBorrow = await waitForTx(
-        await punkGateway.borrowETH("50000000000000000", id, await signer.getAddress(), "0")
-      ); // 0.05 ETH
+      console.log("borrow more ETH");
+      const txBorrow = await waitForTx(await punkGateway.borrowETH(amountDecimals, id, await signer.getAddress(), "0")); // 0.05 ETH
       console.log("txBorrow:", txBorrow.transactionHash);
     }
   });
