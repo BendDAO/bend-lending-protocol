@@ -8,9 +8,11 @@ import {
   strategyUSDC,
 } from './reservesConfigs';
 import {
-  strategyWPUNKS,
-  strategyBAYC,
+  strategyNftClassA,
+  strategyNftClassB,
   strategyNftClassC,
+  strategyNftClassD,
+  strategyNftClassE,
 } from './nftsConfigs';
 
 // ----------------
@@ -27,30 +29,30 @@ export const BendConfig: IBendConfiguration = {
     USDC: strategyUSDC,
   },
   NftsConfig: {
-    WPUNKS: strategyWPUNKS,
-    BAYC: strategyBAYC,
-    DOODLE: strategyNftClassC,
-    COOL: strategyNftClassC,
-    MEEBITS: strategyNftClassC,
-    MAYC: strategyNftClassC,
+    WPUNKS: strategyNftClassC,
+    BAYC: strategyNftClassC,
+    DOODLE: strategyNftClassD,
+    COOL: strategyNftClassD,
+    MEEBITS: strategyNftClassD,
+    MAYC: strategyNftClassD,
   },
   ReserveAssets: {
     [eEthereumNetwork.hardhat]: {},
     [eEthereumNetwork.coverage]: {},
     [eEthereumNetwork.localhost]: {
+      WETH: '0xB4B4ead1A260F1572b88b9D8ABa5A152D166c104',
       DAI: '0xa05ffF82bcC0C599984b0839218DC6ee9328d1Fb',
       USDC: '0x025FE4760c6f14dE878C22cEb09A3235F16dAe53',
-      WETH: '0xB4B4ead1A260F1572b88b9D8ABa5A152D166c104',
     },
     [eEthereumNetwork.rinkeby]: {
-      DAI: '0x56C0dab0209Ad53C8de55480167667b4884e3d0F',
-      USDC: '0xA535aA6A943706c589616f982d0d05f50710C8A7',
-      WETH: '0x585d17A346cb99849a539F553f4d542D7e5B5B28',
+      WETH: '0xaD1908f909B5C5D2B1032a215d611773F26f089F',
+      DAI: '0x51EA2fEb1b1EB0891595f846456068D497734ca4',
+      USDC: '0xB07416EFa22C8A502ff3845D3c0BdA400f929cB8',
     },
     [eEthereumNetwork.main]: {
+      WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
       DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     },
   },
   NftsAssets: {
@@ -65,12 +67,12 @@ export const BendConfig: IBendConfiguration = {
       MAYC: '0x8b89F971cA1A5dE1B7df7f554a3024eE84FeeB05',
     },
     [eEthereumNetwork.rinkeby]: {
-      WPUNKS: '0x5b4FaC380a2A79EE0ddA713a31cbA7A74Cba7Cd0',
-      BAYC: '0x6b81840bc2E607C1Ea099D7BD93957608CEB3947',
-      DOODLE: '0x7b5f4f9fb286a77A57127FEfE01E36155164D718',
-      COOL: '0xf976e5355d10F90c189c5527abc4F89EE8967A95',
-      MEEBITS: '0x84BBb2a522D71DffAeea24B582Ef6d7AfA8aE9a1',
-      MAYC: '0x4a0e0813F88b25e8e740fbaa268a1Cd487126c9d',
+      WPUNKS: '0x74e4418A41169Fb951Ca886976ccd8b36968c4Ab',
+      BAYC: '0x588D1a07ccdb224cB28dCd8E3dD46E16B3a72b5e',
+      DOODLE: '0x10cACFfBf3Cdcfb365FDdC4795079417768BaA74',
+      COOL: '0x1F912E9b691858052196F11Aff9d8B6f89951AbD',
+      MEEBITS: '0xA1BaBAB6d6cf1DC9C87Be22D1d5142CF905016a4',
+      MAYC: '0x9C235dF4053a415f028b8386ed13ae8162843a6e',
     },
     [eEthereumNetwork.main]: {
       WPUNKS: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',

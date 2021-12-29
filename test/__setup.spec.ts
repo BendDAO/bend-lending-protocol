@@ -123,8 +123,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const bnftRegistryImpl = await deployBNFTRegistry();
   const initEncodedData = bnftRegistryImpl.interface.encodeFunctionData("initialize", [
     bnftGenericImpl.address,
-    config.BNftNamePrefix,
-    config.BNftSymbolPrefix,
+    config.Mocks.BNftNamePrefix,
+    config.Mocks.BNftSymbolPrefix,
   ]);
 
   const bnftRegistryProxy = await deployBendUpgradeableProxy(
@@ -325,17 +325,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   };
 
   console.log("-> Prepare NFT init and configure...");
-  const { BNftNamePrefix, BNftSymbolPrefix } = config;
-
-  await initNftsByHelper(
-    nftsParams,
-    allNftsAddresses,
-    BNftNamePrefix,
-    BNftSymbolPrefix,
-    poolAdmin,
-    ConfigNames.Bend,
-    false
-  );
+  await initNftsByHelper(nftsParams, allNftsAddresses, poolAdmin, ConfigNames.Bend, false);
 
   await configureNftsByHelper(nftsParams, allNftsAddresses, poolAdmin);
 

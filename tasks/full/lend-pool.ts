@@ -101,9 +101,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       //////////////////////////////////////////////////////////////////////////
       const admin = await DRE.ethers.getSigner(await getEmergencyAdmin(poolConfig));
       // Pause market during deployment
-      if (network.includes("main")) {
-        await waitForTx(await lendPoolConfiguratorProxy.connect(admin).setPoolPause(true));
-      }
+      await waitForTx(await lendPoolConfiguratorProxy.connect(admin).setPoolPause(true));
 
       //////////////////////////////////////////////////////////////////////////
       // Deploy deployment helpers

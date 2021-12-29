@@ -1,10 +1,11 @@
 import BigNumber from "bignumber.js";
 import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY, ONE_HOUR } from "../helpers/constants";
-import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
+import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
 import { getUserData } from "./helpers/utils/helpers";
+import { setNftAssetPriceForDebt } from "./helpers/actions";
 
 const chai = require("chai");
 
@@ -70,16 +71,10 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const { weth, bayc, users, pool, nftOracle } = testEnv;
     const borrower = users[1];
 
-    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const latestTime = await getNowTimeInSeconds();
-    await waitForTx(
-      await nftOracle.setAssetData(
-        bayc.address,
-        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
-        latestTime,
-        latestTime
-      )
-    );
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "101");
+
+    const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");
 
     const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "101");
 
@@ -240,16 +235,10 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const { usdc, bayc, users, pool, nftOracle } = testEnv;
     const borrower = users[1];
 
-    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const latestTime = await getNowTimeInSeconds();
-    await waitForTx(
-      await nftOracle.setAssetData(
-        bayc.address,
-        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
-        latestTime,
-        latestTime
-      )
-    );
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "102");
+
+    const debAmountUnits = await convertToCurrencyUnits(usdc.address, nftDebtDataBefore.totalDebt.toString());
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "USDC", debAmountUnits, "80");
 
     const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "102");
 

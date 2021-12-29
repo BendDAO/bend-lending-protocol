@@ -1,18 +1,24 @@
 import BigNumber from "bignumber.js";
+import { BigNumber as BN } from "ethers";
 import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
-import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
+import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
 import { getUserData } from "./helpers/utils/helpers";
+import { setNftAssetPrice, setNftAssetPriceForDebt } from "./helpers/actions";
 
 const chai = require("chai");
 
 const { expect } = chai;
 
 makeSuite("LendPool: Liquidation", (testEnv) => {
-  before("Before liquidation: set config", () => {
+  let baycInitPrice: BN;
+
+  before("Before liquidation: set config", async () => {
     BigNumber.config({ DECIMAL_PLACES: 0, ROUNDING_MODE: BigNumber.ROUND_DOWN });
+
+    baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
   });
 
   after("After liquidation: reset config", () => {
@@ -70,16 +76,10 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const { weth, bayc, users, pool, nftOracle } = testEnv;
     const borrower = users[1];
 
-    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const latestTime = await getNowTimeInSeconds();
-    await waitForTx(
-      await nftOracle.setAssetData(
-        bayc.address,
-        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
-        latestTime,
-        latestTime
-      )
-    );
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "102");
+
+    const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");
 
     const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "101");
 
@@ -110,8 +110,9 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     await increaseTime(100);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
+    const auctionPrice = new BigNumber(liquidatePrice.toString()).multipliedBy(1.1);
 
-    await pool.connect(liquidator.signer).auction(bayc.address, "101", liquidatePrice, liquidator.address);
+    await pool.connect(liquidator.signer).auction(bayc.address, "101", auctionPrice.toFixed(0), liquidator.address);
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 
@@ -183,6 +184,8 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const depositor = users[0];
     const borrower = users[1];
 
+    await setNftAssetPrice(testEnv, "BAYC", baycInitPrice.toString());
+
     //mints USDC to depositor
     await usdc.connect(depositor.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
 
@@ -229,16 +232,10 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const { usdc, bayc, users, pool, nftOracle } = testEnv;
     const borrower = users[1];
 
-    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const latestTime = await getNowTimeInSeconds();
-    await waitForTx(
-      await nftOracle.setAssetData(
-        bayc.address,
-        new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0),
-        latestTime,
-        latestTime
-      )
-    );
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "102");
+
+    const debAmountUnits = await convertToCurrencyUnits(usdc.address, nftDebtDataBefore.totalDebt.toString());
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "USDC", debAmountUnits, "80");
 
     const nftDebtDataAfter = await pool.getNftDebtData(bayc.address, "102");
 

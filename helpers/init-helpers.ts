@@ -147,8 +147,6 @@ export const getBNftExtraParams = async (bNftName: string, nftAddress: tEthereum
 export const initNftsByHelper = async (
   nftsParams: iMultiPoolsNfts<INftParams>,
   nftAddresses: { [symbol: string]: tEthereumAddress },
-  bNftNamePrefix: string,
-  bNftSymbolPrefix: string,
   admin: tEthereumAddress,
   poolName: ConfigNames,
   verify: boolean

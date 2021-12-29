@@ -43,12 +43,11 @@ task("oracle-amdin:feed-init-nft-price", "Doing oracle admin task")
     const latestTime = await getNowTimeInSeconds();
     const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
 
-    await waitForTx(
-      await nftOracleProxy.setAssetData(nftsAssets["WPUNKS"], MOCK_NFT_AGGREGATORS_PRICES["WPUNKS"], latestTime, 1)
-    );
-    await waitForTx(
-      await nftOracleProxy.setAssetData(nftsAssets["BAYC"], MOCK_NFT_AGGREGATORS_PRICES["BAYC"], latestTime, 1)
-    );
+    for (const nftSymbol of Object.keys(nftsAssets)) {
+      const price = MOCK_NFT_AGGREGATORS_PRICES[nftSymbol];
+      console.log(`setAssetData:(${nftSymbol}, ${price})`);
+      await waitForTx(await nftOracleProxy.setAssetData(nftsAssets[nftSymbol], price, latestTime, 1));
+    }
   });
 
 task("oracle-amdin:add-usd-eth-asset", "Doing oracle admin task")

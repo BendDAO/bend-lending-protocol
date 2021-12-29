@@ -6,7 +6,7 @@ import DRE from "hardhat";
 import { getReservesConfigByPool } from "../helpers/configuration";
 import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
 import { deploySelfdestructTransferMock } from "../helpers/contracts-deployments";
-import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
+import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import {
@@ -15,6 +15,8 @@ import {
   mintERC721,
   setApprovalForAll,
   setApprovalForAllWETHGateway,
+  setNftAssetPrice,
+  setNftAssetPriceForDebt,
 } from "./helpers/actions";
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
@@ -434,10 +436,9 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     expect(nftDebtDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
 
     // Drop the health factor below 1
-    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const baycPriceDown = new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0);
-    const latestTime = await getNowTimeInSeconds();
-    await waitForTx(await nftOracle.setAssetData(bayc.address, baycPriceDown, latestTime, latestTime));
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, tokenId);
+    const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");
 
     const nftDebtDataBeforeAuction = await pool.getNftDebtData(bayc.address, tokenId);
     expect(nftDebtDataBeforeAuction.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
@@ -469,10 +470,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const user3 = users[3];
     const liquidator = users[4];
 
-    {
-      const latestTime = await getNowTimeInSeconds();
-      await waitForTx(await nftOracle.setAssetData(bayc.address, baycInitPrice, latestTime, latestTime));
-    }
+    await setNftAssetPrice(testEnv, "BAYC", baycInitPrice.toString());
 
     // Deposit with native ETH
     await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize500 });
@@ -506,10 +504,9 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     expect(nftDebtDataAfterBorrow.healthFactor.toString()).to.be.bignumber.gt(oneEther.toFixed(0));
 
     // Drop the health factor below 1
-    const baycPrice = await nftOracle.getAssetPrice(bayc.address);
-    const baycPriceDown = new BigNumber(baycPrice.toString()).multipliedBy(0.55).toFixed(0);
-    const latestTime = await getNowTimeInSeconds();
-    await waitForTx(await nftOracle.setAssetData(bayc.address, baycPriceDown, latestTime, latestTime));
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, tokenId);
+    const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");
 
     const nftDebtDataBeforeAuction = await pool.getNftDebtData(bayc.address, tokenId);
     expect(nftDebtDataBeforeAuction.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));

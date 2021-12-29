@@ -334,10 +334,11 @@ export interface IProtocolGlobalConfig {
   UsdAddress: tEthereumAddress;
   NilAddress: tEthereumAddress;
   OneAddress: tEthereumAddress;
-  BendReferral: string;
 }
 
 export interface IMocksConfig {
+  BNftNamePrefix: string;
+  BNftSymbolPrefix: string;
   AllAssetsInitialPrices: iAssetBase<string>;
   AllNftsInitialPrices: iNftBase<string>;
 }
@@ -348,8 +349,6 @@ export interface ICommonConfiguration {
   BTokenSymbolPrefix: string;
   DebtTokenNamePrefix: string;
   DebtTokenSymbolPrefix: string;
-  BNftNamePrefix: string;
-  BNftSymbolPrefix: string;
 
   ProviderId: number;
   ProtocolGlobalParams: IProtocolGlobalConfig;
@@ -385,6 +384,7 @@ export interface ICommonConfiguration {
   ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;
   DebtTokenImplementation?: iParamsPerNetwork<tEthereumAddress>;
+
   OracleQuoteCurrency: string;
   OracleQuoteUnit: string;
 }
