@@ -1,6 +1,13 @@
+import BigNumber from "bignumber.js";
 import { task } from "hardhat/config";
 import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/configuration";
-import { MOCK_NFT_AGGREGATORS_PRICES, USD_ADDRESS, MAX_UINT_AMOUNT } from "../../helpers/constants";
+import {
+  MOCK_NFT_AGGREGATORS_PRICES,
+  USD_ADDRESS,
+  MAX_UINT_AMOUNT,
+  ZERO_ADDRESS,
+  oneEther,
+} from "../../helpers/constants";
 import {
   getBendProtocolDataProvider,
   getBToken,
@@ -17,6 +24,7 @@ import {
   getUIPoolDataProvider,
   getWalletProvider,
   getWETHGateway,
+  getWETHMocked,
   getWrappedPunk,
 } from "../../helpers/contracts-getters";
 import { convertToCurrencyDecimals, getContractAddressInDb, getEthersSigners } from "../../helpers/contracts-helpers";
@@ -336,4 +344,39 @@ task("dev:print-wallet-balance", "Doing custom task")
       const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(user, token);
       console.log("batchTokenOfOwnerByIndex:", tokenIds.join(","));
     }
+  });
+
+task("dev:purge-all-eths", "Doing purge all ETHs in pool task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("id", "id of BAYC token")
+  .addParam("to", "Address of target user")
+  .setAction(async ({ pool, id, to }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const deployerSigner = await getDeploySigner();
+    const deployerAddress = await deployerSigner.getAddress();
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const lendPool = await getLendPool();
+    const weth = await getWETHMocked();
+    const wethGateway = await getWETHGateway();
+
+    const wethReserveData = await lendPool.getReserveData(weth.address);
+    const bwethToken = await getBToken(wethReserveData.bTokenAddress);
+    const availableBalance = await weth.balanceOf(bwethToken.address);
+    console.log("Available Balance:", availableBalance.toString());
+    if (new BigNumber(availableBalance.toString()).lt(oneEther.div(100))) {
+      return;
+    }
+
+    const baycAddress = await getContractAddressInDb("BAYC");
+    const bayc = await getMintableERC721(baycAddress);
+    await waitForTx(await bayc.mint(id));
+
+    const approved = await bayc.isApprovedForAll(deployerAddress, wethGateway.address);
+    if (!approved) {
+      await waitForTx(await bayc.setApprovalForAll(wethGateway.address, true));
+    }
+
+    await waitForTx(await wethGateway.borrowETH(availableBalance, bayc.address, id, to, "0"));
   });

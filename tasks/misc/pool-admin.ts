@@ -10,11 +10,16 @@ import { configureNftsByHelper } from "../../helpers/init-helpers";
 import { waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
 
-task("pool-amdin:pause", "Doing lend pool admin task")
+task("pool-amdin:set-pause", "Doing lend pool pause task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .addFlag("pause", "Verify contracts at Etherscan")
-  .setAction(async ({ pool, pause }, DRE) => {
+  .addParam("state", "Admin state of pause, 0-false, 1-true")
+  .setAction(async ({ pool, state }, DRE) => {
     await DRE.run("set-DRE");
+
+    let wantPause = true;
+    if (state == 0 || state == false) {
+      wantPause = false;
+    }
 
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
@@ -28,17 +33,17 @@ task("pool-amdin:pause", "Doing lend pool admin task")
     const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());
 
     const currentPause = await lendPoolProxy.paused();
-    console.log("LendPool Current Pause:", currentPause);
+    console.log("LendPool Current Pause State:", currentPause);
 
-    if (currentPause == pause) {
+    if (currentPause == wantPause) {
       console.log("No need to do because same state");
       return;
     }
 
-    await waitForTx(await lendPoolConfiguratorProxy.connect(emAdmin).setPoolPause(pause));
+    await waitForTx(await lendPoolConfiguratorProxy.connect(emAdmin).setPoolPause(wantPause));
 
     const newPause = await lendPoolProxy.paused();
-    console.log("LendPool New Pause:", newPause);
+    console.log("LendPool New Pause State:", newPause);
   });
 
 task("pool-amdin:update-nfts-config", "Doing lend pool nft config task")
