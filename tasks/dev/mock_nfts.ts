@@ -1,7 +1,13 @@
+import { BigNumberish, Signer } from "ethers";
 import { task } from "hardhat/config";
 import { deployAllMockNfts, deployMintableERC721 } from "../../helpers/contracts-deployments";
-import { getMintableERC721, getWrappedPunk } from "../../helpers/contracts-getters";
-import { registerContractInJsonDb, tryGetContractAddressInDb } from "../../helpers/contracts-helpers";
+import { getDeploySigner, getCryptoPunksMarket, getMintableERC721 } from "../../helpers/contracts-getters";
+import {
+  getContractAddressInDb,
+  getEthersSigners,
+  registerContractInJsonDb,
+  tryGetContractAddressInDb,
+} from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { NftContractId } from "../../helpers/types";
 import { MintableERC721 } from "../../types";
@@ -67,4 +73,73 @@ task("dev:set-mock-nfts", "Set mock nfts for dev enviroment")
       console.log(`${tokenSymbol}, ${tokenAddress}, ${baseURI}`);
       await waitForTx(await tokenContract.setBaseURI(baseURI));
     }
+  });
+
+task("dev:mint-top-punks", "Mint top sale punks for dev enviroment")
+  .addParam("target", "Address of target user")
+  .setAction(async ({ target }, localBRE) => {
+    await localBRE.run("set-DRE");
+
+    const punks = await getCryptoPunksMarket();
+
+    const topSalePunkIndexs1: BigNumberish[] = [
+      3100, 7804, 5217, 8857, 7252, 2338, 6275, 8888, 3831, 6965, 8472, 4156, 2890, 6487, 6297, 3393, 9052, 561, 1422,
+      2066, 9373, 6817, 2484, 2306, 1886, 4992, 2329, 4220, 6649, 6721, 8805, 1119, 1190, 8620, 2140, 3011, 9953, 9952,
+      9129, 6704, 2310, 9848, 2964, 3609, 5827, 1839, 364, 9513, 9100, 6578, 8770,
+    ];
+
+    const topSalePunkIndexs = topSalePunkIndexs1;
+
+    let topSalePunkOwners: string[] = [];
+    for (const punkIndex of topSalePunkIndexs) {
+      topSalePunkOwners.push(target);
+    }
+
+    console.log("Total Minted CryptoPunks: %d", topSalePunkIndexs.length);
+    await waitForTx(await punks.setInitialOwners(topSalePunkOwners, topSalePunkIndexs));
+    console.log("Total Balance of Target: %d", punks.balanceOf(target));
+  });
+
+task("dev:mint-top-tokens", "Mint top sale tokens for dev enviroment")
+  .addParam("symbol", "Token symbol of ERC721")
+  .addParam("target", "Address of target user")
+  .addParam("ids", "Token ids of ERC721")
+  .setAction(async ({ symbol, ids, target }, localBRE) => {
+    await localBRE.run("set-DRE");
+
+    const allSingers = await getEthersSigners();
+
+    const tokenAddress = await getContractAddressInDb(symbol);
+    const erc721Token = await getMintableERC721(tokenAddress);
+
+    const idSplits = new String(ids).split(",");
+
+    const topSaleApeIds: BigNumberish[] = idSplits;
+
+    console.log("Total Minted Tokens: %d", topSaleApeIds.length);
+
+    let minterIndex: number = 0;
+    let minterSigner: Signer = allSingers[0];
+    let minterAddress: string = "";
+    let mintedNum: number = 0;
+    for (const tokenId of topSaleApeIds) {
+      for (minterIndex = 0; minterIndex < allSingers.length; minterIndex++) {
+        minterSigner = allSingers[minterIndex];
+        minterAddress = await minterSigner.getAddress();
+        const minterLimit = await erc721Token.mintCounts(minterAddress);
+        if (minterLimit.toNumber() < 10) {
+          break;
+        }
+      }
+
+      await waitForTx(await erc721Token.connect(minterSigner).mint(tokenId));
+      await waitForTx(await erc721Token.connect(minterSigner).transferFrom(minterAddress, target, tokenId));
+
+      mintedNum++;
+      if (mintedNum % 10 == 0) {
+        console.log("Total Balance of Target: %d", await erc721Token.balanceOf(target));
+      }
+    }
+
+    console.log("Total Balance of Target: %d", await erc721Token.balanceOf(target));
   });
