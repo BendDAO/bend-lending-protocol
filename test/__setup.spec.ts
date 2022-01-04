@@ -355,6 +355,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   ]);
   console.log(`Deploy PunkGateway at ${punkGateway.address}`);
   console.log(`Authorzie PunkGateway with LendPool and WETHGateway`);
+  await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.WETH));
+  await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.DAI));
   await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.USDC));
 
   console.timeEnd("setup");

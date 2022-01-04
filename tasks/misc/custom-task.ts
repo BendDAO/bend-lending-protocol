@@ -1,6 +1,12 @@
 import BigNumber from "bignumber.js";
+import { BigNumberish } from "ethers";
 import { task } from "hardhat/config";
-import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/configuration";
+import {
+  ConfigNames,
+  getEmergencyAdmin,
+  getWrappedPunkTokenAddress,
+  loadPoolConfig,
+} from "../../helpers/configuration";
 import {
   MOCK_NFT_AGGREGATORS_PRICES,
   USD_ADDRESS,
@@ -28,7 +34,7 @@ import {
   getWrappedPunk,
 } from "../../helpers/contracts-getters";
 import { convertToCurrencyDecimals, getContractAddressInDb, getEthersSigners } from "../../helpers/contracts-helpers";
-import { getNowTimeInSeconds, waitForTx } from "../../helpers/misc-utils";
+import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork, PoolConfiguration } from "../../helpers/types";
 
 task("dev:cryptopunks-init", "Doing CryptoPunks init task").setAction(async ({}, DRE) => {
@@ -195,8 +201,7 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("id", "Punk index of CryptoPunks")
   .addParam("amount", "Amount to borrow, like 0.01")
-  .addFlag("borrowMore", "Borrow more ETH using existed NFT")
-  .setAction(async ({ pool, id, amount, borrowMore }, DRE) => {
+  .setAction(async ({ pool, id, amount }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -204,6 +209,7 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
     const addressesProvider = await getLendPoolAddressesProvider();
 
     const signer = await getDeploySigner();
+    const signerAddress = await signer.getAddress();
 
     const punk = await getCryptoPunksMarket();
     const wpunk = await getWrappedPunk();
@@ -212,31 +218,48 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
     const wethAddress = await getContractAddressInDb("WETH");
     const weth = await getMintableERC20(wethAddress);
 
-    const isApproveOk = await wpunk.isApprovedForAll(await signer.getAddress(), punkGateway.address);
+    const isApproveOk = await wpunk.isApprovedForAll(signerAddress, punkGateway.address);
     if (!isApproveOk) {
       console.log("setApprovalForAll");
       await waitForTx(await wpunk.setApprovalForAll(punkGateway.address, true));
     }
 
-    const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+    let amountDecimals: BigNumberish;
+    if (amount == "-1") {
+      const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+      const wethResData = await bendDataProvider.getReserveData(weth.address);
+      console.log("WETH Available Liquidity:", wethResData.availableLiquidity.toString());
+      amountDecimals = wethResData.availableLiquidity;
+    } else {
+      amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+    }
 
-    if (!borrowMore) {
-      console.log("punkIndexToAddress:", await punk.punkIndexToAddress(id));
-
+    let borrowMore: boolean = false;
+    const punkAddress = await punk.punkIndexToAddress(id);
+    if (notFalsyOrZeroAddress(punkAddress)) {
+      if (punkAddress == signerAddress) {
+      } else {
+        console.log(`Punk address ${punkAddress} is not owner ${signerAddress}`);
+        borrowMore = true;
+      }
+    } else {
       console.log("mint punk");
       await waitForTx(await punk.getPunk(id));
+    }
+
+    if (!borrowMore) {
       await waitForTx(await punk.offerPunkForSaleToAddress(id, "0", punkGateway.address));
 
       console.log("borrow ETH at first time");
       const txBorrow = await waitForTx(await punkGateway.borrowETH(amountDecimals, id, await signer.getAddress(), "0")); // 0.05 ETH
       console.log("txBorrow:", txBorrow.transactionHash);
     } else {
-      console.log("ownerOf:", await wpunk.ownerOf(id));
-
       console.log("borrow more ETH");
       const txBorrow = await waitForTx(await punkGateway.borrowETH(amountDecimals, id, await signer.getAddress(), "0")); // 0.05 ETH
       console.log("txBorrow:", txBorrow.transactionHash);
     }
+
+    console.log("Punk Owner:", await punk.punkIndexToAddress(id));
   });
 
 task("dev:borrow-usdc-using-punk", "Doing custom task")
@@ -260,6 +283,68 @@ task("dev:borrow-usdc-using-punk", "Doing custom task")
     await waitForTx(
       await punkGateway.borrow(daiAddress, "100000000000000000000", "5002", await signer.getAddress(), "0")
     ); // 100 DAI
+  });
+
+task("dev:repay-eth-using-punk", "Doing repay task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("id", "Punk Index of CryptoPunks")
+  .addParam("amount", "Amount to repay, like 0.01")
+  .setAction(async ({ pool, id, amount }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const signer = await getDeploySigner();
+
+    const punk = await getCryptoPunksMarket();
+    const wpunkAddress = await getWrappedPunkTokenAddress(poolConfig, punk.address);
+    const wpunk = await getWrappedPunk(wpunkAddress);
+    const punkGateway = await getPunkGateway();
+
+    let amountDecimals: BigNumberish;
+    if (amount == "-1") {
+      const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+      const loanData = await bendDataProvider.getLoanDataByCollateral(wpunk.address, id);
+      console.log("Loan Borrow Amount:", loanData.currentAmount.toString());
+      amountDecimals = new BigNumber(loanData.currentAmount.toString()).multipliedBy(1.1).toFixed(0);
+    } else {
+      amountDecimals = await convertToCurrencyDecimals(wpunk.address, amount);
+    }
+
+    await waitForTx(await punkGateway.repayETH(id, amountDecimals, { value: amountDecimals }));
+
+    console.log("Punk Owner:", await punk.punkIndexToAddress(id));
+  });
+
+task("dev:repay-eth-using-erc721", "Doing repay task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("token", "Token Address of ERC721")
+  .addParam("id", "Token ID of ERC721")
+  .addParam("amount", "Amount to repay, like 0.01")
+  .setAction(async ({ pool, token, id, amount }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const signer = await getDeploySigner();
+
+    const wethGateway = await getWETHGateway();
+
+    let amountDecimals: BigNumberish;
+    if (amount == "-1" || amount == "0") {
+      const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+      const loanData = await bendDataProvider.getLoanDataByCollateral(token, id);
+      console.log("Loan Borrow Amount:", loanData.currentAmount.toString());
+      amountDecimals = loanData.currentAmount;
+    } else {
+      amountDecimals = await convertToCurrencyDecimals(token, amount);
+    }
+
+    await waitForTx(await wethGateway.redeemETH(token, id, { value: amountDecimals }));
   });
 
 task("dev:print-ui-reserve-data", "Doing custom task")

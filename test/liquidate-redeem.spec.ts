@@ -105,8 +105,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(100);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
+    const auctionPrice = new BigNumber(liquidatePrice.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(liquidator.signer).auction(bayc.address, "101", liquidatePrice, liquidator.address);
+    await pool.connect(liquidator.signer).auction(bayc.address, "101", auctionPrice, liquidator.address);
 
     // check result
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
@@ -190,13 +191,13 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const borrower = users[1];
 
     //mints USDC to depositor
-    await usdc.connect(depositor.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
+    await usdc.connect(depositor.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
 
     //approve protocol to access depositor wallet
     await usdc.connect(depositor.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
     //deposits USDC
-    const amountDeposit = await convertToCurrencyDecimals(usdc.address, "1000000");
+    const amountDeposit = await convertToCurrencyDecimals(usdc.address, "100000");
 
     await pool.connect(depositor.signer).deposit(usdc.address, amountDeposit, depositor.address, "0");
 
@@ -254,7 +255,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const borrower = users[1];
 
     //mints USDC to the liquidator
-    await usdc.connect(liquidator.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
+    await usdc.connect(liquidator.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
 
     //approve protocol to access the liquidator wallet
     await usdc.connect(liquidator.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
@@ -269,8 +270,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(100);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "102");
+    const auctionPrice = new BigNumber(liquidatePrice.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(liquidator.signer).auction(bayc.address, "102", liquidatePrice, liquidator.address);
+    await pool.connect(liquidator.signer).auction(bayc.address, "102", auctionPrice, liquidator.address);
 
     // check result
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
@@ -334,7 +336,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const borrower = users[1];
 
     //mints USDC to borrower
-    await usdc.connect(borrower.signer).mint(await convertToCurrencyDecimals(usdc.address, "1000000"));
+    await usdc.connect(borrower.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
     //approve protocol to access borrower wallet
     await usdc.connect(borrower.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 

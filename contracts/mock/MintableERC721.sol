@@ -22,8 +22,11 @@ contract MintableERC721 is ERC721Enumerable {
    * @return A boolean that indicates if the operation was successful.
    */
   function mint(uint256 tokenId) public returns (bool) {
-    require(mintCounts[_msgSender()] <= 10, "exceed mint limit");
+    require(tokenId < 10000, "exceed mint limit");
+
     mintCounts[_msgSender()] += 1;
+    require(mintCounts[_msgSender()] <= 10, "exceed mint limit");
+
     _mint(_msgSender(), tokenId);
     return true;
   }
