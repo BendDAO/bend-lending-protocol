@@ -147,7 +147,7 @@ contract ReserveOracle is IReserveOracleGetter, OwnableUpgradeable, BlockContext
 
   function isExistedKey(address _priceFeedKey) private view returns (bool) {
     uint256 length = priceFeedKeys.length;
-    for (uint256 i; i < length; i++) {
+    for (uint256 i = 0; i < length; i++) {
       if (priceFeedKeys[i] == _priceFeedKey) {
         return true;
       }
