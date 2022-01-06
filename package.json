@@ -93,5 +93,8 @@
     "hooks": {
       "pre-commit": "pretty-quick --staged --pattern 'contracts/**/*.sol' --pattern 'helpers/**/*.ts'  --pattern 'test/**/*.ts' --pattern 'tasks/**/*.ts'"
     }
+  },
+  "dependencies": {
+    "global-agent": "^3.0.0"
   }
 }

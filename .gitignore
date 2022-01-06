@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.template
 #Buidler files
 cache
 artifacts
@@ -15,7 +17,8 @@ deployed-contracts.json
 !/deployments/deployed-contracts-rinkeby*.json
 
 /flattened
-bend-flattened.zip
+bend-flattened.*
+bend-protocol-flattened.*
 
 coverage
 .coverage_artifacts

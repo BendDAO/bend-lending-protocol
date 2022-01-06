@@ -9,6 +9,12 @@ import { NETWORKS_RPC_URL, NETWORKS_DEFAULT_GAS, BLOCK_TO_FORK, buildForkConfig 
 
 require("dotenv").config();
 
+import {bootstrap} from 'global-agent'
+if (process.env.GLOBAL_AGENT_HTTP_PROXY) {
+  console.log("Enable Global Agent:", process.env.GLOBAL_AGENT_HTTP_PROXY);
+  bootstrap();
+}
+
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
