@@ -1,4 +1,5 @@
 import { BigNumberish, Signer } from "ethers";
+import { parseEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
 import { deployAllMockNfts, deployMintableERC721 } from "../../helpers/contracts-deployments";
 import { getDeploySigner, getCryptoPunksMarket, getMintableERC721 } from "../../helpers/contracts-getters";
@@ -77,18 +78,15 @@ task("dev:set-mock-nfts", "Set mock nfts for dev enviroment")
 
 task("dev:mint-top-punks", "Mint top sale punks for dev enviroment")
   .addParam("target", "Address of target user")
-  .setAction(async ({ target }, localBRE) => {
+  .addParam("ids", "Indexs of Punk")
+  .setAction(async ({ target, ids }, localBRE) => {
     await localBRE.run("set-DRE");
 
     const punks = await getCryptoPunksMarket();
 
-    const topSalePunkIndexs1: BigNumberish[] = [
-      3100, 7804, 5217, 8857, 7252, 2338, 6275, 8888, 3831, 6965, 8472, 4156, 2890, 6487, 6297, 3393, 9052, 561, 1422,
-      2066, 9373, 6817, 2484, 2306, 1886, 4992, 2329, 4220, 6649, 6721, 8805, 1119, 1190, 8620, 2140, 3011, 9953, 9952,
-      9129, 6704, 2310, 9848, 2964, 3609, 5827, 1839, 364, 9513, 9100, 6578, 8770,
-    ];
+    const idSplits = new String(ids).split(",");
 
-    const topSalePunkIndexs = topSalePunkIndexs1;
+    const topSalePunkIndexs = idSplits;
 
     let topSalePunkOwners: string[] = [];
     for (const punkIndex of topSalePunkIndexs) {
@@ -107,6 +105,7 @@ task("dev:mint-top-tokens", "Mint top sale tokens for dev enviroment")
   .setAction(async ({ symbol, ids, target }, localBRE) => {
     await localBRE.run("set-DRE");
 
+    const deployerSigner = await getDeploySigner();
     const allSingers = await getEthersSigners();
 
     const tokenAddress = await getContractAddressInDb(symbol);
@@ -114,30 +113,58 @@ task("dev:mint-top-tokens", "Mint top sale tokens for dev enviroment")
 
     const idSplits = new String(ids).split(",");
 
-    const topSaleApeIds: BigNumberish[] = idSplits;
+    const topSaleTokenIds: BigNumberish[] = idSplits;
 
-    console.log("Total Minted Tokens: %d", topSaleApeIds.length);
+    console.log("Deployer Balance:", (await deployerSigner.getBalance()).toString());
+    console.log("Total Minted Tokens: %d", topSaleTokenIds.length);
 
     let minterIndex: number = 0;
     let minterSigner: Signer = allSingers[0];
     let minterAddress: string = "";
-    let mintedNum: number = 0;
-    for (const tokenId of topSaleApeIds) {
-      for (minterIndex = 0; minterIndex < allSingers.length; minterIndex++) {
-        minterSigner = allSingers[minterIndex];
-        minterAddress = await minterSigner.getAddress();
-        const minterLimit = await erc721Token.mintCounts(minterAddress);
-        if (minterLimit.toNumber() < 10) {
+    let minterLimit: number = -1;
+    const minBalance = parseEther("0.1");
+    for (const tokenId of topSaleTokenIds) {
+      console.log("Try to mint token: %d", tokenId);
+
+      if (minterLimit < 0 || minterLimit >= 10) {
+        for (; minterIndex < allSingers.length; minterIndex++) {
+          minterSigner = allSingers[minterIndex];
+          minterAddress = await minterSigner.getAddress();
+          const tmpLimit = (await erc721Token.mintCounts(minterAddress)).toNumber();
+          if (tmpLimit < 10) {
+            minterLimit = tmpLimit;
+            break;
+          }
+          console.log("Minter reach limit:", minterIndex, minterAddress);
+        }
+        if (minterIndex == allSingers.length) {
           break;
         }
+
+        const minterBalance = await minterSigner.getBalance();
+        if (minterBalance.lt(minBalance)) {
+          waitForTx(
+            await deployerSigner.sendTransaction({
+              to: minterAddress,
+              value: parseEther("0.5"),
+            })
+          );
+        }
+        console.log("Minter balance:", (await minterSigner.getBalance()).toString());
       }
 
-      await waitForTx(await erc721Token.connect(minterSigner).mint(tokenId));
-      await waitForTx(await erc721Token.connect(minterSigner).transferFrom(minterAddress, target, tokenId));
-
-      mintedNum++;
-      if (mintedNum % 10 == 0) {
-        console.log("Total Balance of Target: %d", await erc721Token.balanceOf(target));
+      let tokenOwner: string;
+      try {
+        tokenOwner = await erc721Token.ownerOf(tokenId);
+        if (tokenOwner == minterAddress) {
+          await waitForTx(await erc721Token.connect(minterSigner).transferFrom(minterAddress, target, tokenId));
+        } else {
+          console.log("Token owner is not our:", tokenOwner);
+        }
+      } catch {
+        await waitForTx(await erc721Token.connect(minterSigner).mint(tokenId));
+        await waitForTx(await erc721Token.connect(minterSigner).transferFrom(minterAddress, target, tokenId));
+        minterLimit++;
       }
     }
 

@@ -15,6 +15,8 @@ import {
   oneEther,
 } from "../../helpers/constants";
 import {
+  getAllMockedNfts,
+  getAllMockedTokens,
   getBendProtocolDataProvider,
   getBToken,
   getCryptoPunksMarket,
@@ -106,17 +108,29 @@ task("dev:deposit-eth", "Doing custom task")
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
+    const lendPool = await getLendPool(await addressesProvider.getLendPool());
+
     const signer = await getDeploySigner();
+    const signerAddress = await signer.getAddress();
 
     const wethGateway = await getWETHGateway();
 
     const wethAddress = await getContractAddressInDb("WETH");
     const weth = await getMintableERC20(wethAddress);
-    await waitForTx(await weth.approve(wethGateway.address, MAX_UINT_AMOUNT));
 
     const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
 
+    const allowance = await weth.allowance(signerAddress, wethGateway.address);
+    if (allowance.lt(amountDecimals)) {
+      await waitForTx(await weth.approve(wethGateway.address, MAX_UINT_AMOUNT));
+    }
+
+    const wethResData = await lendPool.getReserveData(weth.address);
+    const bWeth = await getBToken(wethResData.bTokenAddress);
+
     await waitForTx(await wethGateway.depositETH(await signer.getAddress(), "0", { value: amountDecimals }));
+
+    console.log("bWETH Balance:", (await bWeth.balanceOf(signerAddress)).toString());
   });
 
 task("dev:withdraw-eth", "Doing custom task")
@@ -130,6 +144,7 @@ task("dev:withdraw-eth", "Doing custom task")
     const addressesProvider = await getLendPoolAddressesProvider();
 
     const signer = await getDeploySigner();
+    const signerAddress = await signer.getAddress();
 
     const lendPool = await getLendPool(await addressesProvider.getLendPool());
 
@@ -138,13 +153,23 @@ task("dev:withdraw-eth", "Doing custom task")
     const wethAddress = await getContractAddressInDb("WETH");
     const weth = await getMintableERC20(wethAddress);
 
+    let amountDecimals: BigNumberish;
+    if (amount == "-1") {
+      amountDecimals = MAX_UINT_AMOUNT;
+    } else {
+      amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+    }
+
     const wethResData = await lendPool.getReserveData(weth.address);
     const bWeth = await getBToken(wethResData.bTokenAddress);
-    await waitForTx(await bWeth.approve(wethGateway.address, MAX_UINT_AMOUNT));
+    const allowance = await bWeth.allowance(signerAddress, wethGateway.address);
+    if (allowance.lt(amountDecimals)) {
+      await waitForTx(await bWeth.approve(wethGateway.address, MAX_UINT_AMOUNT));
+    }
 
-    const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+    console.log("bWETH Balance:", (await bWeth.balanceOf(signerAddress)).toString());
 
-    await waitForTx(await wethGateway.withdrawETH(amountDecimals, await signer.getAddress()));
+    await waitForTx(await wethGateway.withdrawETH(amountDecimals, signerAddress));
   });
 
 task("dev:borrow-eth-using-bayc", "Doing custom task")
@@ -429,39 +454,4 @@ task("dev:print-wallet-balance", "Doing custom task")
       const tokenIds = await walletProvider.batchTokenOfOwnerByIndex(user, token);
       console.log("batchTokenOfOwnerByIndex:", tokenIds.join(","));
     }
-  });
-
-task("dev:purge-all-eths", "Doing purge all ETHs in pool task")
-  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .addParam("id", "id of BAYC token")
-  .addParam("to", "Address of target user")
-  .setAction(async ({ pool, id, to }, DRE) => {
-    await DRE.run("set-DRE");
-
-    const deployerSigner = await getDeploySigner();
-    const deployerAddress = await deployerSigner.getAddress();
-
-    const addressesProvider = await getLendPoolAddressesProvider();
-    const lendPool = await getLendPool();
-    const weth = await getWETHMocked();
-    const wethGateway = await getWETHGateway();
-
-    const wethReserveData = await lendPool.getReserveData(weth.address);
-    const bwethToken = await getBToken(wethReserveData.bTokenAddress);
-    const availableBalance = await weth.balanceOf(bwethToken.address);
-    console.log("Available Balance:", availableBalance.toString());
-    if (new BigNumber(availableBalance.toString()).lt(oneEther.div(100))) {
-      return;
-    }
-
-    const baycAddress = await getContractAddressInDb("BAYC");
-    const bayc = await getMintableERC721(baycAddress);
-    await waitForTx(await bayc.mint(id));
-
-    const approved = await bayc.isApprovedForAll(deployerAddress, wethGateway.address);
-    if (!approved) {
-      await waitForTx(await bayc.setApprovalForAll(wethGateway.address, true));
-    }
-
-    await waitForTx(await wethGateway.borrowETH(availableBalance, bayc.address, id, to, "0"));
   });
