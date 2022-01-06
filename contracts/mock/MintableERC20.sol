@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-import "hardhat/console.sol";
-
 /**
  * @title ERC20Mintable
  * @dev ERC20 minting logic
@@ -36,7 +34,6 @@ contract MintableERC20 is ERC20 {
    */
   function mint(uint256 value) public returns (bool) {
     mintValues[_msgSender()] += value;
-    console.log("mint", mintValues[_msgSender()], value);
     require(mintValues[_msgSender()] < (1000000 * (10**_decimals)), "exceed mint limit");
 
     _mint(_msgSender(), value);
