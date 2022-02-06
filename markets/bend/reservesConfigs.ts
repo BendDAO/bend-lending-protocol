@@ -15,7 +15,7 @@ export const strategyBUSD: IReserveParams = {
   borrowingEnabled: true,
   reserveDecimals: '18',
   bTokenImpl: eContractid.BToken,
-  reserveFactor: '1000'
+  reserveFactor: '3000'
 };
 
 export const strategyDAI: IReserveParams = {
@@ -26,7 +26,7 @@ export const strategyDAI: IReserveParams = {
   borrowingEnabled: true,
   reserveDecimals: '18',
   bTokenImpl: eContractid.BToken,
-  reserveFactor: '1000'
+  reserveFactor: '3000'
 };
 
 export const strategyUSDC: IReserveParams = {
@@ -37,7 +37,7 @@ export const strategyUSDC: IReserveParams = {
   borrowingEnabled: true,
   reserveDecimals: '6',
   bTokenImpl: eContractid.BToken,
-  reserveFactor: '1000'
+  reserveFactor: '3000'
 };
 
 export const strategyUSDT: IReserveParams = {
@@ -48,7 +48,7 @@ export const strategyUSDT: IReserveParams = {
   borrowingEnabled: true,
   reserveDecimals: '6',
   bTokenImpl: eContractid.BToken,
-  reserveFactor: '1000'
+  reserveFactor: '3000'
 };
 
 export const strategyWETH: IReserveParams = {
@@ -59,5 +59,5 @@ export const strategyWETH: IReserveParams = {
   borrowingEnabled: true,
   reserveDecimals: '18',
   bTokenImpl: eContractid.BToken,
-  reserveFactor: '1000'
+  reserveFactor: '3000'
 };

@@ -6,7 +6,7 @@ import {
   getLendPoolConfiguratorProxy,
 } from "../../helpers/contracts-getters";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
-import { configureNftsByHelper } from "../../helpers/init-helpers";
+import { configureNftsByHelper, configureReservesByHelper } from "../../helpers/init-helpers";
 import { waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
 
@@ -63,4 +63,23 @@ task("pool-amdin:update-nfts-config", "Doing lend pool nft config task")
       throw "NFT assets is undefined. Check NftsAssets configuration at config directory";
     }
     await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, poolAdminAddress);
+  });
+
+task("pool-amdin:update-reserves-config", "Doing lend pool reserve config task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .setAction(async ({ pool }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = <eNetwork>DRE.network.name;
+
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const poolAdminAddress = await addressesProvider.getPoolAdmin();
+
+    const reservesAssets = getParamPerNetwork(poolConfig.ReserveAssets, network);
+    if (!reservesAssets) {
+      throw "Reserve assets is undefined. Check ReserveAssets configuration at config directory";
+    }
+    await configureReservesByHelper(poolConfig.ReservesConfig, reservesAssets, poolAdminAddress);
   });
