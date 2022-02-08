@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 import { ConfigNames, getEmergencyAdmin, getGenesisPoolAdmin, loadPoolConfig } from "../../helpers/configuration";
 import {
+  getBendProtocolDataProvider,
   getLendPool,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
@@ -21,10 +22,9 @@ task("pool-amdin:set-pause", "Doing lend pool pause task")
       wantPause = false;
     }
 
-    const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const emAdmin = await DRE.ethers.getSigner(await getEmergencyAdmin(poolConfig));
+    const emAdmin = await DRE.ethers.getSigner(await addressesProvider.getEmergencyAdmin());
 
     const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
       await addressesProvider.getLendPoolConfigurator()
@@ -82,4 +82,168 @@ task("pool-amdin:update-reserves-config", "Doing lend pool reserve config task")
       throw "Reserve assets is undefined. Check ReserveAssets configuration at config directory";
     }
     await configureReservesByHelper(poolConfig.ReservesConfig, reservesAssets, poolAdminAddress);
+  });
+
+task("pool-amdin:set-reserve-active", "Doing Reserve active task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("asset", "Address of Reserve")
+  .addParam("state", "Active state, 0-false, 1-true")
+  .setAction(async ({ pool, asset, state }, DRE) => {
+    await DRE.run("set-DRE");
+
+    let wantState = true;
+    if (state == 0 || state == false) {
+      wantState = false;
+    }
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const pmAdmin = await DRE.ethers.getSigner(await addressesProvider.getPoolAdmin());
+
+    const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
+      await addressesProvider.getLendPoolConfigurator()
+    );
+
+    const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+
+    const reserveConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    const currentState = reserveConfig.isActive;
+    console.log("Reserve Current Active State:", currentState);
+
+    if (currentState == wantState) {
+      console.log("No need to do because same state");
+      return;
+    }
+
+    if (wantState) {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).activateReserve(asset));
+    } else {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).deactivateReserve(asset));
+    }
+
+    const newReserveConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    console.log("Reserve New Active State:", newReserveConfig.isActive);
+  });
+
+task("pool-amdin:set-reserve-frozen", "Doing Reserve frozen task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("asset", "Address of Reserve")
+  .addParam("state", "Frozen state, 0-false, 1-true")
+  .setAction(async ({ pool, asset, state }, DRE) => {
+    await DRE.run("set-DRE");
+
+    let wantState = true;
+    if (state == 0 || state == false) {
+      wantState = false;
+    }
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const pmAdmin = await DRE.ethers.getSigner(await addressesProvider.getPoolAdmin());
+
+    const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
+      await addressesProvider.getLendPoolConfigurator()
+    );
+
+    const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+
+    const reserveConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    const currentState = reserveConfig.isFrozen;
+    console.log("Reserve Current Frozen State:", currentState);
+
+    if (currentState == wantState) {
+      console.log("No need to do because same state");
+      return;
+    }
+
+    if (wantState) {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).freezeReserve(asset));
+    } else {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).unfreezeReserve(asset));
+    }
+
+    const newReserveConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    console.log("Reserve New Frozen State:", newReserveConfig.isFrozen);
+  });
+
+task("pool-amdin:set-nft-active", "Doing NFT active task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("asset", "Address of Reserve")
+  .addParam("state", "Admin state of Active, 0-false, 1-true")
+  .setAction(async ({ pool, asset, state }, DRE) => {
+    await DRE.run("set-DRE");
+
+    let wantState = true;
+    if (state == 0 || state == false) {
+      wantState = false;
+    }
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const pmAdmin = await DRE.ethers.getSigner(await addressesProvider.getPoolAdmin());
+
+    const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
+      await addressesProvider.getLendPoolConfigurator()
+    );
+
+    const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+
+    const curNftConfig = await bendDataProvider.getNftConfigurationData(asset);
+    const currentState = curNftConfig.isActive;
+    console.log("NFT Current Active State:", currentState);
+
+    if (currentState == wantState) {
+      console.log("No need to do because same state");
+      return;
+    }
+
+    if (wantState) {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).activateNft(asset));
+    } else {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).deactivateNft(asset));
+    }
+
+    const newNftConfig = await bendDataProvider.getNftConfigurationData(asset);
+    console.log("NFT New Active State:", newNftConfig.isActive);
+  });
+
+task("pool-amdin:set-nft-frozen", "Doing NFT frozen task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("asset", "Address of Reserve")
+  .addParam("state", "Frozen state, 0-false, 1-true")
+  .setAction(async ({ pool, asset, state }, DRE) => {
+    await DRE.run("set-DRE");
+
+    let wantState = true;
+    if (state == 0 || state == false) {
+      wantState = false;
+    }
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const pmAdmin = await DRE.ethers.getSigner(await addressesProvider.getPoolAdmin());
+
+    const lendPoolConfiguratorProxy = await getLendPoolConfiguratorProxy(
+      await addressesProvider.getLendPoolConfigurator()
+    );
+
+    const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+
+    const curNftConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    const currentState = curNftConfig.isFrozen;
+    console.log("NFT Current Frozen State:", currentState);
+
+    if (currentState == wantState) {
+      console.log("No need to do because same state");
+      return;
+    }
+
+    if (wantState) {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).freezeNft(asset));
+    } else {
+      await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).unfreezeNft(asset));
+    }
+
+    const newNftConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    console.log("NFT New Frozen State:", newNftConfig.isFrozen);
   });

@@ -52,6 +52,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     uint256 borrowAmount;
     uint256 auctionEndTimestamp;
     uint256 remainAmount;
+    uint256 minBidDelta;
   }
 
   /**
@@ -149,8 +150,9 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       vars.auctionEndTimestamp = loanData.bidStartTimestamp + (nftData.configuration.getAuctionDuration() * 1 days);
       require(block.timestamp <= vars.auctionEndTimestamp, Errors.LPL_BID_AUCTION_DURATION_HAS_END);
 
-      // bid price must greater than highest bid
-      require(bidPrice > loanData.bidPrice, Errors.LPL_BID_PRICE_LESS_THAN_HIGHEST_PRICE);
+      // bid price must greater than highest bid + delta
+      vars.minBidDelta = vars.borrowAmount.percentMul(PercentageMath.ONE_PERCENT);
+      require(bidPrice >= (loanData.bidPrice + vars.minBidDelta), Errors.LPL_BID_PRICE_LESS_THAN_HIGHEST_PRICE);
 
       ILendPoolLoan(vars.loanAddress).auctionLoan(
         vars.initiator,

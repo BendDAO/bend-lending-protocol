@@ -16,9 +16,9 @@ import { ICommonConfiguration, eEthereumNetwork } from '../../helpers/types';
 export const CommonsConfig: ICommonConfiguration = {
   MarketId: 'Commons',
   BTokenNamePrefix: 'Bend interest bearing',
-  BTokenSymbolPrefix: 'b',
+  BTokenSymbolPrefix: 'bend',
   DebtTokenNamePrefix: 'Bend debt bearing',
-  DebtTokenSymbolPrefix: "bDebt",
+  DebtTokenSymbolPrefix: "bendDebt",
 
   ProviderId: 0, // Overriden in index.ts
   OracleQuoteCurrency: 'ETH',
@@ -35,8 +35,8 @@ export const CommonsConfig: ICommonConfiguration = {
   // ----------------
 
   Mocks: {
-    BNftNamePrefix: 'BNFT promissory note',
-    BNftSymbolPrefix: 'b',
+    BNftNamePrefix: 'Bound NFT',
+    BNftSymbolPrefix: 'bound',
     AllAssetsInitialPrices: {
       ...MOCK_RESERVE_AGGREGATORS_PRICES,
     },
