@@ -194,6 +194,10 @@ contract BendProtocolDataProvider {
     address reserveAsset;
     uint256 scaledAmount;
     uint256 currentAmount;
+    uint256 bidStartTimestamp;
+    address bidderAddress;
+    uint256 bidPrice;
+    uint256 bidBorrowAmount;
   }
 
   function getLoanDataByCollateral(address nftAsset, uint256 nftTokenId)
@@ -222,5 +226,9 @@ contract BendProtocolDataProvider {
     (, loanData.currentAmount) = ILendPoolLoan(ADDRESSES_PROVIDER.getLendPoolLoan()).getLoanReserveBorrowAmount(
       loan.loanId
     );
+    loanData.bidStartTimestamp = loan.bidStartTimestamp;
+    loanData.bidderAddress = loan.bidderAddress;
+    loanData.bidPrice = loan.bidPrice;
+    loanData.bidBorrowAmount = loan.bidBorrowAmount;
   }
 }

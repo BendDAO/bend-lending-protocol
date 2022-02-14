@@ -210,7 +210,8 @@ library ValidationLogic {
   function validateRedeem(
     DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
-    DataTypes.LoanData memory loanData
+    DataTypes.LoanData memory loanData,
+    uint256 amount
   ) external view {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
@@ -221,7 +222,10 @@ library ValidationLogic {
 
     require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
-    require(loanData.bidderAddress != address(0), Errors.VL_INVALID_AMOUNT);
+    require(loanData.bidderAddress != address(0), Errors.LPL_INVALID_BIDDER_ADDRESS);
+
+    uint256 bidFine = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
+    require(amount > bidFine, Errors.LPL_AMOUNT_LESS_THAN_BID_FINE);
   }
 
   /**
@@ -244,7 +248,7 @@ library ValidationLogic {
 
     require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
-    require(loanData.bidderAddress != address(0), Errors.VL_INVALID_AMOUNT);
+    require(loanData.bidderAddress != address(0), Errors.LPL_INVALID_BIDDER_ADDRESS);
   }
 
   /**

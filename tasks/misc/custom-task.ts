@@ -369,7 +369,7 @@ task("dev:repay-eth-using-erc721", "Doing repay task")
       amountDecimals = await convertToCurrencyDecimals(token, amount);
     }
 
-    await waitForTx(await wethGateway.redeemETH(token, id, { value: amountDecimals }));
+    await waitForTx(await wethGateway.redeemETH(token, id, amountDecimals, { value: amountDecimals }));
   });
 
 task("dev:print-ui-reserve-data", "Doing custom task")

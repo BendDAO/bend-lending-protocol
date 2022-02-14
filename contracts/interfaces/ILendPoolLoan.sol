@@ -72,6 +72,20 @@ interface ILendPoolLoan {
   );
 
   /**
+   * @dev Emitted when a loan is redeemed
+   * @param user The address initiating the action
+   */
+  event LoanRedeemed(
+    address indexed user,
+    uint256 indexed loanId,
+    address nftAsset,
+    uint256 nftTokenId,
+    address reserveAsset,
+    uint256 amountTaken,
+    uint256 borrowIndex
+  );
+
+  /**
    * @dev Emitted when a loan is liquidate by the liquidator
    * @param user The address initiating the action
    */
@@ -82,7 +96,7 @@ interface ILendPoolLoan {
     uint256 nftTokenId,
     address reserveAsset,
     uint256 amount,
-    uint256 liqType
+    uint256 borrowIndex
   );
 
   function initNft(address nftAsset, address bNftAddress) external;
@@ -160,6 +174,21 @@ interface ILendPoolLoan {
   ) external;
 
   /**
+   * @dev Redeem the given loan with some params
+   *
+   * Requirements:
+   *  - The caller must be a holder of the loan
+   *  - The loan must be in state Auction
+   * @param initiator The address of the user initiating the borrow
+   */
+  function redeemLoan(
+    address initiator,
+    uint256 loanId,
+    uint256 amountTaken,
+    uint256 borrowIndex
+  ) external;
+
+  /**
    * @dev Liquidate the given loan
    *
    * Requirements:
@@ -169,13 +198,13 @@ interface ILendPoolLoan {
    * @param initiator The address of the user initiating the auction
    * @param loanId The loan getting burned
    * @param bNftAddress The address of bNFT
-   * @param liqType The liquidate type, 0-liquidate, 1-redeem
    */
   function liquidateLoan(
     address initiator,
     uint256 loanId,
     address bNftAddress,
-    uint256 liqType
+    uint256 borrowAmount,
+    uint256 borrowIndex
   ) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);

@@ -49,7 +49,8 @@ task("dev:pool-redeem", "Doing WETH redeem task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("token", "Address of ERC721")
   .addParam("id", "Token ID of ERC721")
-  .setAction(async ({ pool, token, id }, DRE) => {
+  .addParam("amount", "Amount to redeem, like 0.01")
+  .setAction(async ({ pool, token, id, amount }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -57,11 +58,15 @@ task("dev:pool-redeem", "Doing WETH redeem task")
     const addressesProvider = await getLendPoolAddressesProvider();
 
     const lendPool = await getLendPool(await addressesProvider.getLendPool());
+    const dataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
 
     const signer = await getDeploySigner();
     const signerAddress = await signer.getAddress();
 
-    await waitForTx(await lendPool.redeem(token, id));
+    const loanData = await dataProvider.getLoanDataByCollateral(token, id);
+    const amountDecimals = await convertToCurrencyDecimals(loanData.reserveAsset, amount);
+
+    await waitForTx(await lendPool.redeem(token, id, amountDecimals));
 
     console.log("OK");
   });
@@ -128,7 +133,7 @@ task("dev:weth-redeem", "Doing WETH redeem task")
 
     const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
 
-    await waitForTx(await wethGateway.redeemETH(token, id, { value: amountDecimals }));
+    await waitForTx(await wethGateway.redeemETH(token, id, amountDecimals, { value: amountDecimals }));
 
     console.log("OK");
   });
@@ -184,7 +189,7 @@ task("dev:punk-redeem-eth", "Doing CryptoPunks redeem ETH task")
 
     const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
 
-    await waitForTx(await punkGateway.redeemETH(id, { value: amountDecimals }));
+    await waitForTx(await punkGateway.redeemETH(id, amountDecimals, { value: amountDecimals }));
 
     console.log("OK");
   });

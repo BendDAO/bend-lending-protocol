@@ -124,7 +124,7 @@ makeSuite("Subgraph tests", async (testEnv) => {
     await mintERC20(testEnv, borrower, "WETH", "100");
     await approveERC20(testEnv, borrower, "WETH");
 
-    await redeem(testEnv, borrower, "BAYC", tokenId, "success", "");
+    await redeem(testEnv, borrower, "BAYC", tokenId, "-1", "success", "");
   });
 
   it("borrow-auction-liquidate", async () => {

@@ -5,7 +5,6 @@ import DRE from "hardhat";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
 import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
-import { deploySelfdestructTransferMock } from "../helpers/contracts-deployments";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
@@ -129,7 +128,8 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
   });
 
   it("Borrow ETH and Redeem it", async () => {
-    const { users, wethGateway, pool, loan, reserveOracle, nftOracle, weth, bWETH, bayc, dataProvider } = testEnv;
+    const { users, wethGateway, pool, loan, reserveOracle, nftOracle, weth, bWETH, bayc, bBAYC, dataProvider } =
+      testEnv;
     const depositor = users[0];
     const user = users[1];
     const user3 = users[3];
@@ -189,12 +189,24 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).sub(100).toNumber());
     const auctionData = await pool.getNftAuctionData(nftAsset, tokenId);
     const redeemAmountSend = auctionData.bidBorrowAmount.add(auctionData.bidFine);
-    await waitForTx(await wethGateway.connect(user.signer).redeemETH(nftAsset, tokenId, { value: redeemAmountSend }));
+    await waitForTx(
+      await wethGateway.connect(user.signer).redeemETH(nftAsset, tokenId, redeemAmountSend, { value: redeemAmountSend })
+    );
 
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after redeem");
+    const loanDataAfterRedeem = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
+    expect(loanDataAfterRedeem.state).to.be.equal(ProtocolLoanState.Active, "Invalid loan state after redeem");
 
-    const tokenOwner = await bayc.ownerOf(tokenId);
-    expect(tokenOwner).to.be.equal(user.address, "Invalid token owner after redeem");
+    const tokenOwnerAfterRedeem = await bayc.ownerOf(tokenId);
+    expect(tokenOwnerAfterRedeem).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
+
+    // Repay loan
+    await waitForTx(
+      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, redeemAmountSend, { value: redeemAmountSend })
+    );
+    const loanDataAfterRepay = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
+    expect(loanDataAfterRepay.state).to.be.equal(ProtocolLoanState.Repaid, "Invalid loan state after repay");
+
+    const tokenOwnerAfterRepay = await bayc.ownerOf(tokenId);
+    expect(tokenOwnerAfterRepay).to.be.equal(user.address, "Invalid token owner after repay");
   });
 });

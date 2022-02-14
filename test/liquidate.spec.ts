@@ -100,9 +100,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     //approve protocol to access the liquidator wallet
     await weth.connect(liquidator.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
-    const ethReserveDataBefore = await dataProvider.getReserveData(weth.address);
-
-    const userReserveDataBefore = await getUserData(pool, dataProvider, weth.address, borrower.address);
+    const lendpoolBalanceBefore = await weth.balanceOf(pool.address);
 
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "101");
 
@@ -110,17 +108,57 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     await increaseTime(100);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
-    const auctionPrice = new BigNumber(liquidatePrice.toString()).multipliedBy(1.1);
+    const auctionPrice = new BigNumber(liquidatePrice.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(liquidator.signer).auction(bayc.address, "101", auctionPrice.toFixed(0), liquidator.address);
+    await pool.connect(liquidator.signer).auction(bayc.address, "101", auctionPrice, liquidator.address);
+
+    // check result
+    const tokenOwner = await bayc.ownerOf("101");
+    expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after auction");
+
+    const lendpoolBalanceAfter = await weth.balanceOf(pool.address);
+    expect(lendpoolBalanceAfter).to.be.equal(
+      lendpoolBalanceBefore.add(auctionPrice),
+      "Invalid liquidator balance after auction"
+    );
+
+    const auctionDataAfter = await pool.getNftAuctionData(bayc.address, "101");
+    expect(auctionDataAfter.bidPrice).to.be.equal(auctionPrice, "Invalid loan bid price after auction");
+    expect(auctionDataAfter.bidderAddress).to.be.equal(liquidator.address, "Invalid loan bidder address after auction");
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
+  });
+
+  it("WETH - Liquidates the borrow", async () => {
+    const { weth, bayc, users, pool, dataProvider } = testEnv;
+    const liquidator = users[3];
+    const borrower = users[1];
+
+    const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
+
+    const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "101");
+
+    const ethReserveDataBefore = await dataProvider.getReserveData(weth.address);
+
+    const userReserveDataBefore = await getUserData(pool, dataProvider, weth.address, borrower.address);
+
+    // end auction duration
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "101");
+
+    // check result
+    const tokenOwner = await bayc.ownerOf("101");
+    expect(tokenOwner).to.be.equal(liquidator.address, "Invalid token owner after liquidation");
+
+    const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
+
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
     const userReserveDataAfter = await getUserData(pool, dataProvider, weth.address, borrower.address);
 
     const ethReserveDataAfter = await dataProvider.getReserveData(weth.address);
-
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
 
     const userVariableDebtAmountBeforeTx = new BigNumber(userReserveDataBefore.scaledVariableDebt).rayMul(
       new BigNumber(ethReserveDataAfter.variableBorrowIndex.toString())
@@ -152,31 +190,6 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
       new BigNumber(ethReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
       "Invalid principal available liquidity"
     );
-
-    const tokenOwner = await bayc.ownerOf("101");
-    expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after auction");
-  });
-
-  it("WETH - Liquidates the borrow", async () => {
-    const { weth, bayc, users, pool, dataProvider } = testEnv;
-    const liquidator = users[3];
-    const borrower = users[1];
-
-    const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
-
-    const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "101");
-
-    // end auction duration
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
-
-    await pool.connect(liquidator.signer).liquidate(bayc.address, "101");
-
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
-
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
-
-    const tokenOwner = await bayc.ownerOf("101");
-    expect(tokenOwner).to.be.equal(liquidator.address, "Invalid token owner after liquidation");
   });
 
   it("USDC - Borrows USDC", async () => {
@@ -256,11 +269,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     //approve protocol to access the liquidator wallet
     await usdc.connect(liquidator.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
-    const usdcReserveDataBefore = await dataProvider.getReserveData(usdc.address);
-
-    const userReserveDataBefore = await getUserData(pool, dataProvider, usdc.address, borrower.address);
-
-    const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
+    const lendpoolBalanceBefore = await usdc.balanceOf(pool.address);
 
     // accurate borrow index, increment interest to loanDataBefore.scaledAmount
     await increaseTime(100);
@@ -271,47 +280,21 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     await pool.connect(liquidator.signer).auction(bayc.address, "102", auctionPrice, liquidator.address);
 
     // check result
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
-
-    const userReserveDataAfter = await getUserData(pool, dataProvider, usdc.address, borrower.address);
-
-    const usdcReserveDataAfter = await dataProvider.getReserveData(usdc.address);
-
-    const userVariableDebtAmountBeforeTx = new BigNumber(userReserveDataBefore.scaledVariableDebt).rayMul(
-      new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
-    );
-
-    // expect debt amount to be liquidated
-    const expectedLiquidateAmount = new BigNumber(loanDataBefore.scaledAmount.toString()).rayMul(
-      new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
-    );
-
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after liquidation");
-
-    expect(userReserveDataAfter.currentVariableDebt.toString()).to.be.bignumber.almostEqual(
-      userVariableDebtAmountBeforeTx.minus(expectedLiquidateAmount).toString(),
-      "Invalid user debt after liquidation"
-    );
-
-    //the liquidity index of the principal reserve needs to be bigger than the index before
-    expect(usdcReserveDataAfter.liquidityIndex.toString()).to.be.bignumber.gte(
-      usdcReserveDataBefore.liquidityIndex.toString(),
-      "Invalid liquidity index"
-    );
-
-    //the principal APY after a liquidation needs to be lower than the APY before
-    expect(usdcReserveDataAfter.liquidityRate.toString()).to.be.bignumber.lt(
-      usdcReserveDataBefore.liquidityRate.toString(),
-      "Invalid liquidity APY"
-    );
-
-    expect(usdcReserveDataAfter.availableLiquidity.toString()).to.be.bignumber.almostEqual(
-      new BigNumber(usdcReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
-      "Invalid principal available liquidity"
-    );
-
     const tokenOwner = await bayc.ownerOf("102");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after auction");
+
+    const lendpoolBalanceAfter = await usdc.balanceOf(pool.address);
+    expect(lendpoolBalanceAfter).to.be.equal(
+      lendpoolBalanceBefore.add(auctionPrice),
+      "Invalid liquidator balance after auction"
+    );
+
+    const auctionDataAfter = await pool.getNftAuctionData(bayc.address, "102");
+    expect(auctionDataAfter.bidPrice).to.be.equal(auctionPrice, "Invalid loan bid price after auction");
+    expect(auctionDataAfter.bidderAddress).to.be.equal(liquidator.address, "Invalid loan bidder address after auction");
+
+    const loanDataAfter = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
   });
 
   it("USDC - Auctions the borrow at second time with higher price", async () => {
@@ -336,8 +319,18 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const liquidator3BalanceAfter = await usdc.balanceOf(liquidator3.address);
     expect(liquidator3BalanceAfter).to.be.equal(
       liquidator3BalanceBefore.add(auctionDataBefore.bidPrice),
-      "Invalid liquidator balance after redeem"
+      "Invalid liquidator balance after auction"
     );
+
+    const auctionDataAfter = await pool.getNftAuctionData(bayc.address, "102");
+    expect(auctionDataAfter.bidPrice).to.be.equal(auctionPrice, "Invalid loan bid price after auction");
+    expect(auctionDataAfter.bidderAddress).to.be.equal(
+      liquidator4.address,
+      "Invalid loan bidder address after auction"
+    );
+
+    const loanDataAfter = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
   });
 
   it("USDC - Liquidates the borrow", async () => {
@@ -349,16 +342,58 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
 
+    const usdcReserveDataBefore = await dataProvider.getReserveData(usdc.address);
+
+    const userReserveDataBefore = await getUserData(pool, dataProvider, usdc.address, borrower.address);
+
     // end auction duration
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
     await pool.connect(liquidator.signer).liquidate(bayc.address, "102");
 
+    // check result
+    const tokenOwner = await bayc.ownerOf("102");
+    expect(tokenOwner).to.be.equal(liquidator.address, "Invalid token owner after liquidation");
+
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
 
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
 
-    const tokenOwner = await bayc.ownerOf("102");
-    expect(tokenOwner).to.be.equal(liquidator.address, "Invalid token owner after liquidation");
+    const userReserveDataAfter = await getUserData(pool, dataProvider, usdc.address, borrower.address);
+
+    const usdcReserveDataAfter = await dataProvider.getReserveData(usdc.address);
+
+    const userVariableDebtAmountBeforeTx = new BigNumber(userReserveDataBefore.scaledVariableDebt).rayMul(
+      new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
+    );
+
+    // expect debt amount to be liquidated
+    const expectedLiquidateAmount = new BigNumber(loanDataBefore.scaledAmount.toString()).rayMul(
+      new BigNumber(usdcReserveDataAfter.variableBorrowIndex.toString())
+    );
+
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
+
+    expect(userReserveDataAfter.currentVariableDebt.toString()).to.be.bignumber.almostEqual(
+      userVariableDebtAmountBeforeTx.minus(expectedLiquidateAmount).toString(),
+      "Invalid user debt after liquidation"
+    );
+
+    //the liquidity index of the principal reserve needs to be bigger than the index before
+    expect(usdcReserveDataAfter.liquidityIndex.toString()).to.be.bignumber.gte(
+      usdcReserveDataBefore.liquidityIndex.toString(),
+      "Invalid liquidity index"
+    );
+
+    //the principal APY after a liquidation needs to be lower than the APY before
+    expect(usdcReserveDataAfter.liquidityRate.toString()).to.be.bignumber.lt(
+      usdcReserveDataBefore.liquidityRate.toString(),
+      "Invalid liquidity APY"
+    );
+
+    expect(usdcReserveDataAfter.availableLiquidity.toString()).to.be.bignumber.almostEqual(
+      new BigNumber(usdcReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
+      "Invalid principal available liquidity"
+    );
   });
 });

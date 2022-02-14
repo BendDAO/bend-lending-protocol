@@ -139,25 +139,18 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
-  function redeem(uint256 punkIndex) external override returns (uint256) {
+  function redeem(uint256 punkIndex, uint256 amount) external override {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
-    (uint256 loanId, , , uint256 bidBorrowAmount, uint256 bidFine) = cachedPool.getNftAuctionData(
-      address(wrappedPunks),
-      punkIndex
-    );
-    require(loanId > 0, "PunkGateway: no loan with such punkIndex");
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
+    require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), bidBorrowAmount + bidFine);
+    IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
 
-    uint256 paybackAmount = cachedPool.redeem(address(wrappedPunks), punkIndex);
-
-    _withdrawPunk(punkIndex, loan.borrower);
-
-    return paybackAmount;
+    cachedPool.redeem(address(wrappedPunks), punkIndex, amount);
   }
 
   function liquidate(uint256 punkIndex) external override {
@@ -214,17 +207,20 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
   }
 
-  function redeemETH(uint256 punkIndex) external payable override returns (uint256) {
+  function redeemETH(uint256 punkIndex, uint256 amount) external payable override returns (uint256) {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
+    //DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    uint256 paybackAmount = _wethGateway.redeemETH{value: msg.value}(address(wrappedPunks), punkIndex);
+    uint256 paybackAmount = _wethGateway.redeemETH{value: msg.value}(address(wrappedPunks), punkIndex, amount);
 
-    _withdrawPunk(punkIndex, loan.borrower);
+    // refund remaining dust eth
+    if (msg.value > paybackAmount) {
+      _safeTransferETH(msg.sender, msg.value - paybackAmount);
+    }
 
     return paybackAmount;
   }

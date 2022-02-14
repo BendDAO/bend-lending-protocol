@@ -200,7 +200,9 @@ makeSuite("LendPool: Pause", (testEnv: TestEnv) => {
     ).revertedWith(ProtocolErrors.LP_IS_PAUSED);
 
     // Do redeem
-    await expect(pool.connect(liquidator.signer).redeem(bayc.address, "101")).revertedWith(ProtocolErrors.LP_IS_PAUSED);
+    await expect(pool.connect(liquidator.signer).redeem(bayc.address, "101", "1")).revertedWith(
+      ProtocolErrors.LP_IS_PAUSED
+    );
 
     // Do liquidation
     await expect(pool.connect(liquidator.signer).liquidate(bayc.address, "101")).revertedWith(

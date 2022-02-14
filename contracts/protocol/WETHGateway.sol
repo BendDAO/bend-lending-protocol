@@ -16,6 +16,8 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
 
+import "hardhat/console.sol";
+
 contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRecovery {
   ILendPoolAddressesProvider internal _addressProvider;
 
@@ -109,6 +111,8 @@ contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRe
       repayDebtAmount = amount;
     }
 
+    console.log("WETHGateway - repayETH", msg.value, repayDebtAmount);
+
     require(msg.value >= repayDebtAmount, "msg.value is less than repay amount");
 
     WETH.deposit{value: repayDebtAmount}();
@@ -140,25 +144,33 @@ contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRe
     cachedPool.auction(nftAsset, nftTokenId, msg.value, onBehalfOf);
   }
 
-  function redeemETH(address nftAsset, uint256 nftTokenId) external payable override returns (uint256) {
+  function redeemETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) external payable override returns (uint256) {
     ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
-    (uint256 loanId, , , uint256 bidBorrowAmount, uint256 bidFine) = cachedPool.getNftAuctionData(nftAsset, nftTokenId);
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAsset, nftTokenId);
     require(loanId > 0, "collateral loan id not exist");
 
-    uint256 repayDebtAmount = bidBorrowAmount + bidFine;
+    DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
+    require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
 
-    require(msg.value >= repayDebtAmount, "msg.value is less than redeem amount");
+    require(msg.value >= amount, "msg.value is less than redeem amount");
 
-    WETH.deposit{value: repayDebtAmount}();
-    uint256 paybackAmount = cachedPool.redeem(nftAsset, nftTokenId);
+    WETH.deposit{value: amount}();
+
+    uint256 paybackAmount = cachedPool.redeem(nftAsset, nftTokenId, amount);
 
     // refund remaining dust eth
-    if (msg.value > repayDebtAmount) {
-      _safeTransferETH(msg.sender, msg.value - repayDebtAmount);
+    if (msg.value > paybackAmount) {
+      WETH.withdraw(msg.value - paybackAmount);
+      _safeTransferETH(msg.sender, msg.value - paybackAmount);
     }
 
-    return (paybackAmount);
+    return paybackAmount;
   }
 
   function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override {

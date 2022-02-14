@@ -3,11 +3,10 @@ import { BigNumber as BN } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { oneEther, ONE_DAY } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { increaseTime, sleep, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
-import { ERC721Factory } from "../types";
 import {
   approveERC20,
   approveERC20PunkGateway,
@@ -132,11 +131,22 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
   });
 
   it("Borrow USDC and redeem it", async () => {
-    const { users, cryptoPunksMarket, wrappedPunk, punkGateway, usdc, pool, dataProvider, reserveOracle, nftOracle } =
-      testEnv;
+    const {
+      users,
+      cryptoPunksMarket,
+      wrappedPunk,
+      bPUNK,
+      punkGateway,
+      usdc,
+      pool,
+      dataProvider,
+      reserveOracle,
+      nftOracle,
+    } = testEnv;
 
     const [depositor, borrower] = users;
     const liquidator = users[4];
+    const depositUnit = "200000";
     const depositSize = await convertToCurrencyDecimals(usdc.address, "200000");
 
     await sleep(1000 * 1);
@@ -185,7 +195,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     expect(nftDebtDataAfterOracle.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Auction loan
-    //await mintERC20(testEnv, liquidator, "USDC", depositSize.toString());
+    await mintERC20(testEnv, liquidator, "USDC", depositUnit.toString());
     await approveERC20PunkGateway(testEnv, liquidator, "USDC");
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(wrappedPunk.address, punkIndex);
@@ -195,17 +205,29 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     );
 
     // Redeem loan
+    await mintERC20(testEnv, borrower, "USDC", depositUnit.toString());
     await approveERC20PunkGateway(testEnv, borrower, "USDC");
 
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(3600).toNumber());
 
-    await waitForTx(await punkGateway.connect(borrower.signer).redeem(punkIndex));
+    const nftDebtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
 
-    const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after redeem");
+    await waitForTx(await punkGateway.connect(borrower.signer).redeem(punkIndex, nftDebtDataBeforeRedeem.totalDebt));
+
+    const loanDataAfterRedeem = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
+    expect(loanDataAfterRedeem.state).to.be.equal(ProtocolLoanState.Active, "Invalid loan state after redeem");
 
     const punkOwner = await getPunkOwner();
-    expect(punkOwner).to.be.equal(borrower.address, "Invalid punk owner after redeem");
+    expect(punkOwner).to.be.equal(wrappedPunk.address, "Invalid punk owner after redeem");
+
+    const wpunkOwner = await wrappedPunk.ownerOf(punkIndex);
+    expect(wpunkOwner).to.be.equal(bPUNK.address, "Invalid wpunk owner after redeem");
+
+    // Repay loan
+    await waitForTx(await punkGateway.connect(borrower.signer).repay(punkIndex, MAX_UINT_AMOUNT));
+
+    const loanDataAfterRepay = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
+    expect(loanDataAfterRepay.state).to.be.equal(ProtocolLoanState.Repaid, "Invalid loan state after redeem");
   });
 
   it("Borrow ETH and liquidate it", async () => {
@@ -301,6 +323,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
       users,
       cryptoPunksMarket,
       wrappedPunk,
+      bPUNK,
       punkGateway,
       weth,
       wethGateway,
@@ -378,14 +401,30 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     // Redeem ETH loan with native ETH
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(3600).toNumber());
 
-    const auctionData = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
-    const redeemAmountSend = auctionData.bidBorrowAmount.add(auctionData.bidFine);
-    await waitForTx(await punkGateway.connect(borrower.signer).redeemETH(punkIndex, { value: redeemAmountSend }));
+    const auctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
+    const debtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    const redeemAmountSend = debtDataBeforeRedeem.totalDebt.add(auctionDataBeforeRedeem.bidFine);
+    await waitForTx(
+      await punkGateway.connect(borrower.signer).redeemETH(punkIndex, redeemAmountSend, { value: redeemAmountSend })
+    );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
-    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after redeem");
+    expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Active, "Invalid loan state after redeem");
 
     const punkOwner = await getPunkOwner();
-    expect(punkOwner).to.be.equal(borrower.address, "Invalid punk owner after redeem");
+    expect(punkOwner).to.be.equal(wrappedPunk.address, "Invalid punk owner after redeem");
+
+    const wpunkOwner = await wrappedPunk.ownerOf(punkIndex);
+    expect(wpunkOwner).to.be.equal(bPUNK.address, "Invalid wpunk owner after redeem");
+
+    // Repay loan
+    const debtDataBeforeRepay = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    const repayAmount = new BigNumber(debtDataBeforeRepay.totalDebt.toString()).multipliedBy(1.1).toFixed(0);
+    await waitForTx(
+      await punkGateway.connect(borrower.signer).repayETH(punkIndex, MAX_UINT_AMOUNT, { value: repayAmount })
+    );
+
+    const loanDataAfterRepay = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
+    expect(loanDataAfterRepay.state).to.be.equal(ProtocolLoanState.Repaid, "Invalid loan state after repay");
   });
 });
