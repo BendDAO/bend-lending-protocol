@@ -29,12 +29,12 @@ export const BendConfig: IBendConfiguration = {
     USDC: strategyUSDC,
   },
   NftsConfig: {
-    WPUNKS: strategyNftClassC,
-    BAYC: strategyNftClassC,
-    DOODLE: strategyNftClassD,
-    COOL: strategyNftClassD,
-    MEEBITS: strategyNftClassD,
-    MAYC: strategyNftClassD,
+    WPUNKS: strategyNftClassB,
+    BAYC: strategyNftClassB,
+    DOODLE: strategyNftClassC,
+    COOL: strategyNftClassC,
+    MEEBITS: strategyNftClassC,
+    MAYC: strategyNftClassC,
   },
   ReserveAssets: {
     [eEthereumNetwork.hardhat]: {},
