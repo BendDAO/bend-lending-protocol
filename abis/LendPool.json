@@ -584,7 +584,7 @@
       },
       {
         "internalType": "address",
-        "name": "bidderAddres",
+        "name": "bidderAddress",
         "type": "address"
       },
       {
@@ -1109,6 +1109,11 @@
       {
         "internalType": "uint256",
         "name": "nftTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
         "type": "uint256"
       }
     ],

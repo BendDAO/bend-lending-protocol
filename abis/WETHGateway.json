@@ -301,6 +301,11 @@
         "internalType": "uint256",
         "name": "nftTokenId",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
     "name": "redeemETH",

@@ -159,6 +159,26 @@
             "internalType": "uint256",
             "name": "currentAmount",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidStartTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "bidderAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidBorrowAmount",
+            "type": "uint256"
           }
         ],
         "internalType": "struct BendProtocolDataProvider.LoanData",
@@ -219,6 +239,26 @@
           {
             "internalType": "uint256",
             "name": "currentAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidStartTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "bidderAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidPrice",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidBorrowAmount",
             "type": "uint256"
           }
         ],
