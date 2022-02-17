@@ -6,7 +6,15 @@ import {
   getWrappedPunkTokenAddress,
   loadPoolConfig,
 } from "../../helpers/configuration";
-import { getDeploySigner, getLendPoolAddressesProvider, getWETHGateway } from "../../helpers/contracts-getters";
+import {
+  getBendProtocolDataProvider,
+  getDeploySigner,
+  getLendPoolAddressesProvider,
+  getPunkGateway,
+  getUIPoolDataProvider,
+  getWalletProvider,
+  getWETHGateway,
+} from "../../helpers/contracts-getters";
 import { eNetwork } from "../../helpers/types";
 import {
   deployLendPool,
@@ -25,6 +33,8 @@ import {
 } from "../../helpers/contracts-deployments";
 import { waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
+import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
+import { ethers } from "hardhat";
 
 task("dev:deploy-new-implementation", "Deploy new implementation")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -93,6 +103,18 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
     }
 
+    if (contract == "WETHGateway") {
+      const wethAddress = await getWrappedNativeTokenAddress(poolConfig);
+      console.log("WETH.address", wethAddress);
+
+      const wethGatewayImpl = await deployWETHGateway([addressesProvider.address, wethAddress], verify);
+      console.log("WETHGateway implementation address:", wethGatewayImpl.address);
+
+      if (setAddressProvider) {
+        await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_WETH_GATEWAY, wethGatewayImpl.address));
+      }
+    }
+
     if (contract == "PunkGateway") {
       const wethGateWay = await getWETHGateway();
       console.log("WETHGateway.address", wethGateWay.address);
@@ -108,14 +130,19 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
         verify
       );
       console.log("PunkGateway implementation address:", punkGatewayImpl.address);
+
+      if (setAddressProvider) {
+        await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_PUNK_GATEWAY, punkGatewayImpl.address));
+      }
     }
 
-    if (contract == "WETHGateway") {
-      const wethAddress = await getWrappedNativeTokenAddress(poolConfig);
-      console.log("WETH.address", wethAddress);
+    if (contract == "BendProtocolDataProvider") {
+      const contractImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
+      console.log("BendProtocolDataProvider implementation address:", contractImpl.address);
 
-      const wethGatewayImpl = await deployWETHGateway([addressesProvider.address, wethAddress], verify);
-      console.log("WETHGateway implementation address:", wethGatewayImpl.address);
+      if (setAddressProvider) {
+        await waitForTx(await addressesProvider.setBendDataProvider(contractImpl.address));
+      }
     }
 
     if (contract == "UiPoolDataProvider") {
@@ -125,15 +152,55 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
         verify
       );
       console.log("UiPoolDataProvider implementation address:", contractImpl.address);
-    }
 
-    if (contract == "BendProtocolDataProvider") {
-      const contractImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
-      console.log("WalletBalancerProvider implementation address:", contractImpl.address);
+      if (setAddressProvider) {
+        await waitForTx(await addressesProvider.setUIDataProvider(contractImpl.address));
+      }
     }
 
     if (contract == "WalletBalancerProvider") {
       const contractImpl = await deployWalletBalancerProvider(verify);
       console.log("WalletBalancerProvider implementation address:", contractImpl.address);
+
+      if (setAddressProvider) {
+        await waitForTx(await addressesProvider.setWalletBalanceProvider(contractImpl.address));
+      }
+    }
+  });
+
+task("dev:update-implementation-to-address-provider", "Update implementation to address provider")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .setAction(async ({ verify, pool }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProviderRaw = await getLendPoolAddressesProvider();
+    const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
+    const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
+
+    {
+      const wethGatewayImpl = await getWETHGateway();
+      await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_WETH_GATEWAY, wethGatewayImpl.address));
+    }
+
+    {
+      const punkGatewayImpl = await getPunkGateway();
+      await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_PUNK_GATEWAY, punkGatewayImpl.address));
+    }
+
+    {
+      const bendProviderImpl = await getBendProtocolDataProvider();
+      await waitForTx(await addressesProvider.setBendDataProvider(bendProviderImpl.address));
+    }
+
+    {
+      const uiProviderImpl = await getUIPoolDataProvider();
+      await waitForTx(await addressesProvider.setUIDataProvider(uiProviderImpl.address));
+    }
+
+    {
+      const walletProviderImpl = await getWalletProvider();
+      await waitForTx(await addressesProvider.setWalletBalanceProvider(walletProviderImpl.address));
     }
   });

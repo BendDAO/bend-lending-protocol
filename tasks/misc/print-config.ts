@@ -1,5 +1,6 @@
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
+import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import {
   getBendProtocolDataProvider,
   getLendPool,
@@ -41,6 +42,9 @@ task("print-config", "Print config of all reserves and nfts")
     console.log("Bend Data Provider:", protocolDataProvider.address);
     console.log("UI Data Provider:", await addressesProvider.getUIDataProvider());
     console.log("Wallet Balance Provider:", await addressesProvider.getWalletBalanceProvider());
+
+    console.log("WETHGateway:", await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY));
+    console.log("PunkGateway:", await addressesProvider.getAddress(ADDRESS_ID_PUNK_GATEWAY));
 
     console.log(`- LendPool config`);
     const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());

@@ -30,6 +30,12 @@ export const MOCK_USD_PRICE = "425107839690";
 export const USD_ADDRESS = "0x9ceb4d4c184d1786614a593a03621b7f37f8685f"; //index 19, lowercase
 export const BEND_REFERRAL = "0";
 
+// ----------------
+// ADDRESS IDS IN PROVIDER
+// ----------------
+export const ADDRESS_ID_WETH_GATEWAY = "0xADDE000000000000000000000000000000000000000000000000000000000001";
+export const ADDRESS_ID_PUNK_GATEWAY = "0xADDE000000000000000000000000000000000000000000000000000000000002";
+
 //Price source: https://data.chain.link/ethereum/mainnet/stablecoins
 export const MOCK_RESERVE_AGGREGATORS_PRICES = {
   WETH: oneEther.toFixed(),

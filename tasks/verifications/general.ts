@@ -11,6 +11,7 @@ import {
   getWETHGateway,
   getPunkGateway,
   getUIPoolDataProvider,
+  getLendPoolAddressesProviderRegistry,
 } from "../../helpers/contracts-getters";
 import { verifyContract, getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -25,6 +26,7 @@ task("verify:general", "Verify general contracts at Etherscan")
     const poolConfig = loadPoolConfig(pool);
     const { MarketId, CryptoPunksMarket, WrappedPunkToken } = poolConfig as ICommonConfiguration;
 
+    const providerRegistry = await getLendPoolAddressesProviderRegistry();
     const addressesProvider = await getLendPoolAddressesProvider();
 
     const lendPoolAddress = await addressesProvider.getLendPool();
@@ -51,6 +53,9 @@ task("verify:general", "Verify general contracts at Etherscan")
       const punkGateway = await getPunkGateway();
 
       // Address Provider
+      console.log("\n- Verifying provider registry...\n");
+      await verifyContract(eContractid.LendPoolAddressesProviderRegistry, providerRegistry, []);
+
       console.log("\n- Verifying address provider...\n");
       await verifyContract(eContractid.LendPoolAddressesProvider, addressesProvider, [MarketId]);
 

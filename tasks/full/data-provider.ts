@@ -27,17 +27,20 @@ task("full:deploy-data-provider", "Deploy data provider for full enviroment")
     if (wallet) {
       const walletBalanceProvider = await deployWalletBalancerProvider(verify);
       console.log("WalletBalancerProvider deployed at:", walletBalanceProvider.address);
+      await waitForTx(await addressesProvider.setWalletBalanceProvider(walletBalanceProvider.address));
     }
 
     // this contract is not support upgrade, just deploy new contract
     if (protocol) {
       const bendProtocolDataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
       console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
+      await waitForTx(await addressesProvider.setBendDataProvider(bendProtocolDataProvider.address));
     }
 
     // this contract is not support upgrade, just deploy new contract
     if (ui) {
       const uiPoolDataProvider = await deployUiPoolDataProvider(reserveOracle, nftOracle, verify);
       console.log("UiPoolDataProvider deployed at:", uiPoolDataProvider.address);
+      await waitForTx(await addressesProvider.setUIDataProvider(uiPoolDataProvider.address));
     }
   });
