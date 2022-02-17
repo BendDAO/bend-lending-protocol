@@ -15,6 +15,7 @@ library PercentageMath {
   uint256 constant PERCENTAGE_FACTOR = 1e4; //percentage plus two decimals
   uint256 constant HALF_PERCENT = PERCENTAGE_FACTOR / 2;
   uint256 constant ONE_PERCENT = 1e2; //100, 1%
+  uint256 constant TEN_PERCENT = 1e3; //1000, 10%
   uint256 constant ONE_THOUSANDTH_PERCENT = 1e1; //10, 0.1%
   uint256 constant ONE_TEN_THOUSANDTH_PERCENT = 1; //1, 0.01%
 

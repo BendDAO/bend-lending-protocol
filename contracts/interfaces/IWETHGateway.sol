@@ -64,8 +64,13 @@ interface IWETHGateway {
    * @dev redeems a borrow on the WETH reserve
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
+   * @param amount The amount to repay the debt and bid fine
    */
-  function redeemETH(address nftAsset, uint256 nftTokenId) external payable returns (uint256);
+  function redeemETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) external payable returns (uint256);
 
   /**
    * @dev liquidates a borrow on the WETH reserve

@@ -352,6 +352,11 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       vars.repayAmount
     );
 
+    // transfer erc721 to borrower
+    if (!vars.isUpdate) {
+      IERC721Upgradeable(loanData.nftAsset).safeTransferFrom(address(this), loanData.borrower, nftTokenId);
+    }
+
     emit Repay(
       vars.initiator,
       loanData.reserveAsset,
@@ -396,14 +401,18 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
-   * @return The final amount repaid
+   * @param amount The amount to repay the debt and bid fine
    **/
-  function redeem(address nftAsset, uint256 nftTokenId) external override whenNotPaused returns (uint256) {
+  function redeem(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) external override whenNotPaused returns (uint256) {
     address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
 
     //solium-disable-next-line
     (bool success, bytes memory result) = poolLiquidator.delegatecall(
-      abi.encodeWithSignature("redeem(address,uint256)", nftAsset, nftTokenId)
+      abi.encodeWithSignature("redeem(address,uint256,uint256)", nftAsset, nftTokenId, amount)
     );
 
     bytes memory resultData = _verifyCallResult(success, result, Errors.LP_DELEGATE_CALL_FAILED);
@@ -615,7 +624,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param nftAsset The address of the NFT
    * @param nftTokenId The token id of the NFT
    * @return loanId the loan id of the NFT
-   * @return bidderAddres the highest bidder address of the loan
+   * @return bidderAddress the highest bidder address of the loan
    * @return bidPrice the highest bid price in Reserve of the loan
    * @return bidBorrowAmount the borrow amount in Reserve of the loan
    * @return bidFine the penalty fine of the loan
@@ -626,7 +635,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     override
     returns (
       uint256 loanId,
-      address bidderAddres,
+      address bidderAddress,
       uint256 bidPrice,
       uint256 bidBorrowAmount,
       uint256 bidFine
@@ -637,7 +646,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
       DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
-      bidderAddres = loan.bidderAddress;
+      bidderAddress = loan.bidderAddress;
       bidPrice = loan.bidPrice;
       bidBorrowAmount = loan.bidBorrowAmount;
       bidFine = loan.bidPrice.percentMul(nftData.configuration.getRedeemFine());

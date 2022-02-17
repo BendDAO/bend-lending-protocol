@@ -152,6 +152,8 @@ export enum ProtocolErrors {
   LPL_BID_AUCTION_DURATION_HAS_END = "489",
   LPL_BID_AUCTION_DURATION_NOT_END = "490",
   LPL_BID_PRICE_LESS_THAN_BORROW = "491",
+  LPL_INVALID_BIDDER_ADDRESS = "492",
+  LPL_AMOUNT_LESS_THAN_BID_FINE = "493",
 
   //common token errors
   CT_CALLER_MUST_BE_LEND_POOL = "500", // 'The caller of this function must be a lending pool'

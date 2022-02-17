@@ -40,5 +40,6 @@ export interface LoanData {
   bidderAddress: string;
   bidPrice: BigNumber;
   bidBorrowAmount: BigNumber;
+  bidFine: BigNumber;
   [key: string]: BigNumber | string | Boolean;
 }

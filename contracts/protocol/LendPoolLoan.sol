@@ -182,7 +182,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.borrower, loan.nftTokenId);
+    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), _msgSender(), loan.nftTokenId);
 
     emit LoanRepaid(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amount, borrowIndex);
   }
@@ -209,13 +209,13 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
       loan.state = DataTypes.LoanState.Auction;
       loan.bidStartTimestamp = block.timestamp;
-      loan.bidBorrowAmount = borrowAmount;
     } else {
       require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
       require(bidPrice > loan.bidPrice, Errors.LPL_BID_PRICE_LESS_THAN_HIGHEST_PRICE);
     }
 
+    loan.bidBorrowAmount = borrowAmount;
     loan.bidderAddress = onBehalfOf;
     loan.bidPrice = bidPrice;
 
@@ -236,11 +236,42 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   /**
    * @inheritdoc ILendPoolLoan
    */
+  function redeemLoan(
+    address initiator,
+    uint256 loanId,
+    uint256 amountTaken,
+    uint256 borrowIndex
+  ) external override onlyLendPool {
+    // Must use storage to change state
+    DataTypes.LoanData storage loan = _loans[loanId];
+
+    // Ensure valid loan state
+    require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
+
+    uint256 amountScaled = amountTaken.rayDiv(borrowIndex);
+    require(amountScaled != 0, Errors.LPL_INVALID_TAKEN_AMOUNT);
+
+    require(loan.scaledAmount >= amountScaled, Errors.LPL_AMOUNT_OVERFLOW);
+    loan.scaledAmount -= amountScaled;
+
+    loan.state = DataTypes.LoanState.Active;
+    loan.bidStartTimestamp = 0;
+    loan.bidBorrowAmount = 0;
+    loan.bidderAddress = address(0);
+    loan.bidPrice = 0;
+
+    emit LoanRedeemed(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amountTaken, borrowIndex);
+  }
+
+  /**
+   * @inheritdoc ILendPoolLoan
+   */
   function liquidateLoan(
     address initiator,
     uint256 loanId,
     address bNftAddress,
-    uint256 liqType
+    uint256 borrowAmount,
+    uint256 borrowIndex
   ) external override onlyLendPool {
     // Must use storage to change state
     DataTypes.LoanData storage loan = _loans[loanId];
@@ -251,6 +282,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // state changes and cleanup
     // NOTE: these must be performed before assets are released to prevent reentrance
     _loans[loanId].state = DataTypes.LoanState.Defaulted;
+    _loans[loanId].bidBorrowAmount = borrowAmount;
 
     _nftToLoanIds[loan.nftAsset][loan.nftTokenId] = 0;
 
@@ -263,11 +295,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-    if (liqType == 1) {
-      IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.borrower, loan.nftTokenId);
-    } else {
-      IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.bidderAddress, loan.nftTokenId);
-    }
+    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), _msgSender(), loan.nftTokenId);
 
     emit LoanLiquidated(
       initiator,
@@ -275,8 +303,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       loan.nftAsset,
       loan.nftTokenId,
       loan.reserveAsset,
-      loan.bidBorrowAmount,
-      liqType
+      borrowAmount,
+      borrowIndex
     );
   }
 

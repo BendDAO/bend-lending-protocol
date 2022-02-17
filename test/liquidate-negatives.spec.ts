@@ -199,10 +199,13 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("User 1 redeem after duration is end", async () => {
-    const { bayc, pool, users } = testEnv;
+    const { bayc, pool, users, dataProvider } = testEnv;
     const user1 = users[1];
 
-    await expect(pool.connect(user1.signer).redeem(bayc.address, "101")).to.be.revertedWith(
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidFine.add(100);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount)).to.be.revertedWith(
       ProtocolErrors.LPL_BID_REDEEM_DURATION_HAS_END
     );
   });
