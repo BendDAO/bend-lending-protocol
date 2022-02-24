@@ -15,7 +15,7 @@ import {
   getWalletProvider,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
-import { eNetwork } from "../../helpers/types";
+import { eContractid, eNetwork } from "../../helpers/types";
 import {
   deployLendPool,
   deployLendPoolLoan,
@@ -32,7 +32,7 @@ import {
   deployWETHGateway,
 } from "../../helpers/contracts-deployments";
 import { waitForTx } from "../../helpers/misc-utils";
-import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
+import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import { ethers } from "hardhat";
 
@@ -65,6 +65,8 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
         await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
         await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
       }
+      await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
+      await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
     }
 
     if (contract == "LendPoolConfigurator") {
@@ -74,6 +76,10 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       if (setAddressProvider) {
         await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolCfgImpl.address, []));
       }
+      await insertContractAddressInDb(
+        eContractid.LendPoolConfigurator,
+        await addressesProvider.getLendPoolConfigurator()
+      );
     }
 
     if (contract == "LendPoolLoan") {
@@ -83,6 +89,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       if (setAddressProvider) {
         await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address, []));
       }
+      await insertContractAddressInDb(eContractid.LendPoolLoan, await addressesProvider.getLendPoolLoan());
     }
 
     if (contract == "ReserveOracle") {
@@ -92,6 +99,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       if (setAddressProvider) {
         await waitForTx(await addressesProvider.setReserveOracle(reserveOracleImpl.address));
       }
+      await insertContractAddressInDb(eContractid.ReserveOracle, await addressesProvider.getReserveOracle());
     }
 
     if (contract == "NFTOracle") {
@@ -101,6 +109,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       if (setAddressProvider) {
         await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
       }
+      await insertContractAddressInDb(eContractid.NFTOracle, await addressesProvider.getNFTOracle());
     }
 
     if (contract == "WETHGateway") {
