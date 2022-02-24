@@ -65,23 +65,23 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ReserveLogic": {
-    "address": "0xcF4ca109b25a95c34818f1362081e042c172e675",
+    "address": "0x06c50E21Ca361720eF777FAa12425cAD1D056712",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "NftLogic": {
-    "address": "0xfeF9Ea1f028c5756669dcc8fe517f32E4F12ebCa",
+    "address": "0xB61b8d1DD0Ae313c19c8b233cA0Ae46B26F8E6d7",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "GenericLogic": {
-    "address": "0xdE67475c7e8c984Fa9Dd14e47B2ce0b13E0C7f07",
+    "address": "0x13Ec4EAfD19cda70C6087d39F0A6A127f1b337eF",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ValidationLogic": {
-    "address": "0x44aaC888c19240E38d2B9C113c241DaA6790d0aB",
+    "address": "0x43EFe82E27D2154AbBe804b281251210b486C433",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
-    "address": "0xf31E8392fF346BB669fED1234f9b36E172Dc73aD"
+    "address": "0x1F830b34D62994cB621E77F774E20D96b856335f"
   },
   "LendPool": {
     "address": "0xa8D0e90bCB533d70067EEc37601fa7D5C5b3F13E",
@@ -127,11 +127,11 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "WETHGateway": {
-    "address": "0xF2FB8ec802ee07647A4942a1Cc61FeaA6B14A400",
+    "address": "0x0f8DDEC5835c67C68c4A02dDe2236D20bEEA889d",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGateway": {
-    "address": "0x1d1dFc67489C55B47c964b8254B95244a4574Ffe",
+    "address": "0x34eB0565b587bbD31A32e82e74145bb6C122834D",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "InterestRate": {
@@ -160,10 +160,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolLiquidatorImpl": {
-    "address": "0xC575B8Ecb44F25d7c393b335dC3fb694BEFC9cFB"
+    "address": "0x447e532b43b47CF3a783cfe57d610823f819ef04"
   },
   "LendPoolLiquidator": {
-    "address": "0xC575B8Ecb44F25d7c393b335dC3fb694BEFC9cFB",
+    "address": "0x447e532b43b47CF3a783cfe57d610823f819ef04",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "DOODLE": {
