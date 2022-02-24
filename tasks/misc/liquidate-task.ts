@@ -89,7 +89,7 @@ task("dev:pool-liquidate", "Doing WETH liquidate task")
 
     const wethGateway = await getWETHGateway();
 
-    await waitForTx(await lendPool.liquidate(token, id));
+    await waitForTx(await lendPool.liquidate(token, id, 0));
 
     console.log("OK");
   });
@@ -145,9 +145,25 @@ task("dev:weth-liquidate", "Doing WETH liquidate task")
   .setAction(async ({ pool, token, id }, DRE) => {
     await DRE.run("set-DRE");
 
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const dataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
+    const loanData = await dataProvider.getLoanDataByCollateral(token, id);
+    let extraAmount = new BigNumber(0);
+    if (loanData.currentAmount.gt(loanData.bidPrice)) {
+      extraAmount = new BigNumber(loanData.currentAmount.sub(loanData.bidPrice).toString()).multipliedBy(1.1);
+    }
+    console.log(
+      "currentAmount:",
+      loanData.currentAmount.toString(),
+      "bidPrice:",
+      loanData.bidPrice.toString(),
+      "extraAmount:",
+      extraAmount.toFixed(0)
+    );
+
     const wethGateway = await getWETHGateway();
 
-    await waitForTx(await wethGateway.liquidateETH(token, id));
+    await waitForTx(await wethGateway.liquidateETH(token, id, { value: extraAmount.toFixed(0) }));
 
     console.log("OK");
   });

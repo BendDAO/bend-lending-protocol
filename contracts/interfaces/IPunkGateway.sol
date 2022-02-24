@@ -49,13 +49,13 @@ interface IPunkGateway {
    * @param punkIndex The index of the CryptoPunk used as collteral
    * @param amount The amount to repay the debt and bid fine
    **/
-  function redeem(uint256 punkIndex, uint256 amount) external;
+  function redeem(uint256 punkIndex, uint256 amount) external returns (uint256);
 
   /**
    * @notice liquidate a unhealth punk loan with ERC20 reserve
    * @param punkIndex The index of the CryptoPunk used as collteral
    **/
-  function liquidate(uint256 punkIndex) external;
+  function liquidate(uint256 punkIndex, uint256 amount) external returns (uint256);
 
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -105,5 +105,5 @@ interface IPunkGateway {
    * @notice liquidate a unhealth punk loan with native ETH
    * @param punkIndex The index of the CryptoPunk to repay
    **/
-  function liquidateETH(uint256 punkIndex) external payable;
+  function liquidateETH(uint256 punkIndex) external payable returns (uint256);
 }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import {IWETH} from "../interfaces/IWETH.sol";
@@ -16,9 +16,7 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
 
 import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
 
-import "hardhat/console.sol";
-
-contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRecovery {
+contract WETHGateway is ERC721Holder, IWETHGateway, Ownable, EmergencyTokenRecovery {
   ILendPoolAddressesProvider internal _addressProvider;
 
   IWETH internal WETH;
@@ -111,8 +109,6 @@ contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRe
       repayDebtAmount = amount;
     }
 
-    console.log("WETHGateway - repayETH", msg.value, repayDebtAmount);
-
     require(msg.value >= repayDebtAmount, "msg.value is less than repay amount");
 
     WETH.deposit{value: repayDebtAmount}();
@@ -173,7 +169,7 @@ contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRe
     return paybackAmount;
   }
 
-  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override {
+  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -183,20 +179,18 @@ contract WETHGateway is IERC721Receiver, IWETHGateway, Ownable, EmergencyTokenRe
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
     require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
 
-    cachedPool.liquidate(nftAsset, nftTokenId);
-  }
+    if (msg.value > 0) {
+      WETH.deposit{value: msg.value}();
+    }
 
-  function onERC721Received(
-    address operator,
-    address from,
-    uint256 tokenId,
-    bytes calldata data
-  ) external pure override returns (bytes4) {
-    operator;
-    from;
-    tokenId;
-    data;
-    return IERC721Receiver.onERC721Received.selector;
+    uint256 extraAmount = cachedPool.liquidate(nftAsset, nftTokenId, msg.value);
+
+    if (msg.value > extraAmount) {
+      WETH.withdraw(msg.value - extraAmount);
+      _safeTransferETH(msg.sender, msg.value - extraAmount);
+    }
+
+    return (extraAmount);
   }
 
   /**

@@ -429,15 +429,23 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
    **/
-  function liquidate(address nftAsset, uint256 nftTokenId) external override whenNotPaused {
+  function liquidate(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) external override whenNotPaused returns (uint256) {
     address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
 
     //solium-disable-next-line
     (bool success, bytes memory result) = poolLiquidator.delegatecall(
-      abi.encodeWithSignature("liquidate(address,uint256)", nftAsset, nftTokenId)
+      abi.encodeWithSignature("liquidate(address,uint256,uint256)", nftAsset, nftTokenId, amount)
     );
 
-    _verifyCallResult(success, result, Errors.LP_DELEGATE_CALL_FAILED);
+    bytes memory resultData = _verifyCallResult(success, result, Errors.LP_DELEGATE_CALL_FAILED);
+
+    uint256 extraAmount = abi.decode(resultData, (uint256));
+
+    return (extraAmount);
   }
 
   function onERC721Received(

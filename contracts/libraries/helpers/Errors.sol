@@ -61,6 +61,7 @@ library Errors {
   string public constant LP_INVALIED_NFT_AMOUNT = "411";
   string public constant LP_NFT_HAS_USED_AS_COLLATERAL = "412";
   string public constant LP_DELEGATE_CALL_FAILED = "413";
+  string public constant LP_AMOUNT_LESS_THAN_EXTRA_DEBT = "414";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";

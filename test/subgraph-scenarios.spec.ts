@@ -157,6 +157,6 @@ makeSuite("Subgraph tests", async (testEnv) => {
     await increaseAuctionDuration(testEnv, "BAYC", true);
 
     // liquidate
-    await liquidate(testEnv, liquidator, "BAYC", tokenId, "success", "");
+    await liquidate(testEnv, liquidator, "BAYC", tokenId, "0", "success", "");
   });
 });

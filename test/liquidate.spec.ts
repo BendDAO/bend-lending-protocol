@@ -146,7 +146,8 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     // end auction duration
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await pool.connect(liquidator.signer).liquidate(bayc.address, "101");
+    const extraAmount = await convertToCurrencyDecimals(weth.address, "1");
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "101", extraAmount);
 
     // check result
     const tokenOwner = await bayc.ownerOf("101");
@@ -303,7 +304,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const liquidator4 = users[4];
 
     //mints USDC to the liquidator
-    await usdc.connect(liquidator4.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
+    await usdc.connect(liquidator4.signer).mint(await convertToCurrencyDecimals(usdc.address, "150000"));
     //approve protocol to access the liquidator wallet
     await usdc.connect(liquidator4.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
 
@@ -349,7 +350,8 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     // end auction duration
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await pool.connect(liquidator.signer).liquidate(bayc.address, "102");
+    const extraAmount = await convertToCurrencyDecimals(usdc.address, "10");
+    await pool.connect(liquidator.signer).liquidate(bayc.address, "102", extraAmount);
 
     // check result
     const tokenOwner = await bayc.ownerOf("102");

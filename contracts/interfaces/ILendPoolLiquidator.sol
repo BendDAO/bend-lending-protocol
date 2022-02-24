@@ -102,5 +102,9 @@ interface ILendPoolLiquidator {
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
    **/
-  function liquidate(address nftAsset, uint256 nftTokenId) external;
+  function liquidate(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) external returns (uint256);
 }

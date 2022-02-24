@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { BigNumber as BN } from "ethers";
+import { BigNumber as BN, BigNumberish } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import DRE from "hardhat";
 
@@ -27,11 +27,7 @@ const { expect } = chai;
 
 makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
   let baycInitPrice: BN;
-
-  const zero = BN.from(0);
-  const depositSize = parseEther("5");
-  const depositSize500 = parseEther("500");
-  const GAS_PRICE = NETWORKS_DEFAULT_GAS[DRE.network.name];
+  let depositSize: BigNumberish;
 
   before("Initializing configuration", async () => {
     // Sets BigNumber for this suite, instead of globally
@@ -47,6 +43,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     );
 
     baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
+    depositSize = new BigNumber(baycInitPrice.toString()).multipliedBy(0.8).toFixed(0);
   });
   after("Reset", () => {
     // Reset BigNumber
@@ -69,7 +66,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     }
 
     // Deposit with native ETH
-    await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize500 });
+    await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize });
 
     // Start loan
     const nftAsset = await getNftAddressFromSymbol("BAYC");
@@ -102,23 +99,34 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     // Drop the health factor below 1
     const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, tokenId);
     const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
-    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "1");
 
     const nftDebtDataBeforeAuction = await pool.getNftDebtData(bayc.address, tokenId);
     expect(nftDebtDataBeforeAuction.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Liquidate ETH loan with native ETH
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, tokenId);
-    const liquidateAmountSend = liquidatePrice.add(liquidatePrice.mul(5).div(100));
+    const auctionAmountSend = new BigNumber(liquidatePrice.toString()).multipliedBy(1.05).toFixed(0);
     await waitForTx(
       await wethGateway
         .connect(liquidator.signer)
-        .auctionETH(nftAsset, tokenId, liquidator.address, { value: liquidateAmountSend })
+        .auctionETH(nftAsset, tokenId, liquidator.address, { value: auctionAmountSend })
     );
 
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
-    await waitForTx(await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId));
+    await increaseTime(new BigNumber(ONE_DAY).multipliedBy(365).toNumber()); // accrue more interest, debt exceed bid price
+
+    const loanDataBeforeLiquidate = await dataProvider.getLoanDataByCollateral(nftAsset, tokenId);
+    const extraAmount = new BigNumber(
+      loanDataBeforeLiquidate.currentAmount.sub(loanDataBeforeLiquidate.bidPrice).toString()
+    )
+      .multipliedBy(1.1)
+      .toFixed(0);
+    console.log("extraAmount:", extraAmount);
+    await waitForTx(
+      await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, { value: extraAmount })
+    );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataBeforeAuction.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
@@ -138,7 +146,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     await setNftAssetPrice(testEnv, "BAYC", baycInitPrice.toString());
 
     // Deposit with native ETH
-    await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize500 });
+    await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize });
 
     // Start loan
     const nftAsset = await getNftAddressFromSymbol("BAYC");

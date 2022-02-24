@@ -23,7 +23,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const { configurator, bayc, pool, users } = testEnv;
     const user1 = users[1];
 
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", "0")).to.be.revertedWith(
       ProtocolErrors.LP_NFT_IS_NOT_USED_AS_COLLATERAL
     );
   });
@@ -77,7 +77,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
 
     await configurator.deactivateNft(bayc.address);
 
-    await expect(pool.connect(user2.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user2.signer).liquidate(bayc.address, "101", "0")).to.be.revertedWith(
       ProtocolErrors.VL_NO_ACTIVE_NFT
     );
 
@@ -185,7 +185,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const { bayc, pool, users } = testEnv;
     const user2 = users[2];
 
-    await expect(pool.connect(user2.signer).liquidate(bayc.address, "101")).to.be.revertedWith(
+    await expect(pool.connect(user2.signer).liquidate(bayc.address, "101", "0")).to.be.revertedWith(
       ProtocolErrors.LPL_BID_AUCTION_DURATION_NOT_END
     );
   });

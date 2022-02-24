@@ -279,7 +279,11 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
    **/
-  function liquidate(address nftAsset, uint256 nftTokenId) external override {
+  function liquidate(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) external override returns (uint256) {
     LiquidateLocalVars memory vars;
     vars.initiator = _msgSender();
 
@@ -315,6 +319,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     // Last bid price can not cover borrow amount
     if (loanData.bidPrice < vars.borrowAmount) {
       vars.extraDebtAmount = vars.borrowAmount - loanData.bidPrice;
+      require(amount >= vars.extraDebtAmount, Errors.LP_AMOUNT_LESS_THAN_EXTRA_DEBT);
     }
 
     if (loanData.bidPrice > vars.borrowAmount) {
@@ -364,5 +369,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       loanData.borrower,
       vars.loanId
     );
+
+    return (vars.extraDebtAmount);
   }
 }

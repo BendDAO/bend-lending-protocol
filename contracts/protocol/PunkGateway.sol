@@ -4,7 +4,8 @@ pragma solidity ^0.8.0;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
@@ -17,7 +18,9 @@ import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 
 import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
 
-contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRecovery {
+contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecovery {
+  using SafeERC20 for IERC20;
+
   ILendPoolAddressesProvider internal _addressProvider;
   IWETHGateway internal _wethGateway;
 
@@ -139,7 +142,7 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
-  function redeem(uint256 punkIndex, uint256 amount) external override {
+  function redeem(uint256 punkIndex, uint256 amount) external override returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -150,10 +153,16 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
 
     IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
 
-    cachedPool.redeem(address(wrappedPunks), punkIndex, amount);
+    uint256 paybackAmount = cachedPool.redeem(address(wrappedPunks), punkIndex, amount);
+
+    if (amount > paybackAmount) {
+      IERC20(loan.reserveAsset).safeTransfer(msg.sender, (amount - paybackAmount));
+    }
+
+    return paybackAmount;
   }
 
-  function liquidate(uint256 punkIndex) external override {
+  function liquidate(uint256 punkIndex, uint256 amount) external override returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -162,9 +171,19 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    cachedPool.liquidate(address(wrappedPunks), punkIndex);
+    if (amount > 0) {
+      IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
+    }
+
+    uint256 extraRetAmount = cachedPool.liquidate(address(wrappedPunks), punkIndex, amount);
 
     _withdrawPunk(punkIndex, loan.bidderAddress);
+
+    if (amount > extraRetAmount) {
+      IERC20(loan.reserveAsset).safeTransfer(msg.sender, (amount - extraRetAmount));
+    }
+
+    return (extraRetAmount);
   }
 
   function borrowETH(
@@ -225,7 +244,7 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
     return paybackAmount;
   }
 
-  function liquidateETH(uint256 punkIndex) external payable override {
+  function liquidateETH(uint256 punkIndex) external payable override returns (uint256) {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
@@ -233,22 +252,16 @@ contract PunkGateway is IERC721Receiver, IPunkGateway, Ownable, EmergencyTokenRe
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex);
+    uint256 extraAmount = _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex);
 
     _withdrawPunk(punkIndex, loan.bidderAddress);
-  }
 
-  function onERC721Received(
-    address operator,
-    address from,
-    uint256 tokenId,
-    bytes calldata data
-  ) external pure override returns (bytes4) {
-    operator;
-    from;
-    tokenId;
-    data;
-    return IERC721Receiver.onERC721Received.selector;
+    // refund remaining dust eth
+    if (msg.value > extraAmount) {
+      _safeTransferETH(msg.sender, msg.value - extraAmount);
+    }
+
+    return extraAmount;
   }
 
   /**
