@@ -175,6 +175,7 @@ export enum ProtocolErrors {
   LPC_CALLER_NOT_EMERGENCY_ADMIN = "702", // 'The caller must be the emergency admin'
   LPC_INVALIED_BNFT_ADDRESS = "703",
   LPC_INVALIED_LOAN_ADDRESS = "704",
+  LPC_NFT_LIQUIDITY_NOT_0 = "705",
 
   //reserve config errors
   RC_INVALID_LTV = "730",

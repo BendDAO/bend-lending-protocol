@@ -7,7 +7,7 @@ import { strategyNftClassB } from "../markets/bend/nftsConfigs";
 const { expect } = require("chai");
 
 makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
-  const { CALLER_NOT_POOL_ADMIN, LPC_INVALID_CONFIGURATION } = ProtocolErrors;
+  const { CALLER_NOT_POOL_ADMIN, LPC_INVALID_CONFIGURATION, LPC_NFT_LIQUIDITY_NOT_0 } = ProtocolErrors;
 
   it("Deactivates the BAYC NFT", async () => {
     const { configurator, bayc, dataProvider } = testEnv;
@@ -140,6 +140,28 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
       configurator.connect(users[2].signer).configureNftAsAuction(bayc.address, "1", "1", "100"),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Reverts when trying to disable the BAYC nft with liquidity on it", async () => {
+    const { weth, bayc, pool, configurator } = testEnv;
+    const userAddress = await pool.signer.getAddress();
+
+    await weth.mint(await convertToCurrencyDecimals(weth.address, "10"));
+    await weth.approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
+
+    const amountToDeposit = await convertToCurrencyDecimals(weth.address, "10");
+    await pool.deposit(weth.address, amountToDeposit, userAddress, "0");
+
+    const tokenId = testEnv.tokenIdTracker++;
+    await bayc.mint(tokenId);
+    await bayc.setApprovalForAll(pool.address, true);
+
+    const amountToBorrow = await convertToCurrencyDecimals(weth.address, "1");
+    await pool.borrow(weth.address, amountToBorrow, bayc.address, tokenId, userAddress, "0");
+
+    await expect(configurator.deactivateNft(bayc.address), LPC_NFT_LIQUIDITY_NOT_0).to.be.revertedWith(
+      LPC_NFT_LIQUIDITY_NOT_0
+    );
   });
 
   it("Config setMaxNumberOfNfts valid value", async () => {

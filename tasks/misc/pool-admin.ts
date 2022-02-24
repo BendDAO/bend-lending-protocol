@@ -229,7 +229,7 @@ task("pool-amdin:set-nft-frozen", "Doing NFT frozen task")
 
     const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
 
-    const curNftConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    const curNftConfig = await bendDataProvider.getNftConfigurationData(asset);
     const currentState = curNftConfig.isFrozen;
     console.log("NFT Current Frozen State:", currentState);
 
@@ -244,6 +244,6 @@ task("pool-amdin:set-nft-frozen", "Doing NFT frozen task")
       await waitForTx(await lendPoolConfiguratorProxy.connect(pmAdmin).unfreezeNft(asset));
     }
 
-    const newNftConfig = await bendDataProvider.getReserveConfigurationData(asset);
+    const newNftConfig = await bendDataProvider.getNftConfigurationData(asset);
     console.log("NFT New Frozen State:", newNftConfig.isFrozen);
   });

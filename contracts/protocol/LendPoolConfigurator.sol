@@ -342,6 +342,8 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
    **/
   function deactivateNft(address asset) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
+    _checkNftNoLiquidity(asset);
+
     DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(asset);
 
     currentConfig.setActive(false);
@@ -468,8 +470,18 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     require(availableLiquidity == 0 && reserveData.currentLiquidityRate == 0, Errors.LPC_RESERVE_LIQUIDITY_NOT_0);
   }
 
+  function _checkNftNoLiquidity(address asset) internal view {
+    uint256 collateralAmount = _getLendPoolLoan().getNftCollateralAmount(asset);
+
+    require(collateralAmount == 0, Errors.LPC_NFT_LIQUIDITY_NOT_0);
+  }
+
   function _getLendPool() internal view returns (ILendPool) {
     return ILendPool(_addressesProvider.getLendPool());
+  }
+
+  function _getLendPoolLoan() internal view returns (ILendPoolLoan) {
+    return ILendPoolLoan(_addressesProvider.getLendPoolLoan());
   }
 
   function _getIncentivesController() internal view returns (IIncentivesController) {

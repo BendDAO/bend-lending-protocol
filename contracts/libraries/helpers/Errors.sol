@@ -97,6 +97,7 @@ library Errors {
   string public constant LPC_CALLER_NOT_EMERGENCY_ADMIN = "702"; // 'The caller must be the emergency admin'
   string public constant LPC_INVALIED_BNFT_ADDRESS = "703";
   string public constant LPC_INVALIED_LOAN_ADDRESS = "704";
+  string public constant LPC_NFT_LIQUIDITY_NOT_0 = "705";
 
   //reserve config errors
   string public constant RC_INVALID_LTV = "730";

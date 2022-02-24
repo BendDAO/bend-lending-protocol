@@ -19,15 +19,6 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     BigNumber.config({ DECIMAL_PLACES: 20, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
   });
 
-  it("User 1 liquidate on a non-existent NFT", async () => {
-    const { configurator, bayc, pool, users } = testEnv;
-    const user1 = users[1];
-
-    await expect(pool.connect(user1.signer).liquidate(bayc.address, "101", "0")).to.be.revertedWith(
-      ProtocolErrors.LP_NFT_IS_NOT_USED_AS_COLLATERAL
-    );
-  });
-
   it("User 0 deposit 100 WETH, user 1 mint NFT and borrow 10 WETH", async () => {
     const { weth, bayc, pool, users } = testEnv;
     const user0 = users[0];
@@ -58,6 +49,15 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     await weth.connect(user3.signer).approve(pool.address, APPROVAL_AMOUNT_LENDING_POOL);
   });
 
+  it("User 1 liquidate on a non-existent NFT", async () => {
+    const { configurator, bayc, pool, users } = testEnv;
+    const user1 = users[1];
+
+    await expect(pool.connect(user1.signer).liquidate(bayc.address, "102", "0")).to.be.revertedWith(
+      ProtocolErrors.LP_NFT_IS_NOT_USED_AS_COLLATERAL
+    );
+  });
+  /* Can not deactive Reserve or NFT when liquidity is not zero
   it("User 2 auction on a non-active NFT", async () => {
     const { configurator, bayc, pool, users } = testEnv;
     const user2 = users[2];
@@ -84,12 +84,10 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     await configurator.activateNft(bayc.address);
   });
 
-  /* WETH liquidity and debt must be 0
   it("User 2 auction on a non-active Reserve", async () => {
     const { configurator, weth, bWETH, bayc, pool, users } = testEnv;
     const user2 = users[2];
 
-    console.log("WETH balanceOf", await weth.balanceOf(bWETH.address));
     await configurator.deactivateReserve(weth.address);
 
     await expect(
@@ -98,8 +96,20 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
 
     await configurator.activateReserve(weth.address);
   });
-  */
 
+  it("User 2 liquidate on a non-active Reserve", async () => {
+    const { configurator, weth, bWETH, bayc, pool, users } = testEnv;
+    const user2 = users[2];
+
+    await configurator.deactivateReserve(weth.address);
+
+    await expect(
+      pool.connect(user2.signer).liquidate(bayc.address, '101', '0')
+    ).to.be.revertedWith(ProtocolErrors.VL_NO_ACTIVE_RESERVE);
+
+    await configurator.activateReserve(weth.address);
+  });
+*/
   it("User 2 auction on a loan health factor above 1", async () => {
     const { bayc, pool, users } = testEnv;
     const user2 = users[2];

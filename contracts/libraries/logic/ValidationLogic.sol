@@ -164,9 +164,9 @@ library ValidationLogic {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
-    bool isActive = reserveData.configuration.getActive();
+    require(reserveData.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
 
-    require(isActive, Errors.VL_NO_ACTIVE_RESERVE);
+    require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
     require(amountSent > 0, Errors.VL_INVALID_AMOUNT);
 
@@ -216,9 +216,9 @@ library ValidationLogic {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
-    bool isActive = reserveData.configuration.getActive();
+    require(reserveData.configuration.getActive(), Errors.VL_NO_ACTIVE_RESERVE);
 
-    require(isActive, Errors.VL_NO_ACTIVE_RESERVE);
+    require(nftData.configuration.getActive(), Errors.VL_NO_ACTIVE_NFT);
 
     require(loanData.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 

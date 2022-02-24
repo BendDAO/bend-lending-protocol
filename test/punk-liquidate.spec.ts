@@ -5,7 +5,7 @@ import { parseEther } from "ethers/lib/utils";
 import { getReservesConfigByPool } from "../helpers/configuration";
 import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
-import { increaseTime, sleep, waitForTx } from "../helpers/misc-utils";
+import { advanceBlock, advanceTimeAndBlock, increaseTime, sleep, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import {
   approveERC20,
@@ -196,6 +196,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     expect(nftDebtDataAfterOracle.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));
 
     // Auction loan
+    await advanceTimeAndBlock(100);
     await mintERC20(testEnv, liquidator, "USDC", depositUnit.toString());
     await approveERC20PunkGateway(testEnv, liquidator, "USDC");
 
@@ -206,6 +207,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     );
 
     // Redeem loan
+    await advanceTimeAndBlock(100);
     await mintERC20(testEnv, borrower, "USDC", depositUnit.toString());
     await approveERC20PunkGateway(testEnv, borrower, "USDC");
 
@@ -225,6 +227,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     expect(wpunkOwner).to.be.equal(bPUNK.address, "Invalid wpunk owner after redeem");
 
     // Repay loan
+    await advanceTimeAndBlock(100);
     await waitForTx(await punkGateway.connect(borrower.signer).repay(punkIndex, MAX_UINT_AMOUNT));
 
     const loanDataAfterRepay = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
