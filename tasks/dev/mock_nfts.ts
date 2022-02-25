@@ -1,6 +1,7 @@
 import { BigNumberish, Signer } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import { task } from "hardhat/config";
+import { MOCK_NFT_BASE_URIS } from "../../helpers/constants";
 import { deployAllMockNfts, deployMintableERC721 } from "../../helpers/contracts-deployments";
 import { getDeploySigner, getCryptoPunksMarket, getMintableERC721 } from "../../helpers/contracts-getters";
 import {
@@ -12,15 +13,6 @@ import {
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { NftContractId } from "../../helpers/types";
 import { MintableERC721 } from "../../types";
-
-const TokenBaseURIs = {
-  WPUNKS: "https://wrappedpunks.com:3000/api/punks/metadata/",
-  BAYC: "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
-  DOODLE: "ipfs://QmPMc4tcBsMqLRuCQtPmPe84bpSjrC3Ky7t3JWuHXYB4aS/",
-  COOL: "https://api.coolcatsnft.com/cat/",
-  MEEBITS: "https://meebits.larvalabs.com/meebit/1",
-  MAYC: "https://boredapeyachtclub.com/api/mutants/",
-};
 
 task("dev:deploy-mock-nfts", "Deploy mock nfts for dev enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -45,6 +37,7 @@ task("dev:add-mock-nfts", "Add mock nfts for dev enviroment")
       }
       tokens[tokenSymbol] = await deployMintableERC721([tokenName, tokenSymbol], verify);
       await registerContractInJsonDb(contractId, tokens[tokenSymbol]);
+      console.log(`Symbol: ${tokenSymbol}, Address: ${tokens[tokenSymbol]}`);
     }
   });
 
@@ -59,7 +52,7 @@ task("dev:set-mock-nfts", "Set mock nfts for dev enviroment")
         continue;
       }
 
-      const baseURI = TokenBaseURIs[tokenSymbol];
+      const baseURI = MOCK_NFT_BASE_URIS[tokenSymbol];
       if (baseURI == undefined || baseURI == "") {
         continue;
       }

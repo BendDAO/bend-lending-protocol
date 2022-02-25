@@ -54,4 +54,21 @@ export const MOCK_NFT_AGGREGATORS_PRICES = {
   COOL: oneEther.multipliedBy("6.66").toFixed(),
   MEEBITS: oneEther.multipliedBy("2.88").toFixed(),
   MAYC: oneEther.multipliedBy("6.23").toFixed(),
+  WOW: oneEther.multipliedBy("7.77").toFixed(),
+  CLONEX: oneEther.multipliedBy("11.95").toFixed(),
+  AZUKI: oneEther.multipliedBy("10.50").toFixed(),
+  KONGZ: oneEther.multipliedBy("7.90").toFixed(),
+};
+
+export const MOCK_NFT_BASE_URIS = {
+  WPUNKS: "https://wrappedpunks.com:3000/api/punks/metadata/",
+  BAYC: "ipfs://QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq/",
+  DOODLE: "ipfs://QmPMc4tcBsMqLRuCQtPmPe84bpSjrC3Ky7t3JWuHXYB4aS/",
+  COOL: "https://api.coolcatsnft.com/cat/",
+  MEEBITS: "https://meebits.larvalabs.com/meebit/1",
+  MAYC: "https://boredapeyachtclub.com/api/mutants/",
+  WOW: "https://wow-prod-nftribe.s3.eu-west-2.amazonaws.com/t/",
+  CLONEX: "https://clonex-assets.rtfkt.com/",
+  AZUKI: "https://ikzttp.mypinata.cloud/ipfs/QmQFkLSQysj94s5GvTHPyzTxrawwtjgiiYS2TBLgrvw8CW/",
+  KONGZ: "https://kongz.herokuapp.com/api/metadata/",
 };

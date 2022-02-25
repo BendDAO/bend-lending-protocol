@@ -35,6 +35,10 @@ export const BendConfig: IBendConfiguration = {
     COOL: strategyNftClassC,
     MEEBITS: strategyNftClassC,
     MAYC: strategyNftClassC,
+    WOW: strategyNftClassC,
+    CLONEX: strategyNftClassC,
+    AZUKI: strategyNftClassC,
+    KONGZ: strategyNftClassC,
   },
   ReserveAssets: {
     [eEthereumNetwork.hardhat]: {},
@@ -73,6 +77,10 @@ export const BendConfig: IBendConfiguration = {
       COOL: '0x1F912E9b691858052196F11Aff9d8B6f89951AbD',
       MEEBITS: '0xA1BaBAB6d6cf1DC9C87Be22D1d5142CF905016a4',
       MAYC: '0x9C235dF4053a415f028b8386ed13ae8162843a6e',
+      WOW: '0xdfC14f7A536944467834EF7ce7b05a9a79BCDFaD',
+      CLONEX: '0xdd04ba0254972CC736F6966c496B4941f02BD816',
+      AZUKI: '0x050Cd8082B86c5F469e0ba72ef4400E5E454886D',
+      KONGZ: '0x8fC9F05f7B21346FD5E9Fa3C963d3941eb861940',
     },
     [eEthereumNetwork.main]: {
       WPUNKS: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
@@ -81,6 +89,10 @@ export const BendConfig: IBendConfiguration = {
       COOL: '0x1A92f7381B9F03921564a437210bB9396471050C',
       MEEBITS: '0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7',
       MAYC: '0x60E4d786628Fea6478F785A6d7e704777c86a7c6',
+      WOW: '0xe785e82358879f061bc3dcac6f0444462d4b5330',
+      CLONEX: '0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b',
+      AZUKI: '0xed5af388653567af2f388e6224dc7c4b3241c544',
+      KONGZ: '0x57a204aa1042f6e66dd7730813f4024114d74f37',
     },
   },
 };

@@ -1,6 +1,7 @@
 import { BigNumberish } from "@ethersproject/bignumber";
 import { task } from "hardhat/config";
 import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../helpers/configuration";
+import { ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import {
   getBNFTRegistryProxy,
   getBTokensAndBNFTsHelper,
@@ -8,6 +9,7 @@ import {
   getLendPoolAddressesProvider,
   getLendPoolAddressesProviderRegistry,
   getLendPoolConfiguratorProxy,
+  getWETHGateway,
 } from "../../helpers/contracts-getters";
 import { getEthersSignerByAddress } from "../../helpers/contracts-helpers";
 import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
@@ -39,8 +41,11 @@ task("init-nft-to-pool", "Init and config new nft asset to lend pool")
       throw new Error("The BNFT of asset is not created");
     }
 
+    const wethGateway = await getWETHGateway(await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY));
+
     const nftContract = await getIErc721Detailed(asset);
     const nftSymbol = await nftContract.symbol();
+    console.log("NFT:", nftSymbol);
 
     let nftParam: INftParams;
     if (strategy != undefined && strategy != "") {
@@ -82,6 +87,9 @@ task("init-nft-to-pool", "Init and config new nft asset to lend pool")
         .connect(poolAdminSigner)
         .configureNftAsAuction(asset, nftParam.redeemDuration, nftParam.auctionDuration, nftParam.redeemFine)
     );
+
+    console.log("WETHGateway authorizeLendPoolNFT");
+    await waitForTx(await wethGateway.authorizeLendPoolNFT(asset));
 
     console.log("OK");
   });

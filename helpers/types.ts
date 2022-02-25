@@ -251,6 +251,10 @@ export interface iNftBase<T> {
   COOL: T;
   MEEBITS: T;
   MAYC: T;
+  WOW: T;
+  CLONEX: T;
+  AZUKI: T;
+  KONGZ: T;
 }
 
 export type iMultiPoolsNfts<T> = iNftCommon<T> | iBendPoolNfts<T>;
@@ -266,6 +270,10 @@ export enum NftContractId {
   COOL = "COOL",
   MEEBITS = "MEEBITS",
   MAYC = "MAYC",
+  WOW = "WOW",
+  CLONEX = "CLONEX",
+  AZUKI = "AZUKI",
+  KONGZ = "KONGZ",
 }
 
 export interface IReserveParams extends IReserveBorrowParams, IReserveCollateralParams {
