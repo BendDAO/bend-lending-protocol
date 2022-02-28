@@ -3,15 +3,48 @@ import { ConfigNames, getEmergencyAdmin, loadPoolConfig } from "../../helpers/co
 import { MOCK_NFT_AGGREGATORS_PRICES, USD_ADDRESS } from "../../helpers/constants";
 import { deployBendUpgradeableProxy, deployNFTOracle } from "../../helpers/contracts-deployments";
 import {
+  getIErc721Detailed,
   getLendPool,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
   getNFTOracle,
   getReserveOracle,
 } from "../../helpers/contracts-getters";
-import { getParamPerNetwork } from "../../helpers/contracts-helpers";
+import { getEthersSignerByAddress, getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { getNowTimeInSeconds, waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
+
+task("oracle-amdin:set-nft-assets", "Set new nft asset to oracle")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("assets", "Address list of underlying nft asset contract")
+  .setAction(async ({ pool, assets }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+
+    const nftOracle = await getNFTOracle();
+    const ownerSigner = await getEthersSignerByAddress(await nftOracle.owner());
+
+    const assetsArray = new String(assets).split(",");
+
+    for (const asset of assetsArray) {
+      const isExisted = await nftOracle.nftPriceFeedMap(asset);
+      if (isExisted) {
+        throw Error(`Asset ${asset} existed in oracle already`);
+      }
+
+      const nftContract = await getIErc721Detailed(asset);
+      const nftSymbol = await nftContract.symbol();
+      if (nftSymbol.length <= 0) {
+        throw Error(`Asset ${asset} has no symbol`);
+      }
+    }
+
+    await waitForTx(await nftOracle.connect(ownerSigner).setAssets(assetsArray));
+
+    console.log("OK");
+  });
 
 task("oracle-amdin:set-price-feed-admin", "Doing oracle admin task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
