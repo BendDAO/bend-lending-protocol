@@ -174,7 +174,9 @@ task("dev:withdraw-eth", "Doing custom task")
 
 task("dev:borrow-eth-using-bayc", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ pool }, DRE) => {
+  .addParam("amount", "Amount to borrow, like 0.01")
+  .addParam("tokenId", "Token ID of NFT, like 1234")
+  .setAction(async ({ pool, amount, tokenId }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -182,6 +184,15 @@ task("dev:borrow-eth-using-bayc", "Doing custom task")
     const addressesProvider = await getLendPoolAddressesProvider();
 
     const signer = await getDeploySigner();
+
+    const wethAddress = await getContractAddressInDb("WETH");
+    const weth = await getMintableERC20(wethAddress);
+    let amountDecimals: BigNumberish;
+    if (amount == "-1") {
+      amountDecimals = MAX_UINT_AMOUNT;
+    } else {
+      amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+    }
 
     const wethGateway = await getWETHGateway();
     const baycAddress = await getContractAddressInDb("BAYC");
@@ -189,16 +200,15 @@ task("dev:borrow-eth-using-bayc", "Doing custom task")
     const bayc = await getMintableERC721(baycAddress);
     await waitForTx(await bayc.setApprovalForAll(wethGateway.address, true));
 
-    const tokenId = 5002;
     await waitForTx(await bayc.mint(tokenId));
-    await waitForTx(
-      await wethGateway.borrowETH("100000000000000000", bayc.address, tokenId, await signer.getAddress(), "0")
-    );
+    await waitForTx(await wethGateway.borrowETH(amountDecimals, bayc.address, tokenId, await signer.getAddress(), "0"));
   });
 
 task("dev:borrow-usdc-using-bayc", "Doing custom task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ pool }, DRE) => {
+  .addParam("amount", "Amount to borrow, like 0.01")
+  .addParam("tokenId", "Token ID of NFT, like 1234")
+  .setAction(async ({ pool, amount, tokenId }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -206,6 +216,15 @@ task("dev:borrow-usdc-using-bayc", "Doing custom task")
     const addressesProvider = await getLendPoolAddressesProvider();
 
     const signer = await getDeploySigner();
+
+    const wethAddress = await getContractAddressInDb("USDC");
+    const weth = await getMintableERC20(wethAddress);
+    let amountDecimals: BigNumberish;
+    if (amount == "-1") {
+      amountDecimals = MAX_UINT_AMOUNT;
+    } else {
+      amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
+    }
 
     const lendPool = await getLendPool(await addressesProvider.getLendPool());
 
@@ -328,6 +347,9 @@ task("dev:repay-eth-using-punk", "Doing repay task")
     const wpunk = await getWrappedPunk(wpunkAddress);
     const punkGateway = await getPunkGateway();
 
+    const wethAddress = await getContractAddressInDb("WETH");
+    const weth = await getMintableERC20(wethAddress);
+
     let amountDecimals: BigNumberish;
     if (amount == "-1") {
       const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
@@ -335,7 +357,7 @@ task("dev:repay-eth-using-punk", "Doing repay task")
       console.log("Loan Borrow Amount:", loanData.currentAmount.toString());
       amountDecimals = new BigNumber(loanData.currentAmount.toString()).multipliedBy(1.1).toFixed(0);
     } else {
-      amountDecimals = await convertToCurrencyDecimals(wpunk.address, amount);
+      amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
     }
 
     await waitForTx(await punkGateway.repayETH(id, amountDecimals, { value: amountDecimals }));
@@ -359,6 +381,9 @@ task("dev:repay-eth-using-erc721", "Doing repay task")
 
     const wethGateway = await getWETHGateway();
 
+    const wethAddress = await getContractAddressInDb("WETH");
+    const weth = await getMintableERC20(wethAddress);
+
     let amountDecimals: BigNumberish;
     if (amount == "-1" || amount == "0") {
       const bendDataProvider = await getBendProtocolDataProvider(await addressesProvider.getBendDataProvider());
@@ -366,10 +391,10 @@ task("dev:repay-eth-using-erc721", "Doing repay task")
       console.log("Loan Borrow Amount:", loanData.currentAmount.toString());
       amountDecimals = loanData.currentAmount;
     } else {
-      amountDecimals = await convertToCurrencyDecimals(token, amount);
+      amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
     }
 
-    await waitForTx(await wethGateway.redeemETH(token, id, amountDecimals, { value: amountDecimals }));
+    await waitForTx(await wethGateway.repayETH(token, id, amountDecimals, { value: amountDecimals }));
   });
 
 task("dev:print-ui-reserve-data", "Doing custom task")

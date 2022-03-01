@@ -1,5 +1,9 @@
 import { task } from "hardhat/config";
-import { getParamPerNetwork, insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import {
+  getEthersSignerByAddress,
+  getParamPerNetwork,
+  insertContractAddressInDb,
+} from "../../helpers/contracts-helpers";
 import {
   deployBTokenImplementations,
   deployBTokensAndBNFTsHelper,

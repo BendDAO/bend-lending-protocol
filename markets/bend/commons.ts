@@ -53,6 +53,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: undefined,
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.localhost]: undefined,
+    [eEthereumNetwork.develop]: '0x740A26A9aa27e193C8d15d75A1ca1C19AE735c21',
     [eEthereumNetwork.rinkeby]: '0xC019619F15aF1f96A695aBA39478e64ABcAa474b',
     [eEthereumNetwork.main]: undefined,
   },
@@ -60,6 +61,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: undefined,
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.localhost]: undefined,
+    [eEthereumNetwork.develop]: '0x0B815174656df530906CC39E983431f0Ec442C59',
     [eEthereumNetwork.rinkeby]: '0x64DA9D7651CA78caAB756740C6057e2b7B1E63De',
     [eEthereumNetwork.main]: undefined,
   },
@@ -69,6 +71,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: undefined,
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.localhost]: undefined,
+    [eEthereumNetwork.develop]: '0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B',
     [eEthereumNetwork.rinkeby]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.main]: undefined,
   },
@@ -77,6 +80,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.hardhat]: undefined,
     [eEthereumNetwork.coverage]: undefined,
     [eEthereumNetwork.localhost]: undefined,
+    [eEthereumNetwork.develop]: '0x14048d069A5E821eB82E01a275fdfC915C5BcfC4',
     [eEthereumNetwork.rinkeby]: '0xFc6a5b329340719b2693C2c74a5D056cf4f93FB0',
     [eEthereumNetwork.main]: undefined,
   },
@@ -86,6 +90,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '0xCE1e5D792d24F62b29D35DeB85eC04b1F66447b1',
+    [eEthereumNetwork.develop]: '0xf440346C93868879B5D3b8e5f96fEc57D4f2dcdf',
     [eEthereumNetwork.rinkeby]: '0xB873F088EB721261bc88BbC739B5C794e02e414b',
     [eEthereumNetwork.main]: '',
   },
@@ -94,10 +99,12 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '',
+    [eEthereumNetwork.develop]: '',
     [eEthereumNetwork.rinkeby]: '',
     [eEthereumNetwork.main]: '',
   },
   ProviderRegistryOwner: {
+    [eEthereumNetwork.develop]: '0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B',
     [eEthereumNetwork.rinkeby]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.main]: '',
     [eEthereumNetwork.coverage]: '',
@@ -109,6 +116,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '',
+    [eEthereumNetwork.develop]: '',
     [eEthereumNetwork.rinkeby]: '',
     [eEthereumNetwork.main]: '',
   },
@@ -116,6 +124,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '',
     [eEthereumNetwork.hardhat]: '',
     [eEthereumNetwork.localhost]: '',
+    [eEthereumNetwork.develop]: '',
     [eEthereumNetwork.rinkeby]: '',
     [eEthereumNetwork.main]: '',
   },
@@ -129,6 +138,11 @@ export const CommonsConfig: ICommonConfiguration = {
       DAI: '0x10F6794a3Df86bD8B97c7d6D625BAB54677D443b',
       USDC: '0x2cC3790f7CF280fA898E4913CA980410cF38e53b',
       USD: '0x6B8dcBD1bb131ED184221902df1Fe21019ccD7dc',
+    },
+    [eEthereumNetwork.develop]: {
+      DAI: '0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D',
+      USDC: '0xdCA36F27cbC4E38aE16C4E9f99D39b42337F6dcf',
+      USD: '0x8A753747A1Fa494EC906cE90E9f37563A8AF630e', //ETH - USD
     },
     [eEthereumNetwork.rinkeby]: {
       DAI: '0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D',
@@ -147,6 +161,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.localhost]: {},
     [eEthereumNetwork.main]: {},
     [eEthereumNetwork.rinkeby]: {},
+    [eEthereumNetwork.develop]: {},
   },
   ReservesConfig: {},
   NftsAssets: {
@@ -155,6 +170,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.localhost]: {},
     [eEthereumNetwork.main]: {},
     [eEthereumNetwork.rinkeby]: {},
+    [eEthereumNetwork.develop]: {},
   },
   NftsConfig: {},
 
@@ -162,6 +178,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.localhost]: '0xB4B4ead1A260F1572b88b9D8ABa5A152D166c104',
+    [eEthereumNetwork.develop]: '0x3C73A32C11E20101be3D5ff2F67Af15a4ACbF298',
     [eEthereumNetwork.rinkeby]: '0xaD1908f909B5C5D2B1032a215d611773F26f089F',
     [eEthereumNetwork.main]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
   },
@@ -170,6 +187,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.localhost]: '0xb2f97A3c2E48cd368901657e31Faaa93035CE390',
+    [eEthereumNetwork.develop]: '0xE159fC1226dbCe3e9d511e884a067D09C3290B9E',
     [eEthereumNetwork.rinkeby]: '0x6389eA3Cf6dE815ba76d7Cf4C6Db6A7093471bcb',
     [eEthereumNetwork.main]: '0xb47e3cd837ddf8e4c57f05d70ab865de6e193bbb',
   },
@@ -177,6 +195,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '', // deployed in local evm
     [eEthereumNetwork.hardhat]: '', // deployed in local evm
     [eEthereumNetwork.localhost]: '0x5a60c5d89A0A0e08ae0CAe73453e3AcC9C335847',
+    [eEthereumNetwork.develop]: '0xcDbBC001976F79db2fC1ECfd140031fE970CeaEc',
     [eEthereumNetwork.rinkeby]: '0x74e4418A41169Fb951Ca886976ccd8b36968c4Ab',
     [eEthereumNetwork.main]: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
   },
@@ -185,6 +204,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.hardhat]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
     [eEthereumNetwork.localhost]: '0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6',
+    [eEthereumNetwork.develop]: '0xA9620F4655620863FaC5AD87DcB4e3ab5e1C5b86',
     [eEthereumNetwork.rinkeby]: '0x7A02EE743Aadca63d60945971B7eD12c7f26b6d2',
     [eEthereumNetwork.main]: '',
   },
@@ -192,6 +212,7 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.coverage]: ZERO_ADDRESS,
     [eEthereumNetwork.hardhat]: ZERO_ADDRESS,
     [eEthereumNetwork.localhost]: "0x1eaA4a267eDcde0eB5e08D08810Aa1696b123a2D",
+    [eEthereumNetwork.develop]: '0x602bE80f0Bf54E0AffaCD794dfe3ac0f867F7581',
     [eEthereumNetwork.rinkeby]: '0xD800e97aE32b06C1e89ca5126c7bF6aEF89D6B24',
     [eEthereumNetwork.main]: ZERO_ADDRESS,
   },

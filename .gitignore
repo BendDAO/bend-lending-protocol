@@ -15,6 +15,7 @@ deployed-contracts.json
 /deployments/*
 !/deployments/deployed-contracts-main*.json
 !/deployments/deployed-contracts-rinkeby*.json
+!/deployments/deployed-contracts-develop*.json
 
 /flattened
 bend-flattened.*

@@ -10,6 +10,7 @@ export enum eEthereumNetwork {
   coverage = "coverage",
   hardhat = "hardhat",
   localhost = "localhost",
+  develop = "develop",
   rinkeby = "rinkeby",
   main = "main",
 }
@@ -325,6 +326,7 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.coverage]: T;
   [eEthereumNetwork.hardhat]: T;
   [eEthereumNetwork.localhost]: T;
+  [eEthereumNetwork.develop]: T;
   [eEthereumNetwork.rinkeby]: T;
   [eEthereumNetwork.main]: T;
 }

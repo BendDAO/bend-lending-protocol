@@ -171,7 +171,7 @@ export const linkBytecode = (artifact: Artifact, libraries: any) => {
 };
 
 export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNetwork) => {
-  const { main, rinkeby, hardhat, coverage, localhost } = param as iEthereumParamsPerNetwork<T>;
+  const { main, rinkeby, develop, hardhat, coverage, localhost } = param as iEthereumParamsPerNetwork<T>;
   if (process.env.FORK) {
     return param[process.env.FORK as eNetwork] as T;
   }
@@ -183,6 +183,8 @@ export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNet
       return hardhat;
     case eEthereumNetwork.localhost:
       return localhost;
+    case eEthereumNetwork.develop:
+      return develop;
     case eEthereumNetwork.rinkeby:
       return rinkeby;
     case eEthereumNetwork.main:

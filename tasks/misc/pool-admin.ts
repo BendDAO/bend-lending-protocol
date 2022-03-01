@@ -11,7 +11,7 @@ import { configureNftsByHelper, configureReservesByHelper } from "../../helpers/
 import { waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
 
-task("pool-amdin:set-pause", "Doing lend pool pause task")
+task("pool-admin:set-pause", "Doing lend pool pause task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("state", "Admin state of pause, 0-false, 1-true")
   .setAction(async ({ pool, state }, DRE) => {
@@ -46,7 +46,7 @@ task("pool-amdin:set-pause", "Doing lend pool pause task")
     console.log("LendPool New Pause State:", newPause);
   });
 
-task("pool-amdin:update-nfts-config", "Doing lend pool nft config task")
+task("pool-admin:update-nfts-config", "Doing lend pool nft config task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ pool }, DRE) => {
     await DRE.run("set-DRE");
@@ -65,7 +65,7 @@ task("pool-amdin:update-nfts-config", "Doing lend pool nft config task")
     await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, poolAdminAddress);
   });
 
-task("pool-amdin:update-reserves-config", "Doing lend pool reserve config task")
+task("pool-admin:update-reserves-config", "Doing lend pool reserve config task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ pool }, DRE) => {
     await DRE.run("set-DRE");
@@ -84,7 +84,7 @@ task("pool-amdin:update-reserves-config", "Doing lend pool reserve config task")
     await configureReservesByHelper(poolConfig.ReservesConfig, reservesAssets, poolAdminAddress);
   });
 
-task("pool-amdin:set-reserve-active", "Doing Reserve active task")
+task("pool-admin:set-reserve-active", "Doing Reserve active task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of Reserve")
   .addParam("state", "Active state, 0-false, 1-true")
@@ -125,7 +125,7 @@ task("pool-amdin:set-reserve-active", "Doing Reserve active task")
     console.log("Reserve New Active State:", newReserveConfig.isActive);
   });
 
-task("pool-amdin:set-reserve-frozen", "Doing Reserve frozen task")
+task("pool-admin:set-reserve-frozen", "Doing Reserve frozen task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of Reserve")
   .addParam("state", "Frozen state, 0-false, 1-true")
@@ -166,7 +166,7 @@ task("pool-amdin:set-reserve-frozen", "Doing Reserve frozen task")
     console.log("Reserve New Frozen State:", newReserveConfig.isFrozen);
   });
 
-task("pool-amdin:set-nft-active", "Doing NFT active task")
+task("pool-admin:set-nft-active", "Doing NFT active task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of Reserve")
   .addParam("state", "Admin state of Active, 0-false, 1-true")
@@ -207,7 +207,7 @@ task("pool-amdin:set-nft-active", "Doing NFT active task")
     console.log("NFT New Active State:", newNftConfig.isActive);
   });
 
-task("pool-amdin:set-nft-frozen", "Doing NFT frozen task")
+task("pool-admin:set-nft-frozen", "Doing NFT frozen task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of Reserve")
   .addParam("state", "Frozen state, 0-false, 1-true")
