@@ -14,7 +14,22 @@ import { getEthersSignerByAddress, getParamPerNetwork } from "../../helpers/cont
 import { getNowTimeInSeconds, waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
 
-task("oracle-amdin:set-nft-assets", "Set new nft asset to oracle")
+task("oracle-admin:set-nft-proxy", "Doing oracle admin task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("proxy", "Address of NFT Oracle proxy contract")
+  .setAction(async ({ pool, proxy }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    await waitForTx(await addressesProvider.setNFTOracle(proxy));
+
+    console.log("OK");
+  });
+
+task("oracle-admin:set-nft-assets", "Set new nft asset to oracle")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("assets", "Address list of underlying nft asset contract")
   .setAction(async ({ pool, assets }, DRE) => {
@@ -46,7 +61,7 @@ task("oracle-amdin:set-nft-assets", "Set new nft asset to oracle")
     console.log("OK");
   });
 
-task("oracle-amdin:set-price-feed-admin", "Doing oracle admin task")
+task("oracle-admin:set-price-feed-admin", "Doing oracle admin task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("feedAdmin", "Address of price feed")
   .setAction(async ({ pool, feedAdmin }, DRE) => {
@@ -63,7 +78,7 @@ task("oracle-amdin:set-price-feed-admin", "Doing oracle admin task")
     console.log("New PriceFeedAdmin:", await nftOracleProxy.priceFeedAdmin());
   });
 
-task("oracle-amdin:feed-init-nft-price", "Doing oracle admin task")
+task("oracle-admin:feed-init-nft-price", "Doing oracle admin task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ pool }, DRE) => {
     await DRE.run("set-DRE");
@@ -76,14 +91,19 @@ task("oracle-amdin:feed-init-nft-price", "Doing oracle admin task")
     const latestTime = await getNowTimeInSeconds();
     const nftsAssets = getParamPerNetwork(poolConfig.NftsAssets, network);
 
+    const feedAdminAddress = await nftOracleProxy.priceFeedAdmin();
+    const feedAdminSigner = await getEthersSignerByAddress(feedAdminAddress);
+
     for (const nftSymbol of Object.keys(nftsAssets)) {
       const price = MOCK_NFT_AGGREGATORS_PRICES[nftSymbol];
       console.log(`setAssetData:(${nftSymbol}, ${price})`);
-      await waitForTx(await nftOracleProxy.setAssetData(nftsAssets[nftSymbol], price, latestTime, 1));
+      await waitForTx(
+        await nftOracleProxy.connect(feedAdminSigner).setAssetData(nftsAssets[nftSymbol], price, latestTime, 1)
+      );
     }
   });
 
-task("oracle-amdin:add-usd-eth-asset", "Doing oracle admin task")
+task("oracle-admin:add-usd-eth-asset", "Doing oracle admin task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .setAction(async ({ pool }, DRE) => {
     await DRE.run("set-DRE");

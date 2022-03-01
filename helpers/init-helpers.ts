@@ -129,8 +129,7 @@ export const initReservesByHelper = async (
 
     console.log(
       `  - Reserve ready for: ${chunkedSymbols[chunkIndex].join(", ")}`,
-      chunkedInitInputParams[chunkIndex][0].bTokenImpl,
-      chunkedInitInputParams[chunkIndex][0].underlyingAssetName
+      chunkedInitInputParams[chunkIndex][0].underlyingAsset
     );
     console.log("    * gasUsed", tx3.gasUsed.toString());
   }
@@ -152,7 +151,7 @@ export const initNftsByHelper = async (
   verify: boolean
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
-  const bnftRegistry = await getBNFTRegistryProxy();
+  const bnftRegistry = await addressProvider.getBNFTRegistry();
 
   // CHUNK CONFIGURATION
   const initChunks = 1;

@@ -1,10 +1,5 @@
 import { task } from "hardhat/config";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
-import {
-  deployBendProtocolDataProvider,
-  deployWalletBalancerProvider,
-  deployUiPoolDataProvider,
-} from "../../helpers/contracts-deployments";
 import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
 import { getWETHGateway, getPunkGateway } from "../../helpers/contracts-getters";
 import { eNetwork, ICommonConfiguration } from "../../helpers/types";
@@ -63,25 +58,6 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
 
       await initNftsByHelper(poolConfig.NftsConfig, nftsAssets, admin, pool, verify);
       await configureNftsByHelper(poolConfig.NftsConfig, nftsAssets, admin);
-
-      //////////////////////////////////////////////////////////////////////////
-      console.log("Deploy bend & wallet & ui provider");
-      const reserveOracle = await addressesProvider.getReserveOracle();
-      const nftOracle = await addressesProvider.getNFTOracle();
-
-      const walletBalanceProvider = await deployWalletBalancerProvider(verify);
-      console.log("WalletBalancerProvider deployed at:", walletBalanceProvider.address);
-      await waitForTx(await addressesProvider.setWalletBalanceProvider(walletBalanceProvider.address));
-
-      // this contract is not support upgrade, just deploy new contract
-      const bendProtocolDataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
-      console.log("BendProtocolDataProvider deployed at:", bendProtocolDataProvider.address);
-      await waitForTx(await addressesProvider.setBendDataProvider(bendProtocolDataProvider.address));
-
-      // this contract is not support upgrade, just deploy new contract
-      const uiPoolDataProvider = await deployUiPoolDataProvider(reserveOracle, nftOracle, verify);
-      console.log("UiPoolDataProvider deployed at:", uiPoolDataProvider.address);
-      await waitForTx(await addressesProvider.setUIDataProvider(uiPoolDataProvider.address));
     } catch (err) {
       console.error(err);
       exit(1);
