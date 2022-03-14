@@ -183,11 +183,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "BendCollectorImpl": {
-    "address": "0x2450b937a42051acf3d7709F9AC04ea407a647dC"
+    "address": "0x7fa1F11a10C8a9c6A646cA7B3248c244fD8bc69B"
   },
   "BendCollector": {
-    "address": "0x7A02EE743Aadca63d60945971B7eD12c7f26b6d2",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0x7A02EE743Aadca63d60945971B7eD12c7f26b6d2"
   },
   "WOW": {
     "address": "0xdfC14f7A536944467834EF7ce7b05a9a79BCDFaD",
