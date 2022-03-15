@@ -46,6 +46,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       console.log("Setting BNFTRegistry to address provider...");
       await waitForTx(await addressesProvider.setBNFTRegistry(bnftRegistryProxy.address));
 
+      // Reserves Init & NFTs Init need IncentivesController
       const incentivesControllerAddress = getParamPerNetwork(poolConfig.IncentivesController, network);
       console.log("IncentivesController", poolConfig.IncentivesController);
       if (incentivesControllerAddress == undefined || !notFalsyOrZeroAddress(incentivesControllerAddress)) {
