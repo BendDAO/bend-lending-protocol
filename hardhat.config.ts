@@ -97,6 +97,7 @@ const buidlerConfig: HardhatUserConfig = {
     },
     develop: getCommonNetworkConfig(eEthereumNetwork.develop, 4),
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
+    kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, 42),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     hardhat: {
       hardfork: "london",
