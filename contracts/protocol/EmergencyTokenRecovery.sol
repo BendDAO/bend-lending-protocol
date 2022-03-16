@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -12,6 +12,8 @@ import {IPunks} from "../interfaces/IPunks.sol";
  * @author Bend
  **/
 abstract contract EmergencyTokenRecovery is Ownable {
+  event EmergencyEtherTransfer(address indexed to, uint256 amount);
+
   /**
    * @dev transfer ERC20 from the utility contract, for ERC20 recovery in case of stuck tokens due
    * direct transfers to the contract address.
@@ -65,5 +67,6 @@ abstract contract EmergencyTokenRecovery is Ownable {
   function emergencyEtherTransfer(address to, uint256 amount) external onlyOwner {
     (bool success, ) = to.call{value: amount}(new bytes(0));
     require(success, "ETH_TRANSFER_FAILED");
+    emit EmergencyEtherTransfer(to, amount);
   }
 }

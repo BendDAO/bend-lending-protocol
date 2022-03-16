@@ -183,7 +183,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     const { configurator, users, pool } = testEnv;
     await configurator.setMaxNumberOfReserves(64);
 
-    const wantVal = await pool.MAX_NUMBER_RESERVES();
+    const wantVal = await pool.getMaxNumberOfReserves();
     expect(wantVal).to.be.equal(64);
   });
 

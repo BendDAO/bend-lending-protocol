@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -27,14 +27,6 @@ contract WalletBalanceProvider {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
   address constant MOCK_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
-
-  /**
-    @dev Fallback function, don't accept any ETH
-    **/
-  receive() external payable {
-    //only contracts can send ETH to the core
-    require(msg.sender.isContract(), "22");
-  }
 
   /**
     @dev Check the reserve balance of a wallet in a reserve contract

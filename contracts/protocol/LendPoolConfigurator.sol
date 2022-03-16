@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
@@ -35,11 +35,6 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
   modifier onlyPoolAdmin() {
     require(_addressesProvider.getPoolAdmin() == msg.sender, Errors.CALLER_NOT_POOL_ADMIN);
-    _;
-  }
-
-  modifier onlyAddressProvider() {
-    require(address(_addressesProvider) == msg.sender, Errors.CALLER_NOT_ADDRESS_PROVIDER);
     _;
   }
 
@@ -415,7 +410,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
   function setMaxNumberOfReserves(uint256 newVal) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     //default value is 32
-    uint256 curVal = cachedPool.MAX_NUMBER_RESERVES();
+    uint256 curVal = cachedPool.getMaxNumberOfReserves();
     require(newVal > curVal, Errors.LPC_INVALID_CONFIGURATION);
     cachedPool.setMaxNumberOfReserves(newVal);
   }
@@ -423,7 +418,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
   function setMaxNumberOfNfts(uint256 newVal) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     //default value is 256
-    uint256 curVal = cachedPool.MAX_NUMBER_NFTS();
+    uint256 curVal = cachedPool.getMaxNumberOfNfts();
     require(newVal > curVal, Errors.LPC_INVALID_CONFIGURATION);
     cachedPool.setMaxNumberOfNfts(newVal);
   }

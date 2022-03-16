@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {IBNFT} from "../interfaces/IBNFT.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
@@ -34,11 +34,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
    **/
   modifier onlyLendPool() {
     require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LEND_POOL);
-    _;
-  }
-
-  modifier onlyAddressProvider() {
-    require(address(_addressesProvider) == msg.sender, Errors.CALLER_NOT_ADDRESS_PROVIDER);
     _;
   }
 

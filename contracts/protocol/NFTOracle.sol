@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -14,6 +14,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   event AssetAdded(address indexed asset);
   event AssetRemoved(address indexed asset);
+  event FeedAdminUpdated(address indexed admin);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
 
   struct NFTPriceData {
@@ -40,6 +41,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
     priceFeedAdmin = _admin;
+    emit FeedAdminUpdated(_admin);
   }
 
   function setAssets(address[] calldata _nftContracts) external onlyOwner {

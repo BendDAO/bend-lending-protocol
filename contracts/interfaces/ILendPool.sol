@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {ILendPoolAddressesProvider} from "./ILendPoolAddressesProvider.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
@@ -434,7 +434,7 @@ interface ILendPool {
 
   function setMaxNumberOfNfts(uint256 val) external;
 
-  function MAX_NUMBER_RESERVES() external view returns (uint256);
+  function getMaxNumberOfReserves() external view returns (uint256);
 
-  function MAX_NUMBER_NFTS() external view returns (uint256);
+  function getMaxNumberOfNfts() external view returns (uint256);
 }

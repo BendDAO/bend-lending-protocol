@@ -48,9 +48,9 @@ task("print-config", "Print config of all reserves and nfts")
 
     console.log(`- LendPool config`);
     const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());
-    console.log(`  - MAX_NUMBER_RESERVES: ${await lendPoolProxy.MAX_NUMBER_RESERVES()}`);
-    console.log(`  - MAX_NUMBER_NFTS: ${await lendPoolProxy.MAX_NUMBER_NFTS()}`);
-    console.log(`  - paused: ${await lendPoolProxy.paused()}`);
+    console.log(`  - MaxNumberOfReserves: ${await lendPoolProxy.getMaxNumberOfReserves()}`);
+    console.log(`  - MaxNumberOfNfts: ${await lendPoolProxy.getMaxNumberOfNfts()}`);
+    console.log(`  - Paused: ${await lendPoolProxy.paused()}`);
 
     const reserveFields = ["decimals", "reserveFactor", "borrowingEnabled", "isActive", "isFrozen"];
     const reserveTokensFields = ["bTokenSymbol", "bTokenAddress", "debtTokenSymbol", "debtTokenAddress"];
