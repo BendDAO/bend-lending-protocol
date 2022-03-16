@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {IBToken} from "../interfaces/IBToken.sol";
 import {IDebtToken} from "../interfaces/IDebtToken.sol";
@@ -68,11 +68,6 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
 
   function _onlyLendPoolConfigurator() internal view {
     require(_addressesProvider.getLendPoolConfigurator() == _msgSender(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
-  }
-
-  modifier onlyAddressProvider() {
-    require(address(_addressesProvider) == msg.sender, Errors.CALLER_NOT_ADDRESS_PROVIDER);
-    _;
   }
 
   /**
@@ -797,7 +792,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   /**
    * @dev Returns the maximum number of reserves supported to be listed in this LendPool
    */
-  function MAX_NUMBER_RESERVES() public view override returns (uint256) {
+  function getMaxNumberOfReserves() public view override returns (uint256) {
     return _maxNumberOfReserves;
   }
 
@@ -808,7 +803,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   /**
    * @dev Returns the maximum number of nfts supported to be listed in this LendPool
    */
-  function MAX_NUMBER_NFTS() public view override returns (uint256) {
+  function getMaxNumberOfNfts() public view override returns (uint256) {
     return _maxNumberOfNfts;
   }
 

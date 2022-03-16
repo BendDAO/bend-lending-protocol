@@ -132,5 +132,64 @@
   },
   "LendPoolConfigurator": {
     "address": "0xF07AE7d0c3e5A1397eFa1cCE0334Bb22D1E4AB30"
+  },
+  "BTokensAndBNFTsHelper": {
+    "address": "0x5cd4a270823CD1D93048533A949C0CFA6825b7bA",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "BToken": {
+    "address": "0xd7d8431Ed91dC5970235A25D2c27B85809e0E9A2",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "DebtToken": {
+    "address": "0xf8434B273daA3802C72a5a367Ce559e4395f8648",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "ReserveOracleImpl": {
+    "address": "0x8Ef40D7d1E2070B67877Db68E70499d825C6aC10"
+  },
+  "ReserveOracle": {
+    "address": "0xE77723b525648d22dF1607E8Ec2C019B72636882",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "NFTOracleImpl": {
+    "address": "0xeA1162D7756788c044aeeE8b648BEc558c53C5FE"
+  },
+  "NFTOracle": {
+    "address": "0x613749B186d571B2c7678C20C73cd16596E7246F",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "WETHGateway": {
+    "address": "0x5843d551cD07f9f257AC0984e7E3B3aD82DB607d",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "PunkGateway": {
+    "address": "0x4528e827996dB24f65c9937f19579F2E524630D0",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "InterestRate": {
+    "address": "0x9023777e7ef341D8209Ece331d8C77F144eAccaF",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "rateStrategyWETH": {
+    "address": "0x71f0245c113B9195a5cE4389B4D8D75bdf8Dba97"
+  },
+  "rateStrategyStableTwo": {
+    "address": "0x3b8A2C34918ca50D692c62c2F425C1f26bFc3a3d"
+  },
+  "rateStrategyStableThree": {
+    "address": "0x9023777e7ef341D8209Ece331d8C77F144eAccaF"
+  },
+  "WalletBalanceProvider": {
+    "address": "0xeC6Fe4E8580F057E72154A7D2A6996f8a024847A",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "BendProtocolDataProvider": {
+    "address": "0x9D24E09D260EB519512c6fD55b467FdAEe777A03",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
+  },
+  "UIPoolDataProvider": {
+    "address": "0xdD52994b7265ef0603006Ca588D23Ed9a2550834",
+    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
   }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -24,9 +24,9 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
   ILendPoolAddressesProvider internal _addressProvider;
   IWETHGateway internal _wethGateway;
 
-  IPunks public punks;
+  IPunks public immutable punks;
   IWrappedPunks public wrappedPunks;
-  address public proxy;
+  address public immutable proxy;
 
   constructor(
     address addressProvider,
@@ -92,7 +92,8 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
 
   function _withdrawPunk(uint256 punkIndex, address onBehalfOf) internal {
     address owner = wrappedPunks.ownerOf(punkIndex);
-    require(owner == onBehalfOf, "PunkGateway: invalid owner");
+    require(owner == _msgSender(), "PunkGateway: caller is not owner");
+    require(owner == onBehalfOf, "PunkGateway: onBehalfOf is not owner");
 
     wrappedPunks.safeTransferFrom(onBehalfOf, address(this), punkIndex);
     wrappedPunks.burn(punkIndex);
@@ -118,6 +119,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     (uint256 paybackAmount, bool burn) = cachedPool.repay(address(wrappedPunks), punkIndex, amount);
 
     if (burn) {
+      require(borrower == _msgSender(), "PunkGateway: caller is not borrower");
       _withdrawPunk(punkIndex, borrower);
     }
 
@@ -170,6 +172,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
+    require(loan.bidderAddress == _msgSender(), "PunkGateway: caller is not bidder");
 
     if (amount > 0) {
       IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
@@ -211,6 +214,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     );
 
     if (burn) {
+      require(borrower == _msgSender(), "PunkGateway: caller is not borrower");
       _withdrawPunk(punkIndex, borrower);
     }
 
@@ -251,6 +255,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
+    require(loan.bidderAddress == _msgSender(), "PunkGateway: caller is not bidder");
 
     uint256 extraAmount = _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex);
 

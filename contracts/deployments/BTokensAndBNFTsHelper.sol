@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: agpl-3.0
-pragma solidity ^0.8.0;
+pragma solidity 0.8.4;
 
 import {LendPool} from "../protocol/LendPool.sol";
 import {LendPoolAddressesProvider} from "../protocol/LendPoolAddressesProvider.sol";

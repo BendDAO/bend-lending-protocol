@@ -168,7 +168,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     const { configurator, users, pool } = testEnv;
     await configurator.setMaxNumberOfNfts(512);
 
-    const wantVal = await pool.MAX_NUMBER_NFTS();
+    const wantVal = await pool.getMaxNumberOfNfts();
     expect(wantVal).to.be.equal(512);
   });
 
