@@ -62,6 +62,7 @@ library Errors {
   string public constant LP_NFT_HAS_USED_AS_COLLATERAL = "412";
   string public constant LP_DELEGATE_CALL_FAILED = "413";
   string public constant LP_AMOUNT_LESS_THAN_EXTRA_DEBT = "414";
+  string public constant LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD = "415";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";
@@ -108,6 +109,7 @@ library Errors {
   string public constant RC_INVALID_REDEEM_DURATION = "735";
   string public constant RC_INVALID_AUCTION_DURATION = "736";
   string public constant RC_INVALID_REDEEM_FINE = "737";
+  string public constant RC_INVALID_REDEEM_THRESHOLD = "738";
 
   //address provider erros
   string public constant LPAPR_PROVIDER_NOT_REGISTERED = "760"; // 'Provider is not registered'

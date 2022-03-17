@@ -25,6 +25,7 @@ contract BTokensAndBNFTsHelper is Ownable {
     uint256 redeemDuration;
     uint256 auctionDuration;
     uint256 redeemFine;
+    uint256 redeemThreshold;
   }
 
   constructor(
@@ -60,7 +61,8 @@ contract BTokensAndBNFTsHelper is Ownable {
         inputParams[i].asset,
         inputParams[i].redeemDuration,
         inputParams[i].auctionDuration,
-        inputParams[i].redeemFine
+        inputParams[i].redeemFine,
+        inputParams[i].redeemThreshold
       );
     }
   }

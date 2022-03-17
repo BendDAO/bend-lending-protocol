@@ -147,7 +147,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "101");
-    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.5).toFixed(0);
+    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
     const repayDebtAmount = new BigNumber(redeemAmount).minus(auctionDataBefore.bidFine.toString());
 
     await pool.connect(borrower.signer).redeem(bayc.address, "101", redeemAmount);
@@ -343,7 +343,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "102");
-    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.5).toFixed(0);
+    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
     const repayDebtAmount = new BigNumber(redeemAmount).minus(auctionDataBefore.bidFine.toString());
 
     await pool.connect(borrower.signer).redeem(bayc.address, "102", redeemAmount);
