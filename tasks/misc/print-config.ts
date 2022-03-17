@@ -77,6 +77,7 @@ task("print-config", "Print config of all reserves and nfts")
       "redeemDuration",
       "auctionDuration",
       "redeemFine",
+      "redeemThreshold",
       "isActive",
       "isFrozen",
     ];

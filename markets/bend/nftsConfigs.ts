@@ -7,6 +7,7 @@ export const strategyNftClassA: INftParams = {
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
   redeemFine: "100", // 1%
+  redeemThreshold: "5000", // 50%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -17,6 +18,7 @@ export const strategyNftClassB: INftParams = {
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
   redeemFine: "100", // 1%
+  redeemThreshold: "5000", // 50%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -27,6 +29,7 @@ export const strategyNftClassC: INftParams = {
   redeemDuration: "2", // 2 day
   auctionDuration: "2", // 2 day
   redeemFine: "100", // 1%
+  redeemThreshold: "5000", // 50%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -37,6 +40,7 @@ export const strategyNftClassD: INftParams = {
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
   redeemFine: "100", // 1%
+  redeemThreshold: "5000", // 50%
   bNftImpl: eContractid.BNFT,
 };
 
@@ -47,6 +51,7 @@ export const strategyNftClassE: INftParams = {
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
   redeemFine: "100", // 1%
+  redeemThreshold: "5000", // 50%
   bNftImpl: eContractid.BNFT,
 };
 

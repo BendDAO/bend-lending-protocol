@@ -114,6 +114,12 @@
         "internalType": "uint256",
         "name": "redeemFine",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "redeemThreshold",
+        "type": "uint256"
       }
     ],
     "name": "NftAuctionChanged",
@@ -484,6 +490,11 @@
       {
         "internalType": "uint256",
         "name": "redeemFine",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "redeemThreshold",
         "type": "uint256"
       }
     ],

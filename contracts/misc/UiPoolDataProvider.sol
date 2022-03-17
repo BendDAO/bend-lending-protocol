@@ -253,7 +253,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     (nftData.ltv, nftData.liquidationThreshold, nftData.liquidationBonus) = baseData
       .configuration
       .getCollateralParamsMemory();
-    (nftData.redeemDuration, nftData.auctionDuration, nftData.redeemFine) = baseData
+    (nftData.redeemDuration, nftData.auctionDuration, nftData.redeemFine, nftData.redeemThreshold) = baseData
       .configuration
       .getAuctionParamsMemory();
     (nftData.isActive, nftData.isFrozen) = baseData.configuration.getFlagsMemory();

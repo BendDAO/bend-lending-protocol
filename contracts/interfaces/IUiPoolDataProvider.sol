@@ -47,6 +47,7 @@ interface IUiPoolDataProvider {
     uint256 redeemDuration;
     uint256 auctionDuration;
     uint256 redeemFine;
+    uint256 redeemThreshold;
     bool isActive;
     bool isFrozen;
     address bNftAddress;

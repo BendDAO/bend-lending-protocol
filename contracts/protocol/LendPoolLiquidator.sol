@@ -161,6 +161,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     uint256 loanId;
     uint256 borrowAmount;
     uint256 repayAmount;
+    uint256 minRepayAmount;
     uint256 maxRepayAmount;
     uint256 bidFine;
     uint256 redeemEndTimestamp;
@@ -215,6 +216,9 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     if (amount > vars.bidFine) {
       vars.repayAmount = amount - vars.bidFine;
     }
+
+    vars.minRepayAmount = vars.borrowAmount.percentMul(nftData.configuration.getRedeemThreshold());
+    require(vars.repayAmount >= vars.minRepayAmount, Errors.LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD);
 
     vars.maxRepayAmount = vars.borrowAmount.percentMul(PercentageMath.PERCENTAGE_FACTOR - PercentageMath.TEN_PERCENT);
     if (vars.repayAmount > vars.maxRepayAmount) {

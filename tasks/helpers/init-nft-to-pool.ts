@@ -85,7 +85,13 @@ task("init-nft-to-pool", "Init and config new nft asset to lend pool")
     await waitForTx(
       await lendPoolConfiguratorProxy
         .connect(poolAdminSigner)
-        .configureNftAsAuction(asset, nftParam.redeemDuration, nftParam.auctionDuration, nftParam.redeemFine)
+        .configureNftAsAuction(
+          asset,
+          nftParam.redeemDuration,
+          nftParam.auctionDuration,
+          nftParam.redeemFine,
+          nftParam.redeemThreshold
+        )
     );
 
     console.log("WETHGateway authorizeLendPoolNFT");
