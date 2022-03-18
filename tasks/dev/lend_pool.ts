@@ -76,10 +76,7 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
 
     ////////////////////////////////////////////////////////////////////////////
     // Deploy deployment helpers
-    await deployBTokensAndBNFTsHelper(
-      [lendPoolProxy.address, addressesProvider.address, lendPoolConfiguratorProxy.address],
-      verify
-    );
+    await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
 
     // Generic BNFT Implementation at here
     await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);

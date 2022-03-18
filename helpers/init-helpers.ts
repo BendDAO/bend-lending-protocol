@@ -292,6 +292,11 @@ export const configureNftsByHelper = async (
   const tokens: string[] = [];
   const symbols: string[] = [];
 
+  console.log("addressesProvider:", addressProvider.address);
+  const addressProviderInHelper = await getLendPoolAddressesProvider(await tokenHelperDeployer.addressesProvider());
+  console.log("addressProviderInHelper:", addressProviderInHelper.address);
+  console.log("getLendPoolConfigurator:", await addressProviderInHelper.getLendPoolConfigurator());
+
   const inputParams: {
     asset: string;
     baseLTV: BigNumberish;

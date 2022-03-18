@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {LendPool} from "../protocol/LendPool.sol";
 import {LendPoolAddressesProvider} from "../protocol/LendPoolAddressesProvider.sol";
 import {LendPoolConfigurator} from "../protocol/LendPoolConfigurator.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract BTokensAndBNFTsHelper is Ownable {
-  address payable private pool;
-  address private addressesProvider;
-  address private poolConfigurator;
+  LendPoolAddressesProvider public addressesProvider;
 
   struct ConfigureReserveInput {
     address asset;
@@ -28,18 +25,12 @@ contract BTokensAndBNFTsHelper is Ownable {
     uint256 redeemThreshold;
   }
 
-  constructor(
-    address payable _pool,
-    address _addressesProvider,
-    address _poolConfigurator
-  ) {
-    pool = _pool;
-    addressesProvider = _addressesProvider;
-    poolConfigurator = _poolConfigurator;
+  constructor(address _addressesProvider) {
+    addressesProvider = LendPoolAddressesProvider(_addressesProvider);
   }
 
   function configureReserves(ConfigureReserveInput[] calldata inputParams) external onlyOwner {
-    LendPoolConfigurator configurator = LendPoolConfigurator(poolConfigurator);
+    LendPoolConfigurator configurator = LendPoolConfigurator(addressesProvider.getLendPoolConfigurator());
     for (uint256 i = 0; i < inputParams.length; i++) {
       if (inputParams[i].borrowingEnabled) {
         configurator.enableBorrowingOnReserve(inputParams[i].asset);
@@ -49,7 +40,7 @@ contract BTokensAndBNFTsHelper is Ownable {
   }
 
   function configureNfts(ConfigureNftInput[] calldata inputParams) external onlyOwner {
-    LendPoolConfigurator configurator = LendPoolConfigurator(poolConfigurator);
+    LendPoolConfigurator configurator = LendPoolConfigurator(addressesProvider.getLendPoolConfigurator());
     for (uint256 i = 0; i < inputParams.length; i++) {
       configurator.configureNftAsCollateral(
         inputParams[i].asset,
@@ -61,9 +52,9 @@ contract BTokensAndBNFTsHelper is Ownable {
         inputParams[i].asset,
         inputParams[i].redeemDuration,
         inputParams[i].auctionDuration,
-        inputParams[i].redeemFine,
-        inputParams[i].redeemThreshold
+        inputParams[i].redeemFine
       );
+      configurator.setNftRedeemThreshold(inputParams[i].asset, inputParams[i].redeemThreshold);
     }
   }
 }

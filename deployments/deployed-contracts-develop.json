@@ -93,48 +93,47 @@
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "ReserveLogic": {
-    "address": "0xBb70B549e0c7C75D2D7269AE15C84526febce459",
+    "address": "0xa9C66965618aDb7Fe038EDa43FB02e4950661e79",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "NftLogic": {
-    "address": "0x6E9936c3270d80F3fDCA1Eaee8F7F1fe8ff3D626",
+    "address": "0xfDE8e984F406FBdF609064D59fEA015B854Bc890",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "GenericLogic": {
-    "address": "0x259d4e7B47A2f46AA25D1BB4249daE4Ce8044924",
+    "address": "0x130f11A46baf275616A91aB7Beb815EC5e0fea7a",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "ValidationLogic": {
-    "address": "0x8A0F9F764949fA4DC30a31e6B1D49455A5b7c37e",
+    "address": "0x2B1f699E604511477242B07a93Bd9ACD348966fb",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "LendPoolImpl": {
-    "address": "0x061172D66E3b0d12f35AA5f4aa790d1b82584b81"
+    "address": "0xfD2Bfa1ce9d720cb75a30e8034b521945224007B"
   },
   "LendPool": {
     "address": "0x7273847406a52B949F3E824fce7704E8e74244f5"
   },
   "LendPoolLiquidatorImpl": {
-    "address": "0x0d7FD00F0eB15E2ac6F2A7e2A711EC3cF52C5af7"
+    "address": "0x394bC760f3Ea2559b8aa5B2d1A6C52936056a6E4"
   },
   "LendPoolLiquidator": {
-    "address": "0x0d7FD00F0eB15E2ac6F2A7e2A711EC3cF52C5af7",
-    "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
+    "address": "0x394bC760f3Ea2559b8aa5B2d1A6C52936056a6E4"
   },
   "LendPoolLoanImpl": {
-    "address": "0xfC65bB7444E53549ffE2ED019f7808Fa11054aF5"
+    "address": "0x967Fc83e00cDB6928b1aF87710D1C1654259F77d"
   },
   "LendPoolLoan": {
     "address": "0xfD45825533513ABfCa3D767f407C86C1c522a659"
   },
   "LendPoolConfiguratorImpl": {
-    "address": "0x51C7a63628E3020DCf79fB824C7B2EdbBCd19aD5"
+    "address": "0x58ce2dBCb05B9727ab9EbCd50CC2B93549826D9A"
   },
   "LendPoolConfigurator": {
     "address": "0xB941fC3ceC2E83a9Df305Cc8A3285D6E8bc29A01"
   },
   "BTokensAndBNFTsHelper": {
-    "address": "0x4C08584B7CbdEb2912Db3414f6480E4005AcF1E7",
+    "address": "0x16F1b281C36faB9F477944D6e503008f961F93E6",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "BToken": {
@@ -146,25 +145,23 @@
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "ReserveOracleImpl": {
-    "address": "0x43398385ce07CE08351331A4e7937dD063F97faF"
+    "address": "0x4a44e0261800fE325Df5A8cf6D22e9D78C31EFE5"
   },
   "ReserveOracle": {
-    "address": "0xd30179fbB087088a77E1DD0903cCc64510287cB2",
-    "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
+    "address": "0xd30179fbB087088a77E1DD0903cCc64510287cB2"
   },
   "NFTOracleImpl": {
-    "address": "0x7f998b4caeeEd21c71ca3CC85c0917f70782a22A"
+    "address": "0xcFc4b72067c8a9F83DF5CeB80d0F5C4210130c4e"
   },
   "NFTOracle": {
-    "address": "0xE283F4D306517200911F9c378aC68f020acb9f64",
-    "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
+    "address": "0xE283F4D306517200911F9c378aC68f020acb9f64"
   },
   "WETHGateway": {
-    "address": "0x53EB7c083eFDc7505848263BB481bD93fA7Ad5B6",
+    "address": "0x564e1748ad5940cEA22f2a6Aa75F2849B6d22f32",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "PunkGateway": {
-    "address": "0xf70adB1845bf1F3cd2aec7E62DE9677B1b2Ea7Fa",
+    "address": "0xA979f811c3e2322845E99E8906bBB0a4f85e5A18",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "InterestRate": {
@@ -181,15 +178,21 @@
     "address": "0xbBbFaFACaBeEB2B3957eddf87e95434e81aeC25c"
   },
   "WalletBalanceProvider": {
-    "address": "0x54028bF245F8b54C037e10DED960f1F10e228cd2",
+    "address": "0xfa32Dc864c5348e6a1ce8844609CD63Bd866152f",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "BendProtocolDataProvider": {
-    "address": "0xA8334E9BA1c4E1dD2d72C38258B43C30b6aeDEb0",
+    "address": "0x6BC4141B9623c05f260E231Ea8500c0cEE05776a",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "UIPoolDataProvider": {
-    "address": "0x291451555eF07441f4De67940b967a6B8D4033Df",
+    "address": "0xbB72f40766CF22498d60FFdC6b402Ad575fAc512",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
+  },
+  "PunkGatewayImpl": {
+    "address": "0xbd2F5E6C5c1430B021bEaB70dBA90F2faE0D7a49"
+  },
+  "WETHGatewayImpl": {
+    "address": "0x440183FDddAcE7661a8027B42e09fB78Ae2b6301"
   }
 }

@@ -155,13 +155,9 @@ interface ILendPoolConfigurator {
    * @param auctionDuration The new redeem duration
    * @param redeemFine The new redeem fine
    **/
-  event NftAuctionChanged(
-    address indexed asset,
-    uint256 redeemDuration,
-    uint256 auctionDuration,
-    uint256 redeemFine,
-    uint256 redeemThreshold
-  );
+  event NftAuctionChanged(address indexed asset, uint256 redeemDuration, uint256 auctionDuration, uint256 redeemFine);
+
+  event NftRedeemThresholdChanged(address indexed asset, uint256 redeemThreshold);
 
   /**
    * @dev Emitted when an bToken implementation is upgraded

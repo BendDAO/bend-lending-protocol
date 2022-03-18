@@ -389,8 +389,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     address asset,
     uint256 redeemDuration,
     uint256 auctionDuration,
-    uint256 redeemFine,
-    uint256 redeemThreshold
+    uint256 redeemFine
   ) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(asset);
@@ -402,11 +401,21 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     currentConfig.setRedeemDuration(redeemDuration);
     currentConfig.setAuctionDuration(auctionDuration);
     currentConfig.setRedeemFine(redeemFine);
+
+    cachedPool.setNftConfiguration(asset, currentConfig.data);
+
+    emit NftAuctionChanged(asset, redeemDuration, auctionDuration, redeemFine);
+  }
+
+  function setNftRedeemThreshold(address asset, uint256 redeemThreshold) external onlyPoolAdmin {
+    ILendPool cachedPool = _getLendPool();
+    DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(asset);
+
     currentConfig.setRedeemThreshold(redeemThreshold);
 
     cachedPool.setNftConfiguration(asset, currentConfig.data);
 
-    emit NftAuctionChanged(asset, redeemDuration, auctionDuration, redeemFine, redeemThreshold);
+    emit NftRedeemThresholdChanged(asset, redeemThreshold);
   }
 
   function setMaxNumberOfReserves(uint256 newVal) external onlyPoolAdmin {

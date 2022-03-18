@@ -1,21 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "addressProvider",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "weth",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -83,9 +67,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "nftAsset",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "nftAssets",
+        "type": "address[]"
       }
     ],
     "name": "authorizeLendPoolNFT",
@@ -242,6 +226,24 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "addressProvider",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "weth",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

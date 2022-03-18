@@ -1,31 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "addressProvider",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "wethGateway",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_punks",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_wrappedPunks",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -111,9 +85,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "tokens",
+        "type": "address[]"
       }
     ],
     "name": "authorizeLendPoolERC20",
@@ -265,6 +239,34 @@
       }
     ],
     "name": "emergencyPunksTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "addressProvider",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "wethGateway",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_punks",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_wrappedPunks",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
