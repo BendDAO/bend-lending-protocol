@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
@@ -16,24 +16,27 @@ import {IPunkGateway} from "../interfaces/IPunkGateway.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 
-import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
+import {EmergencyTokenRecoveryUpgradeable} from "./EmergencyTokenRecoveryUpgradeable.sol";
 
-contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecovery {
-  using SafeERC20 for IERC20;
+contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRecoveryUpgradeable {
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   ILendPoolAddressesProvider internal _addressProvider;
   IWETHGateway internal _wethGateway;
 
-  IPunks public immutable punks;
+  IPunks public punks;
   IWrappedPunks public wrappedPunks;
-  address public immutable proxy;
+  address public proxy;
 
-  constructor(
+  function initialize(
     address addressProvider,
     address wethGateway,
     address _punks,
     address _wrappedPunks
-  ) {
+  ) public initializer {
+    __ERC721Holder_init();
+    __EmergencyTokenRecovery_init();
+
     _addressProvider = ILendPoolAddressesProvider(addressProvider);
     _wethGateway = IWETHGateway(wethGateway);
 
@@ -42,8 +45,8 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     wrappedPunks.registerProxy();
     proxy = wrappedPunks.proxyInfo(address(this));
 
-    IERC721(address(wrappedPunks)).setApprovalForAll(address(_getLendPool()), true);
-    IERC721(address(wrappedPunks)).setApprovalForAll(address(_wethGateway), true);
+    IERC721Upgradeable(address(wrappedPunks)).setApprovalForAll(address(_getLendPool()), true);
+    IERC721Upgradeable(address(wrappedPunks)).setApprovalForAll(address(_wethGateway), true);
   }
 
   function _getLendPool() internal view returns (ILendPool) {
@@ -54,8 +57,10 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     return ILendPoolLoan(_addressProvider.getLendPoolLoan());
   }
 
-  function authorizeLendPoolERC20(address token) external onlyOwner {
-    IERC20(token).approve(address(_getLendPool()), type(uint256).max);
+  function authorizeLendPoolERC20(address[] calldata tokens) external onlyOwner {
+    for (uint256 i = 0; i < tokens.length; i++) {
+      IERC20Upgradeable(tokens[i]).approve(address(_getLendPool()), type(uint256).max);
+    }
   }
 
   function _depositPunk(uint256 punkIndex) internal {
@@ -87,7 +92,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     _depositPunk(punkIndex);
 
     cachedPool.borrow(reserveAsset, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
-    IERC20(reserveAsset).transfer(onBehalfOf, amount);
+    IERC20Upgradeable(reserveAsset).transfer(onBehalfOf, amount);
   }
 
   function _withdrawPunk(uint256 punkIndex, address onBehalfOf) internal {
@@ -114,7 +119,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
       amount = debt;
     }
 
-    IERC20(reserve).transferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(reserve).transferFrom(msg.sender, address(this), amount);
 
     (uint256 paybackAmount, bool burn) = cachedPool.repay(address(wrappedPunks), punkIndex, amount);
 
@@ -139,7 +144,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
 
     (, , address reserve, ) = cachedPoolLoan.getLoanCollateralAndReserve(loanId);
 
-    IERC20(reserve).transferFrom(msg.sender, address(this), bidPrice);
+    IERC20Upgradeable(reserve).transferFrom(msg.sender, address(this), bidPrice);
 
     cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
@@ -153,12 +158,12 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
 
     uint256 paybackAmount = cachedPool.redeem(address(wrappedPunks), punkIndex, amount);
 
     if (amount > paybackAmount) {
-      IERC20(loan.reserveAsset).safeTransfer(msg.sender, (amount - paybackAmount));
+      IERC20Upgradeable(loan.reserveAsset).safeTransfer(msg.sender, (amount - paybackAmount));
     }
 
     return paybackAmount;
@@ -175,7 +180,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     require(loan.bidderAddress == _msgSender(), "PunkGateway: caller is not bidder");
 
     if (amount > 0) {
-      IERC20(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
+      IERC20Upgradeable(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
     }
 
     uint256 extraRetAmount = cachedPool.liquidate(address(wrappedPunks), punkIndex, amount);
@@ -183,7 +188,7 @@ contract PunkGateway is ERC721Holder, IPunkGateway, Ownable, EmergencyTokenRecov
     _withdrawPunk(punkIndex, loan.bidderAddress);
 
     if (amount > extraRetAmount) {
-      IERC20(loan.reserveAsset).safeTransfer(msg.sender, (amount - extraRetAmount));
+      IERC20Upgradeable(loan.reserveAsset).safeTransfer(msg.sender, (amount - extraRetAmount));
     }
 
     return (extraRetAmount);

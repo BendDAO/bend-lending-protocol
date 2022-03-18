@@ -8,6 +8,9 @@ import {
 } from "../../helpers/configuration";
 import {
   getBendProtocolDataProvider,
+  getBendProxyAdminByAddress,
+  getBendProxyAdminById,
+  getBendUpgradeableProxy,
   getDeploySigner,
   getLendPoolAddressesProvider,
   getPunkGateway,
@@ -30,18 +33,19 @@ import {
   deployBendProtocolDataProvider,
   deployPunkGateway,
   deployWETHGateway,
+  deployBTokensAndBNFTsHelper,
 } from "../../helpers/contracts-deployments";
-import { waitForTx } from "../../helpers/misc-utils";
+import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
-import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import { ethers } from "hardhat";
+import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 
 task("dev:deploy-new-implementation", "Deploy new implementation")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("verify", "Verify contracts at Etherscan")
-  .addFlag("setAddressProvider", "Set contract implementation in address provider")
   .addParam("contract", "Contract name")
-  .setAction(async ({ verify, pool, setAddressProvider, contract }, DRE) => {
+  .addFlag("upgrade", "Upgrade contract")
+  .setAction(async ({ verify, pool, contract, upgrade }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -61,7 +65,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);
       console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
 
-      if (setAddressProvider) {
+      if (upgrade) {
         await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
         await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
       }
@@ -73,7 +77,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const lendPoolCfgImpl = await deployLendPoolConfigurator(verify);
       console.log("LendPoolConfigurator implementation address:", lendPoolCfgImpl.address);
 
-      if (setAddressProvider) {
+      if (upgrade) {
         await waitForTx(await addressesProvider.setLendPoolConfiguratorImpl(lendPoolCfgImpl.address, []));
       }
       await insertContractAddressInDb(
@@ -86,7 +90,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const lendPoolLoanImpl = await deployLendPoolLoan(verify);
       console.log("LendPoolLoan implementation address:", lendPoolLoanImpl.address);
 
-      if (setAddressProvider) {
+      if (upgrade) {
         await waitForTx(await addressesProvider.setLendPoolLoanImpl(lendPoolLoanImpl.address, []));
       }
       await insertContractAddressInDb(eContractid.LendPoolLoan, await addressesProvider.getLendPoolLoan());
@@ -96,31 +100,53 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const reserveOracleImpl = await deployReserveOracle(verify);
       console.log("ReserveOracle implementation address:", reserveOracleImpl.address);
 
-      if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setReserveOracle(reserveOracleImpl.address));
+      const proxyAddress = await addressesProvider.getReserveOracle();
+      await insertContractAddressInDb(eContractid.ReserveOracle, proxyAddress);
+
+      if (upgrade) {
+        await DRE.run("dev:upgrade-implementation", {
+          pool: pool,
+          contract,
+          proxy: proxyAddress,
+          impl: reserveOracleImpl.address,
+        });
       }
-      await insertContractAddressInDb(eContractid.ReserveOracle, await addressesProvider.getReserveOracle());
     }
 
     if (contract == "NFTOracle") {
       const nftOracleImpl = await deployNFTOracle(verify);
       console.log("NFTOracle implementation address:", nftOracleImpl.address);
 
-      if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
+      const proxyAddress = await addressesProvider.getNFTOracle();
+      await insertContractAddressInDb(eContractid.NFTOracle, proxyAddress);
+
+      if (upgrade) {
+        await DRE.run("dev:upgrade-implementation", {
+          pool: pool,
+          contract,
+          proxy: proxyAddress,
+          impl: nftOracleImpl.address,
+        });
       }
-      await insertContractAddressInDb(eContractid.NFTOracle, await addressesProvider.getNFTOracle());
     }
 
     if (contract == "WETHGateway") {
       const wethAddress = await getWrappedNativeTokenAddress(poolConfig);
       console.log("WETH.address", wethAddress);
 
-      const wethGatewayImpl = await deployWETHGateway([addressesProvider.address, wethAddress], verify);
+      const wethGatewayImpl = await deployWETHGateway(verify);
       console.log("WETHGateway implementation address:", wethGatewayImpl.address);
 
-      if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_WETH_GATEWAY, wethGatewayImpl.address));
+      const proxyAddress = await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY);
+      await insertContractAddressInDb(eContractid.WETHGateway, proxyAddress);
+
+      if (upgrade) {
+        await DRE.run("dev:upgrade-implementation", {
+          pool: pool,
+          contract,
+          proxy: proxyAddress,
+          impl: wethGatewayImpl.address,
+        });
       }
     }
 
@@ -134,14 +160,19 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const wpunkAddress = await getWrappedPunkTokenAddress(poolConfig, punkAddress);
       console.log("WPUNKS.address", wpunkAddress);
 
-      const punkGatewayImpl = await deployPunkGateway(
-        [addressesProvider.address, wethGateWay.address, punkAddress, wpunkAddress],
-        verify
-      );
+      const punkGatewayImpl = await deployPunkGateway(verify);
       console.log("PunkGateway implementation address:", punkGatewayImpl.address);
 
-      if (setAddressProvider) {
-        await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_PUNK_GATEWAY, punkGatewayImpl.address));
+      const proxyAddress = await addressesProvider.getAddress(ADDRESS_ID_PUNK_GATEWAY);
+      await insertContractAddressInDb(eContractid.PunkGateway, proxyAddress);
+
+      if (upgrade) {
+        await DRE.run("dev:upgrade-implementation", {
+          pool: pool,
+          contract,
+          proxy: proxyAddress,
+          impl: punkGatewayImpl.address,
+        });
       }
     }
 
@@ -149,7 +180,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const contractImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
       console.log("BendProtocolDataProvider implementation address:", contractImpl.address);
 
-      if (setAddressProvider) {
+      if (upgrade) {
         await waitForTx(await addressesProvider.setBendDataProvider(contractImpl.address));
       }
     }
@@ -162,7 +193,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       );
       console.log("UiPoolDataProvider implementation address:", contractImpl.address);
 
-      if (setAddressProvider) {
+      if (upgrade) {
         await waitForTx(await addressesProvider.setUIDataProvider(contractImpl.address));
       }
     }
@@ -171,45 +202,39 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       const contractImpl = await deployWalletBalancerProvider(verify);
       console.log("WalletBalancerProvider implementation address:", contractImpl.address);
 
-      if (setAddressProvider) {
+      if (upgrade) {
         await waitForTx(await addressesProvider.setWalletBalanceProvider(contractImpl.address));
       }
     }
+
+    if (contract == "BTokensAndBNFTsHelper") {
+      const contractImpl = await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
+      console.log("BTokensAndBNFTsHelper implementation address:", contractImpl.address);
+    }
   });
 
-task("dev:update-implementation-to-address-provider", "Update implementation to address provider")
+task("dev:upgrade-implementation", "Update implementation to address provider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, pool }, DRE) => {
+  .addParam("contract", "Contract name")
+  .addParam("proxy", "Contract proxy address")
+  .addParam("impl", "Contract implementation address")
+  .setAction(async ({ pool, contract, proxy, impl }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
-    const addressesProviderRaw = await getLendPoolAddressesProvider();
-    const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
-    const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
-    {
-      const wethGatewayImpl = await getWETHGateway();
-      await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_WETH_GATEWAY, wethGatewayImpl.address));
-    }
+    const bendProxy = await getBendUpgradeableProxy(proxy);
 
-    {
-      const punkGatewayImpl = await getPunkGateway();
-      await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_PUNK_GATEWAY, punkGatewayImpl.address));
+    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
+    if (proxyAdmin == undefined || !notFalsyOrZeroAddress(proxyAdmin.address)) {
+      throw Error("Invalid pool proxy admin in config");
     }
+    const proxyAdminOwnerAddress = await proxyAdmin.owner();
+    const proxyAdminOwnerSigner = DRE.ethers.provider.getSigner(proxyAdminOwnerAddress);
 
-    {
-      const bendProviderImpl = await getBendProtocolDataProvider();
-      await waitForTx(await addressesProvider.setBendDataProvider(bendProviderImpl.address));
-    }
+    // only proxy admin can do upgrading
+    await waitForTx(await proxyAdmin.connect(proxyAdminOwnerSigner).upgrade(bendProxy.address, impl));
 
-    {
-      const uiProviderImpl = await getUIPoolDataProvider();
-      await waitForTx(await addressesProvider.setUIDataProvider(uiProviderImpl.address));
-    }
-
-    {
-      const walletProviderImpl = await getWalletProvider();
-      await waitForTx(await addressesProvider.setWalletBalanceProvider(walletProviderImpl.address));
-    }
+    await insertContractAddressInDb(eContractid[contract], proxy);
   });

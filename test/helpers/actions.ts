@@ -710,7 +710,7 @@ export const redeem = async (
   if (amount !== "-1") {
     amountToRedeem = (await convertToCurrencyDecimals(reserveAsset, amount)).toString();
   } else {
-    amountToRedeem = loanDataBefore.currentAmount.div(2).plus(loanDataBefore.bidFine).toFixed(0); //50% Debt + Bid Fine
+    amountToRedeem = loanDataBefore.currentAmount.multipliedBy(0.6).plus(loanDataBefore.bidFine).toFixed(0); //60% Debt + Bid Fine
   }
   amountToRedeem = "0x" + new BigNumber(amountToRedeem).toString(16);
 

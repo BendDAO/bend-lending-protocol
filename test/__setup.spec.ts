@@ -52,26 +52,24 @@ import {
   configureNftsByHelper,
 } from "../helpers/init-helpers";
 import BendConfig from "../markets/bend";
-import { oneEther, ZERO_ADDRESS } from "../helpers/constants";
 import {
   getSecondSigner,
   getDeploySigner,
   getPoolAdminSigner,
   getEmergencyAdminSigner,
-  getProxyAdminSigner,
-  getPoolOwnerSigner,
   getLendPool,
   getLendPoolConfiguratorProxy,
   getLendPoolLoanProxy,
   getBNFTRegistryProxy,
-  getPairsTokenAggregator,
-  getMockIncentivesController,
   getCryptoPunksMarket,
   getWrappedPunk,
+  getWETHGateway,
+  getPunkGateway,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { WrappedPunk } from "../types/WrappedPunk";
+import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../helpers/constants";
 
 const MOCK_USD_PRICE = BendConfig.ProtocolGlobalParams.MockUsdPrice;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -200,11 +198,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare BToken and BNFT helper...");
-  await deployBTokensAndBNFTsHelper([
-    lendPoolProxy.address,
-    addressesProvider.address,
-    lendPoolConfiguratorProxy.address,
-  ]);
+  await deployBTokensAndBNFTsHelper([addressesProvider.address]);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock reserve token aggregators...");
@@ -342,22 +336,46 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare WETH gateway...");
-  const wethGateway = await deployWETHGateway([addressesProvider.address, mockTokens.WETH.address]);
-  await waitForTx(await wethGateway.authorizeLendPoolNFT(await getNftAddressFromSymbol("BAYC")));
-  await waitForTx(await wethGateway.authorizeLendPoolNFT(wrappedPunk.address));
+  const wethGatewayImpl = await deployWETHGateway();
+  const wethGwInitEncodedData = wethGatewayImpl.interface.encodeFunctionData("initialize", [
+    addressesProvider.address,
+    mockTokens.WETH.address,
+  ]);
+  const wethGatewayProxy = await deployBendUpgradeableProxy(
+    eContractid.WETHGateway,
+    bendProxyAdmin.address,
+    wethGatewayImpl.address,
+    wethGwInitEncodedData
+  );
+  await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_WETH_GATEWAY, wethGatewayProxy.address));
+  const wethGateway = await getWETHGateway(await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY));
+  await waitForTx(await wethGateway.authorizeLendPoolNFT([allNftsAddresses.BAYC, allNftsAddresses.WPUNKS]));
+  await insertContractAddressInDb(eContractid.WETHGateway, wethGateway.address);
 
   console.log("-> Prepare PUNK gateway...");
-  const punkGateway = await deployPunkGateway([
+  const punkGatewayImpl = await deployPunkGateway();
+  const punkGwInitEncodedData = punkGatewayImpl.interface.encodeFunctionData("initialize", [
     addressesProvider.address,
     wethGateway.address,
     cryptoPunksMarket.address,
     wrappedPunk.address,
   ]);
-  console.log(`Deploy PunkGateway at ${punkGateway.address}`);
-  console.log(`Authorzie PunkGateway with LendPool and WETHGateway`);
-  await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.WETH));
-  await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.DAI));
-  await waitForTx(await punkGateway.authorizeLendPoolERC20(allReservesAddresses.USDC));
+  const punkGatewayProxy = await deployBendUpgradeableProxy(
+    eContractid.PunkGateway,
+    bendProxyAdmin.address,
+    punkGatewayImpl.address,
+    punkGwInitEncodedData
+  );
+  await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_PUNK_GATEWAY, punkGatewayProxy.address));
+  const punkGateway = await getPunkGateway(await addressesProvider.getAddress(ADDRESS_ID_PUNK_GATEWAY));
+  await waitForTx(
+    await punkGateway.authorizeLendPoolERC20([
+      allReservesAddresses.WETH,
+      allReservesAddresses.DAI,
+      allReservesAddresses.USDC,
+    ])
+  );
+  await insertContractAddressInDb(eContractid.PunkGateway, punkGateway.address);
 
   console.timeEnd("setup");
 };

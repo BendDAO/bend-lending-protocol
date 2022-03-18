@@ -6,22 +6,39 @@ import {
   getCryptoPunksMarketAddress,
 } from "../../helpers/configuration";
 import { ADDRESS_ID_PUNK_GATEWAY } from "../../helpers/constants";
-import { deployPunkGateway } from "../../helpers/contracts-deployments";
-import { getLendPoolAddressesProvider, getWETHGateway } from "../../helpers/contracts-getters";
-import { waitForTx } from "../../helpers/misc-utils";
+import { deployBendUpgradeableProxy, deployPunkGateway } from "../../helpers/contracts-deployments";
+import {
+  getBendProxyAdminById,
+  getBendUpgradeableProxy,
+  getLendPoolAddressesProvider,
+  getPunkGateway,
+  getWETHGateway,
+} from "../../helpers/contracts-getters";
+import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
+import { eContractid } from "../../helpers/types";
+import { BendUpgradeableProxy, PunkGateway } from "../../types";
 
 task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("verify", `Verify contract via Etherscan API.`)
-  .setAction(async ({ verify, pool }, localBRE) => {
-    await localBRE.run("set-DRE");
+  .setAction(async ({ verify, pool }, DRE) => {
+    await DRE.run("set-DRE");
 
-    if (!localBRE.network.config.chainId) {
+    if (!DRE.network.config.chainId) {
       throw new Error("INVALID_CHAIN_ID");
     }
 
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
+
+    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
+    if (proxyAdmin == undefined || !notFalsyOrZeroAddress(proxyAdmin.address)) {
+      throw Error("Invalid pool proxy admin in config");
+    }
+    const proxyAdminOwnerAddress = await proxyAdmin.owner();
+    const proxyAdminOwnerSigner = DRE.ethers.provider.getSigner(proxyAdminOwnerAddress);
+
     const wethGateWay = await getWETHGateway();
 
     const punk = await getCryptoPunksMarketAddress(poolConfig);
@@ -31,9 +48,47 @@ task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
     console.log("WPUNKS.address", wpunk);
 
     // this contract is not support upgrade, just deploy new contract
-    const punkGateWay = await deployPunkGateway([addressesProvider.address, wethGateWay.address, punk, wpunk], verify);
-    console.log("PunkGateway.address", punkGateWay.address);
+    const punkGateWayImpl = await deployPunkGateway(verify);
+    const initEncodedData = punkGateWayImpl.interface.encodeFunctionData("initialize", [
+      addressesProvider.address,
+      wethGateWay.address,
+      punk,
+      wpunk,
+    ]);
+
+    let punkGateWay: PunkGateway;
+    let punkGatewayProxy: BendUpgradeableProxy;
+
+    const punkGatewayAddress = undefined; //await addressesProvider.getAddress(ADDRESS_ID_PUNK_GATEWAY);
+
+    if (punkGatewayAddress != undefined && notFalsyOrZeroAddress(punkGatewayAddress)) {
+      console.log("Upgrading exist PunkGateway proxy to new implementation...");
+
+      await insertContractAddressInDb(eContractid.PunkGateway, punkGatewayAddress);
+      punkGatewayProxy = await getBendUpgradeableProxy(punkGatewayAddress);
+
+      // only proxy admin can do upgrading
+      await waitForTx(
+        await proxyAdmin.connect(proxyAdminOwnerSigner).upgrade(punkGatewayProxy.address, punkGateWayImpl.address)
+      );
+
+      punkGateWay = await getPunkGateway(punkGatewayProxy.address);
+    } else {
+      console.log("Deploying new PunkGateway proxy & implementation...");
+      const punkGatewayProxy = await deployBendUpgradeableProxy(
+        eContractid.PunkGateway,
+        proxyAdmin.address,
+        punkGateWayImpl.address,
+        initEncodedData,
+        verify
+      );
+
+      punkGateWay = await getPunkGateway(punkGatewayProxy.address);
+    }
 
     await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_PUNK_GATEWAY, punkGateWay.address));
+
+    console.log("PunkGateway: proxy %s, implementation %s", punkGateWay.address, punkGateWayImpl.address);
+
     console.log("Finished PunkGateway deployment");
   });

@@ -84,16 +84,20 @@ task("full:initialize-gateway", "Initialize gateway configuration.")
       }
 
       const wethGateway = await getWETHGateway();
+      let nftAddresses: string[] = [];
       for (const [assetSymbol, assetAddress] of Object.entries(nftsAssets) as [string, string][]) {
-        console.log("WETHGateway: authorizeLendPoolNFT:", assetSymbol);
-        await waitForTx(await wethGateway.authorizeLendPoolNFT(assetAddress));
+        nftAddresses.push(assetAddress);
       }
+      console.log("WETHGateway: authorizeLendPoolNFT:", nftAddresses);
+      await waitForTx(await wethGateway.authorizeLendPoolNFT(nftAddresses));
 
       const punkGateway = await getPunkGateway();
+      let reserveAddresses: string[] = [];
       for (const [assetSymbol, assetAddress] of Object.entries(reserveAssets) as [string, string][]) {
-        console.log("PunkGateway: authorizeLendPoolERC20:", assetSymbol);
-        await waitForTx(await punkGateway.authorizeLendPoolERC20(assetAddress));
+        reserveAddresses.push(assetAddress);
       }
+      console.log("PunkGateway: authorizeLendPoolERC20:", reserveAddresses);
+      await waitForTx(await punkGateway.authorizeLendPoolERC20(reserveAddresses));
     } catch (err) {
       console.error(err);
       exit(1);

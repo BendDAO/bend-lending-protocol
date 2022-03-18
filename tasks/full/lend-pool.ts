@@ -110,10 +110,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
 
       //////////////////////////////////////////////////////////////////////////
       // Deploy deployment helpers
-      await deployBTokensAndBNFTsHelper(
-        [lendPoolProxy.address, addressesProvider.address, lendPoolConfiguratorProxy.address],
-        verify
-      );
+      await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
 
       // Generic BToken & DebtToken Implementation in Pool
       await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);

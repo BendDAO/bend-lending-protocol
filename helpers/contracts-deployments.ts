@@ -351,10 +351,7 @@ export const deployAllMockNfts = async (verify?: boolean) => {
   return tokens;
 };
 
-export const deployBTokensAndBNFTsHelper = async (
-  args: [tEthereumAddress, tEthereumAddress, tEthereumAddress],
-  verify?: boolean
-) =>
+export const deployBTokensAndBNFTsHelper = async (args: [tEthereumAddress], verify?: boolean) =>
   withSaveAndVerify(
     await new BTokensAndBNFTsHelperFactory(await getDeploySigner()).deploy(...args),
     eContractid.BTokensAndBNFTsHelper,
@@ -362,13 +359,11 @@ export const deployBTokensAndBNFTsHelper = async (
     verify
   );
 
-export const deployWETHGateway = async (args: [tEthereumAddress, tEthereumAddress], verify?: boolean) =>
-  withSaveAndVerify(
-    await new WETHGatewayFactory(await getDeploySigner()).deploy(...args),
-    eContractid.WETHGateway,
-    args,
-    verify
-  );
+export const deployWETHGateway = async (verify?: boolean) => {
+  const wethImpl = await new WETHGatewayFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.WETHGatewayImpl, wethImpl.address);
+  return withSaveAndVerify(wethImpl, eContractid.WETHGateway, [], verify);
+};
 
 export const deployWETHMocked = async (verify?: boolean) =>
   withSaveAndVerify(await new WETH9MockedFactory(await getDeploySigner()).deploy(), eContractid.WETHMocked, [], verify);
@@ -491,16 +486,11 @@ export const deployWrappedPunk = async (args: [tEthereumAddress], verify?: boole
     verify
   );
 
-export const deployPunkGateway = async (
-  args: [tEthereumAddress, tEthereumAddress, tEthereumAddress, tEthereumAddress],
-  verify?: boolean
-) =>
-  withSaveAndVerify(
-    await new PunkGatewayFactory(await getDeploySigner()).deploy(...args),
-    eContractid.PunkGateway,
-    args,
-    verify
-  );
+export const deployPunkGateway = async (verify?: boolean) => {
+  const punkImpl = await new PunkGatewayFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.PunkGatewayImpl, punkImpl.address);
+  return withSaveAndVerify(punkImpl, eContractid.PunkGateway, [], verify);
+};
 
 export const deployBendUpgradeableProxy = async (
   id: string,

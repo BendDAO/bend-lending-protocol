@@ -100,13 +100,17 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
 
     ////////////////////////////////////////////////////////////////////////////
     const wethGateway = await getWETHGateway();
+    let nftAddresses: string[] = [];
     for (const [assetSymbol, assetAddress] of Object.entries(allNftAddresses) as [string, string][]) {
-      await waitForTx(await wethGateway.authorizeLendPoolNFT(assetAddress));
+      nftAddresses.push(assetAddress);
     }
+    await waitForTx(await wethGateway.authorizeLendPoolNFT(nftAddresses));
 
     ////////////////////////////////////////////////////////////////////////////
     const punkGateway = await getPunkGateway();
+    let reserveAddresses: string[] = [];
     for (const [assetSymbol, assetAddress] of Object.entries(allTokenAddresses) as [string, string][]) {
-      await waitForTx(await punkGateway.authorizeLendPoolERC20(assetAddress));
+      reserveAddresses.push(assetAddress);
     }
+    await waitForTx(await punkGateway.authorizeLendPoolERC20(reserveAddresses));
   });

@@ -114,7 +114,8 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
 
   it("Deactivates the BAYC NFT as auction", async () => {
     const { configurator, dataProvider, bayc } = testEnv;
-    await configurator.configureNftAsAuction(bayc.address, 0, 0, 0, 0);
+    await configurator.configureNftAsAuction(bayc.address, 0, 0, 0);
+    await configurator.setNftRedeemThreshold(bayc.address, 0);
 
     const { redeemDuration, auctionDuration, redeemFine, redeemThreshold } = await dataProvider.getNftConfigurationData(
       bayc.address
@@ -128,7 +129,8 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
 
   it("Activates the BAYC NFT as auction", async () => {
     const { configurator, dataProvider, bayc } = testEnv;
-    await configurator.configureNftAsAuction(bayc.address, "1", "1", "100", "5000");
+    await configurator.configureNftAsAuction(bayc.address, "1", "1", "100");
+    await configurator.setNftRedeemThreshold(bayc.address, "5000");
 
     const { redeemDuration, auctionDuration, redeemFine, redeemThreshold } = await dataProvider.getNftConfigurationData(
       bayc.address
@@ -143,7 +145,11 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
   it("Check the onlyAdmin on configureNftAsAuction ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).configureNftAsAuction(bayc.address, "1", "1", "100", "5000"),
+      configurator.connect(users[2].signer).configureNftAsAuction(bayc.address, "1", "1", "100"),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    await expect(
+      configurator.connect(users[2].signer).setNftRedeemThreshold(bayc.address, "5000"),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });

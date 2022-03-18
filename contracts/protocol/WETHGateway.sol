@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
@@ -14,9 +12,9 @@ import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {IBToken} from "../interfaces/IBToken.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 
-import {EmergencyTokenRecovery} from "./EmergencyTokenRecovery.sol";
+import {EmergencyTokenRecoveryUpgradeable} from "./EmergencyTokenRecoveryUpgradeable.sol";
 
-contract WETHGateway is ERC721Holder, IWETHGateway, Ownable, EmergencyTokenRecovery {
+contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRecoveryUpgradeable {
   ILendPoolAddressesProvider internal _addressProvider;
 
   IWETH internal WETH;
@@ -25,7 +23,10 @@ contract WETHGateway is ERC721Holder, IWETHGateway, Ownable, EmergencyTokenRecov
    * @dev Sets the WETH address and the LendPoolAddressesProvider address. Infinite approves lend pool.
    * @param weth Address of the Wrapped Ether contract
    **/
-  constructor(address addressProvider, address weth) {
+  function initialize(address addressProvider, address weth) public initializer {
+    __ERC721Holder_init();
+    __EmergencyTokenRecovery_init();
+
     _addressProvider = ILendPoolAddressesProvider(addressProvider);
 
     WETH = IWETH(weth);
@@ -41,8 +42,10 @@ contract WETHGateway is ERC721Holder, IWETHGateway, Ownable, EmergencyTokenRecov
     return ILendPoolLoan(_addressProvider.getLendPoolLoan());
   }
 
-  function authorizeLendPoolNFT(address nftAsset) external onlyOwner {
-    IERC721(nftAsset).setApprovalForAll(address(_getLendPool()), true);
+  function authorizeLendPoolNFT(address[] calldata nftAssets) external onlyOwner {
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      IERC721Upgradeable(nftAssets[i]).setApprovalForAll(address(_getLendPool()), true);
+    }
   }
 
   function depositETH(address onBehalfOf, uint16 referralCode) external payable override {
@@ -84,7 +87,7 @@ contract WETHGateway is ERC721Holder, IWETHGateway, Ownable, EmergencyTokenRecov
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId == 0) {
-      IERC721(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
+      IERC721Upgradeable(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
     }
     cachedPool.borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
     WETH.withdraw(amount);

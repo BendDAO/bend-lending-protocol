@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+
 import {IPunks} from "../interfaces/IPunks.sol";
 
 /**
@@ -11,8 +12,12 @@ import {IPunks} from "../interfaces/IPunks.sol";
  * @notice Add Emergency Recovery Logic to contract implementation
  * @author Bend
  **/
-abstract contract EmergencyTokenRecovery is Ownable {
+abstract contract EmergencyTokenRecoveryUpgradeable is OwnableUpgradeable {
   event EmergencyEtherTransfer(address indexed to, uint256 amount);
+
+  function __EmergencyTokenRecovery_init() internal onlyInitializing {
+    __Ownable_init();
+  }
 
   /**
    * @dev transfer ERC20 from the utility contract, for ERC20 recovery in case of stuck tokens due
@@ -26,7 +31,7 @@ abstract contract EmergencyTokenRecovery is Ownable {
     address to,
     uint256 amount
   ) external onlyOwner {
-    IERC20(token).transfer(to, amount);
+    IERC20Upgradeable(token).transfer(to, amount);
   }
 
   /**
@@ -41,7 +46,7 @@ abstract contract EmergencyTokenRecovery is Ownable {
     address to,
     uint256 id
   ) external onlyOwner {
-    IERC721(token).safeTransferFrom(address(this), to, id);
+    IERC721Upgradeable(token).safeTransferFrom(address(this), to, id);
   }
 
   /**
@@ -69,4 +74,6 @@ abstract contract EmergencyTokenRecovery is Ownable {
     require(success, "ETH_TRANSFER_FAILED");
     emit EmergencyEtherTransfer(to, amount);
   }
+
+  uint256[50] private __gap;
 }
