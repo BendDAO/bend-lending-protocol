@@ -65,8 +65,6 @@ export const BendConfig: IBendConfiguration = {
     },
     [eEthereumNetwork.main]: {
       WETH: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      DAI: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-      USDC: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     },
   },
   NftsAssets: {
@@ -119,14 +117,6 @@ export const BendConfig: IBendConfiguration = {
     [eEthereumNetwork.main]: {
       WPUNKS: '0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6',
       BAYC: '0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',
-      DOODLE: '0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e',
-      COOL: '0x1A92f7381B9F03921564a437210bB9396471050C',
-      MEEBITS: '0x7Bd29408f11D2bFC23c34f18275bBf23bB716Bc7',
-      MAYC: '0x60E4d786628Fea6478F785A6d7e704777c86a7c6',
-      WOW: '0xe785e82358879f061bc3dcac6f0444462d4b5330',
-      CLONEX: '0x49cf6f5d44e70224e2e23fdcdd2c053f30ada28b',
-      AZUKI: '0xed5af388653567af2f388e6224dc7c4b3241c544',
-      KONGZ: '0x57a204aa1042f6e66dd7730813f4024114d74f37',
     },
   },
 };

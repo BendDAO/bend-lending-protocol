@@ -79,6 +79,8 @@ export enum eContractid {
   UIPoolDataProvider = "UIPoolDataProvider",
   BendCollector = "BendCollector",
   BendCollectorImpl = "BendCollectorImpl",
+  TimelockControllerFast = "TimelockControllerFast",
+  TimelockControllerSlow = "TimelockControllerSlow",
 }
 
 export enum ProtocolLoanState {

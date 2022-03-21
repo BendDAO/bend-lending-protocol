@@ -57,6 +57,7 @@ import {
   WETH9Mocked,
   UiPoolDataProviderFactory,
   BendCollectorFactory,
+  TimelockControllerFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -522,3 +523,17 @@ export const deployBendCollector = async (args: [], verify?: boolean) => {
   await insertContractAddressInDb(eContractid.BendCollectorImpl, bendCollectorImpl.address);
   return withSaveAndVerify(bendCollectorImpl, eContractid.BendCollector, [], verify);
 };
+
+export const deployTimelockController = async (
+  id: string,
+  minDelay: string,
+  proposers: string[],
+  executors: string[],
+  verify?: boolean
+) =>
+  withSaveAndVerify(
+    await new TimelockControllerFactory(await getDeploySigner()).deploy(minDelay, proposers, executors),
+    id,
+    [],
+    verify
+  );

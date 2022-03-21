@@ -12,6 +12,15 @@ import {
   getPunkGateway,
   getUIPoolDataProvider,
   getLendPoolAddressesProviderRegistry,
+  getBendCollectorProxy,
+  getBendCollectorImpl,
+  getBendProxyAdminById,
+  getReserveOracleImpl,
+  getNFTOracle,
+  getNFTOracleImpl,
+  getLendPoolLiquidator,
+  getWETHGatewayImpl,
+  getPunkGatewayImpl,
 } from "../../helpers/contracts-getters";
 import { verifyContract, getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -25,6 +34,8 @@ task("verify:general", "Verify general contracts at Etherscan")
     const network = localDRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
     const { MarketId, CryptoPunksMarket, WrappedPunkToken } = poolConfig as ICommonConfiguration;
+
+    const bendCollectorImpl = await getBendCollectorImpl();
 
     const providerRegistry = await getLendPoolAddressesProviderRegistry();
     const addressesProvider = await getLendPoolAddressesProvider();
@@ -40,17 +51,34 @@ task("verify:general", "Verify general contracts at Etherscan")
     const punkAddress = getParamPerNetwork(CryptoPunksMarket, network);
     const wpunkAddress = getParamPerNetwork(WrappedPunkToken, network);
 
+    const wethGateway = await getWETHGateway();
+    const punkGateway = await getPunkGateway();
+
     const lendPoolImpl = await getLendPoolImpl();
     const lendPoolConfiguratorImpl = await getLendPoolConfiguratorImpl();
     const lendPoolLoanImpl = await getLendPoolLoanImpl();
+    const lendPoolLoanLiq = await getLendPoolLiquidator();
+
+    const reserveOracleImpl = await getReserveOracleImpl();
+    const nftOracleImpl = await getNFTOracleImpl();
+
+    const wethGatewayImpl = await getWETHGatewayImpl();
+    const punkGatewayImpl = await getPunkGatewayImpl();
+
+    const proxyAdminFund = await getBendProxyAdminById(eContractid.BendProxyAdminFund);
+    await verifyContract(eContractid.BendProxyAdminFund, proxyAdminFund, []);
+
+    const proxyAdminPool = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
+    await verifyContract(eContractid.BendProxyAdminPool, proxyAdminPool, []);
 
     if (all) {
       const dataProvider = await getBendProtocolDataProvider();
       const walletProvider = await getWalletProvider();
       const uiProvider = await getUIPoolDataProvider();
 
-      const wethGateway = await getWETHGateway();
-      const punkGateway = await getPunkGateway();
+      // BendCollector
+      console.log("\n- Verifying Collector...\n");
+      await verifyContract(eContractid.BendCollectorImpl, bendCollectorImpl, []);
 
       // Address Provider
       console.log("\n- Verifying provider registry...\n");
@@ -61,15 +89,18 @@ task("verify:general", "Verify general contracts at Etherscan")
 
       // Lend Pool implementation
       console.log("\n- Verifying LendPool Implementation...\n");
-      await verifyContract(eContractid.LendPool, lendPoolImpl, []);
+      await verifyContract(eContractid.LendPoolImpl, lendPoolImpl, []);
 
       // Lend Pool Configurator implementation
       console.log("\n- Verifying LendPool Configurator Implementation...\n");
-      await verifyContract(eContractid.LendPoolConfigurator, lendPoolConfiguratorImpl, []);
+      await verifyContract(eContractid.LendPoolConfiguratorImpl, lendPoolConfiguratorImpl, []);
 
       // Lend Pool Loan Manager implementation
-      console.log("\n- Verifying LendPool Loan Manager Implementation...\n");
-      await verifyContract(eContractid.LendPoolLoan, lendPoolLoanImpl, []);
+      console.log("\n- Verifying LendPool Loan Implementation...\n");
+      await verifyContract(eContractid.LendPoolLoanImpl, lendPoolLoanImpl, []);
+
+      console.log("\n- Verifying LendPool Liquidator Implementation...\n");
+      await verifyContract(eContractid.LendPoolLiquidator, lendPoolLoanLiq, []);
 
       // Bend Data Provider
       console.log("\n- Verifying Bend Data Provider...\n");
@@ -86,22 +117,30 @@ task("verify:general", "Verify general contracts at Etherscan")
         await addressesProvider.getNFTOracle(),
       ]);
 
+      console.log("\n- Verifying ReserveOracle...\n");
+      await verifyContract(eContractid.ReserveOracleImpl, reserveOracleImpl, []);
+
+      console.log("\n- Verifying NFTOracle...\n");
+      await verifyContract(eContractid.NFTOracleImpl, nftOracleImpl, []);
+
       // WETHGateway
       console.log("\n- Verifying WETHGateway...\n");
-      await verifyContract(eContractid.WETHGateway, wethGateway, [
-        addressesProvider.address,
-        await getWrappedNativeTokenAddress(poolConfig),
-      ]);
+      await verifyContract(eContractid.WETHGatewayImpl, wethGatewayImpl, []);
 
       // PunkGateway
       console.log("\n- Verifying PunkGateway...\n");
-      await verifyContract(eContractid.PunkGateway, punkGateway, [
-        addressesProvider.address,
-        wethGateway.address,
-        punkAddress,
-        wpunkAddress,
-      ]);
+      await verifyContract(eContractid.PunkGatewayImpl, punkGatewayImpl, []);
     }
+
+    // BendCollector Proxy
+    console.log("\n- Verifying Collector...\n");
+    const bendCollectorProxy = await getBendCollectorProxy();
+    const collectorProxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminFund);
+    await verifyContract(eContractid.BendCollector, bendCollectorProxy, [
+      bendCollectorImpl.address,
+      collectorProxyAdmin.address,
+      bendCollectorImpl.interface.encodeFunctionData("initialize"),
+    ]);
 
     // Lend Pool proxy
     console.log("\n- Verifying Lend Pool Proxy...\n");
@@ -125,6 +164,30 @@ task("verify:general", "Verify general contracts at Etherscan")
       lendPoolLoanImpl.address,
       addressesProvider.address,
       lendPoolLoanImpl.interface.encodeFunctionData("initialize", [addressesProvider.address]),
+    ]);
+
+    // WETHGateway
+    console.log("\n- Verifying WETHGateway Proxy...\n");
+    await verifyContract(eContractid.BendUpgradeableProxy, wethGateway, [
+      wethGatewayImpl.address,
+      proxyAdminPool.address,
+      wethGatewayImpl.interface.encodeFunctionData("initialize", [
+        addressesProvider.address,
+        await getWrappedNativeTokenAddress(poolConfig),
+      ]),
+    ]);
+
+    // PunkGateway
+    console.log("\n- Verifying PunkGateway Proxy...\n");
+    await verifyContract(eContractid.BendUpgradeableProxy, punkGateway, [
+      punkGatewayImpl.address,
+      proxyAdminPool.address,
+      punkGatewayImpl.interface.encodeFunctionData("initialize", [
+        addressesProvider.address,
+        wethGateway.address,
+        punkAddress,
+        wpunkAddress,
+      ]),
     ]);
 
     console.log("Finished verifications.");

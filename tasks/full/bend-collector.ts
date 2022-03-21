@@ -108,13 +108,14 @@ task("bend-collector:approve-erc20", "Approve ERC20 token")
     console.log("Bend Collector: proxy %s", bendCollectorProxy.address);
 
     const bendCollector = await getBendCollectorProxy(bendCollectorProxy.address);
+    const ownerSigner = await getEthersSignerByAddress(await bendCollector.owner());
 
     let amountDecimals = MAX_UINT_AMOUNT;
     if (amount != "-1") {
       amountDecimals = (await convertToCurrencyDecimals(token, amount)).toString();
     }
 
-    await waitForTx(await bendCollector.approve(token, to, amountDecimals));
+    await waitForTx(await bendCollector.connect(ownerSigner).approve(token, to, amountDecimals));
 
     console.log("Bend Collector: approve ok");
   });
