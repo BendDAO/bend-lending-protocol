@@ -90,25 +90,23 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "InterestRate": {
-    "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+    "address": "0x710A2b4B5f267047728402F1594f440a2aCbaE02",
+    "deployer": "0x8Bd671Ff94fCF7cAFF7e396A3aC38db2720DB3a7"
   },
   "rateStrategyWETH": {
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
   },
   "WETHGatewayImpl": {
-    "address": "0xc15a109fd05D801B8998703514a1e964a609Ec83"
+    "address": "0x5fa288a9c6CDbd0b0845199a033EF32A207BC98D"
   },
   "WETHGateway": {
-    "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+    "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88"
   },
   "PunkGatewayImpl": {
-    "address": "0xab4380ed8B19fA06CBD5988110a71C6DEa823d43"
+    "address": "0x791DE2090162A4CA1Dd4BF998E0Bbcc17bFfF6fd"
   },
   "PunkGateway": {
-    "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+    "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30"
   },
   "WalletBalanceProvider": {
     "address": "0x22d7694d0E74978F691228a1e2d407289Ad78B4F",

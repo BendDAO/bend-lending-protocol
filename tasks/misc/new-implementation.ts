@@ -43,6 +43,7 @@ import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpe
 import { ethers } from "hardhat";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY, oneRay } from "../../helpers/constants";
 import { BytesLike } from "ethers";
+import BigNumber from "bignumber.js";
 
 task("dev:deploy-new-implementation", "Deploy new implementation")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -220,10 +221,10 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
 task("dev:deploy-new-interest-rate", "Deploy new interest rate implementation")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("verify", "Verify contracts at Etherscan")
-  .addParam("optUtilRate", "Optimal Utilization Rate, 0-100, percent, etc.65")
-  .addParam("baseRate", "Optimal Utilization Rate, 3/5/10, percent, etc.5")
-  .addParam("rateSlope1", "Variable Rate Slope1, 0-100, percent, etc.8")
-  .addParam("rateSlope2", "Variable Rate Slope2, 0-100, percent, etc.90")
+  .addParam("optUtilRate", "Optimal Utilization Rate, 0-1, 0.65")
+  .addParam("baseRate", "Optimal Utilization Rate, 0-1, 0.03")
+  .addParam("rateSlope1", "Variable Rate Slope1, 0-1, 0.08")
+  .addParam("rateSlope2", "Variable Rate Slope2, 0-1, 1.0")
   .setAction(async ({ verify, pool, optUtilRate, baseRate, rateSlope1, rateSlope2 }, DRE) => {
     await DRE.run("set-DRE");
 
@@ -233,19 +234,24 @@ task("dev:deploy-new-interest-rate", "Deploy new interest rate implementation")
     const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
     const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
-    const optUtilRateInRay = oneRay.multipliedBy(optUtilRate);
-    const baseRateInRay = oneRay.multipliedBy(baseRate);
-    const rateSlope1InRay = oneRay.multipliedBy(rateSlope1);
-    const rateSlope2InRay = oneRay.multipliedBy(rateSlope2);
+    /*
+
+export const rateStrategyWETH: IInterestRateStrategyParams = {
+  name: "rateStrategyWETH",
+  optimalUtilizationRate: new BigNumber(0.65).multipliedBy(oneRay).toFixed(),
+  baseVariableBorrowRate: new BigNumber(0.03).multipliedBy(oneRay).toFixed(),
+  variableRateSlope1: new BigNumber(0.08).multipliedBy(oneRay).toFixed(),
+  variableRateSlope2: new BigNumber(1).multipliedBy(oneRay).toFixed(),
+}
+    */
+
+    const optUtilRateInRay = new BigNumber(optUtilRate).multipliedBy(oneRay).toFixed();
+    const baseRateInRay = new BigNumber(baseRate).multipliedBy(oneRay).toFixed();
+    const rateSlope1InRay = new BigNumber(rateSlope1).multipliedBy(oneRay).toFixed();
+    const rateSlope2InRay = new BigNumber(rateSlope2).multipliedBy(oneRay).toFixed();
 
     const rateInstance = await deployInterestRate(
-      [
-        addressesProvider.address,
-        optUtilRateInRay.toFixed(0),
-        baseRateInRay.toFixed(0),
-        rateSlope1InRay.toFixed(0),
-        rateSlope2InRay.toFixed(0),
-      ],
+      [addressesProvider.address, optUtilRateInRay, baseRateInRay, rateSlope1InRay, rateSlope2InRay],
       verify
     );
     console.log("InterestRate implementation address:", rateInstance.address);
@@ -270,6 +276,7 @@ task("dev:upgrade-implementation", "Update implementation to address provider")
     }
     const proxyAdminOwnerAddress = await proxyAdmin.owner();
     const proxyAdminOwnerSigner = DRE.ethers.provider.getSigner(proxyAdminOwnerAddress);
+    console.log("ProxyAdmin:", proxyAdmin.address, "Owner:", proxyAdminOwnerAddress);
 
     // only proxy admin can do upgrading
     await waitForTx(await proxyAdmin.connect(proxyAdminOwnerSigner).upgrade(bendProxy.address, impl));
