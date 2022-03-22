@@ -97,13 +97,13 @@
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
   },
   "WETHGatewayImpl": {
-    "address": "0x5fa288a9c6CDbd0b0845199a033EF32A207BC98D"
+    "address": "0x1302A7da9CfA2Bef4D7D8985FA0b1a1729971527"
   },
   "WETHGateway": {
     "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88"
   },
   "PunkGatewayImpl": {
-    "address": "0x791DE2090162A4CA1Dd4BF998E0Bbcc17bFfF6fd"
+    "address": "0x2BbB6F9C858A96a91e1e8E5B7F0e25EA34835BA0"
   },
   "PunkGateway": {
     "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30"

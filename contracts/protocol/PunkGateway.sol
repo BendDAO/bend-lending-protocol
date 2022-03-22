@@ -87,8 +87,6 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address onBehalfOf,
     uint16 referralCode
   ) external override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
-
     ILendPool cachedPool = _getLendPool();
 
     _depositPunk(punkIndex);
@@ -138,8 +136,6 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 bidPrice,
     address onBehalfOf
   ) external override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
-
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -204,7 +200,6 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address onBehalfOf,
     uint16 referralCode
   ) external override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
     _depositPunk(punkIndex);
     _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
   }
@@ -237,7 +232,6 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   }
 
   function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
     _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
   }
 
