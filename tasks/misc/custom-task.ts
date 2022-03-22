@@ -20,6 +20,7 @@ import {
   getBendProtocolDataProvider,
   getBToken,
   getCryptoPunksMarket,
+  getDebtToken,
   getDeploySigner,
   getLendPool,
   getLendPoolAddressesProvider,
@@ -395,6 +396,36 @@ task("dev:repay-eth-using-erc721", "Doing repay task")
     }
 
     await waitForTx(await wethGateway.repayETH(token, id, amountDecimals, { value: amountDecimals }));
+  });
+
+task("dev:debt-approve-delegate", "Doing custom task")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("asset", "Reserve asset")
+  .setAction(async ({ pool, asset }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const bendDataProvider = await getBendProtocolDataProvider();
+
+    const signer = await getDeploySigner();
+
+    const wethGateway = await getWETHGateway();
+
+    const reserveToken = await bendDataProvider.getReserveTokenData(asset);
+    const debToken = await getDebtToken(reserveToken.debtTokenAddress);
+
+    console.log(
+      "borrowAllowance before:",
+      await debToken.borrowAllowance(await signer.getAddress(), wethGateway.address)
+    );
+    await waitForTx(await debToken.approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
+
+    console.log(
+      "borrowAllowance after:",
+      await debToken.borrowAllowance(await signer.getAddress(), wethGateway.address)
+    );
   });
 
 task("dev:print-ui-reserve-data", "Doing custom task")

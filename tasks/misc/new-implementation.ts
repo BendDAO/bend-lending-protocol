@@ -13,6 +13,7 @@ import {
   getBendUpgradeableProxy,
   getDeploySigner,
   getLendPoolAddressesProvider,
+  getLendPoolConfiguratorProxy,
   getPunkGateway,
   getUIPoolDataProvider,
   getWalletProvider,
@@ -34,11 +35,14 @@ import {
   deployPunkGateway,
   deployWETHGateway,
   deployBTokensAndBNFTsHelper,
+  deployInterestRate,
+  deployGenericDebtToken,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { ethers } from "hardhat";
-import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
+import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY, oneRay } from "../../helpers/constants";
+import { BytesLike } from "ethers";
 
 task("dev:deploy-new-implementation", "Deploy new implementation")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -213,6 +217,40 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     }
   });
 
+task("dev:deploy-new-interest-rate", "Deploy new interest rate implementation")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addFlag("verify", "Verify contracts at Etherscan")
+  .addParam("optUtilRate", "Optimal Utilization Rate, 0-100, percent, etc.65")
+  .addParam("baseRate", "Optimal Utilization Rate, 3/5/10, percent, etc.5")
+  .addParam("rateSlope1", "Variable Rate Slope1, 0-100, percent, etc.8")
+  .addParam("rateSlope2", "Variable Rate Slope2, 0-100, percent, etc.90")
+  .setAction(async ({ verify, pool, optUtilRate, baseRate, rateSlope1, rateSlope2 }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProviderRaw = await getLendPoolAddressesProvider();
+    const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
+    const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
+
+    const optUtilRateInRay = oneRay.multipliedBy(optUtilRate);
+    const baseRateInRay = oneRay.multipliedBy(baseRate);
+    const rateSlope1InRay = oneRay.multipliedBy(rateSlope1);
+    const rateSlope2InRay = oneRay.multipliedBy(rateSlope2);
+
+    const rateInstance = await deployInterestRate(
+      [
+        addressesProvider.address,
+        optUtilRateInRay.toFixed(0),
+        baseRateInRay.toFixed(0),
+        rateSlope1InRay.toFixed(0),
+        rateSlope2InRay.toFixed(0),
+      ],
+      verify
+    );
+    console.log("InterestRate implementation address:", rateInstance.address);
+  });
+
 task("dev:upgrade-implementation", "Update implementation to address provider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("contract", "Contract name")
@@ -237,4 +275,41 @@ task("dev:upgrade-implementation", "Update implementation to address provider")
     await waitForTx(await proxyAdmin.connect(proxyAdminOwnerSigner).upgrade(bendProxy.address, impl));
 
     await insertContractAddressInDb(eContractid[contract], proxy);
+  });
+
+task("dev:upgrade-all-debtokens", "Update implementation to debt token")
+  .addFlag("verify", "Verify contracts at Etherscan")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .setAction(async ({ verify, pool }, DRE) => {
+    await DRE.run("set-DRE");
+
+    const network = DRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+    const addressesProviderRaw = await getLendPoolAddressesProvider();
+    const poolAdminAddress = await addressesProviderRaw.getPoolAdmin();
+    const poolAdminSigner = await getEthersSignerByAddress(poolAdminAddress);
+    console.log(addressesProviderRaw.address, poolAdminAddress);
+
+    const lendPoolConfigurator = await getLendPoolConfiguratorProxy(
+      await addressesProviderRaw.getLendPoolConfigurator()
+    );
+    const protocolDataProvider = await getBendProtocolDataProvider(await addressesProviderRaw.getBendDataProvider());
+
+    const debtTokenImpl = await deployGenericDebtToken(verify);
+    console.log("DebtToken implementation:", debtTokenImpl.address);
+
+    const allReserves = await protocolDataProvider.getAllReservesTokenDatas();
+    for (const reserve of allReserves) {
+      console.log("Reserve Tokens:", reserve.tokenSymbol, reserve.tokenAddress, reserve.debtTokenAddress);
+      const input: {
+        asset: string;
+        implementation: string;
+        encodedCallData: BytesLike;
+      } = {
+        asset: reserve.tokenAddress,
+        implementation: debtTokenImpl.address,
+        encodedCallData: [],
+      };
+      await waitForTx(await lendPoolConfigurator.connect(poolAdminSigner).updateDebtToken(input));
+    }
   });

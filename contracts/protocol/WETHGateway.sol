@@ -80,7 +80,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address onBehalfOf,
     uint16 referralCode
   ) external override {
-    require(address(onBehalfOf) != address(0), "WETHGateway: `onBehalfOf` should not be zero");
+    require(onBehalfOf == _msgSender(), "WETHGateway: onBehalfOf must be caller");
 
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
@@ -130,6 +130,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 nftTokenId,
     address onBehalfOf
   ) external payable override {
+    require(onBehalfOf == _msgSender(), "WETHGateway: onBehalfOf must be caller");
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 

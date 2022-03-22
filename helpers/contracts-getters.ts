@@ -48,15 +48,15 @@ export const getSecondSigner = async () => (await getEthersSigners())[1];
 
 export const getThirdSigner = async () => (await getEthersSigners())[2];
 
-export const getDeploySigner = async () => (await getEthersSigners())[1];
+export const getDeploySigner = async () => (await getEthersSigners())[0];
 
-export const getPoolAdminSigner = async () => (await getEthersSigners())[1];
+export const getPoolAdminSigner = async () => (await getEthersSigners())[0];
 
-export const getPoolOwnerSigner = async () => (await getEthersSigners())[1];
+export const getPoolOwnerSigner = async () => (await getEthersSigners())[0];
 
-export const getEmergencyAdminSigner = async () => (await getEthersSigners())[2];
+export const getEmergencyAdminSigner = async () => (await getEthersSigners())[1];
 
-export const getProxyAdminSigner = async () => (await getEthersSigners())[3];
+export const getProxyAdminSigner = async () => (await getEthersSigners())[2];
 
 export const getLendPoolAddressesProviderRegistry = async (address?: tEthereumAddress) => {
   return await LendPoolAddressesProviderRegistryFactory.connect(

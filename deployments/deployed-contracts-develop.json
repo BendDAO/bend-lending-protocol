@@ -141,7 +141,7 @@
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "DebtToken": {
-    "address": "0x6C76C7e412C8CA560710240BF126B94dA6aCE597",
+    "address": "0x34eae8080dB737926c472518de89E0d6028d06B6",
     "deployer": "0xad93fB0e59eC703422dD38dCb7AcB8e323C8cc5B"
   },
   "ReserveOracleImpl": {

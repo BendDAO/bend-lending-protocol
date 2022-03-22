@@ -23,6 +23,8 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   ILendPoolAddressesProvider internal _addressProvider;
   address internal _underlyingAsset;
 
+  mapping(address => mapping(address => uint256)) internal _borrowAllowances;
+
   modifier onlyLendPool() {
     require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LEND_POOL);
     _;
@@ -32,6 +34,8 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
     require(_msgSender() == address(_getLendPoolConfigurator()), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
     _;
   }
+
+  event BorrowAllowanceDelegated(address indexed fromUser, address indexed toUser, address asset, uint256 amount);
 
   /**
    * @dev Initializes the debt token.
@@ -67,26 +71,31 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
   /**
    * @dev Mints debt token to the `user` address
    * -  Only callable by the LendPool
-   * @param user The address receiving the borrowed underlying
+   * @param initiator The address calling borrow
    * @param amount The amount of debt being minted
    * @param index The variable debt index of the reserve
    * @return `true` if the the previous balance of the user is 0
    **/
   function mint(
-    address user,
+    address initiator,
+    address onBehalfOf,
     uint256 amount,
     uint256 index
   ) external override onlyLendPool returns (bool) {
-    uint256 previousBalance = super.balanceOf(user);
+    if (initiator != onBehalfOf) {
+      _decreaseBorrowAllowance(onBehalfOf, initiator, amount);
+    }
+
+    uint256 previousBalance = super.balanceOf(onBehalfOf);
     // index is expressed in Ray, so:
     // amount.wadToRay().rayDiv(index).rayToWad() => amount.rayDiv(index)
     uint256 amountScaled = amount.rayDiv(index);
     require(amountScaled != 0, Errors.CT_INVALID_MINT_AMOUNT);
 
-    _mint(user, amountScaled);
+    _mint(onBehalfOf, amountScaled);
 
-    emit Transfer(address(0), user, amount);
-    emit Mint(user, amount, index);
+    emit Transfer(address(0), onBehalfOf, amount);
+    emit Mint(onBehalfOf, amount, index);
 
     return previousBalance == 0;
   }
@@ -242,5 +251,40 @@ contract DebtToken is Initializable, IDebtToken, IncentivizedERC20 {
     spender;
     subtractedValue;
     revert("ALLOWANCE_NOT_SUPPORTED");
+  }
+
+  /**
+   * @dev delegates borrowing power to a user on the specific debt token
+   * @param delegatee the address receiving the delegated borrowing power
+   * @param amount the maximum amount being delegated. Delegation will still
+   * respect the liquidation constraints (even if delegated, a delegatee cannot
+   * force a delegator HF to go below 1)
+   **/
+  function approveDelegation(address delegatee, uint256 amount) external override {
+    _borrowAllowances[_msgSender()][delegatee] = amount;
+    emit BorrowAllowanceDelegated(_msgSender(), delegatee, _getUnderlyingAssetAddress(), amount);
+  }
+
+  /**
+   * @dev returns the borrow allowance of the user
+   * @param fromUser The user to giving allowance
+   * @param toUser The user to give allowance to
+   * @return the current allowance of toUser
+   **/
+  function borrowAllowance(address fromUser, address toUser) external view override returns (uint256) {
+    return _borrowAllowances[fromUser][toUser];
+  }
+
+  function _decreaseBorrowAllowance(
+    address delegator,
+    address delegatee,
+    uint256 amount
+  ) internal {
+    require(_borrowAllowances[delegator][delegatee] >= amount, Errors.CT_BORROW_ALLOWANCE_NOT_ENOUGH);
+
+    uint256 newAllowance = _borrowAllowances[delegator][delegatee] - amount;
+    _borrowAllowances[delegator][delegatee] = newAllowance;
+
+    emit BorrowAllowanceDelegated(delegator, delegatee, _getUnderlyingAssetAddress(), newAllowance);
   }
 }

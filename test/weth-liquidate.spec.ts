@@ -21,6 +21,7 @@ import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import { getLoanData, getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
+import { getDebtToken } from "../helpers/contracts-getters";
 
 const chai = require("chai");
 const { expect } = chai;
@@ -67,6 +68,11 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
 
     // Deposit with native ETH
     await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize });
+
+    // Delegates borrowing power of WETH to WETHGateway
+    const reserveData = await pool.getReserveData(weth.address);
+    const debtToken = await getDebtToken(reserveData.debtTokenAddress);
+    await waitForTx(await debtToken.connect(user.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
 
     // Start loan
     const nftAsset = await getNftAddressFromSymbol("BAYC");
@@ -147,6 +153,11 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
 
     // Deposit with native ETH
     await wethGateway.connect(user3.signer).depositETH(user.address, "0", { value: depositSize });
+
+    // Delegates borrowing power of WETH to WETHGateway
+    const reserveData = await pool.getReserveData(weth.address);
+    const debtToken = await getDebtToken(reserveData.debtTokenAddress);
+    await waitForTx(await debtToken.connect(user.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
 
     // Start loan
     const nftAsset = await getNftAddressFromSymbol("BAYC");

@@ -45,7 +45,7 @@ task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
     let wethGateWay: WETHGateway;
     let wethGatewayProxy: BendUpgradeableProxy;
 
-    const wethGatewayAddress = undefined; //await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY);
+    const wethGatewayAddress = await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY);
 
     if (wethGatewayAddress != undefined && notFalsyOrZeroAddress(wethGatewayAddress)) {
       console.log("Upgrading exist WETHGateway proxy to new implementation...");

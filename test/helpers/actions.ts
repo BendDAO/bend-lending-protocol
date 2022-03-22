@@ -36,6 +36,7 @@ import {
   getMintableERC721,
   getLendPoolLoanProxy,
   getIErc20Detailed,
+  getDebtToken,
 } from "../../helpers/contracts-getters";
 import { MAX_UINT_AMOUNT, oneEther, ONE_DAY, ONE_HOUR, ONE_YEAR } from "../../helpers/constants";
 import { SignerWithAddress, TestEnv } from "./make-suite";
@@ -396,6 +397,37 @@ export const withdraw = async (
   } else if (expectedResult === "revert") {
     await expect(pool.connect(user.signer).withdraw(reserve, amountToWithdraw, user.address), revertMessage).to.be
       .reverted;
+  }
+};
+
+export const delegateBorrowAllowance = async (
+  testEnv: TestEnv,
+  user: SignerWithAddress,
+  reserve: string,
+  amount: string,
+  receiver: tEthereumAddress,
+  expectedResult: string,
+  revertMessage?: string
+) => {
+  const { pool } = testEnv;
+
+  const reserveAddress: tEthereumAddress = await getReserveAddressFromSymbol(reserve);
+
+  const amountToDelegate: string = await (await convertToCurrencyDecimals(reserveAddress, amount)).toString();
+
+  const reserveData = await pool.getReserveData(reserveAddress);
+
+  const debtToken = await getDebtToken(reserveData.debtTokenAddress);
+
+  const delegateAllowancePromise = debtToken.connect(user.signer).approveDelegation(receiver, amountToDelegate);
+
+  if (expectedResult === "revert" && revertMessage) {
+    await expect(delegateAllowancePromise, revertMessage).to.be.revertedWith(revertMessage);
+    return;
+  } else {
+    await waitForTx(await delegateAllowancePromise);
+    const allowance = await debtToken.borrowAllowance(user.address, receiver);
+    expect(allowance.toString()).to.be.equal(amountToDelegate, "borrowAllowance is set incorrectly");
   }
 };
 
