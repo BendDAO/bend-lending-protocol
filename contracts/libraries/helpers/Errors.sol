@@ -19,6 +19,7 @@ library Errors {
   string public constant CALLER_NOT_ADDRESS_PROVIDER = "101";
   string public constant INVALID_FROM_BALANCE_AFTER_TRANSFER = "102";
   string public constant INVALID_TO_BALANCE_AFTER_TRANSFER = "103";
+  string public constant CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST = "104";
 
   //math library erros
   string public constant MATH_MULTIPLICATION_OVERFLOW = "200";

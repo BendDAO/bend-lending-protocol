@@ -4,6 +4,7 @@ pragma solidity 0.8.4;
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 
+import {Errors} from "../libraries/helpers/Errors.sol";
 import {IWETH} from "../interfaces/IWETH.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
@@ -18,6 +19,8 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   ILendPoolAddressesProvider internal _addressProvider;
 
   IWETH internal WETH;
+
+  mapping(address => bool) internal _callerWhitelists;
 
   /**
    * @dev Sets the WETH address and the LendPoolAddressesProvider address. Infinite approves lend pool.
@@ -48,7 +51,26 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     }
   }
 
+  function authorizeCallerWhitelist(address[] calldata callers, bool flag) external onlyOwner {
+    for (uint256 i = 0; i < callers.length; i++) {
+      _callerWhitelists[callers[i]] = flag;
+    }
+  }
+
+  function isCallerInWhitelist(address caller) external view returns (bool) {
+    return _callerWhitelists[caller];
+  }
+
+  function _checkValidCallerAndOnBehalfOf(address onBehalfOf) internal view {
+    require(
+      (onBehalfOf == _msgSender()) || (_callerWhitelists[_msgSender()] == true),
+      Errors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST
+    );
+  }
+
   function depositETH(address onBehalfOf, uint16 referralCode) external payable override {
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
     ILendPool cachedPool = _getLendPool();
 
     WETH.deposit{value: msg.value}();
@@ -80,7 +102,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address onBehalfOf,
     uint16 referralCode
   ) external override {
-    require(address(onBehalfOf) != address(0), "WETHGateway: `onBehalfOf` should not be zero");
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
@@ -130,6 +152,8 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 nftTokenId,
     address onBehalfOf
   ) external payable override {
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
