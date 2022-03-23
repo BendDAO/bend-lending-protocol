@@ -1,7 +1,6 @@
 import { task } from "hardhat/config";
-import { loadPoolConfig, ConfigNames } from "../../helpers/configuration";
+import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
 import {
-  getAddressById,
   getBToken,
   getDebtToken,
   getInterestRate,
@@ -9,13 +8,14 @@ import {
   getBendUpgradeableProxy,
   getLendPool,
   getLendPoolConfiguratorProxy,
+  getUIPoolDataProvider,
 } from "../../helpers/contracts-getters";
 import { getParamPerNetwork, verifyContract } from "../../helpers/contracts-helpers";
 import { eContractid, eNetwork, ICommonConfiguration, IReserveParams } from "../../helpers/types";
 
 task("verify:reserves", "Verify reserves contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .setAction(async ({ verify, all, pool }, localDRE) => {
+  .setAction(async ({ pool }, localDRE) => {
     await localDRE.run("set-DRE");
     const network = localDRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
@@ -25,6 +25,16 @@ task("verify:reserves", "Verify reserves contracts at Etherscan")
     const lendPoolProxy = await getLendPool(await addressesProvider.getLendPool());
 
     const lendPoolConfigurator = await getLendPoolConfiguratorProxy(await addressesProvider.getLendPoolConfigurator());
+
+    // Generic bToken implementation
+    const bTokenImpl = await getBToken();
+    console.log("\n- Verifying BToken implementation...\n");
+    await verifyContract(eContractid.BToken, bTokenImpl, []);
+
+    // Generic bToken implementation
+    console.log("\n- Verifying DebtToken implementation...\n");
+    const debtTokenImpl = await getDebtToken();
+    await verifyContract(eContractid.DebtToken, debtTokenImpl, []);
 
     const configs = Object.entries(ReservesConfig) as [string, IReserveParams][];
     for (const entry of Object.entries(getParamPerNetwork(ReserveAssets, network))) {
@@ -40,16 +50,37 @@ task("verify:reserves", "Verify reserves contracts at Etherscan")
       const { optimalUtilizationRate, baseVariableBorrowRate, variableRateSlope1, variableRateSlope2 } =
         tokenConfig[1].strategy;
 
+      const bTokenContract = await getBToken(bTokenAddress);
+
       // Proxy bToken
       console.log("\n- Verifying bToken proxy...\n");
+      const bTokenInitEncodeData = bTokenImpl.interface.encodeFunctionData("initialize", [
+        addressesProvider.address,
+        await bTokenContract.RESERVE_TREASURY_ADDRESS(),
+        await bTokenContract.UNDERLYING_ASSET_ADDRESS(),
+        await bTokenContract.decimals(),
+        await bTokenContract.name(),
+        await bTokenContract.symbol(),
+      ]);
       await verifyContract(eContractid.BendUpgradeableProxy, await getBendUpgradeableProxy(bTokenAddress), [
+        bTokenImpl.address,
         lendPoolConfigurator.address,
+        bTokenInitEncodeData,
       ]);
 
       // Proxy debtToken
+      const debtTokenInitEncodeData = debtTokenImpl.interface.encodeFunctionData("initialize", [
+        addressesProvider.address,
+        await bTokenContract.UNDERLYING_ASSET_ADDRESS(),
+        await bTokenContract.decimals(),
+        await bTokenContract.name(),
+        await bTokenContract.symbol(),
+      ]);
       console.log("\n- Verifying debtToken proxy...\n");
       await verifyContract(eContractid.BendUpgradeableProxy, await getBendUpgradeableProxy(debtTokenAddress), [
+        debtTokenImpl.address,
         lendPoolConfigurator.address,
+        debtTokenInitEncodeData,
       ]);
 
       // Interes Rate
@@ -61,23 +92,5 @@ task("verify:reserves", "Verify reserves contracts at Etherscan")
         variableRateSlope1,
         variableRateSlope2,
       ]);
-
-      // Generic bToken implementation
-      const bToken = await getAddressById(`b${token}`);
-      if (bToken) {
-        console.log("\n- Verifying bToken implementation...\n");
-        await verifyContract(eContractid.BToken, await getBToken(bToken), []);
-      } else {
-        console.error(`Skipping bToken verify for ${token}. Missing address at JSON DB.`);
-      }
-
-      // Generic bToken implementation
-      const debtToken = await getAddressById(`bDebt${token}`);
-      if (debtToken) {
-        console.log("\n- Verifying debtToken implementation...\n");
-        await verifyContract(eContractid.BToken, await getDebtToken(debtToken), []);
-      } else {
-        console.error(`Skipping debtToken verify for ${token}. Missing address at JSON DB.`);
-      }
     }
   });

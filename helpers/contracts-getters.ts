@@ -328,6 +328,12 @@ export const getWETHGateway = async (address?: tEthereumAddress) =>
     await getDeploySigner()
   );
 
+export const getWETHGatewayImpl = async (address?: tEthereumAddress) =>
+  await WETHGatewayFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.WETHGatewayImpl}`).value()).address,
+    await getDeploySigner()
+  );
+
 export const getWETHMocked = async (address?: tEthereumAddress) =>
   await WETH9MockedFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.WETHMocked}`).value()).address,
@@ -406,6 +412,12 @@ export const getPunkGateway = async (address?: tEthereumAddress) =>
     await getDeploySigner()
   );
 
+export const getPunkGatewayImpl = async (address?: tEthereumAddress) =>
+  await PunkGatewayFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.PunkGatewayImpl}`).value()).address,
+    await getDeploySigner()
+  );
+
 export const getMockIncentivesController = async (address?: tEthereumAddress) =>
   await MockIncentivesControllerFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.MockIncentivesController}`).value()).address,
@@ -415,5 +427,11 @@ export const getMockIncentivesController = async (address?: tEthereumAddress) =>
 export const getBendCollectorProxy = async (address?: tEthereumAddress) =>
   await BendCollectorFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.BendCollector}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getBendCollectorImpl = async (address?: tEthereumAddress) =>
+  await BendCollectorFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.BendCollectorImpl}`).value()).address,
     await getDeploySigner()
   );

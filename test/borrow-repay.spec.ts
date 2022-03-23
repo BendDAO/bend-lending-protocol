@@ -9,6 +9,7 @@ import {
   borrow,
   withdraw,
   repay,
+  delegateBorrowAllowance,
 } from "./helpers/actions";
 import { configuration as actionsConfiguration } from "./helpers/actions";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
@@ -250,6 +251,8 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
     expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
     const tokenId = cachedTokenId;
 
+    await delegateBorrowAllowance(testEnv, user3, "USDC", "10", user2.address, "success", "");
+
     await borrow(testEnv, user2, "USDC", "10", "BAYC", tokenId, user3.address, "365", "success", "");
   });
 
@@ -260,6 +263,8 @@ makeSuite("LendPool: Borrow/repay test cases", (testEnv: TestEnv) => {
 
     expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
     const tokenId = cachedTokenId;
+
+    await delegateBorrowAllowance(testEnv, user3, "USDC", "20", user2.address, "success", "");
 
     await borrow(testEnv, user2, "USDC", "20", "BAYC", tokenId, user3.address, "365", "success", "");
   });

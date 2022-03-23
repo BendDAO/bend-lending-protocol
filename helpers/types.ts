@@ -79,6 +79,8 @@ export enum eContractid {
   UIPoolDataProvider = "UIPoolDataProvider",
   BendCollector = "BendCollector",
   BendCollectorImpl = "BendCollectorImpl",
+  TimelockControllerFast = "TimelockControllerFast",
+  TimelockControllerSlow = "TimelockControllerSlow",
 }
 
 export enum ProtocolLoanState {
@@ -165,6 +167,7 @@ export enum ProtocolErrors {
   CT_CALLER_MUST_BE_LEND_POOL = "500", // 'The caller of this function must be a lending pool'
   CT_INVALID_MINT_AMOUNT = "501", //invalid amount to mint
   CT_INVALID_BURN_AMOUNT = "502", //invalid amount to burn
+  CT_BORROW_ALLOWANCE_NOT_ENOUGH = "503",
 
   //reserve logic errors
   RL_RESERVE_ALREADY_INITIALIZED = "601", // 'Reserve has already been initialized'

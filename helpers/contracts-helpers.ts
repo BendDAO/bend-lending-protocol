@@ -294,6 +294,12 @@ export const verifyContract = async (id: string, instance: Contract, args: (stri
       args,
       "contracts/libraries/proxy/BendUpgradeableProxy.sol:BendUpgradeableProxy"
     );
+  } else if (id == eContractid.BendProxyAdminFund || id == eContractid.BendProxyAdminPool) {
+    await verifyEtherscanContract(
+      instance.address,
+      args,
+      "contracts/libraries/proxy/BendProxyAdmin.sol:BendProxyAdmin"
+    );
   } else {
     await verifyEtherscanContract(instance.address, args);
   }

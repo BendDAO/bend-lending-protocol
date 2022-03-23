@@ -22,6 +22,7 @@ import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import { getLoanData, getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
+import { getDebtToken } from "../helpers/contracts-getters";
 
 const chai = require("chai");
 const { expect } = chai;
@@ -195,9 +196,9 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
   });
 
   it("Borrow ETH and Full Repay with ETH", async () => {
-    const { users, wethGateway, pool, loan, bWETH, bayc, dataProvider } = testEnv;
+    const { users, wethGateway, pool, loan, weth, bWETH, bayc, dataProvider } = testEnv;
     const depositor = users[0];
-    const user = users[1];
+    const borrower = users[1];
     const borrowSize1 = parseEther("1");
     const borrowSize2 = parseEther("2");
     const borrowSizeAll = borrowSize1.add(borrowSize2);
@@ -211,56 +212,61 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const bTokensBalance = await bWETH.balanceOf(depositor.address);
     expect(bTokensBalance, "bTokensBalance not gte depositSize").to.be.gte(depositSize);
 
+    // Delegates borrowing power of WETH to WETHGateway
+    const reserveData = await pool.getReserveData(weth.address);
+    const debtToken = await getDebtToken(reserveData.debtTokenAddress);
+    await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(wethGateway.address, borrowSizeAll));
+
     // Start loan
     const nftAsset = await getNftAddressFromSymbol("BAYC");
     const tokenIdNum = testEnv.tokenIdTracker++;
     const tokenId = tokenIdNum.toString();
-    await mintERC721(testEnv, user, "BAYC", tokenId);
-    await setApprovalForAll(testEnv, user, "BAYC");
-    await setApprovalForAllWETHGateway(testEnv, user, "BAYC");
+    await mintERC721(testEnv, borrower, "BAYC", tokenId);
+    await setApprovalForAll(testEnv, borrower, "BAYC");
+    await setApprovalForAllWETHGateway(testEnv, borrower, "BAYC");
     const getDebtBalance = async () => {
       const loan = await getLoanData(pool, dataProvider, nftAsset, tokenId, "0");
 
       return BN.from(loan.currentAmount.toFixed(0));
     };
 
-    const ethBalanceBefore = await user.signer.getBalance();
+    const ethBalanceBefore = await borrower.signer.getBalance();
 
-    // Borrow first ETH with NFT
+    console.log("Borrow first ETH with NFT");
     await waitForTx(
-      await wethGateway.connect(user.signer).borrowETH(borrowSize1, nftAsset, tokenId, user.address, "0")
+      await wethGateway.connect(borrower.signer).borrowETH(borrowSize1, nftAsset, tokenId, borrower.address, "0")
     );
 
-    // Borrow more ETH with NFT
+    console.log("Borrow more ETH with NFT");
     await waitForTx(
-      await wethGateway.connect(user.signer).borrowETH(borrowSize2, nftAsset, tokenId, user.address, "0")
+      await wethGateway.connect(borrower.signer).borrowETH(borrowSize2, nftAsset, tokenId, borrower.address, "0")
     );
 
-    expect(await user.signer.getBalance(), "current eth balance shoud increase").to.be.gt(ethBalanceBefore);
+    expect(await borrower.signer.getBalance(), "current eth balance shoud increase").to.be.gt(ethBalanceBefore);
 
     const debtBalance = await getDebtBalance();
     expect(debtBalance, "debt should gte borrowSize").to.be.gte(borrowSizeAll);
 
     // Repay with antive ETH
-    // Partial Repay ETH loan with native ETH
+    console.log("Partial Repay ETH loan with native ETH");
     const partialPayment = repaySize.div(2);
     await waitForTx(
-      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, partialPayment, {
+      await wethGateway.connect(borrower.signer).repayETH(nftAsset, tokenId, partialPayment, {
         value: partialPayment,
       })
     );
     expect(await getDebtBalance()).to.be.lt(debtBalance);
 
-    // Full Repay ETH loan with native ETH
+    console.log("Full Repay ETH loan with native ETH");
     await waitForTx(
-      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, MAX_UINT_AMOUNT, {
+      await wethGateway.connect(borrower.signer).repayETH(nftAsset, tokenId, MAX_UINT_AMOUNT, {
         value: repaySize,
       })
     );
     expect(await getDebtBalance()).to.be.eq(zero);
 
     const tokenOwner = await bayc.ownerOf(tokenId);
-    expect(tokenOwner).to.be.equal(user.address, "Invalid token owner after repay");
+    expect(tokenOwner).to.be.equal(borrower.address, "Invalid token owner after repay");
   });
 
   it("Should revert if receiver function receives Ether if not WETH", async () => {

@@ -40,6 +40,7 @@ task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
     const proxyAdminOwnerSigner = DRE.ethers.provider.getSigner(proxyAdminOwnerAddress);
 
     const wethGateWay = await getWETHGateway();
+    console.log("wethGateWay.address", wethGateWay.address);
 
     const punk = await getCryptoPunksMarketAddress(poolConfig);
     console.log("CryptoPunksMarket.address", punk);
@@ -59,7 +60,7 @@ task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
     let punkGateWay: PunkGateway;
     let punkGatewayProxy: BendUpgradeableProxy;
 
-    const punkGatewayAddress = undefined; //await addressesProvider.getAddress(ADDRESS_ID_PUNK_GATEWAY);
+    const punkGatewayAddress = await addressesProvider.getAddress(ADDRESS_ID_PUNK_GATEWAY);
 
     if (punkGatewayAddress != undefined && notFalsyOrZeroAddress(punkGatewayAddress)) {
       console.log("Upgrading exist PunkGateway proxy to new implementation...");

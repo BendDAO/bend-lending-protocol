@@ -14,17 +14,25 @@ import { getEthersSignerByAddress, getParamPerNetwork } from "../../helpers/cont
 import { getNowTimeInSeconds, waitForTx } from "../../helpers/misc-utils";
 import { eNetwork } from "../../helpers/types";
 
-task("oracle-admin:set-nft-proxy", "Doing oracle admin task")
+task("oracle-admin:set-oracle-proxy", "Doing oracle admin task")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("type", "Type of Oracle, 1-NFT, 2-Reserve")
   .addParam("proxy", "Address of NFT Oracle proxy contract")
-  .setAction(async ({ pool, proxy }, DRE) => {
+  .setAction(async ({ pool, type, proxy }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
+    const ownerSigner = await getEthersSignerByAddress(await addressesProvider.owner());
 
-    await waitForTx(await addressesProvider.setNFTOracle(proxy));
+    if (type == 1) {
+      await waitForTx(await addressesProvider.connect(ownerSigner).setNFTOracle(proxy));
+    } else if (type == 2) {
+      await waitForTx(await addressesProvider.connect(ownerSigner).setReserveOracle(proxy));
+    } else {
+      throw Error("invalid type");
+    }
 
     console.log("OK");
   });

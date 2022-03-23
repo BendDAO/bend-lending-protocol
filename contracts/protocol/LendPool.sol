@@ -248,7 +248,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
       );
     }
 
-    IDebtToken(reserveData.debtTokenAddress).mint(onBehalfOf, amount, reserveData.variableBorrowIndex);
+    IDebtToken(reserveData.debtTokenAddress).mint(vars.initiator, onBehalfOf, amount, reserveData.variableBorrowIndex);
 
     // update interest rate according latest borrow amount (utilizaton)
     reserveData.updateInterestRates(asset, reserveData.bTokenAddress, 0, amount);
