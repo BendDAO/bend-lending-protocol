@@ -64,7 +64,7 @@ makeSuite("WETHGateway - Delegate", (testEnv: TestEnv) => {
 
     console.log("depositETH");
     await expect(
-      await wethGateway.connect(hacker.signer).depositETH(depositor.address, "0", { value: depositSize })
+      wethGateway.connect(hacker.signer).depositETH(depositor.address, "0", { value: depositSize })
     ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
 
     const nftAsset = await getNftAddressFromSymbol("BAYC");
