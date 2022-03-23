@@ -78,6 +78,8 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   }
 
   function withdrawETH(uint256 amount, address to) external override {
+    _checkValidCallerAndOnBehalfOf(to);
+
     ILendPool cachedPool = _getLendPool();
     IBToken bWETH = IBToken(cachedPool.getReserveData(address(WETH)).bTokenAddress);
 

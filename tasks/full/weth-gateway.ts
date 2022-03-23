@@ -10,7 +10,7 @@ import {
 } from "../../helpers/contracts-getters";
 import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { eContractid } from "../../helpers/types";
+import { eContractid, eNetwork } from "../../helpers/types";
 import { BendUpgradeableProxy, WETHGateway } from "../../types";
 
 task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
@@ -76,4 +76,19 @@ task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
 
     console.log("WETHGateway: proxy %s, implementation %s", wethGateWay.address, wethGatewayImpl.address);
     console.log("Finished WETHGateway deployment");
+  });
+
+task("full:wethgateway-authorize-caller-whitelist", "Initialize gateway configuration.")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("caller", "Address of whitelist")
+  .addParam("flag", "Flag of whitelist, 0-1")
+  .setAction(async ({ pool, caller, flag }, localBRE) => {
+    await localBRE.run("set-DRE");
+    const network = <eNetwork>localBRE.network.name;
+    const poolConfig = loadPoolConfig(pool);
+
+    const wethGateway = await getWETHGateway();
+
+    console.log("WETHGateway:", wethGateway.address);
+    await waitForTx(await wethGateway.authorizeCallerWhitelist([caller], flag));
   });
