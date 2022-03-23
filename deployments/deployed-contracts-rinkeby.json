@@ -126,12 +126,11 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "WETHGateway": {
-    "address": "0x42af361009B27Aa1Ff21f96E386795dE487D180E",
+    "address": "0x236AaDA68E3e07A9C940152A27d9DE66e5E09a1E",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGateway": {
-    "address": "0xcd17a3Eed149843b0E1Abfc77cDA80c31D46b885",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0xcd17a3Eed149843b0E1Abfc77cDA80c31D46b885"
   },
   "InterestRate": {
     "address": "0xcC99f8f4d833cD03763548E8F7a1AffA92C9F595",
@@ -203,9 +202,9 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGatewayImpl": {
-    "address": "0xdB9Fec3924676805b06EdDF7D96594A39C1f3303"
+    "address": "0xDb78CB5ee93c5215Dd5A8ac1b2F5cc90B774334a"
   },
   "WETHGatewayImpl": {
-    "address": "0x3b60A4eeaca01e884661953FEFD2e381967E34c4"
+    "address": "0x236AaDA68E3e07A9C940152A27d9DE66e5E09a1E"
   }
 }

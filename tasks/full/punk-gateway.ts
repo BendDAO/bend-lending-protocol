@@ -16,7 +16,7 @@ import {
 } from "../../helpers/contracts-getters";
 import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { eContractid } from "../../helpers/types";
+import { eContractid, eNetwork } from "../../helpers/types";
 import { BendUpgradeableProxy, PunkGateway } from "../../types";
 
 task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
@@ -92,4 +92,19 @@ task(`full:deploy-punk-gateway`, `Deploys the PunkGateway contract`)
     console.log("PunkGateway: proxy %s, implementation %s", punkGateWay.address, punkGateWayImpl.address);
 
     console.log("Finished PunkGateway deployment");
+  });
+
+task("full:punkgateway-authorize-caller-whitelist", "Initialize gateway configuration.")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("caller", "Address of whitelist")
+  .addParam("flag", "Flag of whitelist, 0-1")
+  .setAction(async ({ pool, caller, flag }, localBRE) => {
+    await localBRE.run("set-DRE");
+    const network = <eNetwork>localBRE.network.name;
+    const poolConfig = loadPoolConfig(pool);
+
+    const punkGateway = await getPunkGateway();
+
+    console.log("PunkGateway:", punkGateway.address);
+    await waitForTx(await punkGateway.authorizeCallerWhitelist([caller], flag));
   });
