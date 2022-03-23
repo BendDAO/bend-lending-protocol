@@ -126,8 +126,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "WETHGateway": {
-    "address": "0x236AaDA68E3e07A9C940152A27d9DE66e5E09a1E",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0x42af361009B27Aa1Ff21f96E386795dE487D180E"
   },
   "PunkGateway": {
     "address": "0xcd17a3Eed149843b0E1Abfc77cDA80c31D46b885"
@@ -205,6 +204,6 @@
     "address": "0xDb78CB5ee93c5215Dd5A8ac1b2F5cc90B774334a"
   },
   "WETHGatewayImpl": {
-    "address": "0x236AaDA68E3e07A9C940152A27d9DE66e5E09a1E"
+    "address": "0xE5ba6440E545742f212282604C44bA54Ce130940"
   }
 }
