@@ -4,25 +4,19 @@ import { parseEther } from "ethers/lib/utils";
 import DRE from "hardhat";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
-import { deploySelfdestructTransferMock } from "../helpers/contracts-deployments";
-import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
-import { getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolErrors, ProtocolLoanState } from "../helpers/types";
 import {
-  borrow,
   configuration as actionsConfiguration,
   mintERC721,
   setApprovalForAll,
   setApprovalForAllWETHGateway,
-  setNftAssetPrice,
-  setNftAssetPriceForDebt,
 } from "./helpers/actions";
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import { getLoanData, getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
 import { getDebtToken } from "../helpers/contracts-getters";
+import { waitForTx } from "../helpers/misc-utils";
 
 const chai = require("chai");
 const { expect } = chai;
@@ -56,6 +50,36 @@ makeSuite("WETHGateway - Delegate", (testEnv: TestEnv) => {
       DECIMAL_PLACES: 20,
       ROUNDING_MODE: BigNumber.ROUND_HALF_UP,
     });
+  });
+
+  it("Hacker try to delegate different onBehalf (should revert)", async () => {
+    const { users, wethGateway, pool, loan, weth, bWETH, bayc, dataProvider } = testEnv;
+    const depositor = users[0];
+    const borrower = users[1];
+    const liquidator = users[1];
+    const hacker = users[3];
+    const borrowSize1 = parseEther("1");
+    const borrowSize2 = parseEther("2");
+    const borrowSizeAll = borrowSize1.add(borrowSize2);
+
+    console.log("depositETH");
+    await expect(
+      wethGateway.connect(hacker.signer).depositETH(depositor.address, "0", { value: depositSize })
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
+
+    const nftAsset = await getNftAddressFromSymbol("BAYC");
+    const tokenIdNum = testEnv.tokenIdTracker++;
+    const tokenId = tokenIdNum.toString();
+
+    console.log("borrowETH");
+    await expect(
+      wethGateway.connect(hacker.signer).borrowETH(borrowSize2, nftAsset, tokenId, borrower.address, "0")
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
+
+    console.log("auctionETH");
+    await expect(
+      wethGateway.connect(hacker.signer).auctionETH(nftAsset, tokenId, liquidator.address, { value: depositSize })
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
   });
 
   it("Borrower try to Borrow more ETH to different onBehalf (should revert)", async () => {
@@ -105,10 +129,10 @@ makeSuite("WETHGateway - Delegate", (testEnv: TestEnv) => {
     const debtBalance = await getLoanDebtBalance();
     expect(debtBalance, "debt should gte borrowSize").to.be.gte(borrowSize1);
 
-    console.log("Borrower try Borrow more ETH with NFT");
+    console.log("Borrower try Borrow more ETH with NFT on different onBehalfOf");
     await expect(
       wethGateway.connect(borrower.signer).borrowETH(borrowSize2, nftAsset, tokenId, hacker.address, "0")
-    ).to.be.revertedWith(ProtocolErrors.VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
   });
 
   it("Hacker try to Borrow more ETH (should revert)", async () => {
@@ -158,9 +182,9 @@ makeSuite("WETHGateway - Delegate", (testEnv: TestEnv) => {
     const debtBalance = await getLoanDebtBalance();
     expect(debtBalance, "debt should gte borrowSize").to.be.gte(borrowSize1);
 
-    console.log("Hacker try Borrow more ETH with NFT");
+    console.log("Hacker try Borrow more ETH with others NFT");
     await expect(
       wethGateway.connect(hacker.signer).borrowETH(borrowSize2, nftAsset, tokenId, borrower.address, "0")
-    ).to.be.revertedWith(ProtocolErrors.CT_BORROW_ALLOWANCE_NOT_ENOUGH);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
   });
 });

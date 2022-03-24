@@ -7,6 +7,7 @@ import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 
+import {Errors} from "../libraries/helpers/Errors.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
@@ -27,6 +28,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   IPunks public punks;
   IWrappedPunks public wrappedPunks;
   address public proxy;
+
+  mapping(address => bool) internal _callerWhitelists;
 
   function initialize(
     address addressProvider,
@@ -63,6 +66,23 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     }
   }
 
+  function authorizeCallerWhitelist(address[] calldata callers, bool flag) external onlyOwner {
+    for (uint256 i = 0; i < callers.length; i++) {
+      _callerWhitelists[callers[i]] = flag;
+    }
+  }
+
+  function isCallerInWhitelist(address caller) external view returns (bool) {
+    return _callerWhitelists[caller];
+  }
+
+  function _checkValidCallerAndOnBehalfOf(address onBehalfOf) internal view {
+    require(
+      (onBehalfOf == _msgSender()) || (_callerWhitelists[_msgSender()] == true),
+      Errors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST
+    );
+  }
+
   function _depositPunk(uint256 punkIndex) internal {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -87,6 +107,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address onBehalfOf,
     uint16 referralCode
   ) external override {
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
     ILendPool cachedPool = _getLendPool();
 
     _depositPunk(punkIndex);
@@ -136,6 +158,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 bidPrice,
     address onBehalfOf
   ) external override {
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -200,6 +224,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address onBehalfOf,
     uint16 referralCode
   ) external override {
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
     _depositPunk(punkIndex);
     _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
   }
@@ -232,6 +258,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   }
 
   function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override {
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
     _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
   }
 

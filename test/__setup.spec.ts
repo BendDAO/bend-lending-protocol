@@ -377,6 +377,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
   await insertContractAddressInDb(eContractid.PunkGateway, punkGateway.address);
 
+  await waitForTx(await wethGateway.authorizeCallerWhitelist([punkGateway.address], true));
+
   console.timeEnd("setup");
 };
 
