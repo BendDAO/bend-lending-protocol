@@ -37,6 +37,7 @@ import {
   deployBTokensAndBNFTsHelper,
   deployInterestRate,
   deployGenericDebtToken,
+  deployBendCollector,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
@@ -215,6 +216,11 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     if (contract == "BTokensAndBNFTsHelper") {
       const contractImpl = await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
       console.log("BTokensAndBNFTsHelper implementation address:", contractImpl.address);
+    }
+
+    if (contract == "BendCollector") {
+      const contractImpl = await deployBendCollector([], verify);
+      console.log("BendCollector implementation address:", contractImpl.address);
     }
   });
 
