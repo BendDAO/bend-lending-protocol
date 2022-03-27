@@ -65,16 +65,6 @@ task("verify:general", "Verify general contracts at Etherscan")
     const wethGatewayImpl = await getWETHGatewayImpl();
     const punkGatewayImpl = await getPunkGatewayImpl();
 
-    // WETHGateway
-    console.log("\n- Verifying WETHGateway...\n");
-    await verifyContract(eContractid.WETHGatewayImpl, wethGatewayImpl, []);
-
-    // PunkGateway
-    console.log("\n- Verifying PunkGateway...\n");
-    await verifyContract(eContractid.PunkGatewayImpl, punkGatewayImpl, []);
-
-    return;
-
     const proxyAdminFund = await getBendProxyAdminById(eContractid.BendProxyAdminFund);
     await verifyContract(eContractid.BendProxyAdminFund, proxyAdminFund, []);
 
