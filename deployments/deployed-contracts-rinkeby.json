@@ -65,23 +65,23 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ReserveLogic": {
-    "address": "0xb576fe6919462341039e9E48Bc9AC52dd422d7C1",
+    "address": "0x91604C4De9f877B753230DF08F8957ddB7C0c59a",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "NftLogic": {
-    "address": "0x3a2aAe12a9FAEDAcd5b3AceD7d13FA8144E918fD",
+    "address": "0x8e8EFCeA0985d1f8967C5545f01E2b910A29771a",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "GenericLogic": {
-    "address": "0x3bF6Ca457Bd3C31aaA5834AED04cd4B3C50bb24f",
+    "address": "0x72FCDAbb797EAb2a664f0372e5630fA7B7B45DA8",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ValidationLogic": {
-    "address": "0x2144F7c7748F1537631Dda56044d20481f29D2C4",
+    "address": "0xEAbff67E5d113376aC0c611E4a8fe690681734F4",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
-    "address": "0x6db251E64A24584fd8f2fBE0DAb9d737F6026473"
+    "address": "0x608A1b01790472b2B7b56fB7a974292a822eae3A"
   },
   "LendPool": {
     "address": "0xa8D0e90bCB533d70067EEc37601fa7D5C5b3F13E"
@@ -157,10 +157,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolLiquidatorImpl": {
-    "address": "0x1F091fd39FdA1F248B9Dd0f40c59a7f6DEb61598"
+    "address": "0xa47F1F50F28634C855050DC2922c5C09A9025980"
   },
   "LendPoolLiquidator": {
-    "address": "0x1F091fd39FdA1F248B9Dd0f40c59a7f6DEb61598"
+    "address": "0xa47F1F50F28634C855050DC2922c5C09A9025980"
   },
   "DOODLE": {
     "address": "0x10cACFfBf3Cdcfb365FDdC4795079417768BaA74",
@@ -201,9 +201,9 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGatewayImpl": {
-    "address": "0xDb78CB5ee93c5215Dd5A8ac1b2F5cc90B774334a"
+    "address": "0x1F2E10B039DB1915ffDdB824Ed099921a312EB02"
   },
   "WETHGatewayImpl": {
-    "address": "0xE5ba6440E545742f212282604C44bA54Ce130940"
+    "address": "0x409d7b8301d6D47F612998d82df45B22BDEA904C"
   }
 }
