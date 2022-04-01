@@ -19,6 +19,7 @@ import {ReserveConfiguration} from "../libraries/configuration/ReserveConfigurat
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {LendPoolStorage} from "./LendPoolStorage.sol";
+import {LendPoolStorageExt} from "./LendPoolStorageExt.sol";
 
 import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -43,7 +44,15 @@ import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/Cont
  *   LendPoolAddressesProvider
  * @author Bend
  **/
-contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeable, IERC721ReceiverUpgradeable {
+// !!! For Upgradable: DO NOT ADJUST Inheritance Order !!!
+contract LendPool is
+  Initializable,
+  ILendPool,
+  LendPoolStorage,
+  ContextUpgradeable,
+  IERC721ReceiverUpgradeable,
+  LendPoolStorageExt
+{
   using WadRayMath for uint256;
   using PercentageMath for uint256;
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -51,6 +60,27 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
   using NftLogic for DataTypes.NftData;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
+
+  /**
+   * @dev Prevents a contract from calling itself, directly or indirectly.
+   * Calling a `nonReentrant` function from another `nonReentrant`
+   * function is not supported. It is possible to prevent this from happening
+   * by making the `nonReentrant` function external, and making it call a
+   * `private` function that does the actual work.
+   */
+  modifier nonReentrant() {
+    // On the first call to nonReentrant, _notEntered will be true
+    require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+    // Any calls to nonReentrant after this point will fail
+    _status = _ENTERED;
+
+    _;
+
+    // By storing the original value once again, a refund is triggered (see
+    // https://eips.ethereum.org/EIPS/eip-2200)
+    _status = _NOT_ENTERED;
+  }
 
   modifier whenNotPaused() {
     _whenNotPaused();
@@ -100,7 +130,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 amount,
     address onBehalfOf,
     uint16 referralCode
-  ) external override whenNotPaused {
+  ) external override nonReentrant whenNotPaused {
     require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
 
     DataTypes.ReserveData storage reserve = _reserves[asset];
@@ -134,7 +164,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     address asset,
     uint256 amount,
     address to
-  ) external override whenNotPaused returns (uint256) {
+  ) external override nonReentrant whenNotPaused returns (uint256) {
     require(to != address(0), Errors.VL_INVALID_TARGET_ADDRESS);
 
     DataTypes.ReserveData storage reserve = _reserves[asset];
@@ -193,7 +223,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 nftTokenId,
     address onBehalfOf,
     uint16 referralCode
-  ) external override whenNotPaused {
+  ) external override nonReentrant whenNotPaused {
     require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
 
     ExecuteBorrowLocalVars memory vars;
@@ -289,7 +319,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     address nftAsset,
     uint256 nftTokenId,
     uint256 amount
-  ) external override whenNotPaused returns (uint256, bool) {
+  ) external override nonReentrant whenNotPaused returns (uint256, bool) {
     RepayLocalVars memory vars;
     vars.initiator = _msgSender();
 
@@ -380,7 +410,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     uint256 nftTokenId,
     uint256 bidPrice,
     address onBehalfOf
-  ) external override whenNotPaused {
+  ) external override nonReentrant whenNotPaused {
     address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
 
     //solium-disable-next-line
@@ -402,7 +432,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     address nftAsset,
     uint256 nftTokenId,
     uint256 amount
-  ) external override whenNotPaused returns (uint256) {
+  ) external override nonReentrant whenNotPaused returns (uint256) {
     address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
 
     //solium-disable-next-line
@@ -428,7 +458,7 @@ contract LendPool is Initializable, ILendPool, LendPoolStorage, ContextUpgradeab
     address nftAsset,
     uint256 nftTokenId,
     uint256 amount
-  ) external override whenNotPaused returns (uint256) {
+  ) external override nonReentrant whenNotPaused returns (uint256) {
     address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
 
     //solium-disable-next-line

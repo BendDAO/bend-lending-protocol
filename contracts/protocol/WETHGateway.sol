@@ -22,6 +22,31 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
   mapping(address => bool) internal _callerWhitelists;
 
+  uint256 private constant _NOT_ENTERED = 0;
+  uint256 private constant _ENTERED = 1;
+  uint256 private _status;
+
+  /**
+   * @dev Prevents a contract from calling itself, directly or indirectly.
+   * Calling a `nonReentrant` function from another `nonReentrant`
+   * function is not supported. It is possible to prevent this from happening
+   * by making the `nonReentrant` function external, and making it call a
+   * `private` function that does the actual work.
+   */
+  modifier nonReentrant() {
+    // On the first call to nonReentrant, _notEntered will be true
+    require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+    // Any calls to nonReentrant after this point will fail
+    _status = _ENTERED;
+
+    _;
+
+    // By storing the original value once again, a refund is triggered (see
+    // https://eips.ethereum.org/EIPS/eip-2200)
+    _status = _NOT_ENTERED;
+  }
+
   /**
    * @dev Sets the WETH address and the LendPoolAddressesProvider address. Infinite approves lend pool.
    * @param weth Address of the Wrapped Ether contract
@@ -45,13 +70,13 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return ILendPoolLoan(_addressProvider.getLendPoolLoan());
   }
 
-  function authorizeLendPoolNFT(address[] calldata nftAssets) external onlyOwner {
+  function authorizeLendPoolNFT(address[] calldata nftAssets) external nonReentrant onlyOwner {
     for (uint256 i = 0; i < nftAssets.length; i++) {
       IERC721Upgradeable(nftAssets[i]).setApprovalForAll(address(_getLendPool()), true);
     }
   }
 
-  function authorizeCallerWhitelist(address[] calldata callers, bool flag) external onlyOwner {
+  function authorizeCallerWhitelist(address[] calldata callers, bool flag) external nonReentrant onlyOwner {
     for (uint256 i = 0; i < callers.length; i++) {
       _callerWhitelists[callers[i]] = flag;
     }
@@ -68,7 +93,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     );
   }
 
-  function depositETH(address onBehalfOf, uint16 referralCode) external payable override {
+  function depositETH(address onBehalfOf, uint16 referralCode) external payable override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
     ILendPool cachedPool = _getLendPool();
@@ -77,7 +102,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     cachedPool.deposit(address(WETH), msg.value, onBehalfOf, referralCode);
   }
 
-  function withdrawETH(uint256 amount, address to) external override {
+  function withdrawETH(uint256 amount, address to) external override nonReentrant {
     _checkValidCallerAndOnBehalfOf(to);
 
     ILendPool cachedPool = _getLendPool();
@@ -103,7 +128,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 nftTokenId,
     address onBehalfOf,
     uint16 referralCode
-  ) external override {
+  ) external override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
     ILendPool cachedPool = _getLendPool();
@@ -122,7 +147,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address nftAsset,
     uint256 nftTokenId,
     uint256 amount
-  ) external payable override returns (uint256, bool) {
+  ) external payable override nonReentrant returns (uint256, bool) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -153,7 +178,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address nftAsset,
     uint256 nftTokenId,
     address onBehalfOf
-  ) external payable override {
+  ) external payable override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
     ILendPool cachedPool = _getLendPool();
@@ -173,7 +198,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address nftAsset,
     uint256 nftTokenId,
     uint256 amount
-  ) external payable override returns (uint256) {
+  ) external payable override nonReentrant returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -198,7 +223,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return paybackAmount;
   }
 
-  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override returns (uint256) {
+  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override nonReentrant returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 

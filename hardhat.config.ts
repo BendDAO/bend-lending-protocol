@@ -22,6 +22,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import { fork } from "child_process";
+require('hardhat-storage-layout-diff');
 
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
 const DEFAULT_BLOCK_GAS_LIMIT = 12450000;
