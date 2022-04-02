@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [main,release,develop]
   pull_request:
-    branches: [master]
+    branches: [main,release,develop]
 
 jobs:
   build:
@@ -20,6 +20,10 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+          registry-url: https://npm.pkg.github.com/
+          scope: '@benddao'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PAT_PACKAGES_REGISTRY_READ_ONLY }}
       - uses: actions/cache@v2
         with:
           path: ~/.npm
@@ -28,7 +32,14 @@ jobs:
             ${{ runner.os }}-node-
       - name: Install dependencies
         run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PAT_PACKAGES_REGISTRY_READ_ONLY }}
       - name: Test
         run: npm run ci:test
-      - name: Dev deployment
-        run: npm run bend:evm:dev:migration
+      - name: Coverage
+        run: npm run dev:coverage
+      - name: Publish coverage
+        uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
