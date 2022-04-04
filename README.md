@@ -29,7 +29,7 @@ For getting the latest contracts addresses, please check the [Deployed contracts
 A more detailed and technical description of the protocol can be found in this repository, [here](./bend-v1-whitepaper.pdf)
 
 ## Audits
-TODO
+[Certick Online Report](https://www.certik.com/projects/bend-dao).
 
 ## Connect with the community
 
