@@ -88,7 +88,7 @@ task("full:upgrade-bend-collector", "Upgrade bend collect contract")
       );
     }
 
-    await waitForTx(await bendCollector.initialize_v2());
+    //await waitForTx(await bendCollector.initialize_v2());
 
     console.log("Bend Collector: upgrade ok");
   });

@@ -4,6 +4,7 @@
 #Buidler files
 cache
 artifacts
+temp-artifacts
 node_modules
 dist/
 build/
