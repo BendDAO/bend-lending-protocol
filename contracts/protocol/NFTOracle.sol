@@ -34,9 +34,28 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   mapping(address => NFTPriceFeed) public nftPriceFeedMap;
   address[] public nftPriceFeedKeys;
 
-  function initialize(address _admin) public initializer {
+  // data validity check parameters
+  uint256 private constant DECIMAL_PRECISION = 10**18;
+  // Maximum deviation allowed between two consecutive oracle prices. 18-digit precision.
+  uint256 public maxPriceDeviation; // 20%,18-digit precision.
+  // The maximum allowed deviation between two consecutive oracle prices within a certain time frame. 18-bit precision.
+  uint256 public maxPriceDeviationWithTime; // 10%
+  uint256 public timeIntervalWithPrice; // 30 minutes
+  uint256 public minimumUpdateTime; // 10 minutes
+
+  function initialize(
+    address _admin,
+    uint256 _maxPriceDeviation,
+    uint256 _maxPriceDeviationWithTime,
+    uint256 _timeIntervalWithPrice,
+    uint256 _minimumUpdateTime
+  ) public initializer {
     __Ownable_init();
     priceFeedAdmin = _admin;
+    maxPriceDeviation = _maxPriceDeviation;
+    maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
+    timeIntervalWithPrice = _timeIntervalWithPrice;
+    minimumUpdateTime = _minimumUpdateTime;
   }
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
@@ -84,7 +103,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   ) external override onlyAdmin {
     requireKeyExisted(_nftContract, true);
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
-
+    bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
+    require(dataValidity, "NFTOracle: invalid price data");
     NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: _roundId});
     nftPriceFeedMap[_nftContract].nftPriceData.push(data);
 
@@ -194,5 +214,45 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     } else {
       require(!isExistedKey(_key), "NFTOracle: key existed");
     }
+  }
+
+  function checkValidityOfPrice(
+    address _nftContract,
+    uint256 _price,
+    uint256 _timestamp
+  ) private view returns (bool) {
+    uint256 len = getPriceFeedLength(_nftContract);
+    if (len > 0) {
+      uint256 price = nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
+      uint256 timestamp = nftPriceFeedMap[_nftContract].nftPriceData[len - 1].timestamp;
+      if (_price > price) {
+        uint256 percentDeviation = ((_price - price) * DECIMAL_PRECISION) / price;
+        uint256 timeDeviation = _timestamp - timestamp;
+        if (percentDeviation > maxPriceDeviation) {
+          return false;
+        } else if (timeDeviation < minimumUpdateTime) {
+          return false;
+        } else if ((percentDeviation > maxPriceDeviationWithTime) && (timeDeviation < timeIntervalWithPrice)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function setDataValidityParameters(
+    uint256 _maxPriceDeviation,
+    uint256 _maxPriceDeviationWithTime,
+    uint256 _timeIntervalWithPrice,
+    uint256 _minimumUpdateTime
+  ) external onlyOwner {
+    require(
+      _maxPriceDeviation > 0 && _maxPriceDeviationWithTime > 0 && _timeIntervalWithPrice > 0 && _minimumUpdateTime > 0,
+      "NFTOracle: invalid parameters"
+    );
+    maxPriceDeviation = _maxPriceDeviation;
+    maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
+    timeIntervalWithPrice = _timeIntervalWithPrice;
+    minimumUpdateTime = _minimumUpdateTime;
   }
 }
