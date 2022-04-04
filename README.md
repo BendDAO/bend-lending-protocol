@@ -22,18 +22,16 @@ Bend is a decentralized non-custodial NFT lending protocol where users can parti
 
 ## Documentation
 
-The documentation of Bend Protocol is in the following [Bend documentation](https://docs.bend.fi/developers) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
+The documentation of Bend Protocol is in the following [Bend documentation](https://docs.benddao.xyz) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
 
-For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.fi/developers/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
-
-A more detailed and technical description of the protocol can be found in this repository, [here](./bend-v1-whitepaper.pdf)
+For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.benddao.xyz/developers/deployed-contracts) page at the documentation to stay up to date.
 
 ## Audits
 [Certick Online Report](https://www.certik.com/projects/bend-dao).
 
 ## Connect with the community
 
-You can join at the [Discord](https://bend.fi/discord) channel or at the [Governance Forum](https://governance.bend.fi/) for asking questions about the protocol or talk about Bend with other peers.
+You can join at the [Discord](https://discord.gg/benddao) channel or at the [Governance](https://snapshot.org/#/benddao.eth) for asking questions about the protocol or talk about Bend with other peers.
 
 ## Getting Started
 
@@ -169,7 +167,7 @@ npm run bend:rinkeby:full:migration
 
 ## Interact with Bend in Mainnet via console
 
-You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at https://docs.bend.fi/developers/deployed-contracts.
+You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at [deployed-contracts](https://docs.benddao.xyz/developers/deployed-contracts).
 
 Run the Hardhat console pointing to the Mainnet network:
 
