@@ -266,10 +266,10 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await waitForTx(
     await nftOracleImpl.initialize(
       await addressesProvider.getPoolAdmin(),
-      "200000000000000000",
-      "100000000000000000",
-      10,
-      5
+      "20000000000000000000",
+      "10000000000000000000",
+      1,
+      1
     )
   );
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
