@@ -1,5 +1,5 @@
 {
-  "name": "@bend/bend-protocol",
+  "name": "@benddao/bend-protocol",
   "version": "1.0.0",
   "description": "Bend Protocol smart contracts",
   "files": [
@@ -20,14 +20,14 @@
     "test:localhost": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 npm run hardhat:localhost test ./test/*.spec.ts",
     "test:file": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 hardhat test ./test/__setup.spec.ts ./test/${TEST_FILE}",
     "test:subgraph:localhost": "npm run compile && npm run hardhat:localhost test ./test/__setup.spec.ts ./test/subgraph-scenarios.spec.ts",
-    "dev:coverage": "hardhat compile --force && hardhat coverage --network coverage",
+    "dev:coverage": ". ./setup-test-env.sh && COVERAGE=true npx hardhat coverage --temp temp-artifacts --testfiles test-suites/emptyrun.coverage.ts && rm -rf coverage.json coverage/ && COVERAGE=true npx hardhat coverage --temp temp-artifacts --testfiles 'test/*.spec.ts'",
     "dev:update-abis": "npm run compile && node ./scripts/updateAbis && npm run prettier:abis",
     "dev:export-storage-layout": "hardhat compile --force && hardhat export-storage-layout",
     "prettier:abis": "prettier --write 'abis/**/*.json'",
     "prettier:check": "npx prettier -c 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts'",
     "prettier:write": "prettier --write 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts'",
     "ci:test": "npm run compile && npm run test",
-    "ci:clean": "rm -rf ./artifacts ./cache ./types && hardhat clean",
+    "ci:clean": "hardhat clean && rm -rf ./artifacts ./cache ./types",
     "bend:hardhat:dev:migration": "npm run compile && npm run hardhat -- bend:dev",
     "bend:localhost:dev:migration": "npm run compile && npm run hardhat:localhost -- bend:dev",
     "bend:localhost:full:migration": "npm run compile && npm run hardhat:localhost -- bend:mainnet",

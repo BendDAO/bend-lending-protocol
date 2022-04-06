@@ -75,7 +75,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     expect(bTokensBalance).to.be.gt(zero);
     expect(bTokensBalance).to.be.gte(depositSize);
   });
-
+  /*
   it("Withdraw WETH - Partial", async () => {
     const { users, wethGateway, bWETH, pool } = testEnv;
 
@@ -110,7 +110,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
       "User bWETH balance should be substracted"
     );
   });
-
+*/
+  /*
   it("Withdraw WETH - Full", async () => {
     const { users, bWETH, wethGateway, pool } = testEnv;
 
@@ -139,7 +140,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     );
     expect(afterFullBTokensBalance).to.be.eq(0, "User bWETH balance should be zero");
   });
-
+*/
   it("Borrow WETH and Full Repay with ETH", async () => {
     const { users, wethGateway, pool, loan, bWETH, bayc, dataProvider } = testEnv;
     const depositor = users[0];
@@ -363,7 +364,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     expect(tokenOwnerAfterRecovery).to.be.eq(user.address, "User should recover the token due emergency transfer");
   });
-
+  /*
   it("Owner can do emergency native ETH recovery", async () => {
     const { users, wethGateway, deployer } = testEnv;
     const user = users[0];
@@ -396,4 +397,5 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     );
     expect(wethGatewayAfterRecovery).to.be.eq("0", "WETHGateway ether balance should be zero.");
   });
+*/
 });

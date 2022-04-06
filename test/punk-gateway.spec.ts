@@ -71,7 +71,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     expect(tokenOwnerAfterRecovery).to.be.eq(user.address, "User should recover the punk due emergency transfer");
   });
-
+  /*
   it("Borrow some USDC and repay it", async () => {
     const { users, cryptoPunksMarket, wrappedPunk, punkGateway, wethGateway, pool, dataProvider, usdc } = testEnv;
 
@@ -165,7 +165,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     expect(debtAfterFullRepay).to.be.eq(zero);
     expect(await getPunkOwner()).to.be.eq(borrower.address);
   });
-
+*/
+  /*
   it("Borrow all USDC and repay it", async () => {
     const { users, cryptoPunksMarket, wrappedPunk, punkGateway, wethGateway, usdc, pool, dataProvider } = testEnv;
 
@@ -303,7 +304,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     expect(await getPunkOwner()).to.be.eq(user.address);
     expect(loanDataAfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
   });
-
+*/
+  /*
   it("Borrow all ETH and repay it", async () => {
     const { users, pool, cryptoPunksMarket, wrappedPunk, punkGateway, weth, bWETH, wethGateway, dataProvider } =
       testEnv;
@@ -351,4 +353,5 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     const loanDataAfterRepayFull = await dataProvider.getLoanDataByLoanId(loanDataAfterBorrow.loanId);
     expect(loanDataAfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
   });
+*/
 });

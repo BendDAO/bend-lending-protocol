@@ -885,7 +885,7 @@ export const liquidate = async (
     expectEqual(userDataAfter, expectedUserData);
     expectEqual(loanDataAfter, expectedLoanData);
   } else if (expectedResult === "revert") {
-    await expect(pool.connect(user.signer).liquidate(nftAsset, nftTokenId), revertMessage).to.be.reverted;
+    await expect(pool.connect(user.signer).liquidate(nftAsset, nftTokenId, amount), revertMessage).to.be.reverted;
   }
 };
 
