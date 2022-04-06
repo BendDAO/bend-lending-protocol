@@ -119,11 +119,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "NFTOracleImpl": {
-    "address": "0x5A0614a61781FfD636f4686537e2E8691181c32E"
+    "address": "0xABAc4CF99Fff4E662A546f5e4C9264cfefd28C2f"
   },
   "NFTOracle": {
-    "address": "0x04af5eF6100E1025560Be50FF244CB31f60d08c2",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0x04af5eF6100E1025560Be50FF244CB31f60d08c2"
   },
   "WETHGateway": {
     "address": "0x42af361009B27Aa1Ff21f96E386795dE487D180E"
