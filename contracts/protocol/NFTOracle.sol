@@ -113,9 +113,10 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256, /*_timestamp*/
     uint256 _roundId
   ) external override onlyAdmin whenNotPaused(_nftContract) {
-    uint256 _timestamp = _blockTimestamp();
     requireKeyExisted(_nftContract, true);
+    uint256 _timestamp = _blockTimestamp();
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
+    require(_price > 0, "NFTOracle: price can not be 0");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
     require(dataValidity, "NFTOracle: invalid price data");
     NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: _roundId});
