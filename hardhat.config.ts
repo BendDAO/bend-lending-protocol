@@ -32,6 +32,7 @@ const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || "";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const MNEMONIC = process.env.MNEMONIC || "";
 const UNLIMITED_BYTECODE_SIZE = process.env.UNLIMITED_BYTECODE_SIZE === "true";
+const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
 
 // Prevent to load scripts before compilation and typechain
 if (!SKIP_LOAD) {
@@ -54,7 +55,9 @@ const getCommonNetworkConfig = (networkName: eNetwork, networkId: number) => ({
   gasMultiplier: DEFAULT_GAS_MUL,
   gasPrice: NETWORKS_DEFAULT_GAS[networkName],
   chainId: networkId,
-  accounts: {
+  accounts: PRIVATE_KEY
+  ? [PRIVATE_KEY]
+  : {
     mnemonic: MNEMONIC,
     path: MNEMONIC_PATH,
     initialIndex: 0,

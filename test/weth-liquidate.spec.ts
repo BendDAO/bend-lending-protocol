@@ -46,12 +46,14 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
     depositSize = new BigNumber(baycInitPrice.toString()).multipliedBy(0.8).toFixed(0);
   });
-  after("Reset", () => {
+  after("Reset configuration", async () => {
     // Reset BigNumber
     BigNumber.config({
       DECIMAL_PLACES: 20,
       ROUNDING_MODE: BigNumber.ROUND_HALF_UP,
     });
+
+    await setNftAssetPrice(testEnv, "BAYC", baycInitPrice.toString());
   });
 
   it("Borrow ETH and Liquidate it", async () => {
@@ -107,7 +109,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     // Drop the health factor below 1
     const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, tokenId);
     const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
-    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "1");
+    await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");
 
     const nftDebtDataBeforeAuction = await pool.getNftDebtData(bayc.address, tokenId);
     expect(nftDebtDataBeforeAuction.healthFactor.toString()).to.be.bignumber.lt(oneEther.toFixed(0));

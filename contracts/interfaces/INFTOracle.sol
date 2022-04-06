@@ -27,4 +27,8 @@ interface INFTOracle {
     uint256 _timestamp,
     uint256 _roundId
   ) external;
+
+  function setPause(address _nftContract, bool val) external;
+
+  function paused(address _nftContract) external view returns (bool);
 }
