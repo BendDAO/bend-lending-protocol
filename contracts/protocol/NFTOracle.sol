@@ -43,6 +43,18 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   uint256 public timeIntervalWithPrice; // 30 minutes
   uint256 public minimumUpdateTime; // 10 minutes
 
+  mapping(address => bool) internal _nftPaused;
+
+  modifier whenNotPaused(address _nftContract) {
+    _whenNotPaused(_nftContract);
+    _;
+  }
+
+  function _whenNotPaused(address _nftContract) internal view {
+    bool _paused = _nftPaused[_nftContract];
+    require(!_paused, "NFTOracle: nft price feed paused");
+  }
+
   function initialize(
     address _admin,
     uint256 _maxPriceDeviation,
@@ -100,7 +112,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _price,
     uint256 _timestamp,
     uint256 _roundId
-  ) external override onlyAdmin {
+  ) external override onlyAdmin whenNotPaused(_nftContract) {
     requireKeyExisted(_nftContract, true);
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
@@ -224,17 +236,23 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 len = getPriceFeedLength(_nftContract);
     if (len > 0) {
       uint256 price = nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
+      if (_price == price) {
+        return true;
+      }
       uint256 timestamp = nftPriceFeedMap[_nftContract].nftPriceData[len - 1].timestamp;
+      uint256 percentDeviation;
       if (_price > price) {
-        uint256 percentDeviation = ((_price - price) * DECIMAL_PRECISION) / price;
-        uint256 timeDeviation = _timestamp - timestamp;
-        if (percentDeviation > maxPriceDeviation) {
-          return false;
-        } else if (timeDeviation < minimumUpdateTime) {
-          return false;
-        } else if ((percentDeviation > maxPriceDeviationWithTime) && (timeDeviation < timeIntervalWithPrice)) {
-          return false;
-        }
+        percentDeviation = ((_price - price) * DECIMAL_PRECISION) / price;
+      } else {
+        percentDeviation = ((price - _price) * DECIMAL_PRECISION) / price;
+      }
+      uint256 timeDeviation = _timestamp - timestamp;
+      if (percentDeviation > maxPriceDeviation) {
+        return false;
+      } else if (timeDeviation < minimumUpdateTime) {
+        return false;
+      } else if ((percentDeviation > maxPriceDeviationWithTime) && (timeDeviation < timeIntervalWithPrice)) {
+        return false;
       }
     }
     return true;
@@ -246,13 +264,17 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _timeIntervalWithPrice,
     uint256 _minimumUpdateTime
   ) external onlyOwner {
-    require(
-      _maxPriceDeviation > 0 && _maxPriceDeviationWithTime > 0 && _timeIntervalWithPrice > 0 && _minimumUpdateTime > 0,
-      "NFTOracle: invalid parameters"
-    );
     maxPriceDeviation = _maxPriceDeviation;
     maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
     timeIntervalWithPrice = _timeIntervalWithPrice;
     minimumUpdateTime = _minimumUpdateTime;
+  }
+
+  function setPause(address _nftContract, bool val) external override onlyOwner {
+    _nftPaused[_nftContract] = val;
+  }
+
+  function paused(address _nftContract) external view override returns (bool) {
+    return _nftPaused[_nftContract];
   }
 }

@@ -326,4 +326,23 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
       expect(minimumUpdateTime2).to.equal("600");
     });
   });
+
+  makeSuite("NFTOracle: test pause", () => {
+    before(async () => {});
+    it("test pause", async () => {
+      const { mockNftOracle, users } = testEnv;
+      await mockNftOracle.addAsset(users[0].address);
+      await mockNftOracle.addAsset(users[2].address);
+      const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+      await mockNftOracle.setAssetData(users[0].address, 400, currentTime.add(15), 100);
+      await mockNftOracle.setPause(users[0].address, true);
+      //await mockNftOracle.setAssetData(users[0].address, 410, currentTime.add(20), 101);
+      await expect(mockNftOracle.setAssetData(users[0].address, 410, currentTime.add(20), 101)).to.be.revertedWith(
+        "NFTOracle: nft price feed paused"
+      );
+      await mockNftOracle.setAssetData(users[2].address, 400, currentTime.add(15), 100);
+      await mockNftOracle.setPause(users[0].address, false);
+      await mockNftOracle.setAssetData(users[0].address, 410, currentTime.add(20), 101);
+    });
+  });
 });
