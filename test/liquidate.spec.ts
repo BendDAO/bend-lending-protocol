@@ -21,8 +21,10 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
   });
 
-  after("After liquidation: reset config", () => {
+  after("After liquidation: reset config", async () => {
     BigNumber.config({ DECIMAL_PLACES: 20, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
+
+    await setNftAssetPrice(testEnv, "BAYC", baycInitPrice.toString());
   });
 
   it("WETH - Borrows WETH", async () => {
@@ -76,7 +78,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const { weth, bayc, users, pool, nftOracle } = testEnv;
     const borrower = users[1];
 
-    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "102");
+    const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "101");
 
     const debAmountUnits = await convertToCurrencyUnits(weth.address, nftDebtDataBefore.totalDebt.toString());
     await setNftAssetPriceForDebt(testEnv, "BAYC", "WETH", debAmountUnits, "80");

@@ -221,13 +221,17 @@ export const setNftAssetPriceForDebt = async (
   // LH is 2 decimals
   const nftPrice = new BigNumber(ethAmountDecimals.toString())
     .percentMul(new BigNumber(healthPercent).multipliedBy(100))
-    .percentDiv(new BigNumber(liquidationThreshold.toString()))
-    .toFixed(0);
+    .percentDiv(new BigNumber(liquidationThreshold.toString()));
+  if (nftPrice.lte(0)) {
+    throw new Error("invalid zero nftPrice");
+  }
 
   const latestTime = await getNowTimeInSeconds();
-  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice, latestTime, latestTime));
+  await waitForTx(
+    await nftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice.toFixed(0), latestTime, latestTime)
+  );
 
-  return { oldNftPrice: oldNftPrice.toString(), newNftPrice: nftPrice };
+  return { oldNftPrice: oldNftPrice.toString(), newNftPrice: nftPrice.toFixed(0) };
 };
 
 export const setNftAssetPrice = async (testEnv: TestEnv, nftSymbol: string, price: string): Promise<string> => {
@@ -240,7 +244,10 @@ export const setNftAssetPrice = async (testEnv: TestEnv, nftSymbol: string, pric
   const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
 
   const latestTime = await getNowTimeInSeconds();
-  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, price, latestTime, latestTime));
+  const priceBN = new BigNumber(price).plus(1);
+  await waitForTx(
+    await nftOracle.connect(priceAdmin).setAssetData(nftAsset, priceBN.toFixed(0), latestTime, latestTime)
+  );
 
   return oldNftPrice.toString();
 };

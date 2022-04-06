@@ -42,12 +42,14 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
 
     punkInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.wrappedPunk.address);
   });
-  after("Reset", () => {
+  after("Reset", async () => {
     // Reset BigNumber
     BigNumber.config({
       DECIMAL_PLACES: 20,
       ROUNDING_MODE: BigNumber.ROUND_HALF_UP,
     });
+
+    await setNftAssetPrice(testEnv, "WPUNKS", punkInitPrice.toString());
   });
 
   it("Borrow USDC and liquidate it", async () => {
