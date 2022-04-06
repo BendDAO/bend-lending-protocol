@@ -268,7 +268,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
       await addressesProvider.getPoolAdmin(),
       "200000000000000000",
       "100000000000000000",
-      1800,
+      10,
       5
     )
   );
@@ -284,7 +284,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
       await addressesProvider.getPoolAdmin(),
       "200000000000000000",
       "100000000000000000",
-      1800,
+      10,
       5
     )
   );
