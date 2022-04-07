@@ -4,7 +4,7 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "NFTOracleImpl": {
-    "address": "0xD53371dD62F5ACb845Cb000D40C3759f5A6dE903"
+    "address": "0x51369e05661e494Dc7D4264156EEF915Fd5d5C61"
   },
   "NFTOracle": {
     "address": "0x7C2A19e54e48718f6C60908a9Cff3396E4Ea1eBA",
