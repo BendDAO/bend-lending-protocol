@@ -29,6 +29,7 @@ import {
   deployMockChainlinkOracle,
   deployLendPoolLiquidator,
   deployBendLibraries,
+  deployBendCollector,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -394,6 +395,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await insertContractAddressInDb(eContractid.PunkGateway, punkGateway.address);
 
   await waitForTx(await wethGateway.authorizeCallerWhitelist([punkGateway.address], true));
+
+  const bendCollectorImpl = await deployBendCollector([]);
+  await bendCollectorImpl.initialize();
 
   console.timeEnd("setup");
 };
