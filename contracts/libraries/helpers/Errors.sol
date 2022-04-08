@@ -116,4 +116,10 @@ library Errors {
   //address provider erros
   string public constant LPAPR_PROVIDER_NOT_REGISTERED = "760"; // 'Provider is not registered'
   string public constant LPAPR_INVALID_ADDRESSES_PROVIDER_ID = "761";
+
+  //bend collector  erros
+  string public constant BL_INVALID_REFER_PERCENTAGE = "800";
+  string public constant BL_INVALID_FEE_DISTRIBUTOR_ADDRESS = "801";
+  string public constant BL_INVALID_REWARDS_TOKEN_ADDRESS = "802";
+  string public constant BL_INVALID_TREASURY_ADDRESS = "803";
 }
