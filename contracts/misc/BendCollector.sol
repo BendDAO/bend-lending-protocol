@@ -74,4 +74,10 @@ contract BendCollector is Initializable, OwnableUpgradeable {
   function unapprove(address recipient) external onlyOwner {
     IERC20Upgradeable(rewardToken).safeApprove(recipient, 0);
   }
+
+  function nextDistributedFee() external view returns (uint256) {
+    uint256 _toDistribute = IERC20Upgradeable(rewardToken).balanceOf(address(this)) - referRewards;
+    uint256 _referRewards = _toDistribute.percentMul(referRewardsPercentage);
+    return _toDistribute - _referRewards;
+  }
 }
