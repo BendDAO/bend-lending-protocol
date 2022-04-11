@@ -206,11 +206,6 @@ export enum ProtocolErrors {
   LPAPR_PROVIDER_NOT_REGISTERED = "760", // 'Provider is not registered'
   LPAPR_INVALID_ADDRESSES_PROVIDER_ID = "761",
 
-  BL_INVALID_REFER_PERCENTAGE = "800",
-  BL_INVALID_FEE_DISTRIBUTOR_ADDRESS = "801",
-  BL_INVALID_REWARDS_TOKEN_ADDRESS = "802",
-  BL_INVALID_TREASURY_ADDRESS = "803",
-
   // Misc errors
   INVALID_OWNER_REVERT_MSG = "Ownable: caller is not the owner",
   TRANSFER_AMOUNT_EXCEEDS_BALANCE = "ERC20: transfer amount exceeds balance",

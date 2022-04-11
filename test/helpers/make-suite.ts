@@ -25,7 +25,6 @@ import {
   getDebtToken,
   getWalletProvider,
   getUIPoolDataProvider,
-  getBendCollectorProxy,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -52,7 +51,6 @@ import { WETHGateway } from "../../types/WETHGateway";
 import { solidity } from "ethereum-waffle";
 import { BendConfig } from "../../markets/bend";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { BendCollector } from "../../types";
 import {
   BNFTRegistry,
   LendPoolLoan,
@@ -109,7 +107,6 @@ export interface TestEnv {
   punkIndexTracker: number;
   wrappedPunk: WrappedPunk;
   punkGateway: PunkGateway;
-  bendCollector: BendCollector;
 
   roundIdTracker: number;
   nowTimeTracker: number;
@@ -246,7 +243,6 @@ export async function initializeMakeSuite() {
   testEnv.cryptoPunksMarket = await getCryptoPunksMarket();
   testEnv.wrappedPunk = await getWrappedPunk();
   testEnv.punkGateway = await getPunkGateway();
-  testEnv.bendCollector = await getBendCollectorProxy();
 
   testEnv.tokenIdTracker = 100;
   testEnv.punkIndexTracker = 0;
