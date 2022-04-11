@@ -4,7 +4,7 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "NFTOracleImpl": {
-    "address": "0xD53371dD62F5ACb845Cb000D40C3759f5A6dE903"
+    "address": "0x51369e05661e494Dc7D4264156EEF915Fd5d5C61"
   },
   "NFTOracle": {
     "address": "0x7C2A19e54e48718f6C60908a9Cff3396E4Ea1eBA",
@@ -15,7 +15,7 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "BendCollectorImpl": {
-    "address": "0x8b4117E91a6f6A810651aFae788EC044f13a06a5"
+    "address": "0x67a05fae0B411588E4FBA0d28c6bb33588769501"
   },
   "BendCollector": {
     "address": "0x43078AbfB76bd24885Fd64eFFB22049f92a8c495",
@@ -30,23 +30,23 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "ReserveLogic": {
-    "address": "0x72cf15e42EF9cFE403C76d4D536c6FB06C67f88f",
+    "address": "0x55010E3AAAFc585Eac5E5e44970Ac77006728FDA",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "NftLogic": {
-    "address": "0x955b442D6577B22865e7675eC9F1879c793d9F5a",
+    "address": "0x8e4d6b4941BFF2F8033e9697f6f1744919b26244",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "GenericLogic": {
-    "address": "0x64D040825e61cE3225D490C61242245d06D33fe4",
+    "address": "0xD9c7abeeBB000d333c0d9828D9daF54d74d8DE92",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "ValidationLogic": {
-    "address": "0xF3BA817f14a6fa104263f2087c85424F6933d29b",
+    "address": "0xB6A0adC7cd85668526ABa8ef956859EF0b90835e",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "LendPoolImpl": {
-    "address": "0x66f4798DB0F1231cfAC82F21587b3F9825F54207"
+    "address": "0x85e0613810113e6E3a0AB82F52178487CEFE3639"
   },
   "LendPool": {
     "address": "0x70b97A0da65C15dfb0FFA02aEE6FA36e507C2762"
@@ -97,13 +97,13 @@
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
   },
   "WETHGatewayImpl": {
-    "address": "0x5fa288a9c6CDbd0b0845199a033EF32A207BC98D"
+    "address": "0x1EAB020442eCb5dd2b1C296cE6eBc41Ec328eC0f"
   },
   "WETHGateway": {
     "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88"
   },
   "PunkGatewayImpl": {
-    "address": "0x791DE2090162A4CA1Dd4BF998E0Bbcc17bFfF6fd"
+    "address": "0xA580769e3e973346730aac0DCEf418222d4Aaf1f"
   },
   "PunkGateway": {
     "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30"

@@ -4,6 +4,7 @@
 #Buidler files
 cache
 artifacts
+temp-artifacts
 node_modules
 dist/
 build/
@@ -34,3 +35,6 @@ node_modules
 #Hardhat files
 cache
 artifacts
+storage_layout
+
+.history/*

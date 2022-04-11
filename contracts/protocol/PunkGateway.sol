@@ -7,6 +7,7 @@ import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 
+import {Errors} from "../libraries/helpers/Errors.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
@@ -27,6 +28,31 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   IPunks public punks;
   IWrappedPunks public wrappedPunks;
   address public proxy;
+
+  uint256 private constant _NOT_ENTERED = 0;
+  uint256 private constant _ENTERED = 1;
+  uint256 private _status;
+
+  /**
+   * @dev Prevents a contract from calling itself, directly or indirectly.
+   * Calling a `nonReentrant` function from another `nonReentrant`
+   * function is not supported. It is possible to prevent this from happening
+   * by making the `nonReentrant` function external, and making it call a
+   * `private` function that does the actual work.
+   */
+  modifier nonReentrant() {
+    // On the first call to nonReentrant, _notEntered will be true
+    require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+    // Any calls to nonReentrant after this point will fail
+    _status = _ENTERED;
+
+    _;
+
+    // By storing the original value once again, a refund is triggered (see
+    // https://eips.ethereum.org/EIPS/eip-2200)
+    _status = _NOT_ENTERED;
+  }
 
   function initialize(
     address addressProvider,
@@ -57,7 +83,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return ILendPoolLoan(_addressProvider.getLendPoolLoan());
   }
 
-  function authorizeLendPoolERC20(address[] calldata tokens) external onlyOwner {
+  function authorizeLendPoolERC20(address[] calldata tokens) external nonReentrant onlyOwner {
     for (uint256 i = 0; i < tokens.length; i++) {
       IERC20Upgradeable(tokens[i]).approve(address(_getLendPool()), type(uint256).max);
     }
@@ -86,9 +112,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 punkIndex,
     address onBehalfOf,
     uint16 referralCode
-  ) external override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
-
+  ) external override nonReentrant {
     ILendPool cachedPool = _getLendPool();
 
     _depositPunk(punkIndex);
@@ -107,7 +131,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     punks.transferPunk(onBehalfOf, punkIndex);
   }
 
-  function repay(uint256 punkIndex, uint256 amount) external override returns (uint256, bool) {
+  function repay(uint256 punkIndex, uint256 amount) external override nonReentrant returns (uint256, bool) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -137,9 +161,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 punkIndex,
     uint256 bidPrice,
     address onBehalfOf
-  ) external override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
-
+  ) external override nonReentrant {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -153,7 +175,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
-  function redeem(uint256 punkIndex, uint256 amount) external override returns (uint256) {
+  function redeem(uint256 punkIndex, uint256 amount) external override nonReentrant returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -173,7 +195,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return paybackAmount;
   }
 
-  function liquidate(uint256 punkIndex, uint256 amount) external override returns (uint256) {
+  function liquidate(uint256 punkIndex, uint256 amount) external override nonReentrant returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -203,13 +225,12 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 punkIndex,
     address onBehalfOf,
     uint16 referralCode
-  ) external override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
+  ) external override nonReentrant {
     _depositPunk(punkIndex);
     _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
   }
 
-  function repayETH(uint256 punkIndex, uint256 amount) external payable override returns (uint256, bool) {
+  function repayETH(uint256 punkIndex, uint256 amount) external payable override nonReentrant returns (uint256, bool) {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
@@ -236,12 +257,11 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return (paybackAmount, burn);
   }
 
-  function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override {
-    require(onBehalfOf == _msgSender(), "PunkGateway: onBehalfOf must be caller");
+  function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override nonReentrant {
     _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
   }
 
-  function redeemETH(uint256 punkIndex, uint256 amount) external payable override returns (uint256) {
+  function redeemETH(uint256 punkIndex, uint256 amount) external payable override nonReentrant returns (uint256) {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
@@ -259,7 +279,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return paybackAmount;
   }
 
-  function liquidateETH(uint256 punkIndex) external payable override returns (uint256) {
+  function liquidateETH(uint256 punkIndex) external payable override nonReentrant returns (uint256) {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);

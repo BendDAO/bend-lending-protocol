@@ -1,5 +1,6 @@
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Build pass](https://github.com/bend/bend-protocol/actions/workflows/node.js.yml/badge.svg)](https://github.com/bendfinance/bend-protocol/actions/workflows/node.js.yml)
+[![Build pass](https://github.com/BendDAO/bend-protocol/actions/workflows/node.js.yml/badge.svg)](https://github.com/BendDAO/bend-protocol/actions/workflows/node.js.yml)
+[![codecov](https://codecov.io/gh/BendDAO/bend-protocol/branch/main/graph/badge.svg?token=Z4Y9S158JS)](https://codecov.io/gh/BendDAO/bend-protocol)
+
 ```
 '########::'########:'##::: ##:'########::
  ##.... ##: ##.....:: ###:: ##: ##.... ##:
@@ -21,29 +22,27 @@ Bend is a decentralized non-custodial NFT lending protocol where users can parti
 
 ## Documentation
 
-The documentation of Bend Protocol is in the following [Bend documentation](https://docs.bend.fi/developers) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
+The documentation of Bend Protocol is in the following [Bend documentation](https://docs.benddao.xyz) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
 
-For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.bend.fi/developers/deployed-contracts/deployed-contracts) page at the documentation to stay up to date.
-
-A more detailed and technical description of the protocol can be found in this repository, [here](./bend-v1-whitepaper.pdf)
+For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.benddao.xyz/developers/deployed-contracts) page at the documentation to stay up to date.
 
 ## Audits
-TODO
+[Certick Online Report](https://www.certik.com/projects/bend-dao).
 
 ## Connect with the community
 
-You can join at the [Discord](https://bend.fi/discord) channel or at the [Governance Forum](https://governance.bend.fi/) for asking questions about the protocol or talk about Bend with other peers.
+You can join at the [Discord](https://discord.gg/benddao) channel or at the [Governance](https://snapshot.org/#/benddao.eth) for asking questions about the protocol or talk about Bend with other peers.
 
 ## Getting Started
 
-You can install `@bend/bend-protocol` as an NPM package in your Hardhat, Buidler or Truffle project to import the contracts and interfaces:
+You can install `@benddao/bend-protocol` as an NPM package in your Hardhat, Buidler or Truffle project to import the contracts and interfaces:
 
-`npm install @bend/bend-protocol`
+`npm install @benddao/bend-protocol`
 
 Import at Solidity files:
 
 ```
-import {ILendPool} from "@bend/bend-protocol/contracts/interfaces/ILendPool.sol";
+import {ILendPool} from "@benddao/bend-protocol/contracts/interfaces/ILendPool.sol";
 
 contract Misc {
 
@@ -59,7 +58,7 @@ The JSON artifacts with the ABI and Bytecode are also included into the bundled 
 Import JSON file via Node JS `require`:
 
 ```
-const LendPoolArtifact = require('@bend/bend-protocol/artifacts/contracts/protocol/LendPool.sol/LendPool.json');
+const LendPoolArtifact = require('@benddao/bend-protocol/artifacts/contracts/protocol/LendPool.sol/LendPool.json');
 
 // Log the ABI into console
 console.log(LendPoolArtifact.abi)
@@ -168,7 +167,7 @@ npm run bend:rinkeby:full:migration
 
 ## Interact with Bend in Mainnet via console
 
-You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at https://docs.bend.fi/developers/deployed-contracts.
+You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at [deployed-contracts](https://docs.benddao.xyz/developers/deployed-contracts).
 
 Run the Hardhat console pointing to the Mainnet network:
 

@@ -37,6 +37,7 @@ import {
   deployBTokensAndBNFTsHelper,
   deployInterestRate,
   deployGenericDebtToken,
+  deployBendCollector,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
@@ -59,7 +60,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
     const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
-    if (contract == "LendPool" || contract == "LendPoolLiquidator") {
+    if (contract == "BendLibraries") {
       await deployBendLibraries(verify);
       const bendLibs = await getBendLibraries(verify);
       console.log("Bend Libraries address:", bendLibs);
@@ -75,6 +76,35 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
         await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
       }
       await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
+      await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
+    }
+
+    if (contract == "LendPool") {
+      const bendLibs = await getBendLibraries(verify);
+      console.log("Bend Libraries address:", bendLibs);
+
+      const lendPoolImpl = await deployLendPool(verify);
+      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
+      console.log("LendPool implementation address:", lendPoolImpl.address);
+
+      if (upgrade) {
+        await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
+      }
+
+      await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
+    }
+
+    if (contract == "LendPoolLiquidator") {
+      const bendLibs = await getBendLibraries(verify);
+      console.log("Bend Libraries address:", bendLibs);
+
+      const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);
+      console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
+
+      if (upgrade) {
+        await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
+      }
+
       await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
     }
 
@@ -215,6 +245,11 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     if (contract == "BTokensAndBNFTsHelper") {
       const contractImpl = await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
       console.log("BTokensAndBNFTsHelper implementation address:", contractImpl.address);
+    }
+
+    if (contract == "BendCollector") {
+      const contractImpl = await deployBendCollector([], verify);
+      console.log("BendCollector implementation address:", contractImpl.address);
     }
   });
 

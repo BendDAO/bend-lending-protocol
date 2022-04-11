@@ -5,19 +5,26 @@ import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/co
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
 import { getUserData } from "./helpers/utils/helpers";
-import { setNftAssetPriceForDebt } from "./helpers/actions";
+import { setNftAssetPrice, setNftAssetPriceForDebt } from "./helpers/actions";
+import { BigNumber as BN } from "ethers";
 
 const chai = require("chai");
 
 const { expect } = chai;
 
 makeSuite("LendPool: Redeem", (testEnv) => {
-  before("Before Redeem: set config", () => {
+  let baycInitPrice: BN;
+
+  before("Before Redeem: set config", async () => {
     BigNumber.config({ DECIMAL_PLACES: 0, ROUNDING_MODE: BigNumber.ROUND_DOWN });
+
+    baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
   });
 
-  after("After Redeem: reset config", () => {
+  after("After Redeem: reset config", async () => {
     BigNumber.config({ DECIMAL_PLACES: 20, ROUNDING_MODE: BigNumber.ROUND_HALF_UP });
+
+    await setNftAssetPrice(testEnv, "BAYC", baycInitPrice.toString());
   });
 
   it("WETH - Borrows WETH", async () => {

@@ -263,6 +263,8 @@ task("dev:borrow-eth-using-punk", "Doing custom task")
     const wethAddress = await getContractAddressInDb("WETH");
     const weth = await getMintableERC20(wethAddress);
 
+    console.log("PunkGateway:", punkGateway.address);
+
     const isApproveOk = await wpunk.isApprovedForAll(signerAddress, punkGateway.address);
     if (!isApproveOk) {
       console.log("setApprovalForAll");
@@ -412,6 +414,8 @@ task("dev:debt-approve-delegate", "Doing custom task")
     const signer = await getDeploySigner();
 
     const wethGateway = await getWETHGateway();
+
+    console.log("WETHGateway:", wethGateway.address);
 
     const reserveToken = await bendDataProvider.getReserveTokenData(asset);
     const debToken = await getDebtToken(reserveToken.debtTokenAddress);

@@ -10,7 +10,7 @@ import {
 } from "../../helpers/contracts-getters";
 import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { eContractid } from "../../helpers/types";
+import { eContractid, eNetwork } from "../../helpers/types";
 import { BendUpgradeableProxy, WETHGateway } from "../../types";
 
 task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)

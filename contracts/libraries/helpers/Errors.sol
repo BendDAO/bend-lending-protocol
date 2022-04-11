@@ -19,6 +19,7 @@ library Errors {
   string public constant CALLER_NOT_ADDRESS_PROVIDER = "101";
   string public constant INVALID_FROM_BALANCE_AFTER_TRANSFER = "102";
   string public constant INVALID_TO_BALANCE_AFTER_TRANSFER = "103";
+  string public constant CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST = "104";
 
   //math library erros
   string public constant MATH_MULTIPLICATION_OVERFLOW = "200";
@@ -115,4 +116,10 @@ library Errors {
   //address provider erros
   string public constant LPAPR_PROVIDER_NOT_REGISTERED = "760"; // 'Provider is not registered'
   string public constant LPAPR_INVALID_ADDRESSES_PROVIDER_ID = "761";
+
+  //bend collector  erros
+  string public constant BL_INVALID_REFER_PERCENTAGE = "800";
+  string public constant BL_INVALID_FEE_DISTRIBUTOR_ADDRESS = "801";
+  string public constant BL_INVALID_REWARDS_TOKEN_ADDRESS = "802";
+  string public constant BL_INVALID_TREASURY_ADDRESS = "803";
 }

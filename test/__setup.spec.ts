@@ -29,6 +29,7 @@ import {
   deployMockChainlinkOracle,
   deployLendPoolLiquidator,
   deployBendLibraries,
+  deployBendCollector,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
 import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
@@ -263,7 +264,15 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   console.log("-> Prepare nft oracle...");
   const nftOracleImpl = await deployNFTOracle();
-  await waitForTx(await nftOracleImpl.initialize(await addressesProvider.getPoolAdmin()));
+  await waitForTx(
+    await nftOracleImpl.initialize(
+      await addressesProvider.getPoolAdmin(),
+      "20000000000000000000",
+      "10000000000000000000",
+      1,
+      1
+    )
+  );
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
   await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
   await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
@@ -271,7 +280,15 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock nft oracle...");
   const mockNftOracleImpl = await deployMockNFTOracle();
-  await waitForTx(await mockNftOracleImpl.initialize(await addressesProvider.getPoolAdmin()));
+  await waitForTx(
+    await mockNftOracleImpl.initialize(
+      await addressesProvider.getPoolAdmin(),
+      "200000000000000000",
+      "100000000000000000",
+      10,
+      5
+    )
+  );
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare Reserve pool...");
@@ -376,6 +393,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     ])
   );
   await insertContractAddressInDb(eContractid.PunkGateway, punkGateway.address);
+
+  const bendCollectorImpl = await deployBendCollector([]);
+  await bendCollectorImpl.initialize();
 
   console.timeEnd("setup");
 };
