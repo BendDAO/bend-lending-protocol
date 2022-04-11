@@ -62,6 +62,7 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       // Reuse/deploy lend pool implementation
       console.log("Deploying new lend pool implementation & libraries...");
       const lendPoolImpl = await deployLendPool(verify);
+      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
       console.log("Setting lend pool implementation with address:", lendPoolImpl.address);
       // Set lending pool impl to Address provider
       await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
