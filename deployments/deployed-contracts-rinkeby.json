@@ -176,10 +176,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "BendCollectorImpl": {
-    "address": "0xEaE2d74a288Fc57992A133c93a84aE5F0553C6b4"
+    "address": "0x76632535CA681747b06fBa255A5Efb9727d1dCC8"
   },
   "BendCollector": {
-    "address": "0xEaE2d74a288Fc57992A133c93a84aE5F0553C6b4"
+    "address": "0x7A02EE743Aadca63d60945971B7eD12c7f26b6d2"
   },
   "WOW": {
     "address": "0xdfC14f7A536944467834EF7ce7b05a9a79BCDFaD",
