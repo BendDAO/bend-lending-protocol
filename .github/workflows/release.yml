@@ -25,21 +25,26 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '@benddao'
       - name: Setup yarn
+        if: ${{ steps.release.outputs.release_created }}
         run: npm install -g yarn
       - name: Setup Nodejs with yarn caching
+        if: ${{ steps.release.outputs.release_created }}
         uses: actions/setup-node@v2
         with:
           node-version: "16"
           cache: yarn
-      - run: yarn
+      - name: Install dependencies
+        if: ${{ steps.release.outputs.release_created }}
+        run: yarn
         env:
           NODE_AUTH_TOKEN: ${{ secrets.PAT_PACKAGES_REGISTRY_READ_ONLY }}
+      - name: Test
         if: ${{ steps.release.outputs.release_created }}
-      - run: npm run ci:test
+        run: npm run ci:test
         env:
           NODE_AUTH_TOKEN: ${{ secrets.PAT_PACKAGES_REGISTRY_READ_ONLY }}
+      - name: Publish Package
         if: ${{ steps.release.outputs.release_created }}
-      - run: npm publish
-        if: ${{ steps.release.outputs.release_created }}
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
