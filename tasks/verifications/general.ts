@@ -37,9 +37,6 @@ task("verify:general", "Verify general contracts at Etherscan")
 
     const bendCollectorImpl = await getBendCollectorImpl();
 
-    await verifyContract(eContractid.BendCollectorImpl, bendCollectorImpl, []);
-    return;
-
     const providerRegistry = await getLendPoolAddressesProviderRegistry();
     const addressesProvider = await getLendPoolAddressesProvider();
 
