@@ -27,7 +27,7 @@ The documentation of Bend Protocol is in the following [Bend documentation](http
 For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.benddao.xyz/developers/deployed-contracts) page at the documentation to stay up to date.
 
 ## Audits
-[Certick Online Report](https://www.certik.com/projects/bend-dao).
+[Certik Online Report](https://www.certik.com/projects/bend-dao).
 
 ## Connect with the community
 
