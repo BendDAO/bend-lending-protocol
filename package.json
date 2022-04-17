@@ -20,7 +20,7 @@
     "test:localhost": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 npm run hardhat:localhost test ./test/*.spec.ts",
     "test:file": "npm run compile && TS_NODE_TRANSPILE_ONLY=1 hardhat test ./test/__setup.spec.ts ./test/${TEST_FILE}",
     "test:subgraph:localhost": "npm run compile && npm run hardhat:localhost test ./test/__setup.spec.ts ./test/subgraph-scenarios.spec.ts",
-    "dev:coverage": ". ./setup-test-env.sh && COVERAGE=true npx hardhat coverage --temp temp-artifacts --testfiles test-suites/emptyrun.coverage.ts && rm -rf coverage.json coverage/ && COVERAGE=true npx hardhat coverage --temp temp-artifacts --testfiles 'test/*.spec.ts'",
+    "dev:coverage": ". ./setup-test-env.sh && COVERAGE=true npx hardhat coverage --temp temp-artifacts --testfiles test/emptyrun.coverage.ts && rm -rf coverage.json coverage/ && COVERAGE=true npx hardhat coverage --temp temp-artifacts --testfiles 'test/*.spec.ts'",
     "dev:update-abis": "npm run compile && node ./scripts/updateAbis && npm run prettier:abis",
     "dev:export-storage-layout": "hardhat compile --force && hardhat export-storage-layout",
     "prettier:abis": "prettier --write 'abis/**/*.json'",
