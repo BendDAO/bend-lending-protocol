@@ -143,6 +143,33 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     _safeTransferETH(onBehalfOf, amount);
   }
 
+  function batchBorrowETH(
+    uint256[] calldata amounts,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant {
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+    require(nftAssets.length == amounts.length, "inconsistent amounts length");
+
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
+    ILendPool cachedPool = _getLendPool();
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAssets[i], nftTokenIds[i]);
+      if (loanId == 0) {
+        IERC721Upgradeable(nftAssets[i]).safeTransferFrom(msg.sender, address(this), nftTokenIds[i]);
+      }
+      cachedPool.borrow(address(WETH), amounts[i], nftAssets[i], nftTokenIds[i], onBehalfOf, referralCode);
+
+      WETH.withdraw(amounts[i]);
+      _safeTransferETH(onBehalfOf, amounts[i]);
+    }
+  }
+
   function repayETH(
     address nftAsset,
     uint256 nftTokenId,

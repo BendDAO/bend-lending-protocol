@@ -24,6 +24,14 @@ interface IPunkGateway {
     uint16 referralCode
   ) external;
 
+  function batchBorrow(
+    address[] calldata reserveAssets,
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
   /**
    * @notice Repays a borrowed `amount` on a specific punk, burning the equivalent loan owned
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
@@ -73,6 +81,13 @@ interface IPunkGateway {
   function borrowETH(
     uint256 amount,
     uint256 punkIndex,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
+  function batchBorrowETH(
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
     address onBehalfOf,
     uint16 referralCode
   ) external;

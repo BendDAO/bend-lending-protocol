@@ -142,6 +142,29 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     IERC20Upgradeable(reserveAsset).transfer(onBehalfOf, amount);
   }
 
+  function batchBorrow(
+    address[] calldata reserveAssets,
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant {
+    require(punkIndexs.length == reserveAssets.length, "inconsistent reserveAssets length");
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
+    ILendPool cachedPool = _getLendPool();
+
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      _depositPunk(punkIndexs[i]);
+
+      cachedPool.borrow(reserveAssets[i], amounts[i], address(wrappedPunks), punkIndexs[i], onBehalfOf, referralCode);
+
+      IERC20Upgradeable(reserveAssets[i]).transfer(onBehalfOf, amounts[i]);
+    }
+  }
+
   function _withdrawPunk(uint256 punkIndex, address onBehalfOf) internal {
     address owner = wrappedPunks.ownerOf(punkIndex);
     require(owner == _msgSender(), "PunkGateway: caller is not owner");
@@ -253,6 +276,25 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
     _depositPunk(punkIndex);
     _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
+  }
+
+  function batchBorrowETH(
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant {
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
+    address[] memory nftAssets = new address[](punkIndexs.length);
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      nftAssets[i] = address(wrappedPunks);
+      _depositPunk(punkIndexs[i]);
+    }
+
+    _wethGateway.batchBorrowETH(amounts, nftAssets, punkIndexs, onBehalfOf, referralCode);
   }
 
   function repayETH(uint256 punkIndex, uint256 amount) external payable override nonReentrant returns (uint256, bool) {

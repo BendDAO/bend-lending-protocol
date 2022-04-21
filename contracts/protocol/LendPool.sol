@@ -224,6 +224,34 @@ contract LendPool is
     address onBehalfOf,
     uint16 referralCode
   ) external override nonReentrant whenNotPaused {
+    _borrow(asset, amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
+  }
+
+  function batchBorrow(
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant whenNotPaused {
+    require(nftAssets.length == assets.length, "inconsistent assets length");
+    require(nftAssets.length == amounts.length, "inconsistent amounts length");
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      _borrow(assets[i], amounts[i], nftAssets[i], nftTokenIds[i], onBehalfOf, referralCode);
+    }
+  }
+
+  function _borrow(
+    address asset,
+    uint256 amount,
+    address nftAsset,
+    uint256 nftTokenId,
+    address onBehalfOf,
+    uint16 referralCode
+  ) internal {
     require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
 
     ExecuteBorrowLocalVars memory vars;

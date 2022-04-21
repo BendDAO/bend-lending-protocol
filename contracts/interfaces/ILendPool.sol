@@ -220,6 +220,15 @@ interface ILendPool {
     uint16 referralCode
   ) external;
 
+  function batchBorrow(
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
   /**
    * @notice Repays a borrowed `amount` on a specific reserve, burning the equivalent loan owned
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
