@@ -58,6 +58,7 @@ import {
   UiPoolDataProviderFactory,
   BendCollectorFactory,
   TimelockControllerFactory,
+  OpenseaDownpaymentBuyAdapterFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -522,6 +523,13 @@ export const deployBendCollector = async (args: [], verify?: boolean) => {
   const bendCollectorImpl = await new BendCollectorFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.BendCollectorImpl, bendCollectorImpl.address);
   return withSaveAndVerify(bendCollectorImpl, eContractid.BendCollector, [], verify);
+};
+
+export const deployOpenseaAdapterImpl = async (verify?: boolean) => {
+  const impl = await new OpenseaDownpaymentBuyAdapterFactory(await getDeploySigner()).deploy();
+  console.log("test");
+  await insertContractAddressInDb(eContractid.OpenseaAdapterImpl, impl.address);
+  return withSaveAndVerify(impl, eContractid.OpenseaAdapterImpl, [], verify);
 };
 
 export const deployTimelockController = async (

@@ -202,5 +202,13 @@
   },
   "WETHGatewayImpl": {
     "address": "0x75b6Af46990a07Dc068586d6B23B5653acEc102F"
+  },
+  "OpenseaAdapterImpl": {
+    "address": "0x25C1DBcD3e330bB54840a2141A9fa3F12a8F1800",
+    "deployer": "0x8B0a2D45aC9D4BaCa1589EF82eC6A2C7c4Ef69Dc"
+  },
+  "OpenseaAdapter": {
+    "address": "0x6278075A5Fd5209FfF3DB3D35D15f7624e2CcCF7",
+    "deployer": "0x8B0a2D45aC9D4BaCa1589EF82eC6A2C7c4Ef69Dc"
   }
 }
