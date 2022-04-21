@@ -9,7 +9,7 @@ import { NETWORKS_RPC_URL, NETWORKS_DEFAULT_GAS, BLOCK_TO_FORK, buildForkConfig 
 
 require("dotenv").config();
 
-import {bootstrap} from 'global-agent'
+import { bootstrap } from "global-agent";
 if (process.env.GLOBAL_AGENT_HTTP_PROXY) {
   console.log("Enable Global Agent:", process.env.GLOBAL_AGENT_HTTP_PROXY);
   bootstrap();
@@ -22,7 +22,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
 import { fork } from "child_process";
-require('hardhat-storage-layout-diff');
+require("hardhat-storage-layout-diff");
 
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
 const DEFAULT_BLOCK_GAS_LIMIT = 12450000;
@@ -32,7 +32,7 @@ const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY || "";
 const MNEMONIC_PATH = "m/44'/60'/0'/0";
 const MNEMONIC = process.env.MNEMONIC || "";
 const UNLIMITED_BYTECODE_SIZE = process.env.UNLIMITED_BYTECODE_SIZE === "true";
-const PRIVATE_KEY = process.env.PRIVATE_KEY || '';
+const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 
 // Prevent to load scripts before compilation and typechain
 if (!SKIP_LOAD) {
@@ -103,7 +103,7 @@ const buidlerConfig: HardhatUserConfig = {
       hardfork: "london",
       url: "http://localhost:8545",
       chainId: BUIDLEREVM_CHAINID,
-      accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => (secretKey)),
+      accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => secretKey),
     },
     develop: getCommonNetworkConfig(eEthereumNetwork.develop, 4),
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
