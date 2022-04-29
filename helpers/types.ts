@@ -83,6 +83,8 @@ export enum eContractid {
   TimelockControllerSlow = "TimelockControllerSlow",
   OpenseaDownpaymentBuyAdapter = "OpenseaDownpaymentBuyAdapter",
   OpenseaDownpaymentBuyAdapterImpl = "OpenseaDownpaymentBuyAdapterImpl",
+  PunkDownpaymentBuyAdapter = "PunkDownpaymentBuyAdapter",
+  PunkDownpaymentBuyAdapterImpl = "PunkDownpaymentBuyAdapterImpl",
 }
 
 export enum ProtocolLoanState {

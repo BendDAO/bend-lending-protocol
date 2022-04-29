@@ -1,10 +1,10 @@
 {
   "WETHMocked": {
-    "address": "0xaD1908f909B5C5D2B1032a215d611773F26f089F",
+    "address": "0xb49dbe8e2a5a140b3b810c33ac2ba4907a3ca95e",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "WETH": {
-    "address": "0xaD1908f909B5C5D2B1032a215d611773F26f089F",
+    "address": "0xb49dbe8e2a5a140b3b810c33ac2ba4907a3ca95e",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "MintableERC20": {
@@ -103,11 +103,11 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "BToken": {
-    "address": "0xa2C6f0e0022FE5E5336B084835C03f4603223072",
+    "address": "0xeb7f1c5548faff6492b298082691a633fb2c5f4d",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "DebtToken": {
-    "address": "0x56E343Be14dEe8a2efd21eE7E84388A5dabB0807",
+    "address": "0x6d9bcb420f217c4e1c3f1b8753c47b1e8a85ea1e",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ReserveOracleImpl": {
@@ -204,11 +204,19 @@
     "address": "0xffFcD5B0ED3e1c42a6CCB6515ab3cD49B8c5d7E9"
   },
   "OpenseaDownpaymentBuyAdapterImpl": {
-    "address": "0xe8644E569e71A7288d63a2E1565C6Ea856d1c92C",
-    "deployer": "0xE5904695748fe4A84b40b3fc79De2277660BD1D3"
+    "address": "0xF60dFd915A54943dCF95C0b452133bb32686B54d",
+    "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   },
   "OpenseaDownpaymentBuyAdapter": {
-    "address": "0x78AB74525e8e7e295135eA9Ed6453459acB13542",
-    "deployer": "0xE5904695748fe4A84b40b3fc79De2277660BD1D3"
+    "address": "0xAf57797FB9f0e7342743a0F903A1D864c0256D9A",
+    "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
+  },
+  "PunkDownpaymentBuyAdapterImpl": {
+    "address": "0x383248b6323F76798e99C41dB4b7a540Da6CF789",
+    "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
+  },
+  "PunkDownpaymentBuyAdapter": {
+    "address": "0x99791b7397d793f3E5d4e4aD78de9E64002c63FB",
+    "deployer": "0xcbb8a164d498e0c2312F0DDcF0a6Ee2F5bad983A"
   }
 }

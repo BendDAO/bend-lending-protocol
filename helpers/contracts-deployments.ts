@@ -59,6 +59,7 @@ import {
   BendCollectorFactory,
   TimelockControllerFactory,
   OpenseaDownpaymentBuyAdapterFactory,
+  PunkDownpaymentBuyAdapterFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -530,6 +531,12 @@ export const deployOpenseaDownpaymentBuyAdapterImpl = async (verify?: boolean) =
   console.log("test");
   await insertContractAddressInDb(eContractid.OpenseaDownpaymentBuyAdapterImpl, impl.address);
   return withSaveAndVerify(impl, eContractid.OpenseaDownpaymentBuyAdapterImpl, [], verify);
+};
+
+export const deployPunkDownpaymentBuyAdapterImpl = async (verify?: boolean) => {
+  const impl = await new PunkDownpaymentBuyAdapterFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.PunkDownpaymentBuyAdapterImpl, impl.address);
+  return withSaveAndVerify(impl, eContractid.PunkDownpaymentBuyAdapterImpl, [], verify);
 };
 
 export const deployTimelockController = async (
