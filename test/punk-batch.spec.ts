@@ -15,7 +15,7 @@ import {
 import { makeSuite, TestEnv } from "./helpers/make-suite";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
-import { waitForTx } from "../helpers/misc-utils";
+import { advanceTimeAndBlock, waitForTx } from "../helpers/misc-utils";
 import { getERC20TokenBalance, getLoanData } from "./helpers/utils/helpers";
 import { getDebtToken } from "../helpers/contracts-getters";
 import { MAX_UINT_AMOUNT } from "../helpers/constants";
@@ -86,6 +86,7 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
     await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
 
     // Batch borrow usdc
+    console.log("Batch borrow usdc");
     await waitForTx(
       await punkGateway
         .connect(borrower.signer)
@@ -106,6 +107,37 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
 
     const debt2AfterBorrow = await getDebtBalance(punkIndex2);
     expect(debt2AfterBorrow).to.be.gte(borrowSize2);
+
+    await mintERC20(testEnv, borrower, "USDC", depositUnit.toString());
+    await approveERC20PunkGateway(testEnv, borrower, "USDC");
+    await waitForTx(await wrappedPunk.connect(borrower.signer).setApprovalForAll(punkGateway.address, true));
+
+    // Batch repay usdc
+    console.log("Batch repay usdc - partial");
+    await waitForTx(
+      await punkGateway
+        .connect(borrower.signer)
+        .batchRepay([punkIndex1, punkIndex2], [borrowSize1.div(2), borrowSize1.div(2)])
+    );
+
+    const loanData1AfterRepayPart = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex1);
+    expect(loanData1AfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
+
+    const loanData2AfterRepayPart = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex2);
+    expect(loanData2AfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
+
+    console.log("Batch repay usdc - full");
+    await waitForTx(
+      await punkGateway
+        .connect(borrower.signer)
+        .batchRepay([punkIndex1, punkIndex2], [MAX_UINT_AMOUNT, MAX_UINT_AMOUNT])
+    );
+
+    const loanData1AfterRepayFull = await dataProvider.getLoanDataByLoanId(loanData1AfterRepayPart.loanId);
+    expect(loanData1AfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
+
+    const loanData2AfterRepayFull = await dataProvider.getLoanDataByLoanId(loanData2AfterRepayPart.loanId);
+    expect(loanData2AfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
   });
 
   it("Batch Borrow ETH", async () => {
@@ -146,6 +178,7 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
     const userBalanceBeforeBorrow = await borrower.signer.getBalance();
 
     // Batch borrow eth
+    console.log("Batch borrow eth");
     await waitForTx(
       await punkGateway
         .connect(borrower.signer)
@@ -161,5 +194,44 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
 
     const loanData2AfterBorrow = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex1);
     expect(loanData2AfterBorrow.state).to.be.eq(ProtocolLoanState.Active);
+
+    await advanceTimeAndBlock(100);
+
+    await waitForTx(await wrappedPunk.connect(borrower.signer).setApprovalForAll(punkGateway.address, true));
+
+    // Batch repay eth
+    console.log("Batch repay eth - partial");
+    const repaySize1Part = borrowSize1.div(2);
+    const repaySize2Part = borrowSize2.div(2);
+    await waitForTx(
+      await punkGateway
+        .connect(borrower.signer)
+        .batchRepayETH([punkIndex1, punkIndex2], [borrowSize1.div(2), borrowSize1.div(2)], {
+          value: repaySize1Part.add(repaySize2Part),
+        })
+    );
+
+    const loanData1AfterRepayPart = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex1);
+    expect(loanData1AfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
+
+    const loanData2AfterRepayPart = await dataProvider.getLoanDataByCollateral(wrappedPunk.address, punkIndex2);
+    expect(loanData2AfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
+
+    console.log("Batch repay eth - full");
+    const repaySize1Full = new BigNumber(loanData1AfterRepayPart.currentAmount.toString());
+    const repaySize2Full = new BigNumber(loanData2AfterRepayPart.currentAmount.toString());
+    await waitForTx(
+      await punkGateway
+        .connect(borrower.signer)
+        .batchRepayETH([punkIndex1, punkIndex2], [MAX_UINT_AMOUNT, MAX_UINT_AMOUNT], {
+          value: repaySize1Full.plus(repaySize2Full).multipliedBy(1.001).toFixed(0),
+        })
+    );
+
+    const loanData1AfterRepayFull = await dataProvider.getLoanDataByLoanId(loanData1AfterRepayPart.loanId);
+    expect(loanData1AfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
+
+    const loanData2AfterRepayFull = await dataProvider.getLoanDataByLoanId(loanData2AfterRepayPart.loanId);
+    expect(loanData2AfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
   });
 });

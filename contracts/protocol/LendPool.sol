@@ -348,6 +348,32 @@ contract LendPool is
     uint256 nftTokenId,
     uint256 amount
   ) external override nonReentrant whenNotPaused returns (uint256, bool) {
+    return _repay(nftAsset, nftTokenId, amount);
+  }
+
+  function batchRepay(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external override nonReentrant whenNotPaused returns (uint256[] memory, bool[] memory) {
+    require(nftAssets.length == amounts.length, "inconsistent amounts length");
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+
+    uint256[] memory repayAmounts = new uint256[](nftAssets.length);
+    bool[] memory repayAlls = new bool[](nftAssets.length);
+
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      (repayAmounts[i], repayAlls[i]) = _repay(nftAssets[i], nftTokenIds[i], amounts[i]);
+    }
+
+    return (repayAmounts, repayAlls);
+  }
+
+  function _repay(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount
+  ) internal returns (uint256, bool) {
     RepayLocalVars memory vars;
     vars.initiator = _msgSender();
 

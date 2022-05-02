@@ -55,6 +55,12 @@ interface IWETHGateway {
     uint256 amount
   ) external payable returns (uint256, bool);
 
+  function batchRepayETH(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external payable returns (uint256[] memory, bool[] memory);
+
   /**
    * @dev auction a borrow on the WETH reserve
    * @param nftAsset The address of the underlying NFT used as collateral

@@ -15,10 +15,11 @@ import { configuration as actionsConfiguration } from "./helpers/actions";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import BigNumber from "bignumber.js";
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
+import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
 import { string } from "hardhat/internal/core/params/argumentTypes";
 import { waitForTx } from "../helpers/misc-utils";
 import { parseEther } from "ethers/lib/utils";
+import { MAX_UINT_AMOUNT } from "../helpers/constants";
 
 const { expect } = require("chai");
 
@@ -45,7 +46,7 @@ makeSuite("LendPool: Batch borrow test cases", (testEnv: TestEnv) => {
   });
 
   it("Batch Borrow WETH using many NFTs", async () => {
-    const { users, weth, bayc, pool } = testEnv;
+    const { users, weth, bayc, pool, dataProvider } = testEnv;
     const depositor = users[1];
     const borrower = users[2];
 
@@ -68,6 +69,7 @@ makeSuite("LendPool: Batch borrow test cases", (testEnv: TestEnv) => {
     const userBalanceBeforeBorrow = await weth.balanceOf(borrower.address);
 
     // batch borrow
+    console.log("batch borrow weth");
     const borrowAmount1 = parseEther("1");
     const borrowAmount2 = parseEther("2");
     await waitForTx(
@@ -87,5 +89,28 @@ makeSuite("LendPool: Batch borrow test cases", (testEnv: TestEnv) => {
     expect(userBalanceAfterBorrow, "current weth balance shoud increase").to.be.eq(
       userBalanceBeforeBorrow.add(borrowAmount1).add(borrowAmount2)
     );
+
+    await mintERC20(testEnv, borrower, "WETH", "10");
+    await approveERC20(testEnv, borrower, "WETH");
+
+    console.log("batch repay weth - part");
+    await waitForTx(
+      await pool
+        .connect(borrower.signer)
+        .batchRepay([bayc.address, bayc.address], [tokenId1, tokenId2], [borrowAmount1.div(2), borrowAmount1.div(2)])
+    );
+
+    const loanDataAfterRepayPart = await dataProvider.getLoanDataByCollateral(bayc.address, tokenId1);
+    expect(loanDataAfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
+
+    console.log("batch repay weth - full");
+    await waitForTx(
+      await pool
+        .connect(borrower.signer)
+        .batchRepay([bayc.address, bayc.address], [tokenId1, tokenId2], [MAX_UINT_AMOUNT, MAX_UINT_AMOUNT])
+    );
+
+    const loanDataAfterRepayFull = await dataProvider.getLoanDataByLoanId(loanDataAfterRepayPart.loanId);
+    expect(loanDataAfterRepayFull.state).to.be.eq(ProtocolLoanState.Repaid);
   });
 });

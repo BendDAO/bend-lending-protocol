@@ -41,6 +41,10 @@ interface IPunkGateway {
    **/
   function repay(uint256 punkIndex, uint256 amount) external returns (uint256, bool);
 
+  function batchRepay(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    returns (uint256[] memory, bool[] memory);
+
   /**
    * @notice auction a unhealth punk loan with ERC20 reserve
    * @param punkIndex The index of the CryptoPunk used as collteral
@@ -100,6 +104,11 @@ interface IPunkGateway {
    * @return The final amount repaid, loan is burned or not
    **/
   function repayETH(uint256 punkIndex, uint256 amount) external payable returns (uint256, bool);
+
+  function batchRepayETH(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    payable
+    returns (uint256[] memory, bool[] memory);
 
   /**
    * @notice auction a unhealth punk loan with native ETH

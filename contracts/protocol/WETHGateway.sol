@@ -175,6 +175,48 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 nftTokenId,
     uint256 amount
   ) external payable override nonReentrant returns (uint256, bool) {
+    (uint256 repayAmount, bool repayAll) = _repayETH(nftAsset, nftTokenId, amount, 0);
+
+    // refund remaining dust eth
+    if (msg.value > repayAmount) {
+      _safeTransferETH(msg.sender, msg.value - repayAmount);
+    }
+
+    return (repayAmount, repayAll);
+  }
+
+  function batchRepayETH(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external payable override nonReentrant returns (uint256[] memory, bool[] memory) {
+    require(nftAssets.length == amounts.length, "inconsistent amounts length");
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+
+    uint256[] memory repayAmounts = new uint256[](nftAssets.length);
+    bool[] memory repayAlls = new bool[](nftAssets.length);
+    uint256 allRepayDebtAmount = 0;
+
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      (repayAmounts[i], repayAlls[i]) = _repayETH(nftAssets[i], nftTokenIds[i], amounts[i], allRepayDebtAmount);
+
+      allRepayDebtAmount += repayAmounts[i];
+    }
+
+    // refund remaining dust eth
+    if (msg.value > allRepayDebtAmount) {
+      _safeTransferETH(msg.sender, msg.value - allRepayDebtAmount);
+    }
+
+    return (repayAmounts, repayAlls);
+  }
+
+  function _repayETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 amount,
+    uint256 accAmount
+  ) internal returns (uint256, bool) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -188,15 +230,10 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
       repayDebtAmount = amount;
     }
 
-    require(msg.value >= repayDebtAmount, "msg.value is less than repay amount");
+    require(msg.value >= (accAmount + repayDebtAmount), "msg.value is less than repay amount");
 
     WETH.deposit{value: repayDebtAmount}();
     (uint256 paybackAmount, bool burn) = cachedPool.repay(nftAsset, nftTokenId, amount);
-
-    // refund remaining dust eth
-    if (msg.value > repayDebtAmount) {
-      _safeTransferETH(msg.sender, msg.value - repayDebtAmount);
-    }
 
     return (paybackAmount, burn);
   }
