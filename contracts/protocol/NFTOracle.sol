@@ -111,7 +111,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     address _nftContract,
     uint256 _price,
     uint256, /*_timestamp*/
-    uint256 _roundId
+    uint256 /*_roundId*/
   ) external override onlyAdmin whenNotPaused(_nftContract) {
     requireKeyExisted(_nftContract, true);
     uint256 _timestamp = _blockTimestamp();
@@ -119,10 +119,18 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     require(_price > 0, "NFTOracle: price can not be 0");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
     require(dataValidity, "NFTOracle: invalid price data");
-    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: _roundId});
+    uint256 roundIdCurrent;
+    uint256 len = getPriceFeedLength(_nftContract);
+    if (len == 0) {
+      roundIdCurrent = 0;
+    } else {
+      uint256 roundId = getLatestRoundId(_nftContract);
+      roundIdCurrent = roundId + 1;
+    }
+    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: roundIdCurrent});
     nftPriceFeedMap[_nftContract].nftPriceData.push(data);
 
-    emit SetAssetData(_nftContract, _price, _timestamp, _roundId);
+    emit SetAssetData(_nftContract, _price, _timestamp, roundIdCurrent);
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
