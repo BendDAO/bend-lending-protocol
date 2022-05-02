@@ -293,9 +293,21 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
       const { mockNftOracle, users } = testEnv;
       await mockNftOracle.addAsset(users[3].address);
       const id = await mockNftOracle.getLatestRoundId(users[0].address);
-      expect(id).to.equal("102");
+      expect(id).to.equal("2");
       const id1 = await mockNftOracle.getLatestRoundId(users[3].address);
       expect(id1).to.equal("0");
+      const id2 = await mockNftOracle.getLatestRoundId(users[2].address);
+      expect(id2).to.equal("0");
+      const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+      baseTimestamp = currentTime;
+      await mockNftOracle.mock_setBlockTimestamp(currentTime.add(5));
+      await mockNftOracle.setAssetData(users[3].address, 400, 0, 100);
+      const id3 = await mockNftOracle.getLatestRoundId(users[3].address);
+      expect(id3).to.equal("0");
+      await mockNftOracle.mock_setBlockTimestamp(currentTime.add(10));
+      await mockNftOracle.setAssetData(users[3].address, 400, 0, 100);
+      const id4 = await mockNftOracle.getLatestRoundId(users[3].address);
+      expect(id4).to.equal("1");
     });
 
     it("force error, get previous price", async () => {
