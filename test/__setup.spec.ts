@@ -269,7 +269,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
       "20000000000000000000",
       "10000000000000000000",
       1,
-      1
+      1,
+      0,
+      0
     )
   );
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
@@ -285,7 +287,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
       "200000000000000000",
       "100000000000000000",
       10,
-      5
+      5,
+      0,
+      0
     )
   );
 
