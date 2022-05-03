@@ -65,7 +65,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
 
     {
       const latestTime = await getNowTimeInSeconds();
-      await waitForTx(await nftOracle.setAssetData(bayc.address, baycInitPrice, latestTime, latestTime));
+      await waitForTx(await nftOracle.setAssetData(bayc.address, baycInitPrice));
     }
 
     // Deposit with native ETH

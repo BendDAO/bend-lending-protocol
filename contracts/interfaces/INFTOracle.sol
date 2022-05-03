@@ -21,14 +21,7 @@ interface INFTOracle {
   // get twap price depending on _period
   function getTwapPrice(address _asset, uint256 _interval) external view returns (uint256);
 
-  function setAssetData(
-    address _asset,
-    uint256 _price,
-    uint256 _timestamp,
-    uint256 _roundId
-  ) external;
+  function setAssetData(address _asset, uint256 _price) external;
 
   function setPause(address _nftContract, bool val) external;
-
-  function paused(address _nftContract) external view returns (bool);
 }
