@@ -43,7 +43,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   uint256 public timeIntervalWithPrice; // 30 minutes
   uint256 public minimumUpdateTime; // 10 minutes
 
-  mapping(address => bool) internal _nftPaused;
+  mapping(address => bool) public _nftPaused;
 
   modifier whenNotPaused(address _nftContract) {
     _whenNotPaused(_nftContract);
@@ -107,30 +107,18 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     emit AssetRemoved(_nftContract);
   }
 
-  function setAssetData(
-    address _nftContract,
-    uint256 _price,
-    uint256, /*_timestamp*/
-    uint256 /*_roundId*/
-  ) external override onlyAdmin whenNotPaused(_nftContract) {
+  function setAssetData(address _nftContract, uint256 _price) external override onlyAdmin whenNotPaused(_nftContract) {
     requireKeyExisted(_nftContract, true);
     uint256 _timestamp = _blockTimestamp();
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
     require(_price > 0, "NFTOracle: price can not be 0");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
     require(dataValidity, "NFTOracle: invalid price data");
-    uint256 roundIdCurrent;
     uint256 len = getPriceFeedLength(_nftContract);
-    if (len == 0) {
-      roundIdCurrent = 0;
-    } else {
-      uint256 roundId = getLatestRoundId(_nftContract);
-      roundIdCurrent = roundId + 1;
-    }
-    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: roundIdCurrent});
+    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: len});
     nftPriceFeedMap[_nftContract].nftPriceData.push(data);
 
-    emit SetAssetData(_nftContract, _price, _timestamp, roundIdCurrent);
+    emit SetAssetData(_nftContract, _price, _timestamp, len);
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
@@ -282,9 +270,5 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   function setPause(address _nftContract, bool val) external override onlyOwner {
     _nftPaused[_nftContract] = val;
-  }
-
-  function paused(address _nftContract) external view override returns (bool) {
-    return _nftPaused[_nftContract];
   }
 }

@@ -130,7 +130,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       .toFixed(0);
 
     const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(bayc.address, baycPrice, latestTime.add(1), latestTime.add(1));
+    await nftOracle.setAssetData(bayc.address, baycPrice);
   });
 
   it("User 2 auction price is unable to cover borrow", async () => {
@@ -158,7 +158,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       .toFixed(0);
 
     const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(bayc.address, baycPrice, latestTime.add(1), latestTime.add(1));
+    await nftOracle.setAssetData(bayc.address, baycPrice);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
 

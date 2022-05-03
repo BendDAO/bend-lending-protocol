@@ -227,9 +227,7 @@ export const setNftAssetPriceForDebt = async (
   }
 
   const latestTime = await getNowTimeInSeconds();
-  await waitForTx(
-    await nftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice.toFixed(0), latestTime, latestTime)
-  );
+  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice.toFixed(0)));
 
   return { oldNftPrice: oldNftPrice.toString(), newNftPrice: nftPrice.toFixed(0) };
 };
@@ -245,9 +243,7 @@ export const setNftAssetPrice = async (testEnv: TestEnv, nftSymbol: string, pric
 
   const latestTime = await getNowTimeInSeconds();
   const priceBN = new BigNumber(price).plus(1);
-  await waitForTx(
-    await nftOracle.connect(priceAdmin).setAssetData(nftAsset, priceBN.toFixed(0), latestTime, latestTime)
-  );
+  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, priceBN.toFixed(0)));
 
   return oldNftPrice.toString();
 };

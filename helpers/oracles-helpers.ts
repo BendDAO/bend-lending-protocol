@@ -55,7 +55,6 @@ export const setPricesInNFTOracle = async (
   assetsAddresses: SymbolMap<tEthereumAddress>,
   nftOracleInstance: NFTOracle
 ) => {
-  const latestTime = await getNowTimeInSeconds();
   for (const [assetSymbol, assetAddress] of Object.entries(assetsAddresses) as [string, string][]) {
     const priceIndex = Object.keys(prices).findIndex((value) => value === assetSymbol);
     if (priceIndex == undefined) {
@@ -64,7 +63,7 @@ export const setPricesInNFTOracle = async (
     }
     const [, price] = (Object.entries(prices) as [string, string][])[priceIndex];
     console.log("setPricesInNFTOracle", assetSymbol, assetAddress, price);
-    await waitForTx(await nftOracleInstance.setAssetData(assetAddress, price, latestTime, latestTime));
+    await waitForTx(await nftOracleInstance.setAssetData(assetAddress, price));
   }
 };
 

@@ -38,7 +38,7 @@ task("add-nft-to-oracle", "Add new nft asset to oracle")
     await waitForTx(await nftOracle.connect(ownerSigner).addAsset(asset));
 
     //const latestTime = await getNowTimeInSeconds();
-    //await waitForTx(await nftOracle.connect(adminSigner).setAssetData(asset, nftPrice, latestTime, 1));
+    //await waitForTx(await nftOracle.connect(adminSigner).setAssetData(asset, nftPrice));
 
     console.log("OK");
   });
