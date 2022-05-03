@@ -6,8 +6,8 @@ pragma solidity 0.8.4;
 @notice Interface for NFT price oracle.*/
 interface INFTOracle {
   /* CAUTION: Price uint is ETH based (WEI, 18 decimals) */
-  // get latest price
-  function getAssetPrice(address _asset) external view returns (uint256);
+  // get asset price
+  function getAssetPrice(address _nftContract) external view returns (uint256);
 
   // get latest timestamp
   function getLatestTimestamp(address _asset) external view returns (uint256);
@@ -18,10 +18,11 @@ interface INFTOracle {
   // get previous timestamp with _back rounds
   function getPreviousTimestamp(address _asset, uint256 _numOfRoundBack) external view returns (uint256);
 
-  // get twap price depending on _period
-  function getTwapPrice(address _asset, uint256 _interval) external view returns (uint256);
-
   function setAssetData(address _asset, uint256 _price) external;
 
   function setPause(address _nftContract, bool val) external;
+
+  function setTwapInterval(uint256 _twapInterval) external;
+
+  function setOracleType(uint8 _oracleType) external;
 }

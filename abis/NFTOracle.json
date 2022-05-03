@@ -92,6 +92,25 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "_nftPaused",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "_nftContract",
         "type": "address"
       }
@@ -107,6 +126,30 @@
         "internalType": "address",
         "name": "_nftContract",
         "type": "address"
+      }
+    ],
+    "name": "getAssetFloorPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_nftContract",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_interval",
+        "type": "uint256"
       }
     ],
     "name": "getAssetPrice",
@@ -255,11 +298,70 @@
         "internalType": "address",
         "name": "_admin",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxPriceDeviation",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxPriceDeviationWithTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_timeIntervalWithPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minimumUpdateTime",
+        "type": "uint256"
       }
     ],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxPriceDeviation",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxPriceDeviationWithTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "minimumUpdateTime",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -357,16 +459,6 @@
         "internalType": "uint256",
         "name": "_price",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_timestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_roundId",
-        "type": "uint256"
       }
     ],
     "name": "setAssetData",
@@ -390,6 +482,52 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_maxPriceDeviation",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxPriceDeviationWithTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_timeIntervalWithPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minimumUpdateTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "setDataValidityParameters",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_nftContract",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "val",
+        "type": "bool"
+      }
+    ],
+    "name": "setPause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_admin",
         "type": "address"
@@ -398,6 +536,19 @@
     "name": "setPriceFeedAdmin",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "timeIntervalWithPrice",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
