@@ -99,5 +99,9 @@ library DataTypes {
     uint256 bidPrice;
     //borrow amount of loan
     uint256 bidBorrowAmount;
+    //last bid block number
+    uint256 bidBlockNumber;
+    // For upgradable, add one new variable above, minus 1 at here
+    uint256[38] __gap;
   }
 }
