@@ -261,7 +261,8 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   function redeemETH(
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    uint256 bidFine
   ) external payable override nonReentrant returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
@@ -272,11 +273,11 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
     require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
 
-    require(msg.value >= amount, "msg.value is less than redeem amount");
+    require(msg.value >= (amount + bidFine), "msg.value is less than redeem amount");
 
-    WETH.deposit{value: amount}();
+    WETH.deposit{value: msg.value}();
 
-    uint256 paybackAmount = cachedPool.redeem(nftAsset, nftTokenId, amount);
+    uint256 paybackAmount = cachedPool.redeem(nftAsset, nftTokenId, amount, bidFine);
 
     // refund remaining dust eth
     if (msg.value > paybackAmount) {

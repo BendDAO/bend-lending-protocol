@@ -271,12 +271,14 @@ interface ILendPool {
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
-   * @param amount The amount to repay the debt and bid fine
+   * @param amount The amount to repay the debt
+   * @param bidFine The amount of bid fine
    **/
   function redeem(
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    uint256 bidFine
   ) external returns (uint256);
 
   /**

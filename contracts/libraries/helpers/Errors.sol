@@ -80,6 +80,8 @@ library Errors {
   string public constant LPL_BID_PRICE_LESS_THAN_BORROW = "491";
   string public constant LPL_INVALID_BIDDER_ADDRESS = "492";
   string public constant LPL_AMOUNT_LESS_THAN_BID_FINE = "493";
+  string public constant LPL_BID_INVALID_AUCTION_REDEEM_GAP = "494";
+  string public constant LPL_BID_INVALID_BID_FINE = "495";
 
   //common token errors
   string public constant CT_CALLER_MUST_BE_LEND_POOL = "500"; // 'The caller of this function must be a lending pool'
