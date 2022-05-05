@@ -23,6 +23,4 @@ interface INFTOracle {
   function setPause(address _nftContract, bool val) external;
 
   function setTwapInterval(uint256 _twapInterval) external;
-
-  function setOracleType(uint8 _oracleType) external;
 }

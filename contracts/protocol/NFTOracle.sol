@@ -16,6 +16,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   event AssetRemoved(address indexed asset);
   event FeedAdminUpdated(address indexed admin);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
+  event SetAssetTwapPrice(address indexed asset, uint256 price, uint256 timestamp);
 
   struct NFTPriceData {
     uint256 roundId;
@@ -50,13 +51,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     _;
   }
 
-  enum OracleType {
-    FloorPriceType,
-    TwapPriceType
-  }
-
   uint256 public twapInterval;
-  OracleType public oracleType;
+  mapping(address => uint256) public twapPriceMap;
 
   function _whenNotPaused(address _nftContract) internal view {
     bool _paused = nftPaused[_nftContract];
@@ -69,8 +65,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _maxPriceDeviationWithTime,
     uint256 _timeIntervalWithPrice,
     uint256 _minimumUpdateTime,
-    uint256 _twapInterval,
-    uint8 _oracleType
+    uint256 _twapInterval
   ) public initializer {
     __Ownable_init();
     priceFeedAdmin = _admin;
@@ -79,7 +74,6 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     timeIntervalWithPrice = _timeIntervalWithPrice;
     minimumUpdateTime = _minimumUpdateTime;
     twapInterval = _twapInterval;
-    oracleType = OracleType(_oracleType);
   }
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
@@ -130,24 +124,23 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: len});
     nftPriceFeedMap[_nftContract].nftPriceData.push(data);
 
+    uint256 twapPrice = calculateTwapPrice(_nftContract);
+    twapPriceMap[_nftContract] = twapPrice;
+
     emit SetAssetData(_nftContract, _price, _timestamp, len);
+    emit SetAssetTwapPrice(_nftContract, _price, _timestamp);
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
-    uint256 assetPrice;
-    if (oracleType == OracleType.FloorPriceType) {
-      assetPrice = getAssetFloorPrice(_nftContract);
-    } else if (oracleType == OracleType.TwapPriceType) {
-      assetPrice = getTwapPrice(_nftContract);
-    }
-    return assetPrice;
-  }
-
-  function getAssetFloorPrice(address _nftContract) public view returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
     require(len > 0, "NFTOracle: no price data");
-    return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
+    uint256 twapPrice = twapPriceMap[_nftContract];
+    if (twapPrice == 0) {
+      return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
+    } else {
+      return twapPrice;
+    }
   }
 
   function getLatestTimestamp(address _nftContract) public view override returns (uint256) {
@@ -159,7 +152,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].timestamp;
   }
 
-  function getTwapPrice(address _nftContract) public view returns (uint256) {
+  function calculateTwapPrice(address _nftContract) public view returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     require(twapInterval != 0, "NFTOracle: interval can't be 0");
 
@@ -296,9 +289,5 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   function setTwapInterval(uint256 _twapInterval) external override onlyOwner {
     twapInterval = _twapInterval;
-  }
-
-  function setOracleType(uint8 _oracleType) external override onlyOwner {
-    oracleType = OracleType(_oracleType);
   }
 }

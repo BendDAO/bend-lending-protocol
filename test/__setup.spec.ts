@@ -261,37 +261,22 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     {}
   );
 
-  console.log("-> Prepare nft oracle...");
-  const nftOracleImpl = await deployNFTOracle();
-  await waitForTx(
-    await nftOracleImpl.initialize(
-      await addressesProvider.getPoolAdmin(),
-      "20000000000000000000",
-      "10000000000000000000",
-      1,
-      1,
-      0,
-      0
-    )
-  );
-  await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
-  await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
-  await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
-
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock nft oracle...");
   const mockNftOracleImpl = await deployMockNFTOracle();
   await waitForTx(
     await mockNftOracleImpl.initialize(
       await addressesProvider.getPoolAdmin(),
-      "200000000000000000",
-      "100000000000000000",
-      10,
-      5,
-      0,
-      0
+      "20000000000000000000",
+      "10000000000000000000",
+      1,
+      1,
+      100
     )
   );
+  await waitForTx(await addressesProvider.setNFTOracle(mockNftOracleImpl.address));
+  await addAssetsInNFTOracle(allNftAddresses, mockNftOracleImpl);
+  await setPricesInNFTOracle(allNftPrices, allNftAddresses, mockNftOracleImpl);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare Reserve pool...");
@@ -351,7 +336,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const bendDataProvider = await deployBendProtocolDataProvider(addressesProvider.address);
   await waitForTx(await addressesProvider.setBendDataProvider(bendDataProvider.address));
 
-  const uiDataProvider = await deployUiPoolDataProvider(reserveOracleImpl.address, nftOracleImpl.address, false);
+  const uiDataProvider = await deployUiPoolDataProvider(reserveOracleImpl.address, mockNftOracleImpl.address, false);
   await waitForTx(await addressesProvider.setUIDataProvider(uiDataProvider.address));
 
   //////////////////////////////////////////////////////////////////////////////

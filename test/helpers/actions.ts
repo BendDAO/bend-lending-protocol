@@ -195,9 +195,9 @@ export const setNftAssetPriceForDebt = async (
   debtAmount: string,
   healthPercent: string
 ): Promise<{ oldNftPrice: string; newNftPrice: string }> => {
-  const { nftOracle, reserveOracle, dataProvider } = testEnv;
+  const { mockNftOracle, reserveOracle, dataProvider } = testEnv;
 
-  const priceAdmin = await getEthersSignerByAddress(await nftOracle.priceFeedAdmin());
+  const priceAdmin = await getEthersSignerByAddress(await mockNftOracle.priceFeedAdmin());
 
   const reserve = await getReserveAddressFromSymbol(reserveSymbol);
   const nftAsset = await getNftAddressFromSymbol(nftSymbol);
@@ -205,7 +205,7 @@ export const setNftAssetPriceForDebt = async (
   const reserveToken = await getIErc20Detailed(reserve);
   const reservePrice = await reserveOracle.getAssetPrice(reserve);
 
-  const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
+  const oldNftPrice = await mockNftOracle.getAssetPrice(nftAsset);
 
   const debtAmountDecimals = await convertToCurrencyDecimals(reserve, debtAmount);
 
@@ -226,25 +226,30 @@ export const setNftAssetPriceForDebt = async (
     throw new Error("invalid zero nftPrice");
   }
 
-  const latestTime = await getNowTimeInSeconds();
-  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice.toFixed(0)));
+  const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+  await mockNftOracle.mock_setBlockTimestamp(currentTime.add(100));
+  await waitForTx(await mockNftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice.toFixed(0)));
+  await mockNftOracle.mock_setBlockTimestamp(currentTime.add(200));
+  await waitForTx(await mockNftOracle.connect(priceAdmin).setAssetData(nftAsset, nftPrice.toFixed(0)));
 
   return { oldNftPrice: oldNftPrice.toString(), newNftPrice: nftPrice.toFixed(0) };
 };
 
 export const setNftAssetPrice = async (testEnv: TestEnv, nftSymbol: string, price: string): Promise<string> => {
-  const { nftOracle, dataProvider } = testEnv;
+  const { mockNftOracle, dataProvider } = testEnv;
 
-  const priceAdmin = await getEthersSignerByAddress(await nftOracle.priceFeedAdmin());
+  const priceAdmin = await getEthersSignerByAddress(await mockNftOracle.priceFeedAdmin());
 
   const nftAsset = await getNftAddressFromSymbol(nftSymbol);
 
-  const oldNftPrice = await nftOracle.getAssetPrice(nftAsset);
+  const oldNftPrice = await mockNftOracle.getAssetPrice(nftAsset);
 
-  const latestTime = await getNowTimeInSeconds();
   const priceBN = new BigNumber(price).plus(1);
-  await waitForTx(await nftOracle.connect(priceAdmin).setAssetData(nftAsset, priceBN.toFixed(0)));
-
+  const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+  await mockNftOracle.mock_setBlockTimestamp(currentTime.add(100));
+  await waitForTx(await mockNftOracle.connect(priceAdmin).setAssetData(nftAsset, priceBN.toFixed(0)));
+  await mockNftOracle.mock_setBlockTimestamp(currentTime.add(200));
+  await waitForTx(await mockNftOracle.connect(priceAdmin).setAssetData(nftAsset, priceBN.toFixed(0)));
   return oldNftPrice.toString();
 };
 
