@@ -81,7 +81,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
-    "address": "0xb766D2524361F8D39C17192837CF12554d1B0755"
+    "address": "0x6F38b581f38149cE4958567cfAb5109ACd4a09a6"
   },
   "LendPool": {
     "address": "0xa8D0e90bCB533d70067EEc37601fa7D5C5b3F13E"
@@ -198,9 +198,9 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGatewayImpl": {
-    "address": "0xB7025f0b1FbCDC5C1B821478AC71c8c763333cb3"
+    "address": "0x9f93f78bCf9fb4b0Ff47c93e26872eada9435268"
   },
   "WETHGatewayImpl": {
-    "address": "0x75b6Af46990a07Dc068586d6B23B5653acEc102F"
+    "address": "0x91C63C9b5e8d9Bf3eFbd6459cB014Bf16Dd0a06A"
   }
 }
