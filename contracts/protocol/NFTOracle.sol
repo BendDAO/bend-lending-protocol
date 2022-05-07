@@ -128,7 +128,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     twapPriceMap[_nftContract] = twapPrice;
 
     emit SetAssetData(_nftContract, _price, _timestamp, len);
-    emit SetAssetTwapPrice(_nftContract, _price, _timestamp);
+    emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
