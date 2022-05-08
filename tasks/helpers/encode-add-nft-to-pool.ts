@@ -84,11 +84,18 @@ task("encode-add-nft-to-pool", "Init and config new nft asset to lend pool")
       [asset, nftParam.redeemDuration, nftParam.auctionDuration, nftParam.redeemFine]
     );
     console.log("EncodeData: configureNftAsAuction: ", configureNftAsAuctionEncodeData);
+
     const setNftRedeemThresholdEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData(
       "setNftRedeemThreshold",
       [asset, nftParam.redeemThreshold]
     );
     console.log("EncodeData: setNftRedeemThreshold: ", setNftRedeemThresholdEncodeData);
+
+    const setNftMinMaxBidFineEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData(
+      "setNftMinMaxBidFine",
+      [asset, nftParam.minBidFine, nftParam.maxBidFine]
+    );
+    console.log("EncodeData: setNftMinMaxBidFine: ", setNftMinMaxBidFineEncodeData);
 
     console.log("OK");
   });

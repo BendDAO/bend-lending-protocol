@@ -116,30 +116,34 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     const { configurator, dataProvider, bayc } = testEnv;
     await configurator.configureNftAsAuction(bayc.address, 0, 0, 0);
     await configurator.setNftRedeemThreshold(bayc.address, 0);
+    await configurator.setNftMinMaxBidFine(bayc.address, 0, 0);
 
-    const { redeemDuration, auctionDuration, redeemFine, redeemThreshold } = await dataProvider.getNftConfigurationData(
-      bayc.address
-    );
+    const { redeemDuration, auctionDuration, redeemFine, redeemThreshold, minBidFine, maxBidFine } =
+      await dataProvider.getNftConfigurationData(bayc.address);
 
     expect(redeemDuration).to.be.equal(0);
     expect(auctionDuration).to.be.equal(0);
     expect(redeemFine).to.be.equal(0);
     expect(redeemThreshold).to.be.equal(0);
+    expect(minBidFine).to.be.equal(0);
+    expect(maxBidFine).to.be.equal(0);
   });
 
   it("Activates the BAYC NFT as auction", async () => {
     const { configurator, dataProvider, bayc } = testEnv;
     await configurator.configureNftAsAuction(bayc.address, "1", "1", "100");
     await configurator.setNftRedeemThreshold(bayc.address, "5000");
+    await configurator.setNftMinMaxBidFine(bayc.address, 1, 1000);
 
-    const { redeemDuration, auctionDuration, redeemFine, redeemThreshold } = await dataProvider.getNftConfigurationData(
-      bayc.address
-    );
+    const { redeemDuration, auctionDuration, redeemFine, redeemThreshold, minBidFine, maxBidFine } =
+      await dataProvider.getNftConfigurationData(bayc.address);
 
     expect(redeemDuration).to.be.equal(1);
     expect(auctionDuration).to.be.equal(1);
     expect(redeemFine).to.be.equal(100);
     expect(redeemThreshold).to.be.equal(5000);
+    expect(minBidFine).to.be.equal(1);
+    expect(maxBidFine).to.be.equal(1000);
   });
 
   it("Check the onlyAdmin on configureNftAsAuction ", async () => {

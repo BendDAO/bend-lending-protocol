@@ -83,6 +83,16 @@
             "type": "uint256"
           },
           {
+            "internalType": "uint256",
+            "name": "minBidFine",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBidFine",
+            "type": "uint256"
+          },
+          {
             "internalType": "bool",
             "name": "isActive",
             "type": "bool"
@@ -480,6 +490,16 @@
           {
             "internalType": "uint256",
             "name": "redeemThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minBidFine",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxBidFine",
             "type": "uint256"
           },
           {

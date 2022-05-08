@@ -735,10 +735,20 @@ contract LendPool is
     loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
       DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
+      DataTypes.ReserveData storage reserveData = _reserves[loan.reserveAsset];
+
       bidderAddress = loan.bidderAddress;
       bidPrice = loan.bidPrice;
       bidBorrowAmount = loan.bidBorrowAmount;
-      bidFine = loan.bidPrice.percentMul(nftData.configuration.getRedeemFine());
+
+      (, , bidFine) = GenericLogic.calculateLoanBidFine(
+        loan.reserveAsset,
+        reserveData,
+        nftAsset,
+        nftData,
+        loan,
+        _addressesProvider.getReserveOracle()
+      );
     }
   }
 

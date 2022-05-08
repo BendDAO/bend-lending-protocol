@@ -158,6 +158,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
   struct RedeemLocalVars {
     address initiator;
     address poolLoan;
+    address reserveOracle;
     uint256 loanId;
     uint256 borrowAmount;
     uint256 repayAmount;
@@ -165,6 +166,11 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     uint256 maxRepayAmount;
     uint256 bidFine;
     uint256 redeemEndTimestamp;
+    uint256 baseBidFineEther;
+    uint256 minBidFinePct;
+    uint256 maxBidFinePct;
+    uint256 minBidFine;
+    uint256 maxBidFine;
   }
 
   /**
@@ -182,9 +188,11 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     uint256 bidFine
   ) external override returns (uint256) {
     RedeemLocalVars memory vars;
+    vars.baseBidFineEther = DataTypes.BASE_BID_FINE_ETHER;
     vars.initiator = _msgSender();
 
     vars.poolLoan = _addressesProvider.getLendPoolLoan();
+    vars.reserveOracle = _addressesProvider.getReserveOracle();
 
     vars.loanId = ILendPoolLoan(vars.poolLoan).getCollateralLoanId(nftAsset, nftTokenId);
     require(vars.loanId != 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
@@ -196,19 +204,28 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
 
     ValidationLogic.validateRedeem(reserveData, nftData, loanData, amount);
 
-    // avoid MEV attack in same block
-    // malicious auction tx1, huge bid price
-    // user redeem tx2
-    require(block.number > loanData.bidBlockNumber, Errors.LPL_BID_INVALID_AUCTION_REDEEM_GAP);
-
-    // avoid MEV attack in diff block
-    // block 1: malicious auction tx1, huge bid price
-    // block 2: user redeem tx2
-    vars.bidFine = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
-    require(vars.bidFine == bidFine, Errors.LPL_BID_INVALID_BID_FINE);
-
     vars.redeemEndTimestamp = (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration() * 1 days);
     require(block.timestamp <= vars.redeemEndTimestamp, Errors.LPL_BID_REDEEM_DURATION_HAS_END);
+
+    // case 1: avoid auction and redeem in same block
+    // auction tx1, huge bid price
+    // user redeem tx2
+    require(block.number > loanData.bidBlockNumber, Errors.LPL_INVALID_AUCTION_REDEEM_GAP);
+
+    // check bid fine in min & max range
+    (, , vars.bidFine) = GenericLogic.calculateLoanBidFine(
+      loanData.reserveAsset,
+      reserveData,
+      nftAsset,
+      nftData,
+      loanData,
+      vars.reserveOracle
+    );
+
+    // case 2: avoid auction and redeem in diff block
+    // block 1: auction tx1, huge bid price
+    // block 2: user redeem tx2
+    require(vars.bidFine == bidFine, Errors.LPL_INCONSISTENT_BID_FINE);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
     reserveData.updateState();
