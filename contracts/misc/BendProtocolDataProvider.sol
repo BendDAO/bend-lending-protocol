@@ -118,28 +118,36 @@ contract BendProtocolDataProvider {
     (isActive, isFrozen, borrowingEnabled, ) = configuration.getFlagsMemory();
   }
 
-  function getNftConfigurationData(address asset)
-    external
-    view
-    returns (
-      uint256 ltv,
-      uint256 liquidationThreshold,
-      uint256 liquidationBonus,
-      uint256 redeemDuration,
-      uint256 auctionDuration,
-      uint256 redeemFine,
-      uint256 redeemThreshold,
-      bool isActive,
-      bool isFrozen
-    )
-  {
+  struct NftConfigurationData {
+    uint256 ltv;
+    uint256 liquidationThreshold;
+    uint256 liquidationBonus;
+    uint256 redeemDuration;
+    uint256 auctionDuration;
+    uint256 redeemFine;
+    uint256 redeemThreshold;
+    uint256 minBidFine;
+    uint256 maxBidFine;
+    bool isActive;
+    bool isFrozen;
+  }
+
+  function getNftConfigurationData(address asset) external view returns (NftConfigurationData memory configData) {
     DataTypes.NftConfigurationMap memory configuration = ILendPool(ADDRESSES_PROVIDER.getLendPool())
       .getNftConfiguration(asset);
 
-    (ltv, liquidationThreshold, liquidationBonus) = configuration.getCollateralParamsMemory();
-    (redeemDuration, auctionDuration, redeemFine, redeemThreshold) = configuration.getAuctionParamsMemory();
+    (configData.ltv, configData.liquidationThreshold, configData.liquidationBonus) = configuration
+      .getCollateralParamsMemory();
+    (
+      configData.redeemDuration,
+      configData.auctionDuration,
+      configData.redeemFine,
+      configData.redeemThreshold
+    ) = configuration.getAuctionParamsMemory();
 
-    (isActive, isFrozen) = configuration.getFlagsMemory();
+    (configData.isActive, configData.isFrozen) = configuration.getFlagsMemory();
+
+    (configData.minBidFine, configData.maxBidFine) = configuration.getMinMaxBidFineMemory();
   }
 
   function getReserveData(address asset)

@@ -104,4 +104,6 @@ library DataTypes {
     // For upgradable, add one new variable above, minus 1 at here
     uint256[38] __gap;
   }
+
+  uint256 public constant BASE_BID_FINE_ETHER = 100 ether;
 }

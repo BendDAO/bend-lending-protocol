@@ -331,6 +331,8 @@ export interface INftAuctionParams {
   auctionDuration: string;
   redeemFine: string;
   redeemThreshold: string;
+  minBidFine: string;
+  maxBidFine: string;
 }
 
 export type iParamsPerNetwork<T> = iEthereumParamsPerNetwork<T>;
