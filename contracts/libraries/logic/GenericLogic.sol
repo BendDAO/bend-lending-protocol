@@ -288,6 +288,11 @@ library GenericLogic {
     )
   {
     nftAsset;
+
+    if (loanData.bidPrice == 0) {
+      return (0, 0, 0);
+    }
+
     CalcLoanBidFineLocalVars memory vars;
 
     vars.reserveDecimals = reserveData.configuration.getDecimals();

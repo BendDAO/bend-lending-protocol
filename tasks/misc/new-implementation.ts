@@ -27,7 +27,8 @@ import {
   deployReserveOracle,
   deployNFTOracle,
   deployBendLibraries,
-  getBendLibraries,
+  getLendPoolLibraries,
+  getLiquidatorLibraries,
   deployLendPoolConfigurator,
   deployUiPoolDataProvider,
   deployWalletBalancerProvider,
@@ -60,10 +61,10 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
     const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
-    if (contract == "BendLibraries") {
+    if (contract == "LendPoolLibraries") {
       await deployBendLibraries(verify);
-      const bendLibs = await getBendLibraries(verify);
-      console.log("Bend Libraries address:", bendLibs);
+      const bendLibs = await getLendPoolLibraries(verify);
+      console.log("LendPool Libraries address:", bendLibs);
 
       const lendPoolImpl = await deployLendPool(verify);
       await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
@@ -81,7 +82,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     }
 
     if (contract == "LendPool") {
-      const bendLibs = await getBendLibraries(verify);
+      const bendLibs = await getLendPoolLibraries(verify);
       console.log("Bend Libraries address:", bendLibs);
 
       const lendPoolImpl = await deployLendPool(verify);
@@ -96,7 +97,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     }
 
     if (contract == "LendPoolLiquidator") {
-      const bendLibs = await getBendLibraries(verify);
+      const bendLibs = await getLiquidatorLibraries(verify);
       console.log("Bend Libraries address:", bendLibs);
 
       const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);

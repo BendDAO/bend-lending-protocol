@@ -20,6 +20,8 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter";
+import 'hardhat-contract-sizer';
+import 'hardhat-dependency-compiler';
 import "solidity-coverage";
 import { fork } from "child_process";
 require("hardhat-storage-layout-diff");
@@ -82,6 +84,11 @@ const buidlerConfig: HardhatUserConfig = {
         },
       },
     ],
+  },
+  contractSizer: {
+    alphaSort: false,
+    runOnCompile: false,
+    disambiguatePaths: false,
   },
   typechain: {
     outDir: "types",
