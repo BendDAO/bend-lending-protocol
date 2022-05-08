@@ -25,6 +25,7 @@ import {
   getDebtToken,
   getWalletProvider,
   getUIPoolDataProvider,
+  getBendCollectorProxy,
 } from "../../helpers/contracts-getters";
 import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
@@ -60,6 +61,7 @@ import {
   MockIncentivesController,
   UiPoolDataProvider,
   WalletBalanceProvider,
+  BendCollector,
 } from "../../types";
 import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
 import { USD_ADDRESS } from "../../helpers/constants";
@@ -106,6 +108,7 @@ export interface TestEnv {
   punkIndexTracker: number;
   wrappedPunk: WrappedPunk;
   punkGateway: PunkGateway;
+  bendCollector: BendCollector;
 
   roundIdTracker: number;
   nowTimeTracker: number;
@@ -214,6 +217,7 @@ export async function initializeMakeSuite() {
   testEnv.usdc = await getMintableERC20(usdcAddress);
   testEnv.weth = await getWETHMocked(wethAddress);
   testEnv.wethGateway = await getWETHGateway();
+  testEnv.bendCollector = await getBendCollectorProxy();
 
   // NFT Tokens
   const allBNftTokens = await testEnv.dataProvider.getAllNftsTokenDatas();

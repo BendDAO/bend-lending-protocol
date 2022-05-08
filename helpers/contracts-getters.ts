@@ -435,3 +435,15 @@ export const getBendCollectorImpl = async (address?: tEthereumAddress) =>
     address || (await getDb(DRE.network.name).get(`${eContractid.BendCollectorImpl}`).value()).address,
     await getDeploySigner()
   );
+
+export const getOpenseaDownpaymentBuyAdapterProxy = async (address?: tEthereumAddress) =>
+  await BendCollectorFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.OpenseaDownpaymentBuyAdapter}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getOpenseaDownpaymentBuyAdapterImpl = async (address?: tEthereumAddress) =>
+  await BendCollectorFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.OpenseaDownpaymentBuyAdapterImpl}`).value()).address,
+    await getDeploySigner()
+  );

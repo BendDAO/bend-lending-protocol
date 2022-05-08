@@ -81,6 +81,8 @@ export enum eContractid {
   BendCollectorImpl = "BendCollectorImpl",
   TimelockControllerFast = "TimelockControllerFast",
   TimelockControllerSlow = "TimelockControllerSlow",
+  OpenseaDownpaymentBuyAdapter = "OpenseaDownpaymentBuyAdapter",
+  OpenseaDownpaymentBuyAdapterImpl = "OpenseaDownpaymentBuyAdapterImpl",
 }
 
 export enum ProtocolLoanState {
@@ -411,6 +413,9 @@ export interface ICommonConfiguration {
 
   OracleQuoteCurrency: string;
   OracleQuoteUnit: string;
+
+  AAVE: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
+  OPENSEA: iParamsPerNetwork<SymbolMap<tEthereumAddress>>;
 }
 
 export interface IBendConfiguration extends ICommonConfiguration {

@@ -6,6 +6,8 @@ interface IWETH {
 
   function withdraw(uint256) external;
 
+  function allowance(address, address) external view returns (uint256);
+
   function approve(address guy, uint256 wad) external returns (bool);
 
   function transferFrom(
@@ -13,4 +15,6 @@ interface IWETH {
     address dst,
     uint256 wad
   ) external returns (bool);
+
+  function balanceOf(address) external view returns (uint256);
 }

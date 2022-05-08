@@ -56,13 +56,13 @@ const getCommonNetworkConfig = (networkName: eNetwork, networkId: number) => ({
   gasPrice: NETWORKS_DEFAULT_GAS[networkName],
   chainId: networkId,
   accounts: PRIVATE_KEY
-  ? [PRIVATE_KEY]
-  : {
-    mnemonic: MNEMONIC,
-    path: MNEMONIC_PATH,
-    initialIndex: 0,
-    count: 20,
-  },
+    ? [PRIVATE_KEY]
+    : {
+        mnemonic: MNEMONIC,
+        path: MNEMONIC_PATH,
+        initialIndex: 0,
+        count: 20,
+      },
 });
 
 const buidlerConfig: HardhatUserConfig = {
@@ -73,6 +73,12 @@ const buidlerConfig: HardhatUserConfig = {
         settings: {
           optimizer: { enabled: true, runs: 200 },
           evmVersion: "istanbul",
+        },
+      },
+      {
+        version: "0.4.26",
+        settings: {
+          optimizer: { enabled: true, runs: 200 },
         },
       },
     ],
