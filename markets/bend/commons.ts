@@ -235,4 +235,31 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.kovan]: '0x0c5E94DC433A0c67Bbc25801759284A6e1Dd85Bb',
     [eEthereumNetwork.main]: '0x26FC1f11E612366d3367fc0cbFfF9e819da91C8d',
   },
+
+  AAVE: {
+    [eEthereumNetwork.hardhat]: {},
+    [eEthereumNetwork.coverage]: {},
+    [eEthereumNetwork.localhost]: {},
+    [eEthereumNetwork.develop]: {},
+    [eEthereumNetwork.kovan]: {},
+    [eEthereumNetwork.rinkeby]: {
+      addressesProvider: "0xf89ac2d8885eab06a4f16b1c769a011fcb09061a",
+    },
+    [eEthereumNetwork.main]: {
+      addressesProvider: "0xb53c1a33016b2dc2ff3653530bff1848a515c8c5",
+    },
+  },
+  OPENSEA: {
+    [eEthereumNetwork.hardhat]: {},
+    [eEthereumNetwork.coverage]: {},
+    [eEthereumNetwork.localhost]: {},
+    [eEthereumNetwork.develop]: {},
+    [eEthereumNetwork.kovan]: {},
+    [eEthereumNetwork.rinkeby]: {
+      exchange: "0xdd54d660178b28f6033a953b0e55073cfa7e3744",
+    },
+    [eEthereumNetwork.main]: {
+      exchange: "0x7f268357a8c2552623316e2562d90e642bb538e5",
+    },
+  },
 };
