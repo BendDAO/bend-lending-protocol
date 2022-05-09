@@ -1,5 +1,5 @@
 import { LendPool } from "../../../types/LendPool";
-import { ReserveData, UserReserveData, LoanData } from "./interfaces";
+import { ReserveData, UserReserveData, LoanData, NftData } from "./interfaces";
 import {
   getIErc20Detailed,
   getMintableERC20,
@@ -8,6 +8,7 @@ import {
   getLendPoolLoanProxy,
   getDeploySigner,
   getDebtToken,
+  getIErc721Detailed,
 } from "../../../helpers/contracts-getters";
 import { tEthereumAddress } from "../../../helpers/types";
 import BigNumber from "bignumber.js";
@@ -59,6 +60,23 @@ export const getReserveData = async (
   };
 };
 
+export const getNftData = async (helper: BendProtocolDataProvider, nftAsset: tEthereumAddress): Promise<NftData> => {
+  const [nftData, tokenAddresses, token] = await Promise.all([
+    helper.getNftConfigurationData(nftAsset),
+    helper.getNftTokenData(nftAsset),
+    getIErc721Detailed(nftAsset),
+  ]);
+
+  const symbol = await token.symbol();
+
+  return {
+    redeemFine: new BigNumber(nftData.redeemFine.toString()),
+    address: nftAsset,
+    bnftTokenAddress: tokenAddresses.bNftAddress,
+    symbol,
+  };
+};
+
 export const getUserData = async (
   pool: LendPool,
   helper: BendProtocolDataProvider,
@@ -93,16 +111,19 @@ export const getLoanData = async (
 ): Promise<LoanData> => {
   let loanData;
   let auctionData;
+  let nftCfgData;
 
   if (loanId == undefined || loanId == "0") {
-    [loanData, auctionData] = await Promise.all([
+    [loanData, auctionData, nftCfgData] = await Promise.all([
       helper.getLoanDataByCollateral(nftAsset, nftTokenId),
       pool.getNftAuctionData(nftAsset, nftTokenId),
+      helper.getNftConfigurationData(nftAsset),
     ]);
   } else {
-    [loanData, auctionData] = await Promise.all([
+    [loanData, auctionData, nftCfgData] = await Promise.all([
       helper.getLoanDataByLoanId(loanId),
       pool.getNftAuctionData(nftAsset, nftTokenId),
+      helper.getNftConfigurationData(nftAsset),
     ]);
   }
 
@@ -119,6 +140,7 @@ export const getLoanData = async (
     bidPrice: new BigNumber(loanData.bidPrice.toString()),
     bidBorrowAmount: new BigNumber(loanData.bidBorrowAmount.toString()),
     bidFine: new BigNumber(auctionData.bidFine.toString()),
+    nftCfgRedeemFine: new BigNumber(nftCfgData.redeemFine.toString()),
   };
 };
 

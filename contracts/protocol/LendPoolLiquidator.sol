@@ -196,9 +196,6 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
 
     ValidationLogic.validateRedeem(reserveData, nftData, loanData, amount);
 
-    vars.bidFine = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
-    require(vars.bidFine == bidFine, Errors.LPL_BID_INVALID_BID_FINE);
-
     vars.redeemEndTimestamp = (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration() * 1 days);
     require(block.timestamp <= vars.redeemEndTimestamp, Errors.LPL_BID_REDEEM_DURATION_HAS_END);
 
@@ -215,6 +212,10 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       _addressesProvider.getReserveOracle(),
       _addressesProvider.getNFTOracle()
     );
+
+    // check bid fine
+    vars.bidFine = vars.borrowAmount.percentMul(nftData.configuration.getRedeemFine());
+    require(vars.bidFine <= bidFine, Errors.LPL_BID_INVALID_BID_FINE);
 
     // check the minimum debt repay amount, use redeem threshold in config
     vars.repayAmount = amount;

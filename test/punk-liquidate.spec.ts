@@ -239,11 +239,10 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
 
     const nftDebtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
     const nftAuctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
+    const bidFineAmount = new BigNumber(nftAuctionDataBeforeRedeem.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
     await waitForTx(
-      await punkGateway
-        .connect(borrower.signer)
-        .redeem(punkIndex, nftDebtDataBeforeRedeem.totalDebt, nftAuctionDataBeforeRedeem.bidFine)
+      await punkGateway.connect(borrower.signer).redeem(punkIndex, nftDebtDataBeforeRedeem.totalDebt, bidFineAmount)
     );
 
     const loanDataAfterRedeem = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
@@ -447,13 +446,12 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
 
     const auctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
     const debtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
-    const redeemAmountSend = debtDataBeforeRedeem.totalDebt.add(auctionDataBeforeRedeem.bidFine);
+    const bidFineAmount = new BigNumber(auctionDataBeforeRedeem.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+    const redeemAmountSend = debtDataBeforeRedeem.totalDebt.add(bidFineAmount);
     await waitForTx(
-      await punkGateway
-        .connect(borrower.signer)
-        .redeemETH(punkIndex, debtDataBeforeRedeem.totalDebt, auctionDataBeforeRedeem.bidFine, {
-          value: redeemAmountSend,
-        })
+      await punkGateway.connect(borrower.signer).redeemETH(punkIndex, debtDataBeforeRedeem.totalDebt, bidFineAmount, {
+        value: redeemAmountSend,
+      })
     );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);

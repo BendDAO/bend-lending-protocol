@@ -753,7 +753,7 @@ export const redeem = async (
   }
   amountToRedeem = "0x" + new BigNumber(amountToRedeem).toString(16);
 
-  let bidFineAmount = loanDataBefore.bidFine.toFixed(0);
+  let bidFineAmount = loanDataBefore.bidBorrowAmount.multipliedBy(1.1).toFixed(0);
 
   if (expectedResult === "success") {
     const txResult = await waitForTx(
