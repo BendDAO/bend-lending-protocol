@@ -172,12 +172,14 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
-   * @param amount The amount to repay the debt and bid fine
+   * @param amount The amount to repay the debt
+   * @param bidFine The amount of bid fine
    **/
   function redeem(
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    uint256 bidFine
   ) external override returns (uint256) {
     RedeemLocalVars memory vars;
     vars.initiator = _msgSender();
@@ -192,9 +194,10 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
     DataTypes.ReserveData storage reserveData = _reserves[loanData.reserveAsset];
     DataTypes.NftData storage nftData = _nfts[loanData.nftAsset];
 
-    vars.bidFine = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
-
     ValidationLogic.validateRedeem(reserveData, nftData, loanData, amount);
+
+    vars.bidFine = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
+    require(vars.bidFine == bidFine, Errors.LPL_BID_INVALID_BID_FINE);
 
     vars.redeemEndTimestamp = (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration() * 1 days);
     require(block.timestamp <= vars.redeemEndTimestamp, Errors.LPL_BID_REDEEM_DURATION_HAS_END);
@@ -213,13 +216,12 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
       _addressesProvider.getNFTOracle()
     );
 
-    if (amount > vars.bidFine) {
-      vars.repayAmount = amount - vars.bidFine;
-    }
-
+    // check the minimum debt repay amount, use redeem threshold in config
+    vars.repayAmount = amount;
     vars.minRepayAmount = vars.borrowAmount.percentMul(nftData.configuration.getRedeemThreshold());
     require(vars.repayAmount >= vars.minRepayAmount, Errors.LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD);
 
+    // check the maxinmum debt repay amount, 90%?
     vars.maxRepayAmount = vars.borrowAmount.percentMul(PercentageMath.PERCENTAGE_FACTOR - PercentageMath.TEN_PERCENT);
     if (vars.repayAmount > vars.maxRepayAmount) {
       vars.repayAmount = vars.maxRepayAmount;

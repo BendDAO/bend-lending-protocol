@@ -345,7 +345,7 @@ export const calcExpectedReserveDataAfterRedeem = (
   txTimestamp: BigNumber,
   currentTimestamp: BigNumber
 ): ReserveData => {
-  const amountRepaidBN = new BigNumber(amountRedeemed).minus(loanDataBeforeAction.bidFine.toFixed(0));
+  const amountRepaidBN = new BigNumber(amountRedeemed);
 
   const expectedReserveData = calcExpectedReserveDataAfterRepay(
     amountRepaidBN.toString(),
@@ -510,7 +510,7 @@ export const calcExpectedUserDataAfterRedeem = (
   txTimestamp: BigNumber,
   currentTimestamp: BigNumber
 ): UserReserveData => {
-  const amountRepaidBN = new BigNumber(amountToRedeem).minus(loanDataBeforeAction.bidFine.toFixed(0));
+  const amountRepaidBN = new BigNumber(amountToRedeem);
 
   const expectedUserData = calcExpectedUserDataAfterRepay(
     amountRepaidBN.toString(),
@@ -525,7 +525,9 @@ export const calcExpectedUserDataAfterRedeem = (
 
   // walletBalance is about liquidator(user), not borrower
   // borrower's wallet not changed, but we check liquidator's wallet
-  expectedUserData.walletBalance = userDataBeforeAction.walletBalance.minus(new BigNumber(amountToRedeem));
+  expectedUserData.walletBalance = userDataBeforeAction.walletBalance
+    .minus(new BigNumber(amountToRedeem))
+    .minus(loanDataBeforeAction.bidFine);
   return expectedUserData;
 };
 
@@ -702,7 +704,7 @@ export const calcExpectedLoanDataAfterRedeem = (
 ): LoanData => {
   const expectedLoanData = <LoanData>{};
 
-  const amountRepaidBN = new BigNumber(amountToRedeem).minus(loanDataBeforeAction.bidFine.toFixed(0));
+  const amountRepaidBN = new BigNumber(amountToRedeem);
 
   expectedLoanData.loanId = loanDataAfterAction.loanId;
   expectedLoanData.state = new BigNumber(loanDataAfterAction.state);

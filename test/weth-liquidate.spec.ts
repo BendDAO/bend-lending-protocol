@@ -217,7 +217,9 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     const redeemAmountSend = auctionData.bidBorrowAmount.add(auctionData.bidFine);
     console.log("redeemETH:", redeemAmountSend.toString());
     await waitForTx(
-      await wethGateway.connect(user.signer).redeemETH(nftAsset, tokenId, redeemAmountSend, { value: redeemAmountSend })
+      await wethGateway
+        .connect(user.signer)
+        .redeemETH(nftAsset, tokenId, auctionData.bidBorrowAmount, auctionData.bidFine, { value: redeemAmountSend })
     );
 
     const loanDataAfterRedeem = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
