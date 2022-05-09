@@ -36,3 +36,4 @@ node_modules
 cache
 artifacts
 storage_layout
+out.html
