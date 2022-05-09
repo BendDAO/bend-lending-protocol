@@ -24,6 +24,14 @@ interface IPunkGateway {
     uint16 referralCode
   ) external;
 
+  function batchBorrow(
+    address[] calldata reserveAssets,
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
   /**
    * @notice Repays a borrowed `amount` on a specific punk, burning the equivalent loan owned
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
@@ -32,6 +40,10 @@ interface IPunkGateway {
    * @return The final amount repaid, loan is burned or not
    **/
   function repay(uint256 punkIndex, uint256 amount) external returns (uint256, bool);
+
+  function batchRepay(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    returns (uint256[] memory, bool[] memory);
 
   /**
    * @notice auction a unhealth punk loan with ERC20 reserve
@@ -82,6 +94,13 @@ interface IPunkGateway {
     uint16 referralCode
   ) external;
 
+  function batchBorrowETH(
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
   /**
    * @notice Repays a borrowed `amount` on a specific punk with native ETH
    * - E.g. User repays 100 ETH, burning loan and receives collateral asset
@@ -90,6 +109,11 @@ interface IPunkGateway {
    * @return The final amount repaid, loan is burned or not
    **/
   function repayETH(uint256 punkIndex, uint256 amount) external payable returns (uint256, bool);
+
+  function batchRepayETH(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    payable
+    returns (uint256[] memory, bool[] memory);
 
   /**
    * @notice auction a unhealth punk loan with native ETH

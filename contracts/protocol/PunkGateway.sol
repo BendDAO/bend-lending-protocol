@@ -142,6 +142,29 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     IERC20Upgradeable(reserveAsset).transfer(onBehalfOf, amount);
   }
 
+  function batchBorrow(
+    address[] calldata reserveAssets,
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant {
+    require(punkIndexs.length == reserveAssets.length, "inconsistent reserveAssets length");
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
+    ILendPool cachedPool = _getLendPool();
+
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      _depositPunk(punkIndexs[i]);
+
+      cachedPool.borrow(reserveAssets[i], amounts[i], address(wrappedPunks), punkIndexs[i], onBehalfOf, referralCode);
+
+      IERC20Upgradeable(reserveAssets[i]).transfer(onBehalfOf, amounts[i]);
+    }
+  }
+
   function _withdrawPunk(uint256 punkIndex, address onBehalfOf) internal {
     address owner = wrappedPunks.ownerOf(punkIndex);
     require(owner == _msgSender(), "PunkGateway: caller is not owner");
@@ -153,6 +176,28 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   }
 
   function repay(uint256 punkIndex, uint256 amount) external override nonReentrant returns (uint256, bool) {
+    return _repay(punkIndex, amount);
+  }
+
+  function batchRepay(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    override
+    nonReentrant
+    returns (uint256[] memory, bool[] memory)
+  {
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
+    uint256[] memory repayAmounts = new uint256[](punkIndexs.length);
+    bool[] memory repayAlls = new bool[](punkIndexs.length);
+
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      (repayAmounts[i], repayAlls[i]) = _repay(punkIndexs[i], amounts[i]);
+    }
+
+    return (repayAmounts, repayAlls);
+  }
+
+  function _repay(uint256 punkIndex, uint256 amount) internal returns (uint256, bool) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -259,28 +304,90 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
   }
 
+  function batchBorrowETH(
+    uint256[] calldata amounts,
+    uint256[] calldata punkIndexs,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant {
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
+    _checkValidCallerAndOnBehalfOf(onBehalfOf);
+
+    address[] memory nftAssets = new address[](punkIndexs.length);
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      nftAssets[i] = address(wrappedPunks);
+      _depositPunk(punkIndexs[i]);
+    }
+
+    _wethGateway.batchBorrowETH(amounts, nftAssets, punkIndexs, onBehalfOf, referralCode);
+  }
+
   function repayETH(uint256 punkIndex, uint256 amount) external payable override nonReentrant returns (uint256, bool) {
+    (uint256 paybackAmount, bool burn) = _repayETH(punkIndex, amount, 0);
+
+    // refund remaining dust eth
+    if (msg.value > paybackAmount) {
+      _safeTransferETH(msg.sender, msg.value - paybackAmount);
+    }
+
+    return (paybackAmount, burn);
+  }
+
+  function batchRepayETH(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    payable
+    override
+    nonReentrant
+    returns (uint256[] memory, bool[] memory)
+  {
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
+    uint256[] memory repayAmounts = new uint256[](punkIndexs.length);
+    bool[] memory repayAlls = new bool[](punkIndexs.length);
+    uint256 allRepayAmount = 0;
+
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      (repayAmounts[i], repayAlls[i]) = _repayETH(punkIndexs[i], amounts[i], allRepayAmount);
+      allRepayAmount += repayAmounts[i];
+    }
+
+    // refund remaining dust eth
+    if (msg.value > allRepayAmount) {
+      _safeTransferETH(msg.sender, msg.value - allRepayAmount);
+    }
+
+    return (repayAmounts, repayAlls);
+  }
+
+  function _repayETH(
+    uint256 punkIndex,
+    uint256 amount,
+    uint256 accAmount
+  ) internal returns (uint256, bool) {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
     address borrower = cachedPoolLoan.borrowerOf(loanId);
+    require(borrower == _msgSender(), "PunkGateway: caller is not borrower");
 
-    (uint256 paybackAmount, bool burn) = _wethGateway.repayETH{value: msg.value}(
+    (, uint256 repayDebtAmount) = cachedPoolLoan.getLoanReserveBorrowAmount(loanId);
+    if (amount < repayDebtAmount) {
+      repayDebtAmount = amount;
+    }
+
+    require(msg.value >= (accAmount + repayDebtAmount), "msg.value is less than repay amount");
+
+    (uint256 paybackAmount, bool burn) = _wethGateway.repayETH{value: repayDebtAmount}(
       address(wrappedPunks),
       punkIndex,
       amount
     );
 
     if (burn) {
-      require(borrower == _msgSender(), "PunkGateway: caller is not borrower");
       _withdrawPunk(punkIndex, borrower);
-    }
-
-    // refund remaining dust eth
-    if (msg.value > paybackAmount) {
-      _safeTransferETH(msg.sender, msg.value - paybackAmount);
     }
 
     return (paybackAmount, burn);

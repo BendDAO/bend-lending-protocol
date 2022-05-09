@@ -13,13 +13,8 @@ import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
 const chai = require("chai");
 const { expect } = chai;
 
-makeSuite("PunkGateway - Delegate", (testEnv: TestEnv) => {
-  let baycInitPrice: BN;
-
-  const zero = BN.from(0);
+makeSuite("PunkGateway: Delegate", (testEnv: TestEnv) => {
   const depositSize = parseEther("5");
-  const depositSize500 = parseEther("500");
-  const GAS_PRICE = NETWORKS_DEFAULT_GAS[DRE.network.name];
 
   before("Initializing configuration", async () => {
     // Sets BigNumber for this suite, instead of globally
@@ -33,8 +28,6 @@ makeSuite("PunkGateway - Delegate", (testEnv: TestEnv) => {
     calculationsConfiguration.reservesParams = <iBendPoolAssets<IReserveParams>>(
       getReservesConfigByPool(BendPools.proto)
     );
-
-    baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
   });
   after("Reset", () => {
     // Reset BigNumber
