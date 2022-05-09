@@ -38,6 +38,17 @@ contract MaliciousHackerERC721 is IERC721Receiver {
     _simulateAction = simulateAction_;
   }
 
+  struct OnERC721ReceivedLocalVars {
+    address[] reserves;
+    address[] nfts;
+    address onBehalfOf;
+    address to;
+    uint16 referralCode;
+    uint256 amount;
+    uint256 bidPrice;
+    uint256 bidFine;
+  }
+
   function onERC721Received(
     address operator,
     address from,
@@ -49,28 +60,31 @@ contract MaliciousHackerERC721 is IERC721Receiver {
     tokenId;
     data;
 
-    address[] memory reserves = _pool.getReservesList();
-    address[] memory nfts = _pool.getNftsList();
-    address onBehalfOf = msg.sender;
-    address to = msg.sender;
-    uint16 referralCode = 0;
-    uint256 amount = 1 ether;
-    uint256 bidPrice = 2 ether;
+    OnERC721ReceivedLocalVars memory vars;
+
+    vars.reserves = _pool.getReservesList();
+    vars.nfts = _pool.getNftsList();
+    vars.onBehalfOf = msg.sender;
+    vars.to = msg.sender;
+    vars.referralCode = 0;
+    vars.amount = 1 ether;
+    vars.bidPrice = 2 ether;
+    vars.bidFine = 0.1 ether;
 
     if (_simulateAction == ACTION_DEPOSIT) {
-      _pool.deposit(reserves[0], amount, onBehalfOf, referralCode);
+      _pool.deposit(vars.reserves[0], vars.amount, vars.onBehalfOf, vars.referralCode);
     } else if (_simulateAction == ACTION_WITHDRAW) {
-      _pool.withdraw(reserves[0], amount, to);
+      _pool.withdraw(vars.reserves[0], vars.amount, vars.to);
     } else if (_simulateAction == ACTION_BORROW) {
-      _pool.borrow(reserves[0], amount, nfts[0], tokenId, onBehalfOf, referralCode);
+      _pool.borrow(vars.reserves[0], vars.amount, vars.nfts[0], tokenId, vars.onBehalfOf, vars.referralCode);
     } else if (_simulateAction == ACTION_REPAY) {
-      _pool.repay(nfts[0], tokenId, amount);
+      _pool.repay(vars.nfts[0], tokenId, vars.amount);
     } else if (_simulateAction == ACTION_AUCTION) {
-      _pool.auction(nfts[0], tokenId, bidPrice, onBehalfOf);
+      _pool.auction(vars.nfts[0], tokenId, vars.bidPrice, vars.onBehalfOf);
     } else if (_simulateAction == ACTION_REDEEM) {
-      _pool.redeem(nfts[0], tokenId, amount);
+      _pool.redeem(vars.nfts[0], tokenId, vars.amount, vars.bidFine);
     } else if (_simulateAction == ACTION_LIQUIDATE) {
-      _pool.liquidate(nfts[0], tokenId, amount);
+      _pool.liquidate(vars.nfts[0], tokenId, vars.amount);
     }
 
     return IERC721Receiver.onERC721Received.selector;

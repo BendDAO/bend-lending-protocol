@@ -1,7 +1,12 @@
 import BigNumber from "bignumber.js";
 import { BigNumberish } from "ethers";
 import { task } from "hardhat/config";
-import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
+import {
+  ConfigNames,
+  getCryptoPunksMarketAddress,
+  getWrappedPunkTokenAddress,
+  loadPoolConfig,
+} from "../../helpers/configuration";
 import { MAX_UINT_AMOUNT } from "../../helpers/constants";
 import {
   getBendProtocolDataProvider,
@@ -66,7 +71,9 @@ task("dev:pool-redeem", "Doing WETH redeem task")
     const loanData = await dataProvider.getLoanDataByCollateral(token, id);
     const amountDecimals = await convertToCurrencyDecimals(loanData.reserveAsset, amount);
 
-    await waitForTx(await lendPool.redeem(token, id, amountDecimals));
+    const auctionData = await lendPool.getNftAuctionData(token, id);
+
+    await waitForTx(await lendPool.redeem(token, id, amountDecimals, auctionData.bidFine));
 
     console.log("OK");
   });
@@ -126,6 +133,10 @@ task("dev:weth-redeem", "Doing WETH redeem task")
   .setAction(async ({ pool, token, id, amount }, DRE) => {
     await DRE.run("set-DRE");
 
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const lendPool = await getLendPool(await addressesProvider.getLendPool());
+
     const wethGateway = await getWETHGateway();
 
     const wethAddress = await getContractAddressInDb("WETH");
@@ -133,7 +144,11 @@ task("dev:weth-redeem", "Doing WETH redeem task")
 
     const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
 
-    await waitForTx(await wethGateway.redeemETH(token, id, amountDecimals, { value: amountDecimals }));
+    const auctionData = await lendPool.getNftAuctionData(token, id);
+
+    const sendValue = amountDecimals.add(auctionData.bidFine);
+
+    await waitForTx(await wethGateway.redeemETH(token, id, amountDecimals, auctionData.bidFine, { value: sendValue }));
 
     console.log("OK");
   });
@@ -198,6 +213,15 @@ task("dev:punk-redeem-eth", "Doing CryptoPunks redeem ETH task")
   .setAction(async ({ pool, id, amount }, DRE) => {
     await DRE.run("set-DRE");
 
+    const poolConfig = loadPoolConfig(pool);
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+
+    const lendPool = await getLendPool(await addressesProvider.getLendPool());
+
+    const punksAddress = await getCryptoPunksMarketAddress(poolConfig);
+    const wpunksAddress = await getWrappedPunkTokenAddress(poolConfig, punksAddress);
+
     const punkGateway = await getPunkGateway();
 
     const wethAddress = await getContractAddressInDb("WETH");
@@ -205,7 +229,11 @@ task("dev:punk-redeem-eth", "Doing CryptoPunks redeem ETH task")
 
     const amountDecimals = await convertToCurrencyDecimals(weth.address, amount);
 
-    await waitForTx(await punkGateway.redeemETH(id, amountDecimals, { value: amountDecimals }));
+    const auctionData = await lendPool.getNftAuctionData(wpunksAddress, id);
+
+    const sendValue = amountDecimals.add(auctionData.bidFine);
+
+    await waitForTx(await punkGateway.redeemETH(id, amountDecimals, auctionData.bidFine, { value: sendValue }));
 
     console.log("OK");
   });
