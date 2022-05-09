@@ -154,18 +154,18 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "101");
-    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
-    const repayDebtAmount = new BigNumber(redeemAmount).minus(auctionDataBefore.bidFine.toString());
+    const repayDebtAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
+    const bidFineAmount = new BigNumber(auctionDataBefore.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(borrower.signer).redeem(bayc.address, "101", redeemAmount);
+    await pool.connect(borrower.signer).redeem(bayc.address, "101", repayDebtAmount, bidFineAmount);
 
     // check result
     const tokenOwner = await bayc.ownerOf("101");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
 
     const liquidatorBalanceAfter = await weth.balanceOf(liquidator.address);
-    expect(liquidatorBalanceAfter).to.be.equal(
-      liquidatorBalanceBefore.add(auctionDataBefore.bidPrice).add(auctionDataBefore.bidFine),
+    expect(liquidatorBalanceAfter).to.be.gte(
+      liquidatorBalanceBefore.add(auctionDataBefore.bidFine),
       "Invalid liquidator balance after redeem"
     );
 
@@ -350,18 +350,18 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "102");
-    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
-    const repayDebtAmount = new BigNumber(redeemAmount).minus(auctionDataBefore.bidFine.toString());
+    const repayDebtAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
+    const bidFineAmount = new BigNumber(auctionDataBefore.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(borrower.signer).redeem(bayc.address, "102", redeemAmount);
+    await pool.connect(borrower.signer).redeem(bayc.address, "102", repayDebtAmount, bidFineAmount);
 
     // check result
     const tokenOwner = await bayc.ownerOf("102");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
 
     const liquidatorBalanceAfter = await usdc.balanceOf(liquidator.address);
-    expect(liquidatorBalanceAfter).to.be.equal(
-      liquidatorBalanceBefore.add(auctionDataBefore.bidPrice).add(auctionDataBefore.bidFine),
+    expect(liquidatorBalanceAfter).to.be.gte(
+      liquidatorBalanceBefore.add(auctionDataBefore.bidFine),
       "Invalid liquidator balance after redeem"
     );
 

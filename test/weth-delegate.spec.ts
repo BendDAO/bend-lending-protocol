@@ -16,7 +16,7 @@ import { configuration as calculationsConfiguration } from "./helpers/utils/calc
 import { getLoanData, getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { NETWORKS_DEFAULT_GAS } from "../helper-hardhat-config";
 import { getDebtToken } from "../helpers/contracts-getters";
-import { waitForTx } from "../helpers/misc-utils";
+import { advanceTimeAndBlock, sleep, waitForTx } from "../helpers/misc-utils";
 
 const chai = require("chai");
 const { expect } = chai;
@@ -91,6 +91,8 @@ makeSuite("WETHGateway - Delegate", (testEnv: TestEnv) => {
     const borrowSize2 = parseEther("2");
     const borrowSizeAll = borrowSize1.add(borrowSize2);
 
+    await advanceTimeAndBlock(100);
+
     // Deposit with native ETH
     await waitForTx(
       await wethGateway.connect(depositor.signer).depositETH(depositor.address, "0", { value: depositSize })
@@ -143,6 +145,8 @@ makeSuite("WETHGateway - Delegate", (testEnv: TestEnv) => {
     const borrowSize1 = parseEther("1");
     const borrowSize2 = parseEther("2");
     const borrowSizeAll = borrowSize1.add(borrowSize2);
+
+    await advanceTimeAndBlock(100);
 
     // Deposit with native ETH
     await waitForTx(
