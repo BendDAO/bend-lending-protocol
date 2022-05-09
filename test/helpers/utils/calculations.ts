@@ -523,11 +523,14 @@ export const calcExpectedUserDataAfterRedeem = (
     currentTimestamp
   );
 
+  const borrowAmount = calcExpectedLoanBorrowBalance(reserveDataBeforeAction, loanDataBeforeAction, currentTimestamp);
+  const bidFine = borrowAmount.percentMul(loanDataBeforeAction.nftCfgRedeemFine);
+
   // walletBalance is about liquidator(user), not borrower
   // borrower's wallet not changed, but we check liquidator's wallet
   expectedUserData.walletBalance = userDataBeforeAction.walletBalance
     .minus(new BigNumber(amountToRedeem))
-    .minus(loanDataBeforeAction.bidFine);
+    .minus(bidFine);
   return expectedUserData;
 };
 
@@ -576,6 +579,8 @@ export const calcExpectedLoanDataAfterBorrow = (
 
   const amountBorrowedBN = new BigNumber(amountBorrowed);
 
+  expectedLoanData.nftCfgRedeemFine = loanDataAfterAction.nftCfgRedeemFine;
+
   expectedLoanData.loanId = loanDataAfterAction.loanId;
   expectedLoanData.state = new BigNumber(loanDataAfterAction.state);
   expectedLoanData.borrower = loanDataAfterAction.borrower.toString();
@@ -617,6 +622,8 @@ export const calcExpectedLoanDataAfterRepay = (
   currentTimestamp: BigNumber
 ): LoanData => {
   const expectedLoanData = <LoanData>{};
+
+  expectedLoanData.nftCfgRedeemFine = loanDataAfterAction.nftCfgRedeemFine;
 
   expectedLoanData.loanId = loanDataAfterAction.loanId;
   expectedLoanData.state = new BigNumber(loanDataAfterAction.state);
@@ -668,6 +675,8 @@ export const calcExpectedLoanDataAfterAuction = (
 ): LoanData => {
   const expectedLoanData = <LoanData>{};
 
+  expectedLoanData.nftCfgRedeemFine = loanDataAfterAction.nftCfgRedeemFine;
+
   expectedLoanData.loanId = loanDataAfterAction.loanId;
   expectedLoanData.state = new BigNumber(loanDataAfterAction.state);
   expectedLoanData.borrower = loanDataAfterAction.borrower.toString();
@@ -706,6 +715,8 @@ export const calcExpectedLoanDataAfterRedeem = (
 
   const amountRepaidBN = new BigNumber(amountToRedeem);
 
+  expectedLoanData.nftCfgRedeemFine = loanDataAfterAction.nftCfgRedeemFine;
+
   expectedLoanData.loanId = loanDataAfterAction.loanId;
   expectedLoanData.state = new BigNumber(loanDataAfterAction.state);
   expectedLoanData.borrower = loanDataAfterAction.borrower.toString();
@@ -740,6 +751,8 @@ export const calcExpectedLoanDataAfterLiquidate = (
   currentTimestamp: BigNumber
 ): LoanData => {
   const expectedLoanData = <LoanData>{};
+
+  expectedLoanData.nftCfgRedeemFine = loanDataAfterAction.nftCfgRedeemFine;
 
   expectedLoanData.loanId = loanDataAfterAction.loanId;
   expectedLoanData.state = new BigNumber(loanDataAfterAction.state);

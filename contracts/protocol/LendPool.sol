@@ -731,14 +731,21 @@ contract LendPool is
     )
   {
     DataTypes.NftData storage nftData = _nfts[nftAsset];
+    ILendPoolLoan poolLoan = ILendPoolLoan(_addressesProvider.getLendPoolLoan());
 
-    loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
+    loanId = poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
-      DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
-      bidderAddress = loan.bidderAddress;
-      bidPrice = loan.bidPrice;
-      bidBorrowAmount = loan.bidBorrowAmount;
-      bidFine = loan.bidPrice.percentMul(nftData.configuration.getRedeemFine());
+      DataTypes.LoanData memory loan = poolLoan.getLoan(loanId);
+      if (loan.bidPrice > 0) {
+        bidderAddress = loan.bidderAddress;
+        bidPrice = loan.bidPrice;
+        bidBorrowAmount = loan.bidBorrowAmount;
+        uint256 borrowAmount = loan.bidBorrowAmount;
+        if (loan.state == DataTypes.LoanState.Active) {
+          (, borrowAmount) = poolLoan.getLoanReserveBorrowAmount(loanId);
+        }
+        bidFine = borrowAmount.percentMul(nftData.configuration.getRedeemFine());
+      }
     }
   }
 

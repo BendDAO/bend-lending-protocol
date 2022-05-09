@@ -224,8 +224,7 @@ library ValidationLogic {
 
     require(loanData.bidderAddress != address(0), Errors.LPL_INVALID_BIDDER_ADDRESS);
 
-    uint256 bidFine = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
-    require(amount > bidFine, Errors.LPL_AMOUNT_LESS_THAN_BID_FINE);
+    require(amount > 0, Errors.VL_INVALID_AMOUNT);
   }
 
   /**
