@@ -224,9 +224,7 @@ contract LendPoolLiquidator is Initializable, ILendPoolLiquidator, LendPoolStora
 
     // check the maxinmum debt repay amount, 90%?
     vars.maxRepayAmount = vars.borrowAmount.percentMul(PercentageMath.PERCENTAGE_FACTOR - PercentageMath.TEN_PERCENT);
-    if (vars.repayAmount > vars.maxRepayAmount) {
-      vars.repayAmount = vars.maxRepayAmount;
-    }
+    require(vars.repayAmount <= vars.maxRepayAmount, Errors.LP_AMOUNT_GREATER_THAN_MAX_REPAY);
 
     ILendPoolLoan(vars.poolLoan).redeemLoan(
       vars.initiator,
