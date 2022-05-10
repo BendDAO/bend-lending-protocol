@@ -396,7 +396,7 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
       const maxPriceDeviation = await mockNftOracle.maxPriceDeviation();
       const maxPriceDeviationWithTime = await mockNftOracle.maxPriceDeviationWithTime();
       const timeIntervalWithPrice = await mockNftOracle.timeIntervalWithPrice();
-      const minimumUpdateTime = await mockNftOracle.minimumUpdateTime();
+      const minimumUpdateTime = await mockNftOracle.minUpdateTime();
       expect(maxPriceDeviation).to.equal("200000000000000000");
       expect(maxPriceDeviationWithTime).to.equal("100000000000000000");
       expect(timeIntervalWithPrice).to.equal("10");
@@ -406,7 +406,7 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
       const maxPriceDeviation2 = await mockNftOracle.maxPriceDeviation();
       const maxPriceDeviationWithTime2 = await mockNftOracle.maxPriceDeviationWithTime();
       const timeIntervalWithPrice2 = await mockNftOracle.timeIntervalWithPrice();
-      const minimumUpdateTime2 = await mockNftOracle.minimumUpdateTime();
+      const minimumUpdateTime2 = await mockNftOracle.minUpdateTime();
       expect(maxPriceDeviation2).to.equal("150000000000000000");
       expect(maxPriceDeviationWithTime2).to.equal("60000000000000000");
       expect(timeIntervalWithPrice2).to.equal("3600");
