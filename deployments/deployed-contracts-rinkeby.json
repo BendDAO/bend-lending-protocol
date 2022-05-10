@@ -154,10 +154,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolLiquidatorImpl": {
-    "address": "0xD59461268CECa602AcC6825Bc167b31Ce23688AA"
+    "address": "0xE6477cb35E3aCd9B21C6C424c72cA482e5Af2887"
   },
   "LendPoolLiquidator": {
-    "address": "0xD59461268CECa602AcC6825Bc167b31Ce23688AA"
+    "address": "0xE6477cb35E3aCd9B21C6C424c72cA482e5Af2887"
   },
   "DOODLE": {
     "address": "0x10cACFfBf3Cdcfb365FDdC4795079417768BaA74",

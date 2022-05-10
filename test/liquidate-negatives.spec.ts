@@ -210,14 +210,45 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const user1 = users[1];
     const user3 = users[3];
 
-    // user 1 want redeem and query the bid fine (user 2 bid price)
+    // user 1 want redeem and query the bid fine
     const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
     const redeemAmount = nftAuctionData.bidBorrowAmount;
-
-    const badBidFine = nftAuctionData.bidFine.add(10000);
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(0.9).toFixed(0);
 
     await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
       ProtocolErrors.LPL_BID_INVALID_BID_FINE
+    );
+  });
+
+  it("User 1 redeem but amount is not fullfil to mininum repay amount", async () => {
+    const { bayc, pool, users } = testEnv;
+    const user1 = users[1];
+    const user3 = users[3];
+
+    // user 1 want redeem and query the bid fine (user 2 bid price)
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidBorrowAmount.div(2);
+
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD
+    );
+  });
+
+  it("User 1 redeem but amount is not fullfil to maximum repay amount", async () => {
+    const { bayc, pool, users } = testEnv;
+    const user1 = users[1];
+    const user3 = users[3];
+
+    // user 1 want redeem and query the bid fine (user 2 bid price)
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidBorrowAmount.mul(2);
+
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LP_AMOUNT_GREATER_THAN_MAX_REPAY
     );
   });
 
