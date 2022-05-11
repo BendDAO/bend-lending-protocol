@@ -42,7 +42,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   // The maximum allowed deviation between two consecutive oracle prices within a certain time frame. 18-bit precision.
   uint256 public maxPriceDeviationWithTime; // 10%
   uint256 public timeIntervalWithPrice; // 30 minutes
-  uint256 public minimumUpdateTime; // 10 minutes
+  uint256 public minUpdateTime; // 10 minutes
 
   mapping(address => bool) public nftPaused;
 
@@ -64,7 +64,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _maxPriceDeviation,
     uint256 _maxPriceDeviationWithTime,
     uint256 _timeIntervalWithPrice,
-    uint256 _minimumUpdateTime,
+    uint256 _minUpdateTime,
     uint256 _twapInterval
   ) public initializer {
     __Ownable_init();
@@ -72,7 +72,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     maxPriceDeviation = _maxPriceDeviation;
     maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
     timeIntervalWithPrice = _timeIntervalWithPrice;
-    minimumUpdateTime = _minimumUpdateTime;
+    minUpdateTime = _minUpdateTime;
     twapInterval = _twapInterval;
   }
 
@@ -186,7 +186,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       // check if current round timestamp is earlier than target timestamp
       if (currentTimestamp <= baseTimestamp) {
         // weighted time period will be (target timestamp - previous timestamp). For example,
-        // now is 1000, _interval is 100, then target timestamp is 900. If timestamp of current round is 970,
+        // now is 1000, twapInterval is 100, then target timestamp is 900. If timestamp of current round is 970,
         // and timestamp of NEXT round is 880, then the weighted time period will be (970 - 900) = 70,
         // instead of (970 - 880)
         weightedPrice = weightedPrice + (price * (previousTimestamp - baseTimestamp));
@@ -262,7 +262,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       uint256 timeDeviation = _timestamp - timestamp;
       if (percentDeviation > maxPriceDeviation) {
         return false;
-      } else if (timeDeviation < minimumUpdateTime) {
+      } else if (timeDeviation < minUpdateTime) {
         return false;
       } else if ((percentDeviation > maxPriceDeviationWithTime) && (timeDeviation < timeIntervalWithPrice)) {
         return false;
@@ -275,12 +275,12 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _maxPriceDeviation,
     uint256 _maxPriceDeviationWithTime,
     uint256 _timeIntervalWithPrice,
-    uint256 _minimumUpdateTime
+    uint256 _minUpdateTime
   ) external onlyOwner {
     maxPriceDeviation = _maxPriceDeviation;
     maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
     timeIntervalWithPrice = _timeIntervalWithPrice;
-    minimumUpdateTime = _minimumUpdateTime;
+    minUpdateTime = _minUpdateTime;
   }
 
   function setPause(address _nftContract, bool val) external override onlyOwner {
