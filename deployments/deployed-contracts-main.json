@@ -30,33 +30,32 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "ReserveLogic": {
-    "address": "0x55010E3AAAFc585Eac5E5e44970Ac77006728FDA",
+    "address": "0xC242dd3523CecE5594E15F4C1e172Fe5488f3A80",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "NftLogic": {
-    "address": "0x8e4d6b4941BFF2F8033e9697f6f1744919b26244",
+    "address": "0x6803849E8cCD50174B2f16dA4f4A60CedB6F4AC7",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "GenericLogic": {
-    "address": "0xD9c7abeeBB000d333c0d9828D9daF54d74d8DE92",
+    "address": "0x5F45053b9944405Ea185C27047B678b73b93744C",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "ValidationLogic": {
-    "address": "0xB6A0adC7cd85668526ABa8ef956859EF0b90835e",
+    "address": "0xB99EEF92A9C199072D046eb69f58238cE67c9dBa",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "LendPoolImpl": {
-    "address": "0x85e0613810113e6E3a0AB82F52178487CEFE3639"
+    "address": "0x04A5Ec281A494eE9e7A74D6669CE4942eBd2017D"
   },
   "LendPool": {
     "address": "0x70b97A0da65C15dfb0FFA02aEE6FA36e507C2762"
   },
   "LendPoolLiquidatorImpl": {
-    "address": "0xA17b77C4F03633dE4d5267cd1ae0cC9a5085b51e"
+    "address": "0x13ffF4973000654640AaBb4eF94CA543254E68a6"
   },
   "LendPoolLiquidator": {
-    "address": "0xA17b77C4F03633dE4d5267cd1ae0cC9a5085b51e",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+    "address": "0x154270A5Ec350a9a9c127fEd7787667A7B2cCbA0"
   },
   "LendPoolLoanImpl": {
     "address": "0xbDB3dbD9360796431b9bE0aC57F08bA56C2Df22b"
@@ -97,13 +96,13 @@
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
   },
   "WETHGatewayImpl": {
-    "address": "0x1EAB020442eCb5dd2b1C296cE6eBc41Ec328eC0f"
+    "address": "0xE79575692Ed7092dD6C5cBbC7203D8dF48494C33"
   },
   "WETHGateway": {
     "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88"
   },
   "PunkGatewayImpl": {
-    "address": "0xA580769e3e973346730aac0DCEf418222d4Aaf1f"
+    "address": "0x70a987A0E1ea971728A1F872eacD764eDAE190B1"
   },
   "PunkGateway": {
     "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30"
