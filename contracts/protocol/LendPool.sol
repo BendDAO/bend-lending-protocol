@@ -556,8 +556,9 @@ contract LendPool is
     )
   {
     DataTypes.NftData storage nftData = _nfts[nftAsset];
+    ILendPoolLoan poolLoan = ILendPoolLoan(_addressesProvider.getLendPoolLoan());
 
-    loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
+    loanId = poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
       DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
       DataTypes.ReserveData storage reserveData = _reserves[loan.reserveAsset];
@@ -572,6 +573,7 @@ contract LendPool is
         nftAsset,
         nftData,
         loan,
+        address(poolLoan),
         _addressesProvider.getReserveOracle()
       );
     }

@@ -264,26 +264,6 @@ library LiquidateLogic {
     vars.redeemEndTimestamp = (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration() * 1 days);
     require(block.timestamp <= vars.redeemEndTimestamp, Errors.LPL_BID_REDEEM_DURATION_HAS_END);
 
-    // case 1: avoid auction and redeem in same block
-    // auction tx1, huge bid price
-    // user redeem tx2
-    require(block.number > loanData.bidBlockNumber, Errors.LPL_INVALID_AUCTION_REDEEM_GAP);
-
-    // check bid fine in min & max range
-    (, , vars.bidFine) = GenericLogic.calculateLoanBidFine(
-      loanData.reserveAsset,
-      reserveData,
-      loanData.nftAsset,
-      nftData,
-      loanData,
-      vars.reserveOracle
-    );
-
-    // case 2: avoid auction and redeem in diff block
-    // block 1: auction tx1, huge bid price
-    // block 2: user redeem tx2
-    require(vars.bidFine == params.bidFine, Errors.LPL_INCONSISTENT_BID_FINE);
-
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
     reserveData.updateState();
 
@@ -298,6 +278,20 @@ library LiquidateLogic {
       vars.nftOracle
     );
 
+    // check bid fine in min & max range
+    (, , vars.bidFine) = GenericLogic.calculateLoanBidFine(
+      loanData.reserveAsset,
+      reserveData,
+      loanData.nftAsset,
+      nftData,
+      loanData,
+      vars.poolLoan,
+      vars.reserveOracle
+    );
+
+    // check bid fine is enough
+    require(vars.bidFine <= params.bidFine, Errors.LPL_INVALID_BID_FINE);
+
     // check the minimum debt repay amount, use redeem threshold in config
     vars.repayAmount = params.amount;
     vars.minRepayAmount = vars.borrowAmount.percentMul(nftData.configuration.getRedeemThreshold());
@@ -305,9 +299,7 @@ library LiquidateLogic {
 
     // check the maxinmum debt repay amount, 90%?
     vars.maxRepayAmount = vars.borrowAmount.percentMul(PercentageMath.PERCENTAGE_FACTOR - PercentageMath.TEN_PERCENT);
-    if (vars.repayAmount > vars.maxRepayAmount) {
-      vars.repayAmount = vars.maxRepayAmount;
-    }
+    require(vars.repayAmount <= vars.maxRepayAmount, Errors.LP_AMOUNT_GREATER_THAN_MAX_REPAY);
 
     ILendPoolLoan(vars.poolLoan).redeemLoan(
       vars.initiator,

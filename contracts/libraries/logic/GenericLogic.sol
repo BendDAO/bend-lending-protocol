@@ -269,6 +269,7 @@ library GenericLogic {
     uint256 minBidFineInReserve;
     uint256 maxBidFineInReserve;
     uint256 bidFineInReserve;
+    uint256 debtAmount;
   }
 
   function calculateLoanBidFine(
@@ -277,6 +278,7 @@ library GenericLogic {
     address nftAsset,
     DataTypes.NftData storage nftData,
     DataTypes.LoanData memory loanData,
+    address poolLoan,
     address reserveOracle
   )
     internal
@@ -303,7 +305,9 @@ library GenericLogic {
     vars.minBidFineInReserve = vars.baseBidFineInReserve.percentMul(vars.minBidFinePct);
     vars.maxBidFineInReserve = vars.baseBidFineInReserve.percentMul(vars.maxBidFinePct);
 
-    vars.bidFineInReserve = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
+    (, vars.debtAmount) = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanData.loanId);
+
+    vars.bidFineInReserve = vars.debtAmount.percentMul(nftData.configuration.getRedeemFine());
     if (vars.bidFineInReserve < vars.minBidFineInReserve) {
       vars.bidFineInReserve = vars.minBidFineInReserve;
     }

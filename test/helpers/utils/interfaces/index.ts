@@ -28,6 +28,14 @@ export interface ReserveData {
   [key: string]: BigNumber | string;
 }
 
+export interface NftData {
+  address: string;
+  symbol: string;
+  bnftTokenAddress: string;
+  redeemFine: BigNumber;
+  [key: string]: BigNumber | string;
+}
+
 export interface LoanData {
   loanId: BigNumber;
   state: BigNumber;
@@ -41,5 +49,6 @@ export interface LoanData {
   bidPrice: BigNumber;
   bidBorrowAmount: BigNumber;
   bidFine: BigNumber;
+  nftCfgRedeemFine: BigNumber;
   [key: string]: BigNumber | string | Boolean;
 }

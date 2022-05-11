@@ -537,16 +537,6 @@
             "internalType": "uint256",
             "name": "bidBorrowAmount",
             "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "bidBlockNumber",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256[38]",
-            "name": "__gap",
-            "type": "uint256[38]"
           }
         ],
         "internalType": "struct DataTypes.LoanData",

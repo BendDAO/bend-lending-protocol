@@ -214,12 +214,14 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     // Redeem ETH loan with native ETH
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).sub(100).toNumber());
     const auctionData = await pool.getNftAuctionData(nftAsset, tokenId);
-    const redeemAmountSend = auctionData.bidBorrowAmount.add(auctionData.bidFine);
+    const bidFineAmount = new BigNumber(auctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+    const repayAmount = new BigNumber(auctionData.bidBorrowAmount.toString()).multipliedBy(0.51).toFixed(0);
+    const redeemAmountSend = new BigNumber(repayAmount).plus(bidFineAmount).toFixed(0);
     console.log("redeemETH:", redeemAmountSend.toString());
     await waitForTx(
       await wethGateway
         .connect(user.signer)
-        .redeemETH(nftAsset, tokenId, auctionData.bidBorrowAmount, auctionData.bidFine, { value: redeemAmountSend })
+        .redeemETH(nftAsset, tokenId, repayAmount, bidFineAmount, { value: redeemAmountSend })
     );
 
     const loanDataAfterRedeem = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);

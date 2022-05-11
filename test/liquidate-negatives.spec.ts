@@ -200,24 +200,51 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     );
   });
 
-  it("User 1 redeem but bidFine is not fullfil to user 3 auction price", async () => {
+  it("User 1 redeem but bidFine is not fullfil to borrow amount of user 2 auction", async () => {
+    const { bayc, pool, users } = testEnv;
+    const user1 = users[1];
+    const user3 = users[3];
+
+    // user 1 want redeem and query the bid fine
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidBorrowAmount;
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(0.9).toFixed(0);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LPL_BID_INVALID_BID_FINE
+    );
+  });
+
+  it("User 1 redeem but amount is not fullfil to mininum repay amount", async () => {
     const { bayc, pool, users } = testEnv;
     const user1 = users[1];
     const user3 = users[3];
 
     // user 1 want redeem and query the bid fine (user 2 bid price)
     const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
-    const redeemAmount = nftAuctionData.bidBorrowAmount;
+    const redeemAmount = nftAuctionData.bidBorrowAmount.div(2);
 
-    // user 3 bid price than user 2
-    const { bidPrice } = await pool.getNftAuctionData(bayc.address, "101");
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
-    const auctionPriceOk = new BigNumber(bidPrice.toString()).multipliedBy(1.1).toFixed(0);
-    await waitForTx(await pool.connect(user3.signer).auction(bayc.address, "101", auctionPriceOk, user3.address));
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD
+    );
+  });
 
-    await expect(
-      pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, nftAuctionData.bidFine)
-    ).to.be.revertedWith(ProtocolErrors.LPL_BID_INVALID_BID_FINE);
+  it("User 1 redeem but amount is not fullfil to maximum repay amount", async () => {
+    const { bayc, pool, users } = testEnv;
+    const user1 = users[1];
+    const user3 = users[3];
+
+    // user 1 want redeem and query the bid fine (user 2 bid price)
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidBorrowAmount.mul(2);
+
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LP_AMOUNT_GREATER_THAN_MAX_REPAY
+    );
   });
 
   it("Ends redeem duration", async () => {
@@ -233,7 +260,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const user1 = users[1];
 
     const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
-    const redeemAmount = nftAuctionData.bidBorrowAmount;
+    const redeemAmount = nftAuctionData.bidBorrowAmount.div(2);
 
     await expect(
       pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, nftAuctionData.bidFine)

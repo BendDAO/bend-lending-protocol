@@ -213,7 +213,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     loan.bidBorrowAmount = borrowAmount;
     loan.bidderAddress = onBehalfOf;
     loan.bidPrice = bidPrice;
-    loan.bidBlockNumber = block.number;
 
     emit LoanAuctioned(
       initiator,
@@ -255,7 +254,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     loan.bidBorrowAmount = 0;
     loan.bidderAddress = address(0);
     loan.bidPrice = 0;
-    loan.bidBlockNumber = 0;
 
     emit LoanRedeemed(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amountTaken, borrowIndex);
   }
