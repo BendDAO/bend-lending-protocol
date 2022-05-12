@@ -122,15 +122,17 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("Drop loan health factor below 1", async () => {
-    const { bayc, nftOracle, pool, users } = testEnv;
+    const { bayc, mockNftOracle, pool, users } = testEnv;
 
     const poolLoanData = await pool.getNftDebtData(bayc.address, "101");
     const baycPrice = new BigNumber(poolLoanData.totalDebt.toString())
       .percentMul(new BigNumber(5000)) // 50%
       .toFixed(0);
-
-    const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(bayc.address, baycPrice, latestTime.add(1), latestTime.add(1));
+    const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(100));
+    await mockNftOracle.setAssetData(bayc.address, baycPrice);
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(200));
+    await mockNftOracle.setAssetData(bayc.address, baycPrice);
   });
 
   it("User 2 auction price is unable to cover borrow", async () => {
@@ -145,7 +147,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("User 2 auction price is less than liquidate price", async () => {
-    const { weth, bayc, nftOracle, pool, users } = testEnv;
+    const { weth, bayc, mockNftOracle, pool, users } = testEnv;
     const user2 = users[2];
 
     const nftColData = await pool.getNftCollateralData(bayc.address, weth.address);
@@ -157,8 +159,11 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       .percentDiv(new BigNumber(nftColData.liquidationThreshold.toString()))
       .toFixed(0);
 
-    const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(bayc.address, baycPrice, latestTime.add(1), latestTime.add(1));
+    const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(100));
+    await mockNftOracle.setAssetData(bayc.address, baycPrice);
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(200));
+    await mockNftOracle.setAssetData(bayc.address, baycPrice);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
 
@@ -205,14 +210,45 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const user1 = users[1];
     const user3 = users[3];
 
-    // user 1 want redeem and query the bid fine (user 2 bid price)
+    // user 1 want redeem and query the bid fine
     const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
     const redeemAmount = nftAuctionData.bidBorrowAmount;
-
-    const badBidFine = nftAuctionData.bidFine.add(10000);
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(0.9).toFixed(0);
 
     await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
       ProtocolErrors.LPL_BID_INVALID_BID_FINE
+    );
+  });
+
+  it("User 1 redeem but amount is not fullfil to mininum repay amount", async () => {
+    const { bayc, pool, users } = testEnv;
+    const user1 = users[1];
+    const user3 = users[3];
+
+    // user 1 want redeem and query the bid fine (user 2 bid price)
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidBorrowAmount.div(2);
+
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD
+    );
+  });
+
+  it("User 1 redeem but amount is not fullfil to maximum repay amount", async () => {
+    const { bayc, pool, users } = testEnv;
+    const user1 = users[1];
+    const user3 = users[3];
+
+    // user 1 want redeem and query the bid fine (user 2 bid price)
+    const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
+    const redeemAmount = nftAuctionData.bidBorrowAmount.mul(2);
+
+    const badBidFine = new BigNumber(nftAuctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+
+    await expect(pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, badBidFine)).to.be.revertedWith(
+      ProtocolErrors.LP_AMOUNT_GREATER_THAN_MAX_REPAY
     );
   });
 

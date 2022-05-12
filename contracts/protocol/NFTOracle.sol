@@ -16,6 +16,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   event AssetRemoved(address indexed asset);
   event FeedAdminUpdated(address indexed admin);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
+  event SetAssetTwapPrice(address indexed asset, uint256 price, uint256 timestamp);
 
   struct NFTPriceData {
     uint256 roundId;
@@ -41,17 +42,20 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   // The maximum allowed deviation between two consecutive oracle prices within a certain time frame. 18-bit precision.
   uint256 public maxPriceDeviationWithTime; // 10%
   uint256 public timeIntervalWithPrice; // 30 minutes
-  uint256 public minimumUpdateTime; // 10 minutes
+  uint256 public minUpdateTime; // 10 minutes
 
-  mapping(address => bool) internal _nftPaused;
+  mapping(address => bool) public nftPaused;
 
   modifier whenNotPaused(address _nftContract) {
     _whenNotPaused(_nftContract);
     _;
   }
 
+  uint256 public twapInterval;
+  mapping(address => uint256) public twapPriceMap;
+
   function _whenNotPaused(address _nftContract) internal view {
-    bool _paused = _nftPaused[_nftContract];
+    bool _paused = nftPaused[_nftContract];
     require(!_paused, "NFTOracle: nft price feed paused");
   }
 
@@ -60,14 +64,16 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _maxPriceDeviation,
     uint256 _maxPriceDeviationWithTime,
     uint256 _timeIntervalWithPrice,
-    uint256 _minimumUpdateTime
+    uint256 _minUpdateTime,
+    uint256 _twapInterval
   ) public initializer {
     __Ownable_init();
     priceFeedAdmin = _admin;
     maxPriceDeviation = _maxPriceDeviation;
     maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
     timeIntervalWithPrice = _timeIntervalWithPrice;
-    minimumUpdateTime = _minimumUpdateTime;
+    minUpdateTime = _minUpdateTime;
+    twapInterval = _twapInterval;
   }
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
@@ -107,37 +113,34 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     emit AssetRemoved(_nftContract);
   }
 
-  function setAssetData(
-    address _nftContract,
-    uint256 _price,
-    uint256, /*_timestamp*/
-    uint256 /*_roundId*/
-  ) external override onlyAdmin whenNotPaused(_nftContract) {
+  function setAssetData(address _nftContract, uint256 _price) external override onlyAdmin whenNotPaused(_nftContract) {
     requireKeyExisted(_nftContract, true);
     uint256 _timestamp = _blockTimestamp();
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
     require(_price > 0, "NFTOracle: price can not be 0");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
     require(dataValidity, "NFTOracle: invalid price data");
-    uint256 roundIdCurrent;
     uint256 len = getPriceFeedLength(_nftContract);
-    if (len == 0) {
-      roundIdCurrent = 0;
-    } else {
-      uint256 roundId = getLatestRoundId(_nftContract);
-      roundIdCurrent = roundId + 1;
-    }
-    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: roundIdCurrent});
+    NFTPriceData memory data = NFTPriceData({price: _price, timestamp: _timestamp, roundId: len});
     nftPriceFeedMap[_nftContract].nftPriceData.push(data);
 
-    emit SetAssetData(_nftContract, _price, _timestamp, roundIdCurrent);
+    uint256 twapPrice = calculateTwapPrice(_nftContract);
+    twapPriceMap[_nftContract] = twapPrice;
+
+    emit SetAssetData(_nftContract, _price, _timestamp, len);
+    emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
     require(len > 0, "NFTOracle: no price data");
-    return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
+    uint256 twapPrice = twapPriceMap[_nftContract];
+    if (twapPrice == 0) {
+      return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].price;
+    } else {
+      return twapPrice;
+    }
   }
 
   function getLatestTimestamp(address _nftContract) public view override returns (uint256) {
@@ -149,16 +152,16 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     return nftPriceFeedMap[_nftContract].nftPriceData[len - 1].timestamp;
   }
 
-  function getTwapPrice(address _nftContract, uint256 _interval) external view override returns (uint256) {
+  function calculateTwapPrice(address _nftContract) public view returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
-    require(_interval != 0, "NFTOracle: interval can't be 0");
+    require(twapInterval != 0, "NFTOracle: interval can't be 0");
 
     uint256 len = getPriceFeedLength(_nftContract);
     require(len > 0, "NFTOracle: Not enough history");
     uint256 round = len - 1;
     NFTPriceData memory priceRecord = nftPriceFeedMap[_nftContract].nftPriceData[round];
     uint256 latestTimestamp = priceRecord.timestamp;
-    uint256 baseTimestamp = _blockTimestamp() - _interval;
+    uint256 baseTimestamp = _blockTimestamp() - twapInterval;
     // if latest updated timestamp is earlier than target timestamp, return the latest price.
     if (latestTimestamp < baseTimestamp || round == 0) {
       return priceRecord.price;
@@ -183,7 +186,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       // check if current round timestamp is earlier than target timestamp
       if (currentTimestamp <= baseTimestamp) {
         // weighted time period will be (target timestamp - previous timestamp). For example,
-        // now is 1000, _interval is 100, then target timestamp is 900. If timestamp of current round is 970,
+        // now is 1000, twapInterval is 100, then target timestamp is 900. If timestamp of current round is 970,
         // and timestamp of NEXT round is 880, then the weighted time period will be (970 - 900) = 70,
         // instead of (970 - 880)
         weightedPrice = weightedPrice + (price * (previousTimestamp - baseTimestamp));
@@ -195,7 +198,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       cumulativeTime = cumulativeTime + timeFraction;
       previousTimestamp = currentTimestamp;
     }
-    return weightedPrice / _interval;
+    return weightedPrice / twapInterval;
   }
 
   function getPreviousPrice(address _nftContract, uint256 _numOfRoundBack) public view override returns (uint256) {
@@ -259,7 +262,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       uint256 timeDeviation = _timestamp - timestamp;
       if (percentDeviation > maxPriceDeviation) {
         return false;
-      } else if (timeDeviation < minimumUpdateTime) {
+      } else if (timeDeviation < minUpdateTime) {
         return false;
       } else if ((percentDeviation > maxPriceDeviationWithTime) && (timeDeviation < timeIntervalWithPrice)) {
         return false;
@@ -272,19 +275,19 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _maxPriceDeviation,
     uint256 _maxPriceDeviationWithTime,
     uint256 _timeIntervalWithPrice,
-    uint256 _minimumUpdateTime
+    uint256 _minUpdateTime
   ) external onlyOwner {
     maxPriceDeviation = _maxPriceDeviation;
     maxPriceDeviationWithTime = _maxPriceDeviationWithTime;
     timeIntervalWithPrice = _timeIntervalWithPrice;
-    minimumUpdateTime = _minimumUpdateTime;
+    minUpdateTime = _minUpdateTime;
   }
 
   function setPause(address _nftContract, bool val) external override onlyOwner {
-    _nftPaused[_nftContract] = val;
+    nftPaused[_nftContract] = val;
   }
 
-  function paused(address _nftContract) external view override returns (bool) {
-    return _nftPaused[_nftContract];
+  function setTwapInterval(uint256 _twapInterval) external override onlyOwner {
+    twapInterval = _twapInterval;
   }
 }
