@@ -209,15 +209,9 @@
         "internalType": "uint256",
         "name": "minBidFine",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "maxBidFine",
-        "type": "uint256"
       }
     ],
-    "name": "NftMinMaxChanged",
+    "name": "NftMinBidFineChanged",
     "type": "event"
   },
   {
@@ -711,14 +705,9 @@
         "internalType": "uint256",
         "name": "minBidFine",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "maxBidFine",
-        "type": "uint256"
       }
     ],
-    "name": "setNftMinMaxBidFine",
+    "name": "setNftMinBidFine",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

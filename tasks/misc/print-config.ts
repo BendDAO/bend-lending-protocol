@@ -79,7 +79,6 @@ task("print-config", "Print config of all reserves and nfts")
       "redeemFine",
       "redeemThreshold",
       "minBidFine",
-      "maxBidFine",
       "isActive",
       "isFrozen",
     ];

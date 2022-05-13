@@ -265,9 +265,7 @@ library GenericLogic {
     uint256 reservePriceInETH;
     uint256 baseBidFineInReserve;
     uint256 minBidFinePct;
-    uint256 maxBidFinePct;
     uint256 minBidFineInReserve;
-    uint256 maxBidFineInReserve;
     uint256 bidFineInReserve;
   }
 
@@ -278,39 +276,27 @@ library GenericLogic {
     DataTypes.NftData storage nftData,
     DataTypes.LoanData memory loanData,
     address reserveOracle
-  )
-    internal
-    view
-    returns (
-      uint256,
-      uint256,
-      uint256
-    )
-  {
+  ) internal view returns (uint256, uint256) {
     nftAsset;
 
     if (loanData.bidPrice == 0) {
-      return (0, 0, 0);
+      return (0, 0);
     }
 
     CalcLoanBidFineLocalVars memory vars;
 
     vars.reserveDecimals = reserveData.configuration.getDecimals();
     vars.reservePriceInETH = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAsset);
-    vars.baseBidFineInReserve = (DataTypes.BASE_BID_FINE_ETHER * 10**vars.reserveDecimals) / vars.reservePriceInETH;
+    vars.baseBidFineInReserve = (1 ether * 10**vars.reserveDecimals) / vars.reservePriceInETH;
 
-    (vars.minBidFinePct, vars.maxBidFinePct) = nftData.configuration.getMinMaxBidFine();
+    vars.minBidFinePct = nftData.configuration.getMinBidFine();
     vars.minBidFineInReserve = vars.baseBidFineInReserve.percentMul(vars.minBidFinePct);
-    vars.maxBidFineInReserve = vars.baseBidFineInReserve.percentMul(vars.maxBidFinePct);
 
     vars.bidFineInReserve = loanData.bidPrice.percentMul(nftData.configuration.getRedeemFine());
     if (vars.bidFineInReserve < vars.minBidFineInReserve) {
       vars.bidFineInReserve = vars.minBidFineInReserve;
     }
-    if (vars.bidFineInReserve > vars.maxBidFineInReserve) {
-      vars.bidFineInReserve = vars.maxBidFineInReserve;
-    }
 
-    return (vars.minBidFineInReserve, vars.maxBidFineInReserve, vars.bidFineInReserve);
+    return (vars.minBidFineInReserve, vars.bidFineInReserve);
   }
 }

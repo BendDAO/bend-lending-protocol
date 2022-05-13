@@ -24,7 +24,6 @@ contract BTokensAndBNFTsHelper is Ownable {
     uint256 redeemFine;
     uint256 redeemThreshold;
     uint256 minBidFine;
-    uint256 maxBidFine;
   }
 
   constructor(address _addressesProvider) {
@@ -57,7 +56,7 @@ contract BTokensAndBNFTsHelper is Ownable {
         inputParams[i].redeemFine
       );
       configurator.setNftRedeemThreshold(inputParams[i].asset, inputParams[i].redeemThreshold);
-      configurator.setNftMinMaxBidFine(inputParams[i].asset, inputParams[i].minBidFine, inputParams[i].maxBidFine);
+      configurator.setNftMinBidFine(inputParams[i].asset, inputParams[i].minBidFine);
     }
   }
 }

@@ -127,7 +127,6 @@ contract BendProtocolDataProvider {
     uint256 redeemFine;
     uint256 redeemThreshold;
     uint256 minBidFine;
-    uint256 maxBidFine;
     bool isActive;
     bool isFrozen;
   }
@@ -147,7 +146,7 @@ contract BendProtocolDataProvider {
 
     (configData.isActive, configData.isFrozen) = configuration.getFlagsMemory();
 
-    (configData.minBidFine, configData.maxBidFine) = configuration.getMinMaxBidFineMemory();
+    (configData.minBidFine) = configuration.getMinBidFineMemory();
   }
 
   function getReserveData(address asset)
