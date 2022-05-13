@@ -203,15 +203,6 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
     emit BNFTRegistryUpdated(factory);
   }
 
-  function getLendPoolLiquidator() external view override returns (address) {
-    return getAddress(LEND_POOL_LIQUIDATOR);
-  }
-
-  function setLendPoolLiquidator(address liquidator) external override onlyOwner {
-    _addresses[LEND_POOL_LIQUIDATOR] = liquidator;
-    emit LendPoolLiquidatorUpdated(liquidator);
-  }
-
   function getIncentivesController() external view override returns (address) {
     return getAddress(INCENTIVES_CONTROLLER);
   }

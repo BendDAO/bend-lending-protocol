@@ -34,7 +34,6 @@ import {
   LendPoolFactory,
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
-  LendPoolLiquidatorFactory,
   BTokensAndBNFTsHelperFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
@@ -74,7 +73,6 @@ import {
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { LendPoolLibraryAddresses } from "../types/LendPoolFactory";
 import { eNetwork } from "./types";
-import { LendPoolLiquidatorLibraryAddresses } from "../types/LendPoolLiquidatorFactory";
 
 const readArtifact = async (id: string) => {
   return (DRE as HardhatRuntimeEnvironment).artifacts.readArtifact(id);
@@ -254,26 +252,11 @@ const PLACEHOLDER_SUPPLY_LOGIC = "__$2f7c76ee15bdc1d8f3b34a04b86951fc56$__";
 const PLACEHOLDER_BORROW_LOGIC = "__$77c5a84c43428e206d5bf08427df63fefa$__";
 const PLACEHOLDER_LIQUIDATE_LOGIC = "__$ce70b23849b5cbed90e6e2f622d8887206$__";
 
-export const getLiquidatorLibraries = async (verify?: boolean): Promise<LendPoolLiquidatorLibraryAddresses> => {
-  const validationLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
-
-  return {
-    [PLACEHOLDER_VALIDATION_LOGIC]: validationLogicAddress,
-  };
-};
-
 export const deployLendPool = async (verify?: boolean) => {
   const libraries = await getLendPoolLibraries(verify);
   const lendPoolImpl = await new LendPoolFactory(libraries, await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImpl.address);
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
-};
-
-export const deployLendPoolLiquidator = async (verify?: boolean) => {
-  const libraries = await getLiquidatorLibraries(verify);
-  const collateralManagerImpl = await new LendPoolLiquidatorFactory(libraries, await getDeploySigner()).deploy();
-  await insertContractAddressInDb(eContractid.LendPoolLiquidatorImpl, collateralManagerImpl.address);
-  return withSaveAndVerify(collateralManagerImpl, eContractid.LendPoolLiquidator, [], verify);
 };
 
 export const deployReserveOracle = async (args: [], verify?: boolean) => {

@@ -114,12 +114,6 @@
   "LendPool": {
     "address": "0x7273847406a52B949F3E824fce7704E8e74244f5"
   },
-  "LendPoolLiquidatorImpl": {
-    "address": "0xeA2a26e371cf6C982b77D68f44c2aae47eE46E68"
-  },
-  "LendPoolLiquidator": {
-    "address": "0xeA2a26e371cf6C982b77D68f44c2aae47eE46E68"
-  },
   "LendPoolLoanImpl": {
     "address": "0xe6A56b57F95B7bb011b8DA4c769567588e451a14"
   },
