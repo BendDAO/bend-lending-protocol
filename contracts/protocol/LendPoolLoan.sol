@@ -204,6 +204,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
       loan.state = DataTypes.LoanState.Auction;
       loan.bidStartTimestamp = block.timestamp;
+      loan.firstBidderAddress = onBehalfOf;
     } else {
       require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 

@@ -223,11 +223,8 @@ library LiquidateLogic {
     uint256 maxRepayAmount;
     uint256 bidFine;
     uint256 redeemEndTimestamp;
-    uint256 baseBidFineEther;
     uint256 minBidFinePct;
-    uint256 maxBidFinePct;
     uint256 minBidFine;
-    uint256 maxBidFine;
   }
 
   /**
@@ -244,7 +241,6 @@ library LiquidateLogic {
     DataTypes.ExecuteRedeemParams memory params
   ) external returns (uint256) {
     RedeemLocalVars memory vars;
-    vars.baseBidFineEther = DataTypes.BASE_BID_FINE_ETHER;
     vars.initiator = params.initiator;
 
     vars.poolLoan = addressesProvider.getLendPoolLoan();
@@ -279,7 +275,7 @@ library LiquidateLogic {
     );
 
     // check bid fine in min & max range
-    (, , vars.bidFine) = GenericLogic.calculateLoanBidFine(
+    (, vars.bidFine) = GenericLogic.calculateLoanBidFine(
       loanData.reserveAsset,
       reserveData,
       loanData.nftAsset,
@@ -324,8 +320,12 @@ library LiquidateLogic {
       // transfer (return back) last bid price amount from lend pool to bidder
       IERC20Upgradeable(loanData.reserveAsset).safeTransfer(loanData.bidderAddress, loanData.bidPrice);
 
-      // transfer bid penalty fine amount from borrower to bidder
-      IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(vars.initiator, loanData.bidderAddress, vars.bidFine);
+      // transfer bid penalty fine amount from borrower to the first bidder
+      IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
+        vars.initiator,
+        loanData.firstBidderAddress,
+        vars.bidFine
+      );
     }
 
     emit Redeem(

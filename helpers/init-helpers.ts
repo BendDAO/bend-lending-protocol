@@ -307,7 +307,6 @@ export const configureNftsByHelper = async (
     redeemFine: BigNumberish;
     redeemThreshold: BigNumberish;
     minBidFine: BigNumberish;
-    maxBidFine: BigNumberish;
   }[] = [];
 
   console.log(`- Configure NFTs`);
@@ -322,7 +321,6 @@ export const configureNftsByHelper = async (
       redeemFine,
       redeemThreshold,
       minBidFine,
-      maxBidFine,
     },
   ] of Object.entries(nftsParams) as [string, INftParams][]) {
     if (!nftAddresses[assetSymbol]) {
@@ -345,7 +343,6 @@ export const configureNftsByHelper = async (
       redeemFine: redeemFine,
       redeemThreshold: redeemThreshold,
       minBidFine: minBidFine,
-      maxBidFine: maxBidFine,
     });
 
     tokens.push(tokenAddress);
@@ -360,8 +357,7 @@ export const configureNftsByHelper = async (
       auctionDuration,
       redeemFine,
       redeemThreshold,
-      minBidFine,
-      maxBidFine
+      minBidFine
     );
   }
   if (tokens.length) {

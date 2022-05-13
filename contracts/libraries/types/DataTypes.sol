@@ -99,9 +99,9 @@ library DataTypes {
     uint256 bidPrice;
     //borrow amount of loan
     uint256 bidBorrowAmount;
+    //bidder address of first bid
+    address firstBidderAddress;
   }
-
-  uint256 public constant BASE_BID_FINE_ETHER = 100 ether;
 
   struct ExecuteDepositParams {
     address initiator;

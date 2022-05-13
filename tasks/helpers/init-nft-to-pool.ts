@@ -91,9 +91,7 @@ task("init-nft-to-pool", "Init and config new nft asset to lend pool")
       await lendPoolConfiguratorProxy.connect(poolAdminSigner).setNftRedeemThreshold(asset, nftParam.redeemThreshold)
     );
     await waitForTx(
-      await lendPoolConfiguratorProxy
-        .connect(poolAdminSigner)
-        .setNftMinMaxBidFine(asset, nftParam.minBidFine, nftParam.maxBidFine)
+      await lendPoolConfiguratorProxy.connect(poolAdminSigner).setNftMinBidFine(asset, nftParam.minBidFine)
     );
 
     console.log("WETHGateway authorizeLendPoolNFT");

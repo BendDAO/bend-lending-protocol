@@ -567,7 +567,7 @@ contract LendPool is
       bidPrice = loan.bidPrice;
       bidBorrowAmount = loan.bidBorrowAmount;
 
-      (, , bidFine) = GenericLogic.calculateLoanBidFine(
+      (, bidFine) = GenericLogic.calculateLoanBidFine(
         loan.reserveAsset,
         reserveData,
         nftAsset,
