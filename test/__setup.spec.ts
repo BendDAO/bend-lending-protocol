@@ -70,6 +70,7 @@ import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { WrappedPunk } from "../types/WrappedPunk";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../helpers/constants";
+import { WETH9 } from "../types";
 
 const MOCK_USD_PRICE = BendConfig.ProtocolGlobalParams.MockUsdPrice;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -89,9 +90,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock external ERC20 Tokens, such as WETH, DAI...");
   const mockTokens: {
-    [symbol: string]: MockContract | MintableERC20 | WETH9Mocked;
+    [symbol: string]: MockContract | MintableERC20 | WETH9Mocked | WETH9;
   } = {
-    ...(await deployAllMockTokens(false)),
+    ...(await deployAllMockTokens(true)),
   };
 
   console.log("-> Prepare mock external ERC721 NFTs, such as WPUNKS, BAYC...");
