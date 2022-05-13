@@ -58,6 +58,8 @@ import {
   UiPoolDataProviderFactory,
   BendCollectorFactory,
   TimelockControllerFactory,
+  WETH9,
+  WETH9Factory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -306,8 +308,8 @@ export const deployGenericBTokenImpl = async (verify: boolean) =>
 export const deployGenericBNFTImpl = async (verify: boolean) =>
   withSaveAndVerify(await new BNFTFactory(await getDeploySigner()).deploy(), eContractid.BNFT, [], verify);
 
-export const deployAllMockTokens = async (verify?: boolean) => {
-  const tokens: { [symbol: string]: MockContract | MintableERC20 | WETH9Mocked } = {};
+export const deployAllMockTokens = async (forTestCases: boolean, verify?: boolean) => {
+  const tokens: { [symbol: string]: MockContract | MintableERC20 | WETH9Mocked | WETH9 } = {};
 
   const protoConfigData = getReservesConfigByPool(BendPools.proto);
 
@@ -315,7 +317,11 @@ export const deployAllMockTokens = async (verify?: boolean) => {
     const tokenName = "Bend Mock " + tokenSymbol;
 
     if (tokenSymbol === "WETH") {
-      tokens[tokenSymbol] = await deployWETHMocked();
+      if (forTestCases) {
+        tokens[tokenSymbol] = await deployWETHMocked();
+      } else {
+        tokens[tokenSymbol] = await deployWETH9();
+      }
       await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
       continue;
     }
@@ -365,6 +371,9 @@ export const deployWETHGateway = async (verify?: boolean) => {
   await insertContractAddressInDb(eContractid.WETHGatewayImpl, wethImpl.address);
   return withSaveAndVerify(wethImpl, eContractid.WETHGateway, [], verify);
 };
+
+export const deployWETH9 = async (verify?: boolean) =>
+  withSaveAndVerify(await new WETH9Factory(await getDeploySigner()).deploy(), eContractid.WETH, [], verify);
 
 export const deployWETHMocked = async (verify?: boolean) =>
   withSaveAndVerify(await new WETH9MockedFactory(await getDeploySigner()).deploy(), eContractid.WETHMocked, [], verify);

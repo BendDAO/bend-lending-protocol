@@ -14,7 +14,7 @@ import { CommonsConfig } from "../markets/bend/commons";
 import { DRE, notFalsyOrZeroAddress } from "./misc-utils";
 import { tEthereumAddress } from "./types";
 import { getParamPerNetwork } from "./contracts-helpers";
-import { deployWETHMocked, deployWrappedPunk, deployCryptoPunksMarket } from "./contracts-deployments";
+import { deployWETH9, deployWrappedPunk, deployCryptoPunksMarket } from "./contracts-deployments";
 import { ZERO_ADDRESS } from "./constants";
 
 export enum ConfigNames {
@@ -102,7 +102,7 @@ export const getWrappedNativeTokenAddress = async (config: ICommonConfiguration)
   if (currentNetwork.includes("main")) {
     throw new Error("WETH not set at mainnet configuration.");
   }
-  const weth = await deployWETHMocked();
+  const weth = await deployWETH9();
   return weth.address;
 };
 

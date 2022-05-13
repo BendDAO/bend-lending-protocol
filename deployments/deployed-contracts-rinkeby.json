@@ -4,7 +4,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "WETH": {
-    "address": "0xaD1908f909B5C5D2B1032a215d611773F26f089F",
+    "address": "0xb49dBe8e2A5a140b3b810c33ac2ba4907A3CA95e",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "MintableERC20": {
@@ -123,10 +123,12 @@
     "address": "0x04af5eF6100E1025560Be50FF244CB31f60d08c2"
   },
   "WETHGateway": {
-    "address": "0x42af361009B27Aa1Ff21f96E386795dE487D180E"
+    "address": "0x28bdBeA19bF55F91EA21B7A7Df9EFe4B4E872036",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGateway": {
-    "address": "0xcd17a3Eed149843b0E1Abfc77cDA80c31D46b885"
+    "address": "0x9DCE699794Ef18E275BC7689270Cb3Bd8055A4DD",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "InterestRate": {
     "address": "0xcC99f8f4d833cD03763548E8F7a1AffA92C9F595",
@@ -198,9 +200,13 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGatewayImpl": {
-    "address": "0xcF31CD7dfE593e9E98CcE47523FeacE637e65597"
+    "address": "0xd8e00dA75391F0d6828FC9d5Dd471cBE85926bEF"
   },
   "WETHGatewayImpl": {
-    "address": "0xffFcD5B0ED3e1c42a6CCB6515ab3cD49B8c5d7E9"
+    "address": "0xC8647D5712e12371Ed647d8489d6Ccb6e7BA13C4"
+  },
+  "NWETHAggregator": {
+    "address": "0x590328845A6dbAe96ef618b07552e5a62B93DEad",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
