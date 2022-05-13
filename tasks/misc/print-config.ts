@@ -34,7 +34,6 @@ task("print-config", "Print config of all reserves and nfts")
     console.log("Lend Pool Proxy:", await addressesProvider.getLendPool());
     console.log("Lend Pool Loan Proxy:", await addressesProvider.getLendPoolLoan());
     console.log("Lend Pool Configurator Proxy:", await addressesProvider.getLendPoolConfigurator());
-    console.log("Lend Pool Liquidator:", await addressesProvider.getLendPoolLiquidator());
     console.log("Reserve Oracle Proxy:", await addressesProvider.getReserveOracle());
     console.log("NFT Oracle Proxy:", await addressesProvider.getNFTOracle());
     console.log("BNFT Registry Proxy:", await addressesProvider.getBNFTRegistry());

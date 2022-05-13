@@ -23,12 +23,10 @@ import { eContractid, eNetwork } from "../../helpers/types";
 import {
   deployLendPool,
   deployLendPoolLoan,
-  deployLendPoolLiquidator,
   deployReserveOracle,
   deployNFTOracle,
   deployBendLibraries,
   getLendPoolLibraries,
-  getLiquidatorLibraries,
   deployLendPoolConfigurator,
   deployUiPoolDataProvider,
   deployWalletBalancerProvider,
@@ -70,15 +68,10 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
       console.log("LendPool implementation address:", lendPoolImpl.address);
 
-      const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);
-      console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
-
       if (upgrade) {
         await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
-        await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
       }
       await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
-      await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
     }
 
     if (contract == "LendPool") {
@@ -94,20 +87,6 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
 
       await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
-    }
-
-    if (contract == "LendPoolLiquidator") {
-      const bendLibs = await getLiquidatorLibraries(verify);
-      console.log("Bend Libraries address:", bendLibs);
-
-      const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);
-      console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
-
-      if (upgrade) {
-        await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
-      }
-
-      await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
     }
 
     if (contract == "LendPoolConfigurator") {

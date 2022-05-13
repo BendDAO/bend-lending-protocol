@@ -27,7 +27,6 @@ import {
   deployAllMockNfts,
   deployUiPoolDataProvider,
   deployMockChainlinkOracle,
-  deployLendPoolLiquidator,
   deployBendLibraries,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
@@ -173,10 +172,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const lendPoolProxy = await getLendPool(lendPoolAddress);
 
   await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
-
-  console.log("-> Prepare lend pool liquidator...");
-  const poolLiquidator = await deployLendPoolLiquidator();
-  await waitForTx(await addressesProvider.setLendPoolLiquidator(poolLiquidator.address));
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare lend pool loan...");

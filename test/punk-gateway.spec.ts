@@ -243,10 +243,14 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
       return owner;
     };
 
+    await advanceTimeAndBlock(100);
+
     await waitForTx(await cryptoPunksMarket.connect(user.signer).getPunk(punkIndex));
     await waitForTx(
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
+
+    await advanceTimeAndBlock(100);
 
     const ethBalanceBefore = await user.signer.getBalance();
 
@@ -257,6 +261,8 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     // borrow first eth
     await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize1, punkIndex, user.address, "0"));
+
+    await advanceTimeAndBlock(100);
 
     // borrow more eth
     await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize2, punkIndex, user.address, "0"));
