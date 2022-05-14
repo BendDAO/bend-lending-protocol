@@ -258,8 +258,8 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
 
   //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare mock nft oracle...");
-  const nftOracleImpl = await deployMockNFTOracle();
+  console.log("-> Prepare nft oracle...");
+  const nftOracleImpl = await deployNFTOracle();
   await waitForTx(
     await nftOracleImpl.initialize(
       await addressesProvider.getPoolAdmin(),
@@ -345,7 +345,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const bendDataProvider = await deployBendProtocolDataProvider(addressesProvider.address);
   await waitForTx(await addressesProvider.setBendDataProvider(bendDataProvider.address));
 
-  const uiDataProvider = await deployUiPoolDataProvider(reserveOracleImpl.address, mockNftOracleImpl.address, false);
+  const uiDataProvider = await deployUiPoolDataProvider(reserveOracleImpl.address, nftOracleImpl.address, false);
   await waitForTx(await addressesProvider.setUIDataProvider(uiDataProvider.address));
 
   //////////////////////////////////////////////////////////////////////////////

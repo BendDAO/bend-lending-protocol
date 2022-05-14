@@ -18,7 +18,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   before("Before Redeem: set config", async () => {
     BigNumber.config({ DECIMAL_PLACES: 0, ROUNDING_MODE: BigNumber.ROUND_DOWN });
 
-    baycInitPrice = await testEnv.mockNftOracle.getAssetPrice(testEnv.bayc.address);
+    baycInitPrice = await testEnv.nftOracle.getAssetPrice(testEnv.bayc.address);
   });
 
   after("After Redeem: reset config", async () => {
@@ -28,7 +28,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Borrows WETH", async () => {
-    const { users, pool, mockNftOracle, reserveOracle, weth, bayc, configurator, dataProvider } = testEnv;
+    const { users, pool, reserveOracle, weth, bayc, configurator, dataProvider } = testEnv;
     const depositor = users[0];
     const borrower = users[1];
 
@@ -75,7 +75,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Drop the health factor below 1", async () => {
-    const { weth, bayc, users, pool, mockNftOracle } = testEnv;
+    const { weth, bayc, users, pool } = testEnv;
     const borrower = users[1];
 
     const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "101");
@@ -92,7 +92,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Auctions the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, mockNftOracle, reserveOracle, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -129,7 +129,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Redeems the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, mockNftOracle, reserveOracle, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -217,7 +217,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("USDC - Borrows USDC", async () => {
-    const { users, pool, mockNftOracle, reserveOracle, usdc, bayc, configurator, dataProvider } = testEnv;
+    const { users, pool, reserveOracle, usdc, bayc, configurator, dataProvider } = testEnv;
     const depositor = users[0];
     const borrower = users[1];
 
