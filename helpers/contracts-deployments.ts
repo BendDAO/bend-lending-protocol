@@ -29,7 +29,6 @@ import {
   LendPoolFactory,
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
-  BTokensAndBNFTsHelperFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
   MockNFTOracleFactory,
@@ -421,14 +420,6 @@ export const deployAllMockNfts = async (verify?: boolean) => {
   }
   return tokens;
 };
-
-export const deployBTokensAndBNFTsHelper = async (args: [tEthereumAddress], verify?: boolean) =>
-  withSaveAndVerify(
-    await new BTokensAndBNFTsHelperFactory(await getDeploySigner()).deploy(...args),
-    eContractid.BTokensAndBNFTsHelper,
-    args,
-    verify
-  );
 
 export const deployWETHGateway = async (verify?: boolean) => {
   const wethImpl = await new WETHGatewayFactory(await getDeploySigner()).deploy();

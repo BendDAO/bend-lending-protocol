@@ -14,7 +14,6 @@ import {
   LendPoolLoanFactory,
   MintableERC20Factory,
   MintableERC721Factory,
-  BTokensAndBNFTsHelperFactory,
   ReserveOracleFactory,
   MockChainlinkOracleFactory,
   MockReserveOracleFactory,
@@ -313,12 +312,6 @@ export const getGenericLogic = async (address?: tEthereumAddress) =>
 export const getConfiguratorLogic = async (address?: tEthereumAddress) =>
   await ConfiguratorLogicFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.ConfiguratorLogic}`).value()).address,
-    await getDeploySigner()
-  );
-
-export const getBTokensAndBNFTsHelper = async (address?: tEthereumAddress) =>
-  await BTokensAndBNFTsHelperFactory.connect(
-    address || (await getDb(DRE.network.name).get(`${eContractid.BTokensAndBNFTsHelper}`).value()).address,
     await getDeploySigner()
   );
 

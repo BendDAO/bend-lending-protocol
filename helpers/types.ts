@@ -59,7 +59,6 @@ export enum eContractid {
   IERC20Detailed = "IERC20Detailed",
   IERC721Detailed = "IERC721Detailed",
   FeeProvider = "FeeProvider",
-  BTokensAndBNFTsHelper = "BTokensAndBNFTsHelper",
   WETHGateway = "WETHGateway",
   WETHGatewayImpl = "WETHGatewayImpl",
   WETH = "WETH",

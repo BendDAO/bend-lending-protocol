@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
+import { advanceTimeAndBlock, DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, MAX_UINT_AMOUNT, oneEther, ONE_DAY, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
@@ -208,6 +208,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    await advanceTimeAndBlock(100);
+
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "101");
 
     await pool.connect(borrower.signer).repay(bayc.address, "101", MAX_UINT_AMOUNT);
@@ -285,6 +287,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    await advanceTimeAndBlock(100);
+
     //mints USDC to the liquidator
     await usdc.connect(liquidator.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
 
@@ -328,6 +332,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
+
+    await advanceTimeAndBlock(100);
 
     //mints USDC to borrower
     await usdc.connect(borrower.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
@@ -403,6 +409,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
+
+    await advanceTimeAndBlock(100);
 
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
 
