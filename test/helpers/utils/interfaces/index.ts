@@ -50,5 +50,6 @@ export interface LoanData {
   bidBorrowAmount: BigNumber;
   bidFine: BigNumber;
   nftCfgRedeemFine: BigNumber;
+  nftCfgMinBidFine: BigNumber;
   [key: string]: BigNumber | string | Boolean;
 }

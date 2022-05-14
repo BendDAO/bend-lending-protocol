@@ -259,4 +259,48 @@ library GenericLogic {
 
     return (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice);
   }
+
+  struct CalcLoanBidFineLocalVars {
+    uint256 reserveDecimals;
+    uint256 reservePriceInETH;
+    uint256 baseBidFineInReserve;
+    uint256 minBidFinePct;
+    uint256 minBidFineInReserve;
+    uint256 bidFineInReserve;
+    uint256 debtAmount;
+  }
+
+  function calculateLoanBidFine(
+    address reserveAsset,
+    DataTypes.ReserveData storage reserveData,
+    address nftAsset,
+    DataTypes.NftData storage nftData,
+    DataTypes.LoanData memory loanData,
+    address poolLoan,
+    address reserveOracle
+  ) internal view returns (uint256, uint256) {
+    nftAsset;
+
+    if (loanData.bidPrice == 0) {
+      return (0, 0);
+    }
+
+    CalcLoanBidFineLocalVars memory vars;
+
+    vars.reserveDecimals = reserveData.configuration.getDecimals();
+    vars.reservePriceInETH = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAsset);
+    vars.baseBidFineInReserve = (1 ether * 10**vars.reserveDecimals) / vars.reservePriceInETH;
+
+    vars.minBidFinePct = nftData.configuration.getMinBidFine();
+    vars.minBidFineInReserve = vars.baseBidFineInReserve.percentMul(vars.minBidFinePct);
+
+    (, vars.debtAmount) = ILendPoolLoan(poolLoan).getLoanReserveBorrowAmount(loanData.loanId);
+
+    vars.bidFineInReserve = vars.debtAmount.percentMul(nftData.configuration.getRedeemFine());
+    if (vars.bidFineInReserve < vars.minBidFineInReserve) {
+      vars.bidFineInReserve = vars.minBidFineInReserve;
+    }
+
+    return (vars.minBidFineInReserve, vars.bidFineInReserve);
+  }
 }

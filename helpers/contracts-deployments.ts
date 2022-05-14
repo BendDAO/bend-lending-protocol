@@ -34,7 +34,6 @@ import {
   LendPoolFactory,
   LendPoolAddressesProviderFactory,
   LendPoolLoanFactory,
-  LendPoolLiquidatorFactory,
   BTokensAndBNFTsHelperFactory,
   ReserveOracleFactory,
   NFTOracleFactory,
@@ -60,6 +59,10 @@ import {
   TimelockControllerFactory,
   WETH9,
   WETH9Factory,
+  SupplyLogicFactory,
+  BorrowLogicFactory,
+  LiquidateLogicFactory,
+  GenericLogicFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -134,17 +137,13 @@ export const deployNftLogicLibrary = async (verify?: boolean) => {
   return withSaveAndVerify(nftLogic, eContractid.NftLogic, [], verify);
 };
 
-export const deployGenericLogic = async (reserveLogic: Contract, verify?: boolean) => {
-  const genericLogicArtifact = await readArtifact(eContractid.GenericLogic);
-
-  const linkedGenericLogicByteCode = linkBytecode(genericLogicArtifact, {
-    [eContractid.ReserveLogic]: reserveLogic.address,
-  });
-
-  const genericLogicFactory = await DRE.ethers.getContractFactory(genericLogicArtifact.abi, linkedGenericLogicByteCode);
-
-  const genericLogic = await (await genericLogicFactory.connect(await getDeploySigner()).deploy()).deployed();
-  return withSaveAndVerify(genericLogic, eContractid.GenericLogic, [], verify);
+export const deployGenericLogic = async (verify?: boolean) => {
+  return withSaveAndVerify(
+    await new GenericLogicFactory(await getDeploySigner()).deploy(),
+    eContractid.GenericLogic,
+    [],
+    verify
+  );
 };
 
 export const deployValidationLogic = async (reserveLogic: Contract, genericLogic: Contract, verify?: boolean) => {
@@ -165,18 +164,67 @@ export const deployValidationLogic = async (reserveLogic: Contract, genericLogic
   return withSaveAndVerify(validationLogic, eContractid.ValidationLogic, [], verify);
 };
 
-export const deployBendLibraries = async (verify?: boolean) => {
-  const reserveLogic = await deployReserveLogicLibrary(verify);
-  const nftLogic = await deployNftLogicLibrary(verify);
-  const genericLogic = await deployGenericLogic(reserveLogic, verify);
-  const validationLogic = await deployValidationLogic(reserveLogic, genericLogic, verify);
+export const deploySupplyLogicLibrary = async (verify?: boolean) => {
+  const validateLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
+  const libraries = {
+    [PLACEHOLDER_VALIDATION_LOGIC]: validateLogicAddress,
+  };
+
+  return withSaveAndVerify(
+    await new SupplyLogicFactory(libraries, await getDeploySigner()).deploy(),
+    eContractid.SupplyLogic,
+    [],
+    verify
+  );
 };
 
-export const getBendLibraries = async (verify?: boolean): Promise<LendPoolLibraryAddresses> => {
+export const deployBorrowLogicLibrary = async (verify?: boolean) => {
+  const validateLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
+  const libraries = {
+    [PLACEHOLDER_VALIDATION_LOGIC]: validateLogicAddress,
+  };
+
+  return withSaveAndVerify(
+    await new BorrowLogicFactory(libraries, await getDeploySigner()).deploy(),
+    eContractid.BorrowLogic,
+    [],
+    verify
+  );
+};
+
+export const deployLiquidateLogicLibrary = async (verify?: boolean) => {
+  const validateLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
+  const libraries = {
+    [PLACEHOLDER_VALIDATION_LOGIC]: validateLogicAddress,
+  };
+
+  return withSaveAndVerify(
+    await new LiquidateLogicFactory(libraries, await getDeploySigner()).deploy(),
+    eContractid.LiquidateLogic,
+    [],
+    verify
+  );
+};
+
+export const deployBendLibraries = async (verify?: boolean) => {
+  const genericLogic = await deployGenericLogic(verify);
+  const reserveLogic = await deployReserveLogicLibrary(verify);
+  const nftLogic = await deployNftLogicLibrary(verify);
+  const validationLogic = await deployValidationLogic(reserveLogic, genericLogic, verify);
+
+  const supplyLogic = await deploySupplyLogicLibrary(verify);
+  const borrowLogic = await deployBorrowLogicLibrary(verify);
+  const liquidateLogic = await deployLiquidateLogicLibrary(verify);
+};
+
+export const getLendPoolLibraries = async (verify?: boolean): Promise<LendPoolLibraryAddresses> => {
   const reserveLogicAddress = await getContractAddressInDb(eContractid.ReserveLogic);
   const nftLogicAddress = await getContractAddressInDb(eContractid.NftLogic);
   const validationLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
   const genericLogicAddress = await getContractAddressInDb(eContractid.GenericLogic);
+  const supplyLogicAddress = await getContractAddressInDb(eContractid.SupplyLogic);
+  const borrowLogicAddress = await getContractAddressInDb(eContractid.BorrowLogic);
+  const liquidateLogicAddress = await getContractAddressInDb(eContractid.LiquidateLogic);
 
   // Hardcoded solidity placeholders, if any library changes path this will fail.
   // The '__$PLACEHOLDER$__ can be calculated via solidity keccak, but the LendPoolLibraryAddresses Type seems to
@@ -190,25 +238,29 @@ export const getBendLibraries = async (verify?: boolean): Promise<LendPoolLibrar
   // libPath example: contracts/libraries/logic/GenericLogic.sol
   // libName example: GenericLogic
   return {
-    //["__$4c26be947d349222af871a3168b3fe584b$__"]: genericLogic.address,
-    ["__$5201a97c05ba6aa659e2f36a933dd51801$__"]: validationLogicAddress,
-    ["__$d3b4366daeb9cadc7528af6145b50b2183$__"]: reserveLogicAddress,
-    ["__$eceb79063fab52ea3826f3ee75ecd7f36d$__"]: nftLogicAddress,
+    //[PLACEHOLDER_GENERIC_LOGIC]: genericLogic.address,
+    //[PLACEHOLDER_VALIDATION_LOGIC]: validationLogicAddress,
+    [PLACEHOLDER_RESERVE_LOGIC]: reserveLogicAddress,
+    [PLACEHOLDER_NFT_LOGIC]: nftLogicAddress,
+    [PLACEHOLDER_SUPPLY_LOGIC]: supplyLogicAddress,
+    [PLACEHOLDER_BORROW_LOGIC]: borrowLogicAddress,
+    [PLACEHOLDER_LIQUIDATE_LOGIC]: liquidateLogicAddress,
   };
 };
 
+const PLACEHOLDER_GENERIC_LOGIC = "__$4c26be947d349222af871a3168b3fe584b$__";
+const PLACEHOLDER_VALIDATION_LOGIC = "__$5201a97c05ba6aa659e2f36a933dd51801$__";
+const PLACEHOLDER_RESERVE_LOGIC = "__$d3b4366daeb9cadc7528af6145b50b2183$__";
+const PLACEHOLDER_NFT_LOGIC = "__$eceb79063fab52ea3826f3ee75ecd7f36d$__";
+const PLACEHOLDER_SUPPLY_LOGIC = "__$2f7c76ee15bdc1d8f3b34a04b86951fc56$__";
+const PLACEHOLDER_BORROW_LOGIC = "__$77c5a84c43428e206d5bf08427df63fefa$__";
+const PLACEHOLDER_LIQUIDATE_LOGIC = "__$ce70b23849b5cbed90e6e2f622d8887206$__";
+
 export const deployLendPool = async (verify?: boolean) => {
-  const libraries = await getBendLibraries(verify);
+  const libraries = await getLendPoolLibraries(verify);
   const lendPoolImpl = await new LendPoolFactory(libraries, await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolImpl, lendPoolImpl.address);
   return withSaveAndVerify(lendPoolImpl, eContractid.LendPool, [], verify);
-};
-
-export const deployLendPoolLiquidator = async (verify?: boolean) => {
-  const libraries = await getBendLibraries(verify);
-  const collateralManagerImpl = await new LendPoolLiquidatorFactory(libraries, await getDeploySigner()).deploy();
-  await insertContractAddressInDb(eContractid.LendPoolLiquidatorImpl, collateralManagerImpl.address);
-  return withSaveAndVerify(collateralManagerImpl, eContractid.LendPoolLiquidator, [], verify);
 };
 
 export const deployReserveOracle = async (args: [], verify?: boolean) => {

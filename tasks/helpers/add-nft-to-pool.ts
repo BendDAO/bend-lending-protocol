@@ -90,6 +90,9 @@ task("add-nft-to-pool", "Add and config new nft asset to lend pool")
     await waitForTx(
       await lendPoolConfiguratorProxy.connect(poolAdminSigner).setNftRedeemThreshold(asset, nftParam.redeemThreshold)
     );
+    await waitForTx(
+      await lendPoolConfiguratorProxy.connect(poolAdminSigner).setNftMinBidFine(asset, nftParam.minBidFine)
+    );
 
     console.log("WETHGateway authorizeLendPoolNFT");
     await waitForTx(await wethGateway.authorizeLendPoolNFT([asset]));

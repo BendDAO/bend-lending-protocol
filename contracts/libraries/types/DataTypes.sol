@@ -99,5 +99,79 @@ library DataTypes {
     uint256 bidPrice;
     //borrow amount of loan
     uint256 bidBorrowAmount;
+    //bidder address of first bid
+    address firstBidderAddress;
+  }
+
+  struct ExecuteDepositParams {
+    address initiator;
+    address asset;
+    uint256 amount;
+    address onBehalfOf;
+    uint16 referralCode;
+  }
+
+  struct ExecuteWithdrawParams {
+    address initiator;
+    address asset;
+    uint256 amount;
+    address to;
+  }
+
+  struct ExecuteBorrowParams {
+    address initiator;
+    address asset;
+    uint256 amount;
+    address nftAsset;
+    uint256 nftTokenId;
+    address onBehalfOf;
+    uint16 referralCode;
+  }
+
+  struct ExecuteBatchBorrowParams {
+    address initiator;
+    address[] assets;
+    uint256[] amounts;
+    address[] nftAssets;
+    uint256[] nftTokenIds;
+    address onBehalfOf;
+    uint16 referralCode;
+  }
+
+  struct ExecuteRepayParams {
+    address initiator;
+    address nftAsset;
+    uint256 nftTokenId;
+    uint256 amount;
+  }
+
+  struct ExecuteBatchRepayParams {
+    address initiator;
+    address[] nftAssets;
+    uint256[] nftTokenIds;
+    uint256[] amounts;
+  }
+
+  struct ExecuteAuctionParams {
+    address initiator;
+    address nftAsset;
+    uint256 nftTokenId;
+    uint256 bidPrice;
+    address onBehalfOf;
+  }
+
+  struct ExecuteRedeemParams {
+    address initiator;
+    address nftAsset;
+    uint256 nftTokenId;
+    uint256 amount;
+    uint256 bidFine;
+  }
+
+  struct ExecuteLiquidateParams {
+    address initiator;
+    address nftAsset;
+    uint256 nftTokenId;
+    uint256 amount;
   }
 }

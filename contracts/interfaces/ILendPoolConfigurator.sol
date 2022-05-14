@@ -159,6 +159,8 @@ interface ILendPoolConfigurator {
 
   event NftRedeemThresholdChanged(address indexed asset, uint256 redeemThreshold);
 
+  event NftMinBidFineChanged(address indexed asset, uint256 minBidFine);
+
   /**
    * @dev Emitted when an bToken implementation is upgraded
    * @param asset The address of the underlying asset of the reserve

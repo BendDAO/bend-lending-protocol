@@ -18,7 +18,6 @@ import {
   getReserveOracleImpl,
   getNFTOracle,
   getNFTOracleImpl,
-  getLendPoolLiquidator,
   getWETHGatewayImpl,
   getPunkGatewayImpl,
 } from "../../helpers/contracts-getters";
@@ -57,7 +56,6 @@ task("verify:general", "Verify general contracts at Etherscan")
     const lendPoolImpl = await getLendPoolImpl();
     const lendPoolConfiguratorImpl = await getLendPoolConfiguratorImpl();
     const lendPoolLoanImpl = await getLendPoolLoanImpl();
-    const lendPoolLoanLiq = await getLendPoolLiquidator();
 
     const reserveOracleImpl = await getReserveOracleImpl();
     const nftOracleImpl = await getNFTOracleImpl();
@@ -98,9 +96,6 @@ task("verify:general", "Verify general contracts at Etherscan")
       // Lend Pool Loan Manager implementation
       console.log("\n- Verifying LendPool Loan Implementation...\n");
       await verifyContract(eContractid.LendPoolLoanImpl, lendPoolLoanImpl, []);
-
-      console.log("\n- Verifying LendPool Liquidator Implementation...\n");
-      await verifyContract(eContractid.LendPoolLiquidator, lendPoolLoanLiq, []);
 
       // Bend Data Provider
       console.log("\n- Verifying Bend Data Provider...\n");

@@ -20,7 +20,6 @@ interface ILendPoolAddressesProvider {
   event ProxyCreated(bytes32 id, address indexed newAddress);
   event AddressSet(bytes32 id, address indexed newAddress, bool hasProxy, bytes encodedCallData);
   event BNFTRegistryUpdated(address indexed newAddress);
-  event LendPoolLiquidatorUpdated(address indexed newAddress);
   event IncentivesControllerUpdated(address indexed newAddress);
   event UIDataProviderUpdated(address indexed newAddress);
   event BendDataProviderUpdated(address indexed newAddress);
@@ -71,10 +70,6 @@ interface ILendPoolAddressesProvider {
   function getBNFTRegistry() external view returns (address);
 
   function setBNFTRegistry(address factory) external;
-
-  function getLendPoolLiquidator() external view returns (address);
-
-  function setLendPoolLiquidator(address liquidator) external;
 
   function getIncentivesController() external view returns (address);
 

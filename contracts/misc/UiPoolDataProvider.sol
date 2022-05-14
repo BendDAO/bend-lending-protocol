@@ -257,6 +257,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
       .configuration
       .getAuctionParamsMemory();
     (nftData.isActive, nftData.isFrozen) = baseData.configuration.getFlagsMemory();
+    nftData.minBidFine = baseData.configuration.getMinBidFineMemory();
   }
 
   function _fillUserNftData(

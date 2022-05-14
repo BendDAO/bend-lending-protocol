@@ -418,6 +418,17 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     emit NftRedeemThresholdChanged(asset, redeemThreshold);
   }
 
+  function setNftMinBidFine(address asset, uint256 minBidFine) external onlyPoolAdmin {
+    ILendPool cachedPool = _getLendPool();
+    DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(asset);
+
+    currentConfig.setMinBidFine(minBidFine);
+
+    cachedPool.setNftConfiguration(asset, currentConfig.data);
+
+    emit NftMinBidFineChanged(asset, minBidFine);
+  }
+
   function setMaxNumberOfReserves(uint256 newVal) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     //default value is 32

@@ -155,12 +155,6 @@
     "address": "0xd10c194Bb603907F91CC24fcCEb824870C384C1B",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
-  "LendPoolLiquidatorImpl": {
-    "address": "0xE6477cb35E3aCd9B21C6C424c72cA482e5Af2887"
-  },
-  "LendPoolLiquidator": {
-    "address": "0xE6477cb35E3aCd9B21C6C424c72cA482e5Af2887"
-  },
   "DOODLE": {
     "address": "0x10cACFfBf3Cdcfb365FDdC4795079417768BaA74",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"

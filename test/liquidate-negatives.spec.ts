@@ -265,7 +265,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const user1 = users[1];
 
     const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
-    const redeemAmount = nftAuctionData.bidBorrowAmount;
+    const redeemAmount = nftAuctionData.bidBorrowAmount.div(2);
 
     await expect(
       pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, nftAuctionData.bidFine)
