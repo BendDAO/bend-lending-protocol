@@ -148,6 +148,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const bTokensBalance = await bWETH.balanceOf(depositor.address);
     expect(bTokensBalance).to.be.gte(depositSize);
 
+    await advanceTimeAndBlock(100);
+
     // Start loan
     const nftAsset = await getNftAddressFromSymbol("BAYC");
     const tokenIdNum = testEnv.tokenIdTracker++;
@@ -166,6 +168,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const debtBalance = await getDebtBalance();
     expect(debtBalance).to.be.gte(borrowSize);
 
+    await advanceTimeAndBlock(100);
+
     // Repay with antive ETH
     // Partial Repay WETH loan with native ETH
     const partialPayment = repaySize.div(2);
@@ -175,6 +179,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
       })
     );
     expect(await getDebtBalance()).to.be.lt(debtBalance);
+
+    await advanceTimeAndBlock(100);
 
     // Full Repay WETH loan with native ETH
     await waitForTx(
@@ -217,6 +223,9 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await mintERC721(testEnv, borrower, "BAYC", tokenId);
     await setApprovalForAll(testEnv, borrower, "BAYC");
     await setApprovalForAllWETHGateway(testEnv, borrower, "BAYC");
+
+    await advanceTimeAndBlock(100);
+
     const getDebtBalance = async () => {
       const loan = await getLoanData(pool, dataProvider, nftAsset, tokenId, "0");
 
@@ -230,6 +239,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
       await wethGateway.connect(borrower.signer).borrowETH(borrowSize1, nftAsset, tokenId, borrower.address, "0")
     );
 
+    await advanceTimeAndBlock(100);
+
     console.log("Borrow more ETH with NFT");
     await waitForTx(
       await wethGateway.connect(borrower.signer).borrowETH(borrowSize2, nftAsset, tokenId, borrower.address, "0")
@@ -240,6 +251,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     const debtBalance = await getDebtBalance();
     expect(debtBalance, "debt should gte borrowSize").to.be.gte(borrowSizeAll);
 
+    await advanceTimeAndBlock(100);
+
     // Repay with antive ETH
     console.log("Partial Repay ETH loan with native ETH");
     const partialPayment = repaySize.div(2);
@@ -249,6 +262,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
       })
     );
     expect(await getDebtBalance()).to.be.lt(debtBalance);
+
+    await advanceTimeAndBlock(100);
 
     console.log("Full Repay ETH loan with native ETH");
     await waitForTx(
@@ -293,6 +308,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await setApprovalForAll(testEnv, borrower, "BAYC");
     await setApprovalForAllWETHGateway(testEnv, borrower, "BAYC");
 
+    await advanceTimeAndBlock(100);
+
     const ethBalanceBefore = await borrower.signer.getBalance();
 
     console.log("batch borrow eth");
@@ -331,6 +348,8 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     expect(loanData1AfterRepayPart.state.toNumber()).to.be.eq(ProtocolLoanState.Active);
     expect(loanData2AfterRepayPart.state.toNumber()).to.be.eq(ProtocolLoanState.Active);
+
+    await advanceTimeAndBlock(100);
 
     console.log("batch repay eth - full");
     const repaySize1Full = loanData1AfterRepayPart.currentAmount;

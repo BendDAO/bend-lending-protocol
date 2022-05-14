@@ -8,15 +8,10 @@ import {
 } from "../../helpers/configuration";
 import {
   getBendProtocolDataProvider,
-  getBendProxyAdminByAddress,
   getBendProxyAdminById,
   getBendUpgradeableProxy,
-  getDeploySigner,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
-  getPunkGateway,
-  getUIPoolDataProvider,
-  getWalletProvider,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
 import { eContractid, eNetwork } from "../../helpers/types";
@@ -25,15 +20,12 @@ import {
   deployLendPoolLoan,
   deployReserveOracle,
   deployNFTOracle,
-  deployBendLibraries,
-  getLendPoolLibraries,
   deployLendPoolConfigurator,
   deployUiPoolDataProvider,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   deployPunkGateway,
   deployWETHGateway,
-  deployBTokensAndBNFTsHelper,
   deployInterestRate,
   deployGenericDebtToken,
   deployBendCollector,
@@ -42,7 +34,6 @@ import {
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
-import { ethers } from "hardhat";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY, oneRay } from "../../helpers/constants";
 import { BytesLike } from "ethers";
 import BigNumber from "bignumber.js";
@@ -209,11 +200,6 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       if (upgrade) {
         await waitForTx(await addressesProvider.setWalletBalanceProvider(contractImpl.address));
       }
-    }
-
-    if (contract == "BTokensAndBNFTsHelper") {
-      const contractImpl = await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
-      console.log("BTokensAndBNFTsHelper implementation address:", contractImpl.address);
     }
 
     if (contract == "BendCollector") {

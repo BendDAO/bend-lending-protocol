@@ -110,10 +110,6 @@
   "LendPoolConfigurator": {
     "address": "0x97987245f5Cb66c1EF4A1f750eb6865931486Fd6"
   },
-  "BTokensAndBNFTsHelper": {
-    "address": "0xB1a439E35972F92aD218f48e42507Fb07651532F",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
-  },
   "BToken": {
     "address": "0xa2C6f0e0022FE5E5336B084835C03f4603223072",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
