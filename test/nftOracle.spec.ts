@@ -17,7 +17,7 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
   it("NFTOracle: Add Asset", async () => {
     const { mockNftOracle, users } = testEnv;
     await mockNftOracle.addAsset(users[0].address);
-    expect(await mockNftOracle.nftPriceFeedKeys(10)).eq(users[0].address);
+    expect(await mockNftOracle.nftPriceFeedKeys(0)).eq(users[0].address);
     await expect(mockNftOracle.connect(users[1].signer).addAsset(users[1].address)).to.be.revertedWith(
       "Ownable: caller is not the owner"
     );
@@ -28,8 +28,8 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
     const { mockNftOracle, users } = testEnv;
     await mockNftOracle.addAsset(users[0].address);
     await mockNftOracle.addAsset(users[1].address);
-    expect(await mockNftOracle.nftPriceFeedKeys(10)).eq(users[0].address);
-    expect(await mockNftOracle.nftPriceFeedKeys(11)).eq(users[1].address);
+    expect(await mockNftOracle.nftPriceFeedKeys(0)).eq(users[0].address);
+    expect(await mockNftOracle.nftPriceFeedKeys(1)).eq(users[1].address);
     await mockNftOracle.removeAsset(users[0].address);
     await mockNftOracle.removeAsset(users[1].address);
   });
@@ -39,7 +39,7 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
 
     let error;
     try {
-      await mockNftOracle.nftPriceFeedKeys(10);
+      await mockNftOracle.nftPriceFeedKeys(0);
     } catch (e) {
       error = e;
     }
@@ -51,7 +51,7 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
     await mockNftOracle.addAsset(users[0].address);
     await mockNftOracle.addAsset(users[1].address);
     await mockNftOracle.removeAsset(users[0].address);
-    expect(await mockNftOracle.nftPriceFeedKeys(10)).eq(users[1].address);
+    expect(await mockNftOracle.nftPriceFeedKeys(0)).eq(users[1].address);
     expect(await mockNftOracle.getPriceFeedLength(users[1].address)).to.equal("0");
     await mockNftOracle.removeAsset(users[1].address);
   });
