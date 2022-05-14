@@ -273,6 +273,22 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock nft oracle...");
+  const nftOracleImpl = await deployMockNFTOracle();
+  await waitForTx(
+    await nftOracleImpl.initialize(
+      await addressesProvider.getPoolAdmin(),
+      "20000000000000000000",
+      "10000000000000000000",
+      1,
+      1,
+      100
+    )
+  );
+  await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
+  await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
+  await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
+
+  console.log("-> Prepare mock nft oracle...");
   const mockNftOracleImpl = await deployMockNFTOracle();
   await waitForTx(
     await mockNftOracleImpl.initialize(

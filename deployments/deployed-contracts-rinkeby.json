@@ -65,35 +65,47 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ReserveLogic": {
-    "address": "0x6b1B364666e1D9F559f360f490107ae39267dfAc",
+    "address": "0x61E1F760250fB4EA373ffbC570be237BCaba845b",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "NftLogic": {
-    "address": "0x7b2D67805849513CA58AE6E023dD34ac6c3082AC",
+    "address": "0x0FeA26fd892D4E2bD2943bBFC342DE0C3020ff09",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "GenericLogic": {
-    "address": "0x5eC12720EbEF9af3843BF0025cA6ABc33403D461",
+    "address": "0xdce4A43b29a5CFF4E883fb30534F49A5fD61297c",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ValidationLogic": {
-    "address": "0xB178CFE670869C13EB828B492E689C044047cf52",
+    "address": "0x8Be229735936E1A7e9C68bC30E8260f5B821e1EA",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "SupplyLogic": {
+    "address": "0xdE8253E9df977DD86b1226d43Dcf06F164a7eCbc",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "BorrowLogic": {
+    "address": "0x938831c3EEb4a83FA315676BFD53F77A11284573",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "LiquidateLogic": {
+    "address": "0xb7F56fb3f6A3a306ffb0dee4269E2c0a534c3CBB",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
-    "address": "0xe4dCc99aDcF091e2E677EB69B6039af8406719A1"
+    "address": "0x52c1C07f2a1FC3A86E1771474ddAFcff28Bee7b4"
   },
   "LendPool": {
     "address": "0xa8D0e90bCB533d70067EEc37601fa7D5C5b3F13E"
   },
   "LendPoolLoanImpl": {
-    "address": "0xD6D70F62a4C312E07EE70397B63b76A87dC8E93a"
+    "address": "0x14485EA9871f4A529aa75daAf45D3AB07725Dff3"
   },
   "LendPoolLoan": {
     "address": "0xbc622a62bAC3B7de0659A0Dc7b50E4d59aF11377"
   },
   "LendPoolConfiguratorImpl": {
-    "address": "0xbEf9f0029f3BB83080107a5268eF4b1BeF836881"
+    "address": "0x3A1234Ff0D9e56274300aa1A35e41565D2AbA45F"
   },
   "LendPoolConfigurator": {
     "address": "0x97987245f5Cb66c1EF4A1f750eb6865931486Fd6"
@@ -146,11 +158,11 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "BendProtocolDataProvider": {
-    "address": "0x6a25DB7205d74adc18b998cC081CBBaACD925aAb",
+    "address": "0x9fd32d7Fdf2Cb7cdD6E1aA3497a29352cc34843C",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "UIPoolDataProvider": {
-    "address": "0xd10c194Bb603907F91CC24fcCEb824870C384C1B",
+    "address": "0x4fBE1BE9Fbe2a81A1f350539D560CCa188A7bcc7",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "DOODLE": {
