@@ -2,34 +2,21 @@
 pragma solidity 0.8.4;
 
 interface ILendPoolConfigurator {
-  struct InitReserveInput {
-    address bTokenImpl;
-    address debtTokenImpl;
-    uint8 underlyingAssetDecimals;
-    address interestRateAddress;
-    address underlyingAsset;
-    address treasury;
-    string underlyingAssetName;
-    string bTokenName;
-    string bTokenSymbol;
-    string debtTokenName;
-    string debtTokenSymbol;
-  }
-
-  struct InitNftInput {
-    address underlyingAsset;
-  }
-
-  struct UpdateBTokenInput {
+  struct ConfigReserveInput {
     address asset;
-    address implementation;
-    bytes encodedCallData;
+    uint256 reserveFactor;
   }
 
-  struct UpdateDebtTokenInput {
+  struct ConfigNftInput {
     address asset;
-    address implementation;
-    bytes encodedCallData;
+    uint256 baseLTV;
+    uint256 liquidationThreshold;
+    uint256 liquidationBonus;
+    uint256 redeemDuration;
+    uint256 auctionDuration;
+    uint256 redeemFine;
+    uint256 redeemThreshold;
+    uint256 minBidFine;
   }
 
   /**

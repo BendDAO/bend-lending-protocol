@@ -86,7 +86,7 @@ const buidlerConfig: HardhatUserConfig = {
     ],
   },
   contractSizer: {
-    alphaSort: false,
+    alphaSort: true,
     runOnCompile: false,
     disambiguatePaths: false,
   },

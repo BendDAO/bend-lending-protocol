@@ -34,6 +34,7 @@ import {
   MockIncentivesControllerFactory,
   UiPoolDataProviderFactory,
   BendCollectorFactory,
+  ConfiguratorLogicFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -306,6 +307,12 @@ export const getReserveLogic = async (address?: tEthereumAddress) =>
 export const getGenericLogic = async (address?: tEthereumAddress) =>
   await GenericLogicFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.GenericLogic}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getConfiguratorLogic = async (address?: tEthereumAddress) =>
+  await ConfiguratorLogicFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.ConfiguratorLogic}`).value()).address,
     await getDeploySigner()
   );
 
