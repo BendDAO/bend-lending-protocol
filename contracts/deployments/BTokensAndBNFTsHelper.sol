@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
+import {ILendPoolConfigurator} from "../interfaces/ILendPoolConfigurator.sol";
+
 import {LendPoolAddressesProvider} from "../protocol/LendPoolAddressesProvider.sol";
 import {LendPoolConfigurator} from "../protocol/LendPoolConfigurator.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -32,31 +34,46 @@ contract BTokensAndBNFTsHelper is Ownable {
 
   function configureReserves(ConfigureReserveInput[] calldata inputParams) external onlyOwner {
     LendPoolConfigurator configurator = LendPoolConfigurator(addressesProvider.getLendPoolConfigurator());
+
+    address[] memory assets = new address[](1);
+    ILendPoolConfigurator.ConfigReserveInput[] memory cfgInputs = new ILendPoolConfigurator.ConfigReserveInput[](
+      inputParams.length
+    );
+
     for (uint256 i = 0; i < inputParams.length; i++) {
+      assets[0] = inputParams[i].asset;
       if (inputParams[i].borrowingEnabled) {
-        configurator.enableBorrowingOnReserve(inputParams[i].asset);
+        configurator.setBorrowingFlagOnReserve(assets, true);
       }
-      configurator.setReserveFactor(inputParams[i].asset, inputParams[i].reserveFactor);
+
+      cfgInputs[i].asset = inputParams[i].asset;
+      cfgInputs[i].reserveFactor = inputParams[i].reserveFactor;
     }
+
+    configurator.batchConfigReserve(cfgInputs);
   }
 
   function configureNfts(ConfigureNftInput[] calldata inputParams) external onlyOwner {
     LendPoolConfigurator configurator = LendPoolConfigurator(addressesProvider.getLendPoolConfigurator());
+
+    ILendPoolConfigurator.ConfigNftInput[] memory cfgInputs = new ILendPoolConfigurator.ConfigNftInput[](
+      inputParams.length
+    );
+
     for (uint256 i = 0; i < inputParams.length; i++) {
-      configurator.configureNftAsCollateral(
-        inputParams[i].asset,
-        inputParams[i].baseLTV,
-        inputParams[i].liquidationThreshold,
-        inputParams[i].liquidationBonus
-      );
-      configurator.configureNftAsAuction(
-        inputParams[i].asset,
-        inputParams[i].redeemDuration,
-        inputParams[i].auctionDuration,
-        inputParams[i].redeemFine
-      );
-      configurator.setNftRedeemThreshold(inputParams[i].asset, inputParams[i].redeemThreshold);
-      configurator.setNftMinBidFine(inputParams[i].asset, inputParams[i].minBidFine);
+      cfgInputs[i].asset = inputParams[i].asset;
+
+      cfgInputs[i].baseLTV = inputParams[i].baseLTV;
+      cfgInputs[i].liquidationThreshold = inputParams[i].liquidationThreshold;
+      cfgInputs[i].liquidationBonus = inputParams[i].liquidationBonus;
+
+      cfgInputs[i].redeemDuration = inputParams[i].redeemDuration;
+      cfgInputs[i].auctionDuration = inputParams[i].auctionDuration;
+      cfgInputs[i].redeemFine = inputParams[i].redeemFine;
+      cfgInputs[i].redeemThreshold = inputParams[i].redeemThreshold;
+      cfgInputs[i].minBidFine = inputParams[i].minBidFine;
     }
+
+    configurator.batchConfigNft(cfgInputs);
   }
 }
