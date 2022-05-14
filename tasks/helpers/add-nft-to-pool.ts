@@ -4,10 +4,8 @@ import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../h
 import { ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import {
   getBNFTRegistryProxy,
-  getBTokensAndBNFTsHelper,
   getIErc721Detailed,
   getLendPoolAddressesProvider,
-  getLendPoolAddressesProviderRegistry,
   getLendPoolConfiguratorProxy,
   getWETHGateway,
 } from "../../helpers/contracts-getters";

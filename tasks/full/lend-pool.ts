@@ -6,7 +6,6 @@ import {
 } from "../../helpers/contracts-helpers";
 import {
   deployBTokenImplementations,
-  deployBTokensAndBNFTsHelper,
   deployLendPool,
   deployLendPoolLoan,
   deployLendPoolConfigurator,
@@ -100,10 +99,6 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const admin = await DRE.ethers.getSigner(await getEmergencyAdmin(poolConfig));
       // Pause market during deployment
       await waitForTx(await lendPoolConfiguratorProxy.connect(admin).setPoolPause(true));
-
-      //////////////////////////////////////////////////////////////////////////
-      // Deploy deployment helpers
-      await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
 
       // Generic BToken & DebtToken Implementation in Pool
       await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);

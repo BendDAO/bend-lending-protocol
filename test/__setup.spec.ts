@@ -8,7 +8,6 @@ import {
   deployLendPoolConfigurator,
   deployLendPool,
   deployLendPoolLoan,
-  deployBTokensAndBNFTsHelper,
   deployReserveOracle,
   deployNFTOracle,
   deployMockNFTOracle,
@@ -191,10 +190,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     await addressesProvider.getLendPoolConfigurator()
   );
   await insertContractAddressInDb(eContractid.LendPoolConfigurator, lendPoolConfiguratorProxy.address);
-
-  //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare BToken and BNFT helper...");
-  await deployBTokensAndBNFTsHelper([addressesProvider.address]);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock reserve token aggregators...");

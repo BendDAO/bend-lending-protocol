@@ -1,7 +1,6 @@
 import { task } from "hardhat/config";
 import {
   deployBTokenImplementations,
-  deployBTokensAndBNFTsHelper,
   deployLendPool,
   deployLendPoolConfigurator,
   deployLendPoolLoan,
@@ -66,10 +65,6 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
 
     const lendPoolLoanProxy = await getLendPoolLoanProxy(await addressesProvider.getLendPoolLoan());
     await insertContractAddressInDb(eContractid.LendPoolLoan, lendPoolLoanProxy.address);
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Deploy deployment helpers
-    await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
 
     // Generic BNFT Implementation at here
     await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);
