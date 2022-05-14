@@ -37,6 +37,8 @@ import {
   deployInterestRate,
   deployGenericDebtToken,
   deployBendCollector,
+  deployConfiguratorLibraries,
+  deployLendPoolLibraries,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
@@ -59,24 +61,8 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
     const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
-    if (contract == "LendPoolLibraries") {
-      await deployBendLibraries(verify);
-      const bendLibs = await getLendPoolLibraries(verify);
-      console.log("LendPool Libraries address:", bendLibs);
-
-      const lendPoolImpl = await deployLendPool(verify);
-      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
-      console.log("LendPool implementation address:", lendPoolImpl.address);
-
-      if (upgrade) {
-        await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
-      }
-      await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
-    }
-
     if (contract == "LendPool") {
-      const bendLibs = await getLendPoolLibraries(verify);
-      console.log("Bend Libraries address:", bendLibs);
+      await deployLendPoolLibraries();
 
       const lendPoolImpl = await deployLendPool(verify);
       await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
@@ -90,6 +76,8 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     }
 
     if (contract == "LendPoolConfigurator") {
+      await deployConfiguratorLibraries();
+
       const lendPoolCfgImpl = await deployLendPoolConfigurator(verify);
       console.log("LendPoolConfigurator implementation address:", lendPoolCfgImpl.address);
 
@@ -321,6 +309,12 @@ task("dev:upgrade-all-debtokens", "Update implementation to debt token")
     const debtTokenImpl = await deployGenericDebtToken(verify);
     console.log("DebtToken implementation:", debtTokenImpl.address);
 
+    let inputs: {
+      asset: string;
+      implementation: string;
+      encodedCallData: BytesLike;
+    }[] = [];
+
     const allReserves = await protocolDataProvider.getAllReservesTokenDatas();
     for (const reserve of allReserves) {
       console.log("Reserve Tokens:", reserve.tokenSymbol, reserve.tokenAddress, reserve.debtTokenAddress);
@@ -333,6 +327,8 @@ task("dev:upgrade-all-debtokens", "Update implementation to debt token")
         implementation: debtTokenImpl.address,
         encodedCallData: [],
       };
-      await waitForTx(await lendPoolConfigurator.connect(poolAdminSigner).updateDebtToken(input));
+      inputs.push(input);
     }
+
+    await waitForTx(await lendPoolConfigurator.connect(poolAdminSigner).updateDebtToken(inputs));
   });

@@ -4,20 +4,15 @@ import { DRE, getDb, notFalsyOrZeroAddress } from "./misc-utils";
 import {
   tEthereumAddress,
   eContractid,
-  tStringTokenSmallUnits,
   BendPools,
   TokenContractId,
   NftContractId,
-  iMultiPoolsAssets,
   IReserveParams,
   INftParams,
-  PoolConfiguration,
-  eEthereumNetwork,
 } from "./types";
 import { MockContract } from "ethereum-waffle";
 import { ConfigNames, getReservesConfigByPool, getNftsConfigByPool, loadPoolConfig } from "./configuration";
 import { getDeploySigner } from "./contracts-getters";
-import { ZERO_ADDRESS } from "./constants";
 import {
   LendPoolAddressesProviderRegistryFactory,
   BendProtocolDataProviderFactory,
@@ -63,14 +58,13 @@ import {
   BorrowLogicFactory,
   LiquidateLogicFactory,
   GenericLogicFactory,
+  ConfiguratorLogicFactory,
 } from "../types";
 import {
   withSaveAndVerify,
   registerContractInJsonDb,
   linkBytecode,
   insertContractAddressInDb,
-  deployContract,
-  verifyContract,
   getOptionalParamAddressPerNetwork,
   getContractAddressInDb,
 } from "./contracts-helpers";
@@ -99,7 +93,13 @@ export const deployLendPoolAddressesProvider = async (marketId: string, verify?:
   );
 
 export const deployLendPoolConfigurator = async (verify?: boolean) => {
-  const lendPoolConfiguratorImpl = await new LendPoolConfiguratorFactory(await getDeploySigner()).deploy();
+  const cfgLogicAddress = await getContractAddressInDb(eContractid.ConfiguratorLogic);
+
+  const libraries = {
+    [PLACEHOLDER_CONFIGURATOR_LOGIC]: cfgLogicAddress,
+  };
+
+  const lendPoolConfiguratorImpl = await new LendPoolConfiguratorFactory(libraries, await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.LendPoolConfiguratorImpl, lendPoolConfiguratorImpl.address);
   return withSaveAndVerify(lendPoolConfiguratorImpl, eContractid.LendPoolConfigurator, [], verify);
 };
@@ -207,6 +207,11 @@ export const deployLiquidateLogicLibrary = async (verify?: boolean) => {
 };
 
 export const deployBendLibraries = async (verify?: boolean) => {
+  await deployLendPoolLibraries();
+  await deployConfiguratorLibraries();
+};
+
+export const deployLendPoolLibraries = async (verify?: boolean) => {
   const genericLogic = await deployGenericLogic(verify);
   const reserveLogic = await deployReserveLogicLibrary(verify);
   const nftLogic = await deployNftLogicLibrary(verify);
@@ -255,6 +260,20 @@ const PLACEHOLDER_NFT_LOGIC = "__$eceb79063fab52ea3826f3ee75ecd7f36d$__";
 const PLACEHOLDER_SUPPLY_LOGIC = "__$2f7c76ee15bdc1d8f3b34a04b86951fc56$__";
 const PLACEHOLDER_BORROW_LOGIC = "__$77c5a84c43428e206d5bf08427df63fefa$__";
 const PLACEHOLDER_LIQUIDATE_LOGIC = "__$ce70b23849b5cbed90e6e2f622d8887206$__";
+const PLACEHOLDER_CONFIGURATOR_LOGIC = "__$3b2ad8f1ea56cc7a60e9a93596bbfe9178$__";
+
+export const deployConfiguratorLibraries = async (verify?: boolean) => {
+  const cfgLogic = await deployConfiguratorLogicLibrary(verify);
+};
+
+export const deployConfiguratorLogicLibrary = async (verify?: boolean) => {
+  return withSaveAndVerify(
+    await new ConfiguratorLogicFactory(await getDeploySigner()).deploy(),
+    eContractid.ConfiguratorLogic,
+    [],
+    verify
+  );
+};
 
 export const deployLendPool = async (verify?: boolean) => {
   const libraries = await getLendPoolLibraries(verify);

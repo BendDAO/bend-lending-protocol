@@ -38,11 +38,13 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
       asset: string;
       implementation: string;
       encodedCallData: BytesLike;
-    } = {
-      asset: dai.address,
-      implementation: newBTokenInstance.address,
-      encodedCallData: [],
-    };
+    }[] = [
+      {
+        asset: dai.address,
+        implementation: newBTokenInstance.address,
+        encodedCallData: [],
+      },
+    ];
     await expect(configurator.connect(users[1].signer).updateBToken(updateBTokenInputParams)).to.be.revertedWith(
       CALLER_NOT_POOL_ADMIN
     );
@@ -57,11 +59,13 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
       asset: string;
       implementation: string;
       encodedCallData: BytesLike;
-    } = {
-      asset: dai.address,
-      implementation: newBTokenInstance.address,
-      encodedCallData: [],
-    };
+    }[] = [
+      {
+        asset: dai.address,
+        implementation: newBTokenInstance.address,
+        encodedCallData: [],
+      },
+    ];
     await configurator.updateBToken(updateBTokenInputParams);
 
     const checkImpl = await configurator.getTokenImplementation(bTokenAddress);
@@ -75,11 +79,13 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
       asset: string;
       implementation: string;
       encodedCallData: BytesLike;
-    } = {
-      asset: dai.address,
-      implementation: newBTokenInstance.address,
-      encodedCallData: [],
-    };
+    }[] = [
+      {
+        asset: dai.address,
+        implementation: newBTokenInstance.address,
+        encodedCallData: [],
+      },
+    ];
     await expect(configurator.connect(users[1].signer).updateDebtToken(updateDebtTokenInputParams)).to.be.revertedWith(
       CALLER_NOT_POOL_ADMIN
     );
@@ -94,11 +100,13 @@ makeSuite("Upgradeability", (testEnv: TestEnv) => {
       asset: string;
       implementation: string;
       encodedCallData: BytesLike;
-    } = {
-      asset: dai.address,
-      implementation: newDebtTokenInstance.address,
-      encodedCallData: [],
-    };
+    }[] = [
+      {
+        asset: dai.address,
+        implementation: newDebtTokenInstance.address,
+        encodedCallData: [],
+      },
+    ];
     await configurator.updateDebtToken(updateDebtTokenInputParams);
 
     const checkImpl = await configurator.getTokenImplementation(debtTokenAddress);
