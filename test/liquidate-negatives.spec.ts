@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-import { DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
+import { advanceTimeAndBlock, DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
@@ -122,17 +122,16 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("Drop loan health factor below 1", async () => {
-    const { bayc, mockNftOracle, pool, users } = testEnv;
+    const { bayc, nftOracle, pool, users } = testEnv;
 
     const poolLoanData = await pool.getNftDebtData(bayc.address, "101");
     const baycPrice = new BigNumber(poolLoanData.totalDebt.toString())
       .percentMul(new BigNumber(5000)) // 50%
       .toFixed(0);
-    const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
-    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(100));
-    await mockNftOracle.setAssetData(bayc.address, baycPrice);
-    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(200));
-    await mockNftOracle.setAssetData(bayc.address, baycPrice);
+    await advanceTimeAndBlock(100);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
+    await advanceTimeAndBlock(200);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
   });
 
   it("User 2 auction price is unable to cover borrow", async () => {
@@ -147,7 +146,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("User 2 auction price is less than liquidate price", async () => {
-    const { weth, bayc, mockNftOracle, pool, users } = testEnv;
+    const { weth, bayc, nftOracle, pool, users } = testEnv;
     const user2 = users[2];
 
     const nftColData = await pool.getNftCollateralData(bayc.address, weth.address);
@@ -159,11 +158,10 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       .percentDiv(new BigNumber(nftColData.liquidationThreshold.toString()))
       .toFixed(0);
 
-    const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
-    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(100));
-    await mockNftOracle.setAssetData(bayc.address, baycPrice);
-    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(200));
-    await mockNftOracle.setAssetData(bayc.address, baycPrice);
+    await advanceTimeAndBlock(100);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
+    await advanceTimeAndBlock(200);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
 
