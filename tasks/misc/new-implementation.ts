@@ -67,7 +67,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     }
 
     if (contract == "LendPoolConfigurator") {
-      await deployConfiguratorLibraries();
+      await deployConfiguratorLibraries(verify);
 
       const lendPoolCfgImpl = await deployLendPoolConfigurator(verify);
       console.log("LendPoolConfigurator implementation address:", lendPoolCfgImpl.address);
