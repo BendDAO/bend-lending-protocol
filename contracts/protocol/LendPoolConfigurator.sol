@@ -283,7 +283,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
    * @param asset The address of the underlying asset of the reserve
    * @param ltv The loan to value of the asset when used as NFT
    * @param liquidationThreshold The threshold at which loans using this asset as collateral will be considered undercollateralized
-   * @param liquidationBonus The bonus liquidators receive to liquidate this asset. The values is always below 100%. A value of 5%
+   * @param liquidationBonus The bonus liquidators receive to liquidate this asset. The values is always below 100%. 
    * means the liquidator will receive a 5% bonus
    **/
   function configureNftAsCollateral(
