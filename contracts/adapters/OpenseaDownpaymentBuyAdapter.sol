@@ -407,7 +407,7 @@ contract OpenseaDownpaymentBuyAdapter is
     return ILendPool(bendAddressesProvider.getLendPool());
   }
 
-  function _decodeParams(bytes memory _params) internal pure returns (Params memory) {
+  function _decodeParams(bytes memory _params) public pure returns (Params memory) {
     return abi.decode(_params, (Params));
   }
 
