@@ -145,7 +145,23 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Changes the reserve factor of WETH & DAI", async () => {
+  it("Changes the reserve factor of WETH", async () => {
+    const { configurator, dataProvider, weth } = testEnv;
+    await configurator.setReserveFactor([weth.address], "1000");
+    const { reserveFactor } = await dataProvider.getReserveConfigurationData(weth.address);
+
+    expect(reserveFactor).to.be.equal(1000);
+  });
+
+  it("Check the onlyLendPoolManager on setReserveFactor", async () => {
+    const { configurator, users, weth } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).setReserveFactor([weth.address], "2000"),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Batch Changes the reserve factor of WETH & DAI", async () => {
     const { configurator, dataProvider, weth, dai } = testEnv;
 
     let inputs: { asset: string; reserveFactor: BigNumberish }[] = [
@@ -174,7 +190,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     }
   });
 
-  it("Check the onlyPoolAdmin on setReserveFactor", async () => {
+  it("Check the onlyPoolAdmin on batchConfigReserve", async () => {
     const { configurator, users, weth } = testEnv;
 
     let inputs: { asset: string; reserveFactor: BigNumberish }[] = [
