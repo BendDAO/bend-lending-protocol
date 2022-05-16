@@ -564,6 +564,62 @@
   {
     "inputs": [
       {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "redeemDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "auctionDuration",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "redeemFine",
+        "type": "uint256"
+      }
+    ],
+    "name": "configureNftAsAuction",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "ltv",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidationThreshold",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "liquidationBonus",
+        "type": "uint256"
+      }
+    ],
+    "name": "configureNftAsCollateral",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "proxyAddress",
         "type": "address"
@@ -712,12 +768,66 @@
   {
     "inputs": [
       {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minBidFine",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNftMinBidFine",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "redeemThreshold",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNftRedeemThreshold",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bool",
         "name": "val",
         "type": "bool"
       }
     ],
     "name": "setPoolPause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "reserveFactor",
+        "type": "uint256"
+      }
+    ],
+    "name": "setReserveFactor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
