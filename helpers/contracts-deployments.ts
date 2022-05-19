@@ -206,8 +206,8 @@ export const deployLiquidateLogicLibrary = async (verify?: boolean) => {
 };
 
 export const deployBendLibraries = async (verify?: boolean) => {
-  await deployLendPoolLibraries();
-  await deployConfiguratorLibraries();
+  await deployLendPoolLibraries(verify);
+  await deployConfiguratorLibraries(verify);
 };
 
 export const deployLendPoolLibraries = async (verify?: boolean) => {
