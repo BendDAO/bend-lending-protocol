@@ -31,9 +31,12 @@ export enum eContractid {
   ReserveLogic = "ReserveLogic",
   NftLogic = "NftLogic",
   GenericLogic = "GenericLogic",
+  SupplyLogic = "SupplyLogic",
+  BorrowLogic = "BorrowLogic",
+  LiquidateLogic = "LiquidateLogic",
+  ConfiguratorLogic = "ConfiguratorLogic",
   LendPool = "LendPool",
   LendPoolLoan = "LendPoolLoan",
-  LendPoolLiquidator = "LendPoolLiquidator",
   ReserveOracle = "ReserveOracle",
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
@@ -56,7 +59,6 @@ export enum eContractid {
   IERC20Detailed = "IERC20Detailed",
   IERC721Detailed = "IERC721Detailed",
   FeeProvider = "FeeProvider",
-  BTokensAndBNFTsHelper = "BTokensAndBNFTsHelper",
   WETHGateway = "WETHGateway",
   WETHGatewayImpl = "WETHGatewayImpl",
   WETH = "WETH",
@@ -68,7 +70,6 @@ export enum eContractid {
   LendPoolImpl = "LendPoolImpl",
   LendPoolConfiguratorImpl = "LendPoolConfiguratorImpl",
   LendPoolLoanImpl = "LendPoolLoanImpl",
-  LendPoolLiquidatorImpl = "LendPoolLiquidatorImpl",
   BNFTRegistry = "BNFTRegistry",
   BNFTRegistryImpl = "BNFTRegistryImpl",
   CryptoPunksMarket = "CryptoPunksMarket",
@@ -327,6 +328,7 @@ export interface INftAuctionParams {
   auctionDuration: string;
   redeemFine: string;
   redeemThreshold: string;
+  minBidFine: string;
 }
 
 export type iParamsPerNetwork<T> = iEthereumParamsPerNetwork<T>;

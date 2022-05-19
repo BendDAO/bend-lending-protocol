@@ -207,6 +207,25 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "minBidFine",
+        "type": "uint256"
+      }
+    ],
+    "name": "NftMinBidFineChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "redeemThreshold",
         "type": "uint256"
       }
@@ -370,12 +389,59 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "asset",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "baseLTV",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationBonus",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "redeemDuration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "auctionDuration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "redeemFine",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "redeemThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minBidFine",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ILendPoolConfigurator.ConfigNftInput[]",
+        "name": "inputs",
+        "type": "tuple[]"
       }
     ],
-    "name": "activateNft",
+    "name": "batchConfigNft",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -383,12 +449,24 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "asset",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "reserveFactor",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ILendPoolConfigurator.ConfigReserveInput[]",
+        "name": "inputs",
+        "type": "tuple[]"
       }
     ],
-    "name": "activateReserve",
+    "name": "batchConfigReserve",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -403,7 +481,7 @@
             "type": "address"
           }
         ],
-        "internalType": "struct ILendPoolConfigurator.InitNftInput[]",
+        "internalType": "struct ConfigTypes.InitNftInput[]",
         "name": "input",
         "type": "tuple[]"
       }
@@ -473,7 +551,7 @@
             "type": "string"
           }
         ],
-        "internalType": "struct ILendPoolConfigurator.InitReserveInput[]",
+        "internalType": "struct ConfigTypes.InitReserveInput[]",
         "name": "input",
         "type": "tuple[]"
       }
@@ -486,9 +564,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
       },
       {
         "internalType": "uint256",
@@ -514,9 +592,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
       },
       {
         "internalType": "uint256",
@@ -535,84 +613,6 @@
       }
     ],
     "name": "configureNftAsCollateral",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "deactivateNft",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "deactivateReserve",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "disableBorrowingOnReserve",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "enableBorrowingOnReserve",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "freezeNft",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "freezeReserve",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -652,6 +652,96 @@
   {
     "inputs": [
       {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "flag",
+        "type": "bool"
+      }
+    ],
+    "name": "setActiveFlagOnNft",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "flag",
+        "type": "bool"
+      }
+    ],
+    "name": "setActiveFlagOnReserve",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "flag",
+        "type": "bool"
+      }
+    ],
+    "name": "setBorrowingFlagOnReserve",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "flag",
+        "type": "bool"
+      }
+    ],
+    "name": "setFreezeFlagOnNft",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "flag",
+        "type": "bool"
+      }
+    ],
+    "name": "setFreezeFlagOnReserve",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "newVal",
         "type": "uint256"
@@ -678,9 +768,27 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "minBidFine",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNftMinBidFine",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
       },
       {
         "internalType": "uint256",
@@ -709,9 +817,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
       },
       {
         "internalType": "uint256",
@@ -727,9 +835,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
       },
       {
         "internalType": "address",
@@ -738,32 +846,6 @@
       }
     ],
     "name": "setReserveInterestRateAddress",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "unfreezeNft",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "asset",
-        "type": "address"
-      }
-    ],
-    "name": "unfreezeReserve",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -788,9 +870,9 @@
             "type": "bytes"
           }
         ],
-        "internalType": "struct ILendPoolConfigurator.UpdateBTokenInput",
-        "name": "input",
-        "type": "tuple"
+        "internalType": "struct ConfigTypes.UpdateBTokenInput[]",
+        "name": "inputs",
+        "type": "tuple[]"
       }
     ],
     "name": "updateBToken",
@@ -818,9 +900,9 @@
             "type": "bytes"
           }
         ],
-        "internalType": "struct ILendPoolConfigurator.UpdateDebtTokenInput",
-        "name": "input",
-        "type": "tuple"
+        "internalType": "struct ConfigTypes.UpdateDebtTokenInput[]",
+        "name": "inputs",
+        "type": "tuple[]"
       }
     ],
     "name": "updateDebtToken",

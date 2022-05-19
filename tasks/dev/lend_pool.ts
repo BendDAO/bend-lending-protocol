@@ -1,12 +1,9 @@
 import { task } from "hardhat/config";
 import {
   deployBTokenImplementations,
-  deployBNFTImplementations,
-  deployBTokensAndBNFTsHelper,
   deployLendPool,
   deployLendPoolConfigurator,
   deployLendPoolLoan,
-  deployLendPoolLiquidator,
   deployBendLibraries,
 } from "../../helpers/contracts-deployments";
 import { eContractid } from "../../helpers/types";
@@ -48,11 +45,6 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
     await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
 
     ////////////////////////////////////////////////////////////////////////////
-    // deploy lend pool liquidator
-    const lendPoolLiquidatorImpl = await deployLendPoolLiquidator(verify);
-    await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiquidatorImpl.address));
-
-    ////////////////////////////////////////////////////////////////////////////
     // deploy lend pool configurator
     const lendPoolConfiguratorImpl = await deployLendPoolConfigurator(verify);
 
@@ -73,10 +65,6 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
 
     const lendPoolLoanProxy = await getLendPoolLoanProxy(await addressesProvider.getLendPoolLoan());
     await insertContractAddressInDb(eContractid.LendPoolLoan, lendPoolLoanProxy.address);
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Deploy deployment helpers
-    await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
 
     // Generic BNFT Implementation at here
     await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);

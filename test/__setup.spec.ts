@@ -8,7 +8,6 @@ import {
   deployLendPoolConfigurator,
   deployLendPool,
   deployLendPoolLoan,
-  deployBTokensAndBNFTsHelper,
   deployReserveOracle,
   deployNFTOracle,
   deployMockNFTOracle,
@@ -27,7 +26,6 @@ import {
   deployAllMockNfts,
   deployUiPoolDataProvider,
   deployMockChainlinkOracle,
-  deployLendPoolLiquidator,
   deployBendLibraries,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
@@ -70,6 +68,7 @@ import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { WrappedPunk } from "../types/WrappedPunk";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../helpers/constants";
+import { WETH9 } from "../types";
 
 const MOCK_USD_PRICE = BendConfig.ProtocolGlobalParams.MockUsdPrice;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -89,9 +88,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock external ERC20 Tokens, such as WETH, DAI...");
   const mockTokens: {
-    [symbol: string]: MockContract | MintableERC20 | WETH9Mocked;
+    [symbol: string]: MockContract | MintableERC20 | WETH9Mocked | WETH9;
   } = {
-    ...(await deployAllMockTokens(false)),
+    ...(await deployAllMockTokens(true)),
   };
 
   console.log("-> Prepare mock external ERC721 NFTs, such as WPUNKS, BAYC...");
@@ -174,10 +173,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
 
-  console.log("-> Prepare lend pool liquidator...");
-  const poolLiquidator = await deployLendPoolLiquidator();
-  await waitForTx(await addressesProvider.setLendPoolLiquidator(poolLiquidator.address));
-
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare lend pool loan...");
   const lendPoolLoanImpl = await deployLendPoolLoan();
@@ -195,10 +190,6 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     await addressesProvider.getLendPoolConfigurator()
   );
   await insertContractAddressInDb(eContractid.LendPoolConfigurator, lendPoolConfiguratorProxy.address);
-
-  //////////////////////////////////////////////////////////////////////////////
-  console.log("-> Prepare BToken and BNFT helper...");
-  await deployBTokensAndBNFTsHelper([addressesProvider.address]);
 
   //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock reserve token aggregators...");
@@ -261,6 +252,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     {}
   );
 
+  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare nft oracle...");
   const nftOracleImpl = await deployNFTOracle();
   await waitForTx(
@@ -269,23 +261,24 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
       "20000000000000000000",
       "10000000000000000000",
       1,
-      1
+      1,
+      100
     )
   );
   await waitForTx(await addressesProvider.setNFTOracle(nftOracleImpl.address));
   await addAssetsInNFTOracle(allNftAddresses, nftOracleImpl);
   await setPricesInNFTOracle(allNftPrices, allNftAddresses, nftOracleImpl);
 
-  //////////////////////////////////////////////////////////////////////////////
   console.log("-> Prepare mock nft oracle...");
   const mockNftOracleImpl = await deployMockNFTOracle();
   await waitForTx(
     await mockNftOracleImpl.initialize(
       await addressesProvider.getPoolAdmin(),
-      "200000000000000000",
-      "100000000000000000",
-      10,
-      5
+      "20000000000000000000",
+      "10000000000000000000",
+      1,
+      1,
+      100
     )
   );
 

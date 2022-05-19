@@ -4,10 +4,8 @@ import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../h
 import { ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import {
   getBNFTRegistryProxy,
-  getBTokensAndBNFTsHelper,
   getIErc721Detailed,
   getLendPoolAddressesProvider,
-  getLendPoolAddressesProviderRegistry,
   getLendPoolConfiguratorProxy,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
@@ -69,7 +67,7 @@ task("add-nft-to-pool", "Add and config new nft asset to lend pool")
     ];
     await waitForTx(await lendPoolConfiguratorProxy.connect(poolAdminSigner).batchInitNft(initInputParams));
 
-    console.log("Configure nft collateral parameters to lend pool");
+    console.log("Configure nft parameters to lend pool");
     await waitForTx(
       await lendPoolConfiguratorProxy
         .connect(poolAdminSigner)
@@ -81,15 +79,30 @@ task("add-nft-to-pool", "Add and config new nft asset to lend pool")
         )
     );
 
-    console.log("Configure nft auction parameters to lend pool");
-    await waitForTx(
-      await lendPoolConfiguratorProxy
-        .connect(poolAdminSigner)
-        .configureNftAsAuction(asset, nftParam.redeemDuration, nftParam.auctionDuration, nftParam.redeemFine)
-    );
-    await waitForTx(
-      await lendPoolConfiguratorProxy.connect(poolAdminSigner).setNftRedeemThreshold(asset, nftParam.redeemThreshold)
-    );
+    let cfgInputParams: {
+      asset: string;
+      baseLTV: BigNumberish;
+      liquidationThreshold: BigNumberish;
+      liquidationBonus: BigNumberish;
+      redeemDuration: BigNumberish;
+      auctionDuration: BigNumberish;
+      redeemFine: BigNumberish;
+      redeemThreshold: BigNumberish;
+      minBidFine: BigNumberish;
+    }[] = [
+      {
+        asset: asset,
+        baseLTV: nftParam.baseLTVAsCollateral,
+        liquidationThreshold: nftParam.liquidationThreshold,
+        liquidationBonus: nftParam.liquidationBonus,
+        redeemDuration: nftParam.redeemDuration,
+        auctionDuration: nftParam.auctionDuration,
+        redeemFine: nftParam.redeemFine,
+        redeemThreshold: nftParam.redeemThreshold,
+        minBidFine: nftParam.minBidFine,
+      },
+    ];
+    await waitForTx(await lendPoolConfiguratorProxy.connect(poolAdminSigner).batchConfigNft(cfgInputParams));
 
     console.log("WETHGateway authorizeLendPoolNFT");
     await waitForTx(await wethGateway.authorizeLendPoolNFT([asset]));

@@ -19,7 +19,6 @@ makeSuite("LendPoolAddressesProvider", (testEnv: TestEnv) => {
 
     for (const contractFunction of [
       addressesProvider.setMarketId,
-      addressesProvider.setLendPoolLiquidator,
       addressesProvider.setBNFTRegistry,
       addressesProvider.setReserveOracle,
       addressesProvider.setNFTOracle,

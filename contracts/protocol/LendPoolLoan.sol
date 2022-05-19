@@ -204,6 +204,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
       loan.state = DataTypes.LoanState.Auction;
       loan.bidStartTimestamp = block.timestamp;
+      loan.firstBidderAddress = onBehalfOf;
     } else {
       require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
@@ -254,6 +255,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     loan.bidBorrowAmount = 0;
     loan.bidderAddress = address(0);
     loan.bidPrice = 0;
+    loan.firstBidderAddress = address(0);
 
     emit LoanRedeemed(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amountTaken, borrowIndex);
   }

@@ -180,12 +180,7 @@ makeSuite("LendPool: Pause", (testEnv: TestEnv) => {
     // Drops HF below 1
     const baycPrice = await nftOracle.getAssetPrice(bayc.address);
     const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(
-      bayc.address,
-      new BigNumber(baycPrice.toString()).multipliedBy(0.5).toFixed(0),
-      latestTime.add(1),
-      latestTime.add(1)
-    );
+    await nftOracle.setAssetData(bayc.address, new BigNumber(baycPrice.toString()).multipliedBy(0.5).toFixed(0));
 
     //mints usdc to the liquidator
     await weth.connect(liquidator.signer).mint(await convertToCurrencyDecimals(weth.address, "1000"));

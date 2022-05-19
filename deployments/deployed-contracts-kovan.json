@@ -114,13 +114,6 @@
   "LendPool": {
     "address": "0xC76160e4FD4357C823f6687691eA4e2dD5FE827f"
   },
-  "LendPoolLiquidatorImpl": {
-    "address": "0xab975d43225B929D2dC80eDa28F8968725139068"
-  },
-  "LendPoolLiquidator": {
-    "address": "0xab975d43225B929D2dC80eDa28F8968725139068",
-    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
-  },
   "LendPoolLoanImpl": {
     "address": "0xB9B3cb27Ea7a8E0f0a70Eb079F2140fA09b87bFd"
   },
@@ -132,10 +125,6 @@
   },
   "LendPoolConfigurator": {
     "address": "0xF07AE7d0c3e5A1397eFa1cCE0334Bb22D1E4AB30"
-  },
-  "BTokensAndBNFTsHelper": {
-    "address": "0x5cd4a270823CD1D93048533A949C0CFA6825b7bA",
-    "deployer": "0x249D0dF00d8ca96952A9fc29ddD3199bD035A05B"
   },
   "BToken": {
     "address": "0xd7d8431Ed91dC5970235A25D2c27B85809e0E9A2",

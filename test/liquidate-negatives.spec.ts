@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-import { DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
+import { advanceTimeAndBlock, DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
@@ -128,9 +128,10 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const baycPrice = new BigNumber(poolLoanData.totalDebt.toString())
       .percentMul(new BigNumber(5000)) // 50%
       .toFixed(0);
-
-    const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(bayc.address, baycPrice, latestTime.add(1), latestTime.add(1));
+    await advanceTimeAndBlock(100);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
+    await advanceTimeAndBlock(200);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
   });
 
   it("User 2 auction price is unable to cover borrow", async () => {
@@ -157,8 +158,10 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
       .percentDiv(new BigNumber(nftColData.liquidationThreshold.toString()))
       .toFixed(0);
 
-    const latestTime = await nftOracle.getLatestTimestamp(bayc.address);
-    await nftOracle.setAssetData(bayc.address, baycPrice, latestTime.add(1), latestTime.add(1));
+    await advanceTimeAndBlock(100);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
+    await advanceTimeAndBlock(200);
+    await nftOracle.setAssetData(bayc.address, baycPrice);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
 
@@ -260,7 +263,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const user1 = users[1];
 
     const nftAuctionData = await pool.getNftAuctionData(bayc.address, "101");
-    const redeemAmount = nftAuctionData.bidBorrowAmount;
+    const redeemAmount = nftAuctionData.bidBorrowAmount.div(2);
 
     await expect(
       pool.connect(user1.signer).redeem(bayc.address, "101", redeemAmount, nftAuctionData.bidFine)

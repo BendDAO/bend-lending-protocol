@@ -281,49 +281,61 @@
     "name": "getNftConfigurationData",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "ltv",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "liquidationThreshold",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "liquidationBonus",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "redeemDuration",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "auctionDuration",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "redeemFine",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "redeemThreshold",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isActive",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "isFrozen",
-        "type": "bool"
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "ltv",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationBonus",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "redeemDuration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "auctionDuration",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "redeemFine",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "redeemThreshold",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minBidFine",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isFrozen",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct BendProtocolDataProvider.NftConfigurationData",
+        "name": "configData",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
