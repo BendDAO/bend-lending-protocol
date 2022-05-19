@@ -34,6 +34,10 @@ import {
   UiPoolDataProviderFactory,
   BendCollectorFactory,
   ConfiguratorLogicFactory,
+  BorrowLogicFactory,
+  SupplyLogicFactory,
+  LiquidateLogic,
+  LiquidateLogicFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -306,6 +310,24 @@ export const getReserveLogic = async (address?: tEthereumAddress) =>
 export const getGenericLogic = async (address?: tEthereumAddress) =>
   await GenericLogicFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.GenericLogic}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getSupplyLogic = async (address?: tEthereumAddress) =>
+  await SupplyLogicFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.SupplyLogic}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getBorrowLogic = async (address?: tEthereumAddress) =>
+  await BorrowLogicFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.BorrowLogic}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getLiquidateLogic = async (address?: tEthereumAddress) =>
+  await LiquidateLogicFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.LiquidateLogic}`).value()).address,
     await getDeploySigner()
   );
 

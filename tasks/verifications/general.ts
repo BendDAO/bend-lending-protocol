@@ -20,8 +20,14 @@ import {
   getNFTOracleImpl,
   getWETHGatewayImpl,
   getPunkGatewayImpl,
+  getGenericLogic,
+  getReserveLogic,
+  getSupplyLogic,
+  getBorrowLogic,
+  getLiquidateLogic,
 } from "../../helpers/contracts-getters";
-import { verifyContract, getParamPerNetwork } from "../../helpers/contracts-helpers";
+import { verifyContract, getParamPerNetwork, getContractAddressInDb } from "../../helpers/contracts-helpers";
+import { verifyEtherscanContract } from "../../helpers/etherscan-verification";
 import { notFalsyOrZeroAddress } from "../../helpers/misc-utils";
 import { eContractid, eNetwork, ICommonConfiguration } from "../../helpers/types";
 
@@ -184,6 +190,45 @@ task("verify:general", "Verify general contracts at Etherscan")
         wpunkAddress,
       ]),
     ]);
+
+    console.log("Finished verifications.");
+  });
+
+task("verify:libraries", "Verify libraries at Etherscan")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .setAction(async ({ pool }, localDRE) => {
+    await localDRE.run("set-DRE");
+    const network = localDRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+
+    const nftLogicAddress = await getContractAddressInDb(eContractid.NftLogic);
+    const validationLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
+
+    console.log("\n- Verifying NftLogic...\n");
+    await verifyEtherscanContract(nftLogicAddress, []);
+
+    console.log("\n- Verifying ValidationLogic...\n");
+    await verifyEtherscanContract(validationLogicAddress, []);
+
+    console.log("\n- Verifying GenericLogic...\n");
+    const genLogic = await getGenericLogic();
+    await verifyContract(eContractid.GenericLogic, genLogic, []);
+
+    console.log("\n- Verifying ReserveLogic...\n");
+    const resLogic = await getReserveLogic();
+    await verifyContract(eContractid.ReserveLogic, resLogic, []);
+
+    console.log("\n- Verifying SupplyLogic...\n");
+    const supLogic = await getSupplyLogic();
+    await verifyContract(eContractid.SupplyLogic, supLogic, []);
+
+    console.log("\n- Verifying BorrowLogic...\n");
+    const borLogic = await getBorrowLogic();
+    await verifyContract(eContractid.BorrowLogic, borLogic, []);
+
+    console.log("\n- Verifying LiquidateLogic...\n");
+    const liqLogic = await getLiquidateLogic();
+    await verifyContract(eContractid.LiquidateLogic, liqLogic, []);
 
     console.log("Finished verifications.");
   });

@@ -53,10 +53,9 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
     if (contract == "LendPool") {
-      await deployLendPoolLibraries();
+      await deployLendPoolLibraries(verify);
 
       const lendPoolImpl = await deployLendPool(verify);
-      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
       console.log("LendPool implementation address:", lendPoolImpl.address);
 
       if (upgrade) {

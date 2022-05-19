@@ -31,7 +31,7 @@ task("dev:deploy-lend-pool", "Deploy lend pool for dev enviroment")
 
     ////////////////////////////////////////////////////////////////////////////
     console.log("Deploying new libraries implementation...");
-    await deployBendLibraries();
+    await deployBendLibraries(verify);
 
     // deploy lend pool
     const lendPoolImpl = await deployLendPool(verify);
