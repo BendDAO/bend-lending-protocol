@@ -9,6 +9,9 @@ contract LendPoolStorageExt {
   uint256 internal constant _ENTERED = 1;
   uint256 internal _status;
 
+  uint256 internal _pauseStartTime;
+  uint256 internal _pauseDurationTime;
+
   // For upgradable, add one new variable above, minus 1 at here
-  uint256[49] private __gap;
+  uint256[47] private __gap;
 }

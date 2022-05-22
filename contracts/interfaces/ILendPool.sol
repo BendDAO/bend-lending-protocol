@@ -143,6 +143,11 @@ interface ILendPool {
   event Unpaused();
 
   /**
+   * @dev Emitted when the pause time is updated.
+   */
+  event PausedTimeUpdated(uint256 startTime, uint256 durationTime);
+
+  /**
    * @dev Emitted when the state of a reserve is updated. NOTE: This event is actually declared
    * in the ReserveLogic library and emitted in the updateInterestRates() function. Since the function is internal,
    * the event will actually be fired by the LendPool contract. The event is therefore replicated here so it
@@ -425,10 +430,14 @@ interface ILendPool {
    */
   function setPause(bool val) external;
 
+  function setPausedTime(uint256 startTime, uint256 durationTime) external;
+
   /**
    * @dev Returns if the LendPool is paused
    */
   function paused() external view returns (bool);
+
+  function getPausedTime() external view returns (uint256, uint256);
 
   function getAddressesProvider() external view returns (ILendPoolAddressesProvider);
 

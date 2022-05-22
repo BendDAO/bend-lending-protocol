@@ -817,6 +817,24 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "startTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "durationTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "setPoolPausedTime",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address[]",
         "name": "assets",
         "type": "address[]"

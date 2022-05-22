@@ -218,6 +218,25 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "uint256",
+        "name": "startTime",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "durationTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "PausedTimeUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
         "internalType": "address",
         "name": "user",
         "type": "address"
@@ -1303,6 +1322,24 @@
       }
     ],
     "name": "setPause",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "startTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "durationTime",
+        "type": "uint256"
+      }
+    ],
+    "name": "setPausedTime",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
