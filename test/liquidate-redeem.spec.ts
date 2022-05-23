@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
+import { advanceTimeAndBlock, DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { APPROVAL_AMOUNT_LENDING_POOL, MAX_UINT_AMOUNT, oneEther, ONE_DAY, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
@@ -28,7 +28,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Borrows WETH", async () => {
-    const { users, pool, nftOracle, reserveOracle, weth, bayc, configurator, dataProvider } = testEnv;
+    const { users, pool, reserveOracle, weth, bayc, configurator, dataProvider } = testEnv;
     const depositor = users[0];
     const borrower = users[1];
 
@@ -75,7 +75,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Drop the health factor below 1", async () => {
-    const { weth, bayc, users, pool, nftOracle } = testEnv;
+    const { weth, bayc, users, pool } = testEnv;
     const borrower = users[1];
 
     const nftDebtDataBefore = await pool.getNftDebtData(bayc.address, "101");
@@ -92,7 +92,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Auctions the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, nftOracle, reserveOracle, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -129,7 +129,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Redeems the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, nftOracle, reserveOracle, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -154,18 +154,18 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "101");
-    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
-    const repayDebtAmount = new BigNumber(redeemAmount).minus(auctionDataBefore.bidFine.toString());
+    const repayDebtAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
+    const bidFineAmount = new BigNumber(auctionDataBefore.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(borrower.signer).redeem(bayc.address, "101", redeemAmount);
+    await pool.connect(borrower.signer).redeem(bayc.address, "101", repayDebtAmount, bidFineAmount);
 
     // check result
     const tokenOwner = await bayc.ownerOf("101");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
 
     const liquidatorBalanceAfter = await weth.balanceOf(liquidator.address);
-    expect(liquidatorBalanceAfter).to.be.equal(
-      liquidatorBalanceBefore.add(auctionDataBefore.bidPrice).add(auctionDataBefore.bidFine),
+    expect(liquidatorBalanceAfter).to.be.gte(
+      liquidatorBalanceBefore.add(auctionDataBefore.bidFine),
       "Invalid liquidator balance after redeem"
     );
 
@@ -208,6 +208,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    await advanceTimeAndBlock(100);
+
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "101");
 
     await pool.connect(borrower.signer).repay(bayc.address, "101", MAX_UINT_AMOUNT);
@@ -217,7 +219,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("USDC - Borrows USDC", async () => {
-    const { users, pool, nftOracle, reserveOracle, usdc, bayc, configurator, dataProvider } = testEnv;
+    const { users, pool, reserveOracle, usdc, bayc, configurator, dataProvider } = testEnv;
     const depositor = users[0];
     const borrower = users[1];
 
@@ -285,6 +287,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    await advanceTimeAndBlock(100);
+
     //mints USDC to the liquidator
     await usdc.connect(liquidator.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
 
@@ -329,6 +333,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const liquidator = users[3];
     const borrower = users[1];
 
+    await advanceTimeAndBlock(100);
+
     //mints USDC to borrower
     await usdc.connect(borrower.signer).mint(await convertToCurrencyDecimals(usdc.address, "100000"));
     //approve protocol to access borrower wallet
@@ -350,18 +356,18 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "102");
-    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
-    const repayDebtAmount = new BigNumber(redeemAmount).minus(auctionDataBefore.bidFine.toString());
+    const repayDebtAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
+    const bidFineAmount = new BigNumber(auctionDataBefore.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
-    await pool.connect(borrower.signer).redeem(bayc.address, "102", redeemAmount);
+    await pool.connect(borrower.signer).redeem(bayc.address, "102", repayDebtAmount, bidFineAmount);
 
     // check result
     const tokenOwner = await bayc.ownerOf("102");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
 
     const liquidatorBalanceAfter = await usdc.balanceOf(liquidator.address);
-    expect(liquidatorBalanceAfter).to.be.equal(
-      liquidatorBalanceBefore.add(auctionDataBefore.bidPrice).add(auctionDataBefore.bidFine),
+    expect(liquidatorBalanceAfter).to.be.gte(
+      liquidatorBalanceBefore.add(auctionDataBefore.bidFine),
       "Invalid liquidator balance after redeem"
     );
 
@@ -403,6 +409,8 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
+
+    await advanceTimeAndBlock(100);
 
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
 

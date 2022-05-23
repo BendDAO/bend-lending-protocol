@@ -422,6 +422,78 @@
   {
     "inputs": [
       {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "nftAssets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "nftTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "onBehalfOf",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "referralCode",
+        "type": "uint16"
+      }
+    ],
+    "name": "batchBorrow",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "nftAssets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "nftTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "batchRepay",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "bool[]",
+        "name": "",
+        "type": "bool[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "asset",
         "type": "address"
@@ -1125,6 +1197,11 @@
       {
         "internalType": "uint256",
         "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bidFine",
         "type": "uint256"
       }
     ],

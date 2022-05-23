@@ -8,40 +8,32 @@ import {
 } from "../../helpers/configuration";
 import {
   getBendProtocolDataProvider,
-  getBendProxyAdminByAddress,
   getBendProxyAdminById,
   getBendUpgradeableProxy,
-  getDeploySigner,
   getLendPoolAddressesProvider,
   getLendPoolConfiguratorProxy,
-  getPunkGateway,
-  getUIPoolDataProvider,
-  getWalletProvider,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
 import { eContractid, eNetwork } from "../../helpers/types";
 import {
   deployLendPool,
   deployLendPoolLoan,
-  deployLendPoolLiquidator,
   deployReserveOracle,
   deployNFTOracle,
-  deployBendLibraries,
-  getBendLibraries,
   deployLendPoolConfigurator,
   deployUiPoolDataProvider,
   deployWalletBalancerProvider,
   deployBendProtocolDataProvider,
   deployPunkGateway,
   deployWETHGateway,
-  deployBTokensAndBNFTsHelper,
   deployInterestRate,
   deployGenericDebtToken,
   deployBendCollector,
+  deployConfiguratorLibraries,
+  deployLendPoolLibraries,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
-import { ethers } from "hardhat";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY, oneRay } from "../../helpers/constants";
 import { BytesLike } from "ethers";
 import BigNumber from "bignumber.js";
@@ -60,32 +52,10 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
     const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
 
-    if (contract == "BendLibraries") {
-      await deployBendLibraries(verify);
-      const bendLibs = await getBendLibraries(verify);
-      console.log("Bend Libraries address:", bendLibs);
-
-      const lendPoolImpl = await deployLendPool(verify);
-      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
-      console.log("LendPool implementation address:", lendPoolImpl.address);
-
-      const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);
-      console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
-
-      if (upgrade) {
-        await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
-        await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
-      }
-      await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
-      await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
-    }
-
     if (contract == "LendPool") {
-      const bendLibs = await getBendLibraries(verify);
-      console.log("Bend Libraries address:", bendLibs);
+      await deployLendPoolLibraries(verify);
 
       const lendPoolImpl = await deployLendPool(verify);
-      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
       console.log("LendPool implementation address:", lendPoolImpl.address);
 
       if (upgrade) {
@@ -93,23 +63,11 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
 
       await insertContractAddressInDb(eContractid.LendPool, await addressesProvider.getLendPool());
-    }
-
-    if (contract == "LendPoolLiquidator") {
-      const bendLibs = await getBendLibraries(verify);
-      console.log("Bend Libraries address:", bendLibs);
-
-      const lendPoolLiqImpl = await deployLendPoolLiquidator(verify);
-      console.log("LendPoolLiquidator implementation address:", lendPoolLiqImpl.address);
-
-      if (upgrade) {
-        await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiqImpl.address));
-      }
-
-      await insertContractAddressInDb(eContractid.LendPoolLiquidator, await addressesProvider.getLendPoolLiquidator());
     }
 
     if (contract == "LendPoolConfigurator") {
+      await deployConfiguratorLibraries(verify);
+
       const lendPoolCfgImpl = await deployLendPoolConfigurator(verify);
       console.log("LendPoolConfigurator implementation address:", lendPoolCfgImpl.address);
 
@@ -243,11 +201,6 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
     }
 
-    if (contract == "BTokensAndBNFTsHelper") {
-      const contractImpl = await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
-      console.log("BTokensAndBNFTsHelper implementation address:", contractImpl.address);
-    }
-
     if (contract == "BendCollector") {
       const contractImpl = await deployBendCollector([], verify);
       console.log("BendCollector implementation address:", contractImpl.address);
@@ -341,6 +294,12 @@ task("dev:upgrade-all-debtokens", "Update implementation to debt token")
     const debtTokenImpl = await deployGenericDebtToken(verify);
     console.log("DebtToken implementation:", debtTokenImpl.address);
 
+    let inputs: {
+      asset: string;
+      implementation: string;
+      encodedCallData: BytesLike;
+    }[] = [];
+
     const allReserves = await protocolDataProvider.getAllReservesTokenDatas();
     for (const reserve of allReserves) {
       console.log("Reserve Tokens:", reserve.tokenSymbol, reserve.tokenAddress, reserve.debtTokenAddress);
@@ -353,6 +312,8 @@ task("dev:upgrade-all-debtokens", "Update implementation to debt token")
         implementation: debtTokenImpl.address,
         encodedCallData: [],
       };
-      await waitForTx(await lendPoolConfigurator.connect(poolAdminSigner).updateDebtToken(input));
+      inputs.push(input);
     }
+
+    await waitForTx(await lendPoolConfigurator.connect(poolAdminSigner).updateDebtToken(inputs));
   });

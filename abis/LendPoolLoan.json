@@ -537,6 +537,11 @@
             "internalType": "uint256",
             "name": "bidBorrowAmount",
             "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "firstBidderAddress",
+            "type": "address"
           }
         ],
         "internalType": "struct DataTypes.LoanData",

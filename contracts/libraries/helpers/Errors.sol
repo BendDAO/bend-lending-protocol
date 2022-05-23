@@ -64,6 +64,7 @@ library Errors {
   string public constant LP_DELEGATE_CALL_FAILED = "413";
   string public constant LP_AMOUNT_LESS_THAN_EXTRA_DEBT = "414";
   string public constant LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD = "415";
+  string public constant LP_AMOUNT_GREATER_THAN_MAX_REPAY = "416";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";
@@ -80,6 +81,7 @@ library Errors {
   string public constant LPL_BID_PRICE_LESS_THAN_BORROW = "491";
   string public constant LPL_INVALID_BIDDER_ADDRESS = "492";
   string public constant LPL_AMOUNT_LESS_THAN_BID_FINE = "493";
+  string public constant LPL_INVALID_BID_FINE = "494";
 
   //common token errors
   string public constant CT_CALLER_MUST_BE_LEND_POOL = "500"; // 'The caller of this function must be a lending pool'
@@ -112,6 +114,8 @@ library Errors {
   string public constant RC_INVALID_AUCTION_DURATION = "736";
   string public constant RC_INVALID_REDEEM_FINE = "737";
   string public constant RC_INVALID_REDEEM_THRESHOLD = "738";
+  string public constant RC_INVALID_MIN_BID_FINE = "739";
+  string public constant RC_INVALID_MAX_BID_FINE = "740";
 
   //address provider erros
   string public constant LPAPR_PROVIDER_NOT_REGISTERED = "760"; // 'Provider is not registered'

@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {IBToken} from "../interfaces/IBToken.sol";
-import {IDebtToken} from "../interfaces/IDebtToken.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
-import {IReserveOracleGetter} from "../interfaces/IReserveOracleGetter.sol";
-import {INFTOracleGetter} from "../interfaces/INFTOracleGetter.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
 import {GenericLogic} from "../libraries/logic/GenericLogic.sol";
@@ -15,6 +12,10 @@ import {PercentageMath} from "../libraries/math/PercentageMath.sol";
 import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
 import {NftLogic} from "../libraries/logic/NftLogic.sol";
 import {ValidationLogic} from "../libraries/logic/ValidationLogic.sol";
+import {SupplyLogic} from "../libraries/logic/SupplyLogic.sol";
+import {BorrowLogic} from "../libraries/logic/BorrowLogic.sol";
+import {LiquidateLogic} from "../libraries/logic/LiquidateLogic.sol";
+
 import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
 import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
@@ -131,22 +132,16 @@ contract LendPool is
     address onBehalfOf,
     uint16 referralCode
   ) external override nonReentrant whenNotPaused {
-    require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
-
-    DataTypes.ReserveData storage reserve = _reserves[asset];
-    address bToken = reserve.bTokenAddress;
-    require(bToken != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
-
-    ValidationLogic.validateDeposit(reserve, amount);
-
-    reserve.updateState();
-    reserve.updateInterestRates(asset, bToken, amount, 0);
-
-    IERC20Upgradeable(asset).safeTransferFrom(_msgSender(), bToken, amount);
-
-    IBToken(bToken).mint(onBehalfOf, amount, reserve.liquidityIndex);
-
-    emit Deposit(_msgSender(), asset, amount, onBehalfOf, referralCode);
+    SupplyLogic.executeDeposit(
+      _reserves,
+      DataTypes.ExecuteDepositParams({
+        initiator: _msgSender(),
+        asset: asset,
+        amount: amount,
+        onBehalfOf: onBehalfOf,
+        referralCode: referralCode
+      })
+    );
   }
 
   /**
@@ -165,42 +160,11 @@ contract LendPool is
     uint256 amount,
     address to
   ) external override nonReentrant whenNotPaused returns (uint256) {
-    require(to != address(0), Errors.VL_INVALID_TARGET_ADDRESS);
-
-    DataTypes.ReserveData storage reserve = _reserves[asset];
-    address bToken = reserve.bTokenAddress;
-    require(bToken != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
-
-    uint256 userBalance = IBToken(bToken).balanceOf(_msgSender());
-
-    uint256 amountToWithdraw = amount;
-
-    if (amount == type(uint256).max) {
-      amountToWithdraw = userBalance;
-    }
-
-    ValidationLogic.validateWithdraw(reserve, amountToWithdraw, userBalance);
-
-    reserve.updateState();
-
-    reserve.updateInterestRates(asset, bToken, 0, amountToWithdraw);
-
-    IBToken(bToken).burn(_msgSender(), to, amountToWithdraw, reserve.liquidityIndex);
-
-    emit Withdraw(_msgSender(), asset, amountToWithdraw, to);
-
-    return amountToWithdraw;
-  }
-
-  struct ExecuteBorrowLocalVars {
-    address initiator;
-    uint256 ltv;
-    uint256 liquidationThreshold;
-    uint256 liquidationBonus;
-    uint256 loanId;
-    address reserveOracle;
-    address nftOracle;
-    address loanAddress;
+    return
+      SupplyLogic.executeWithdraw(
+        _reserves,
+        DataTypes.ExecuteWithdrawParams({initiator: _msgSender(), asset: asset, amount: amount, to: to})
+      );
   }
 
   /**
@@ -224,88 +188,40 @@ contract LendPool is
     address onBehalfOf,
     uint16 referralCode
   ) external override nonReentrant whenNotPaused {
-    require(onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
-
-    ExecuteBorrowLocalVars memory vars;
-    vars.initiator = _msgSender();
-
-    DataTypes.ReserveData storage reserveData = _reserves[asset];
-    DataTypes.NftData storage nftData = _nfts[nftAsset];
-
-    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserveData.updateState();
-
-    // Convert asset amount to ETH
-    vars.reserveOracle = _addressesProvider.getReserveOracle();
-    vars.nftOracle = _addressesProvider.getNFTOracle();
-    vars.loanAddress = _addressesProvider.getLendPoolLoan();
-
-    vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(nftAsset, nftTokenId);
-
-    ValidationLogic.validateBorrow(
-      onBehalfOf,
-      asset,
-      amount,
-      reserveData,
-      nftAsset,
-      nftData,
-      vars.loanAddress,
-      vars.loanId,
-      vars.reserveOracle,
-      vars.nftOracle
-    );
-
-    if (vars.loanId == 0) {
-      IERC721Upgradeable(nftAsset).safeTransferFrom(_msgSender(), address(this), nftTokenId);
-
-      vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
-        vars.initiator,
-        onBehalfOf,
-        nftAsset,
-        nftTokenId,
-        nftData.bNftAddress,
-        asset,
-        amount,
-        reserveData.variableBorrowIndex
-      );
-    } else {
-      ILendPoolLoan(vars.loanAddress).updateLoan(
-        vars.initiator,
-        vars.loanId,
-        amount,
-        0,
-        reserveData.variableBorrowIndex
-      );
-    }
-
-    IDebtToken(reserveData.debtTokenAddress).mint(vars.initiator, onBehalfOf, amount, reserveData.variableBorrowIndex);
-
-    // update interest rate according latest borrow amount (utilizaton)
-    reserveData.updateInterestRates(asset, reserveData.bTokenAddress, 0, amount);
-
-    IBToken(reserveData.bTokenAddress).transferUnderlyingTo(vars.initiator, amount);
-
-    emit Borrow(
-      vars.initiator,
-      asset,
-      amount,
-      nftAsset,
-      nftTokenId,
-      onBehalfOf,
-      reserveData.currentVariableBorrowRate,
-      vars.loanId,
-      referralCode
+    BorrowLogic.executeBorrow(
+      _addressesProvider,
+      _reserves,
+      _nfts,
+      DataTypes.ExecuteBorrowParams({
+        initiator: _msgSender(),
+        asset: asset,
+        amount: amount,
+        nftAsset: nftAsset,
+        nftTokenId: nftTokenId,
+        onBehalfOf: onBehalfOf,
+        referralCode: referralCode
+      })
     );
   }
 
-  struct RepayLocalVars {
-    address initiator;
-    address poolLoan;
-    address onBehalfOf;
-    uint256 loanId;
-    bool isUpdate;
-    uint256 borrowAmount;
-    uint256 repayAmount;
+  function batchBorrow(
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external override nonReentrant whenNotPaused {
+    DataTypes.ExecuteBatchBorrowParams memory params;
+    params.initiator = _msgSender();
+    params.assets = assets;
+    params.amounts = amounts;
+    params.nftAssets = nftAssets;
+    params.nftTokenIds = nftTokenIds;
+    params.onBehalfOf = onBehalfOf;
+    params.referralCode = referralCode;
+
+    BorrowLogic.executeBatchBorrow(_addressesProvider, _reserves, _nfts, params);
   }
 
   /**
@@ -320,79 +236,37 @@ contract LendPool is
     uint256 nftTokenId,
     uint256 amount
   ) external override nonReentrant whenNotPaused returns (uint256, bool) {
-    RepayLocalVars memory vars;
-    vars.initiator = _msgSender();
-
-    vars.poolLoan = _addressesProvider.getLendPoolLoan();
-
-    vars.loanId = ILendPoolLoan(vars.poolLoan).getCollateralLoanId(nftAsset, nftTokenId);
-    require(vars.loanId != 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
-
-    DataTypes.LoanData memory loanData = ILendPoolLoan(vars.poolLoan).getLoan(vars.loanId);
-
-    DataTypes.ReserveData storage reserveData = _reserves[loanData.reserveAsset];
-    DataTypes.NftData storage nftData = _nfts[loanData.nftAsset];
-
-    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-    reserveData.updateState();
-
-    (, vars.borrowAmount) = ILendPoolLoan(vars.poolLoan).getLoanReserveBorrowAmount(vars.loanId);
-
-    ValidationLogic.validateRepay(reserveData, nftData, loanData, amount, vars.borrowAmount);
-
-    vars.repayAmount = vars.borrowAmount;
-    vars.isUpdate = false;
-    if (amount < vars.repayAmount) {
-      vars.isUpdate = true;
-      vars.repayAmount = amount;
-    }
-
-    if (vars.isUpdate) {
-      ILendPoolLoan(vars.poolLoan).updateLoan(
-        vars.initiator,
-        vars.loanId,
-        0,
-        vars.repayAmount,
-        reserveData.variableBorrowIndex
+    return
+      BorrowLogic.executeRepay(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        DataTypes.ExecuteRepayParams({
+          initiator: _msgSender(),
+          nftAsset: nftAsset,
+          nftTokenId: nftTokenId,
+          amount: amount
+        })
       );
-    } else {
-      ILendPoolLoan(vars.poolLoan).repayLoan(
-        vars.initiator,
-        vars.loanId,
-        nftData.bNftAddress,
-        vars.repayAmount,
-        reserveData.variableBorrowIndex
+  }
+
+  function batchRepay(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external override nonReentrant whenNotPaused returns (uint256[] memory, bool[] memory) {
+    return
+      BorrowLogic.executeBatchRepay(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        DataTypes.ExecuteBatchRepayParams({
+          initiator: _msgSender(),
+          nftAssets: nftAssets,
+          nftTokenIds: nftTokenIds,
+          amounts: amounts
+        })
       );
-    }
-
-    IDebtToken(reserveData.debtTokenAddress).burn(loanData.borrower, vars.repayAmount, reserveData.variableBorrowIndex);
-
-    // update interest rate according latest borrow amount (utilizaton)
-    reserveData.updateInterestRates(loanData.reserveAsset, reserveData.bTokenAddress, vars.repayAmount, 0);
-
-    // transfer repay amount to bToken
-    IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
-      vars.initiator,
-      reserveData.bTokenAddress,
-      vars.repayAmount
-    );
-
-    // transfer erc721 to borrower
-    if (!vars.isUpdate) {
-      IERC721Upgradeable(loanData.nftAsset).safeTransferFrom(address(this), loanData.borrower, nftTokenId);
-    }
-
-    emit Repay(
-      vars.initiator,
-      loanData.reserveAsset,
-      vars.repayAmount,
-      loanData.nftAsset,
-      loanData.nftTokenId,
-      loanData.borrower,
-      vars.loanId
-    );
-
-    return (vars.repayAmount, !vars.isUpdate);
   }
 
   /**
@@ -411,14 +285,18 @@ contract LendPool is
     uint256 bidPrice,
     address onBehalfOf
   ) external override nonReentrant whenNotPaused {
-    address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
-
-    //solium-disable-next-line
-    (bool success, bytes memory result) = poolLiquidator.delegatecall(
-      abi.encodeWithSignature("auction(address,uint256,uint256,address)", nftAsset, nftTokenId, bidPrice, onBehalfOf)
+    LiquidateLogic.executeAuction(
+      _addressesProvider,
+      _reserves,
+      _nfts,
+      DataTypes.ExecuteAuctionParams({
+        initiator: _msgSender(),
+        nftAsset: nftAsset,
+        nftTokenId: nftTokenId,
+        bidPrice: bidPrice,
+        onBehalfOf: onBehalfOf
+      })
     );
-
-    _verifyCallResult(success, result, Errors.LP_DELEGATE_CALL_FAILED);
   }
 
   /**
@@ -426,25 +304,28 @@ contract LendPool is
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
-   * @param amount The amount to repay the debt and bid fine
+   * @param amount The amount to repay the debt
+   * @param bidFine The amount of bid fine
    **/
   function redeem(
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    uint256 bidFine
   ) external override nonReentrant whenNotPaused returns (uint256) {
-    address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
-
-    //solium-disable-next-line
-    (bool success, bytes memory result) = poolLiquidator.delegatecall(
-      abi.encodeWithSignature("redeem(address,uint256,uint256)", nftAsset, nftTokenId, amount)
-    );
-
-    bytes memory resultData = _verifyCallResult(success, result, Errors.LP_DELEGATE_CALL_FAILED);
-
-    uint256 repayAmount = abi.decode(resultData, (uint256));
-
-    return (repayAmount);
+    return
+      LiquidateLogic.executeRedeem(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        DataTypes.ExecuteRedeemParams({
+          initiator: _msgSender(),
+          nftAsset: nftAsset,
+          nftTokenId: nftTokenId,
+          amount: amount,
+          bidFine: bidFine
+        })
+      );
   }
 
   /**
@@ -459,18 +340,18 @@ contract LendPool is
     uint256 nftTokenId,
     uint256 amount
   ) external override nonReentrant whenNotPaused returns (uint256) {
-    address poolLiquidator = _addressesProvider.getLendPoolLiquidator();
-
-    //solium-disable-next-line
-    (bool success, bytes memory result) = poolLiquidator.delegatecall(
-      abi.encodeWithSignature("liquidate(address,uint256,uint256)", nftAsset, nftTokenId, amount)
-    );
-
-    bytes memory resultData = _verifyCallResult(success, result, Errors.LP_DELEGATE_CALL_FAILED);
-
-    uint256 extraAmount = abi.decode(resultData, (uint256));
-
-    return (extraAmount);
+    return
+      LiquidateLogic.executeLiquidate(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        DataTypes.ExecuteLiquidateParams({
+          initiator: _msgSender(),
+          nftAsset: nftAsset,
+          nftTokenId: nftTokenId,
+          amount: amount
+        })
+      );
   }
 
   function onERC721Received(
@@ -675,14 +556,26 @@ contract LendPool is
     )
   {
     DataTypes.NftData storage nftData = _nfts[nftAsset];
+    ILendPoolLoan poolLoan = ILendPoolLoan(_addressesProvider.getLendPoolLoan());
 
-    loanId = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getCollateralLoanId(nftAsset, nftTokenId);
+    loanId = poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
     if (loanId != 0) {
       DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
+      DataTypes.ReserveData storage reserveData = _reserves[loan.reserveAsset];
+
       bidderAddress = loan.bidderAddress;
       bidPrice = loan.bidPrice;
       bidBorrowAmount = loan.bidBorrowAmount;
-      bidFine = loan.bidPrice.percentMul(nftData.configuration.getRedeemFine());
+
+      (, bidFine) = GenericLogic.calculateLoanBidFine(
+        loan.reserveAsset,
+        reserveData,
+        nftAsset,
+        nftData,
+        loan,
+        address(poolLoan),
+        _addressesProvider.getReserveOracle()
+      );
     }
   }
 

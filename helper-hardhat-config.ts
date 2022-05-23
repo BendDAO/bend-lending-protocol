@@ -47,7 +47,7 @@ export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
   [eEthereumNetwork.develop]: 65 * GWEI,
   [eEthereumNetwork.rinkeby]: 65 * GWEI,
   [eEthereumNetwork.kovan]: 65 * GWEI,
-  [eEthereumNetwork.main]: 65 * GWEI,
+  [eEthereumNetwork.main]: 35 * GWEI,
   [eEthereumNetwork.coverage]: 65 * GWEI,
   [eEthereumNetwork.hardhat]: 65 * GWEI,
   [eEthereumNetwork.localhost]: 65 * GWEI,

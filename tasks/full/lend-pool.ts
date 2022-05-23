@@ -6,12 +6,9 @@ import {
 } from "../../helpers/contracts-helpers";
 import {
   deployBTokenImplementations,
-  deployBTokensAndBNFTsHelper,
   deployLendPool,
   deployLendPoolLoan,
   deployLendPoolConfigurator,
-  deployBNFTImplementations,
-  deployLendPoolLiquidator,
   deployBendLibraries,
 } from "../../helpers/contracts-deployments";
 import { eContractid, eNetwork } from "../../helpers/types";
@@ -57,12 +54,11 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
 
       //////////////////////////////////////////////////////////////////////////
       console.log("Deploying new libraries implementation...");
-      await deployBendLibraries();
+      await deployBendLibraries(verify);
 
       // Reuse/deploy lend pool implementation
       console.log("Deploying new lend pool implementation & libraries...");
       const lendPoolImpl = await deployLendPool(verify);
-      await waitForTx(await lendPoolImpl.initialize(addressesProvider.address));
       console.log("Setting lend pool implementation with address:", lendPoolImpl.address);
       // Set lending pool impl to Address provider
       await waitForTx(await addressesProvider.setLendPoolImpl(lendPoolImpl.address, []));
@@ -71,12 +67,6 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const lendPoolProxy = await getLendPool(address);
 
       await insertContractAddressInDb(eContractid.LendPool, lendPoolProxy.address);
-
-      ////////////////////////////////////////////////////////////////////////////
-      // deploy lend pool liquidator
-      console.log("Deploying new liquidator implementation...");
-      const lendPoolLiquidatorImpl = await deployLendPoolLiquidator(verify);
-      await waitForTx(await addressesProvider.setLendPoolLiquidator(lendPoolLiquidatorImpl.address));
 
       //////////////////////////////////////////////////////////////////////////
       // Reuse/deploy lend pool loan
@@ -108,10 +98,6 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
       const admin = await DRE.ethers.getSigner(await getEmergencyAdmin(poolConfig));
       // Pause market during deployment
       await waitForTx(await lendPoolConfiguratorProxy.connect(admin).setPoolPause(true));
-
-      //////////////////////////////////////////////////////////////////////////
-      // Deploy deployment helpers
-      await deployBTokensAndBNFTsHelper([addressesProvider.address], verify);
 
       // Generic BToken & DebtToken Implementation in Pool
       await deployBTokenImplementations(pool, poolConfig.ReservesConfig, verify);

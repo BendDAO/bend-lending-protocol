@@ -19,6 +19,7 @@ library NftConfiguration {
   uint256 constant AUCTION_DURATION_MASK =      0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFF; // prettier-ignore
   uint256 constant REDEEM_FINE_MASK =           0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFF; // prettier-ignore
   uint256 constant REDEEM_THRESHOLD_MASK =      0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
+  uint256 constant MIN_BIDFINE_MASK      =      0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFF; // prettier-ignore
 
   /// @dev For the LTV, the start bit is 0 (up to 15), hence no bitshifting is needed
   uint256 constant LIQUIDATION_THRESHOLD_START_BIT_POSITION = 16;
@@ -29,6 +30,7 @@ library NftConfiguration {
   uint256 constant AUCTION_DURATION_START_BIT_POSITION = 72;
   uint256 constant REDEEM_FINE_START_BIT_POSITION = 80;
   uint256 constant REDEEM_THRESHOLD_START_BIT_POSITION = 96;
+  uint256 constant MIN_BIDFINE_START_BIT_POSITION = 112;
 
   uint256 constant MAX_VALID_LTV = 65535;
   uint256 constant MAX_VALID_LIQUIDATION_THRESHOLD = 65535;
@@ -37,6 +39,7 @@ library NftConfiguration {
   uint256 constant MAX_VALID_AUCTION_DURATION = 255;
   uint256 constant MAX_VALID_REDEEM_FINE = 65535;
   uint256 constant MAX_VALID_REDEEM_THRESHOLD = 65535;
+  uint256 constant MAX_VALID_MIN_BIDFINE = 65535;
 
   /**
    * @dev Sets the Loan to Value of the NFT
@@ -215,6 +218,26 @@ library NftConfiguration {
   }
 
   /**
+   * @dev Sets the min & max threshold of the NFT
+   * @param self The NFT configuration
+   * @param minBidFine The min bid fine
+   **/
+  function setMinBidFine(DataTypes.NftConfigurationMap memory self, uint256 minBidFine) internal pure {
+    require(minBidFine <= MAX_VALID_MIN_BIDFINE, Errors.RC_INVALID_MIN_BID_FINE);
+
+    self.data = (self.data & MIN_BIDFINE_MASK) | (minBidFine << MIN_BIDFINE_START_BIT_POSITION);
+  }
+
+  /**
+   * @dev Gets the min bid fine of the NFT
+   * @param self The NFT configuration
+   * @return The min bid fine
+   **/
+  function getMinBidFine(DataTypes.NftConfigurationMap storage self) internal view returns (uint256) {
+    return ((self.data & ~MIN_BIDFINE_MASK) >> MIN_BIDFINE_START_BIT_POSITION);
+  }
+
+  /**
    * @dev Gets the configuration flags of the NFT
    * @param self The NFT configuration
    * @return The state flags representing active, frozen
@@ -324,5 +347,14 @@ library NftConfiguration {
       (self.data & ~REDEEM_FINE_MASK) >> REDEEM_FINE_START_BIT_POSITION,
       (self.data & ~REDEEM_THRESHOLD_MASK) >> REDEEM_THRESHOLD_START_BIT_POSITION
     );
+  }
+
+  /**
+   * @dev Gets the min & max bid fine of the NFT
+   * @param self The NFT configuration
+   * @return The min & max bid fine
+   **/
+  function getMinBidFineMemory(DataTypes.NftConfigurationMap memory self) internal pure returns (uint256) {
+    return ((self.data & ~MIN_BIDFINE_MASK) >> MIN_BIDFINE_START_BIT_POSITION);
   }
 }

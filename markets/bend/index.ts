@@ -81,9 +81,9 @@ export const BendConfig: IBendConfiguration = {
       USDC: "0x0bb5261d7b100bcfAe9976aFFFae50B7dDaBa176",
     },
     [eEthereumNetwork.rinkeby]: {
-      WETH: "0xaD1908f909B5C5D2B1032a215d611773F26f089F",
-      DAI: "0x51EA2fEb1b1EB0891595f846456068D497734ca4",
-      USDC: "0xB07416EFa22C8A502ff3845D3c0BdA400f929cB8",
+      WETH: '0xb49dBe8e2A5a140b3b810c33ac2ba4907A3CA95e',
+      DAI: '0x51EA2fEb1b1EB0891595f846456068D497734ca4',
+      USDC: '0xB07416EFa22C8A502ff3845D3c0BdA400f929cB8',
     },
     [eEthereumNetwork.main]: {
       WETH: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",

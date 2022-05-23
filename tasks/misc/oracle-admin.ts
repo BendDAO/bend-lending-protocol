@@ -105,9 +105,7 @@ task("oracle-admin:feed-init-nft-price", "Doing oracle admin task")
     for (const nftSymbol of Object.keys(nftsAssets)) {
       const price = MOCK_NFT_AGGREGATORS_PRICES[nftSymbol];
       console.log(`setAssetData:(${nftSymbol}, ${price})`);
-      await waitForTx(
-        await nftOracleProxy.connect(feedAdminSigner).setAssetData(nftsAssets[nftSymbol], price, latestTime, 1)
-      );
+      await waitForTx(await nftOracleProxy.connect(feedAdminSigner).setAssetData(nftsAssets[nftSymbol], price));
     }
   });
 

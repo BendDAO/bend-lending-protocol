@@ -9,7 +9,6 @@ npx hardhat flatten contracts/protocol/LendPoolAddressesProvider.sol > ./flatten
 npx hardhat flatten contracts/protocol/LendPoolConfigurator.sol > ./flattened/LendPoolConfigurator.sol
 npx hardhat flatten contracts/protocol/LendPool.sol > ./flattened/LendPool.sol
 npx hardhat flatten contracts/protocol/LendPoolLoan.sol > ./flattened/LendPoolLoan.sol
-npx hardhat flatten contracts/protocol/LendPoolLiquidator.sol > ./flattened/LendPoolLiquidator.sol
 npx hardhat flatten contracts/protocol/BToken.sol > ./flattened/BToken.sol
 npx hardhat flatten contracts/protocol/DebtToken.sol > ./flattened/DebtToken.sol
 npx hardhat flatten contracts/protocol/InterestRate.sol > ./flattened/InterestRate.sol

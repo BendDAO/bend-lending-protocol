@@ -220,6 +220,15 @@ interface ILendPool {
     uint16 referralCode
   ) external;
 
+  function batchBorrow(
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address onBehalfOf,
+    uint16 referralCode
+  ) external;
+
   /**
    * @notice Repays a borrowed `amount` on a specific reserve, burning the equivalent loan owned
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
@@ -233,6 +242,12 @@ interface ILendPool {
     uint256 nftTokenId,
     uint256 amount
   ) external returns (uint256, bool);
+
+  function batchRepay(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external returns (uint256[] memory, bool[] memory);
 
   /**
    * @dev Function to auction a non-healthy position collateral-wise
@@ -256,12 +271,14 @@ interface ILendPool {
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
-   * @param amount The amount to repay the debt and bid fine
+   * @param amount The amount to repay the debt
+   * @param bidFine The amount of bid fine
    **/
   function redeem(
     address nftAsset,
     uint256 nftTokenId,
-    uint256 amount
+    uint256 amount,
+    uint256 bidFine
   ) external returns (uint256);
 
   /**

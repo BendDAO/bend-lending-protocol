@@ -238,8 +238,11 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(3600).toNumber());
 
     const nftDebtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
+    const nftAuctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
+    const repayAmount = new BigNumber(nftDebtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.51).toFixed(0);
+    const bidFineAmount = new BigNumber(nftAuctionDataBeforeRedeem.bidFine.toString()).multipliedBy(1.1).toFixed(0);
 
-    await waitForTx(await punkGateway.connect(borrower.signer).redeem(punkIndex, nftDebtDataBeforeRedeem.totalDebt));
+    await waitForTx(await punkGateway.connect(borrower.signer).redeem(punkIndex, repayAmount, bidFineAmount));
 
     const loanDataAfterRedeem = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfterRedeem.state).to.be.equal(ProtocolLoanState.Active, "Invalid loan state after redeem");
@@ -442,9 +445,13 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
 
     const auctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
     const debtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
-    const redeemAmountSend = debtDataBeforeRedeem.totalDebt.add(auctionDataBeforeRedeem.bidFine);
+    const redeemAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.51).toFixed(0);
+    const bidFineAmount = new BigNumber(auctionDataBeforeRedeem.bidFine.toString()).multipliedBy(1.1).toFixed(0);
+    const redeemAmountSend = new BigNumber(redeemAmount).plus(bidFineAmount).toFixed(0);
     await waitForTx(
-      await punkGateway.connect(borrower.signer).redeemETH(punkIndex, redeemAmountSend, { value: redeemAmountSend })
+      await punkGateway.connect(borrower.signer).redeemETH(punkIndex, redeemAmount, bidFineAmount, {
+        value: redeemAmountSend,
+      })
     );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);

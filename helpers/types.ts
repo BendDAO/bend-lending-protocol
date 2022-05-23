@@ -31,9 +31,12 @@ export enum eContractid {
   ReserveLogic = "ReserveLogic",
   NftLogic = "NftLogic",
   GenericLogic = "GenericLogic",
+  SupplyLogic = "SupplyLogic",
+  BorrowLogic = "BorrowLogic",
+  LiquidateLogic = "LiquidateLogic",
+  ConfiguratorLogic = "ConfiguratorLogic",
   LendPool = "LendPool",
   LendPoolLoan = "LendPoolLoan",
-  LendPoolLiquidator = "LendPoolLiquidator",
   ReserveOracle = "ReserveOracle",
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
@@ -56,7 +59,6 @@ export enum eContractid {
   IERC20Detailed = "IERC20Detailed",
   IERC721Detailed = "IERC721Detailed",
   FeeProvider = "FeeProvider",
-  BTokensAndBNFTsHelper = "BTokensAndBNFTsHelper",
   WETHGateway = "WETHGateway",
   WETHGatewayImpl = "WETHGatewayImpl",
   WETH = "WETH",
@@ -68,7 +70,6 @@ export enum eContractid {
   LendPoolImpl = "LendPoolImpl",
   LendPoolConfiguratorImpl = "LendPoolConfiguratorImpl",
   LendPoolLoanImpl = "LendPoolLoanImpl",
-  LendPoolLiquidatorImpl = "LendPoolLiquidatorImpl",
   BNFTRegistry = "BNFTRegistry",
   BNFTRegistryImpl = "BNFTRegistryImpl",
   CryptoPunksMarket = "CryptoPunksMarket",
@@ -149,6 +150,8 @@ export enum ProtocolErrors {
   LP_NFT_HAS_USED_AS_COLLATERAL = "412",
   LP_DELEGATE_CALL_FAILED = "413",
   LP_AMOUNT_LESS_THAN_EXTRA_DEBT = "414",
+  LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD = "415",
+  LP_AMOUNT_GREATER_THAN_MAX_REPAY = "416",
 
   //lend pool loan errors
   LPL_INVALID_LOAN_STATE = "480",
@@ -165,6 +168,7 @@ export enum ProtocolErrors {
   LPL_BID_PRICE_LESS_THAN_BORROW = "491",
   LPL_INVALID_BIDDER_ADDRESS = "492",
   LPL_AMOUNT_LESS_THAN_BID_FINE = "493",
+  LPL_BID_INVALID_BID_FINE = "494",
 
   //common token errors
   CT_CALLER_MUST_BE_LEND_POOL = "500", // 'The caller of this function must be a lending pool'
@@ -326,6 +330,7 @@ export interface INftAuctionParams {
   auctionDuration: string;
   redeemFine: string;
   redeemThreshold: string;
+  minBidFine: string;
 }
 
 export type iParamsPerNetwork<T> = iEthereumParamsPerNetwork<T>;

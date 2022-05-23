@@ -8,17 +8,11 @@ import {
   tEthereumAddress,
 } from "./types";
 import { chunk, waitForTx } from "./misc-utils";
-import {
-  getLendPoolAddressesProvider,
-  getLendPoolConfiguratorProxy,
-  getBTokensAndBNFTsHelper,
-  getBNFTRegistryProxy,
-} from "./contracts-getters";
+import { getLendPoolAddressesProvider, getLendPoolConfiguratorProxy } from "./contracts-getters";
 import { getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from "./contracts-helpers";
 import { BigNumberish } from "ethers";
 import { ConfigNames } from "./configuration";
 import { deployRateStrategy } from "./contracts-deployments";
-import { BNFTRegistry } from "../types";
 
 export const getBTokenExtraParams = async (bTokenName: string, tokenAddress: tEthereumAddress) => {
   //console.log(bTokenName);
@@ -228,15 +222,19 @@ export const configureReservesByHelper = async (
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
-  const tokenHelperDeployer = await getBTokensAndBNFTsHelper();
+  const configuator = await getLendPoolConfiguratorProxy();
   const tokens: string[] = [];
   const symbols: string[] = [];
+
+  console.log("addressesProvider:", addressProvider.address);
+  console.log("configuator:", configuator.address);
 
   const inputParams: {
     asset: string;
     reserveFactor: BigNumberish;
-    borrowingEnabled: boolean;
   }[] = [];
+
+  const assetsParams: string[] = [];
 
   console.log(`- Configure Reserves`);
   for (const [assetSymbol, { reserveFactor, borrowingEnabled }] of Object.entries(reservesParams) as [
@@ -251,11 +249,13 @@ export const configureReservesByHelper = async (
     const assetAddressIndex = Object.keys(tokenAddresses).findIndex((value) => value === assetSymbol);
     const [, tokenAddress] = (Object.entries(tokenAddresses) as [string, string][])[assetAddressIndex];
     // Push data
+    if (borrowingEnabled) {
+      assetsParams.push(tokenAddress);
+    }
 
     inputParams.push({
       asset: tokenAddress,
       reserveFactor: reserveFactor,
-      borrowingEnabled: borrowingEnabled,
     });
 
     tokens.push(tokenAddress);
@@ -264,9 +264,6 @@ export const configureReservesByHelper = async (
     console.log(`  - Params for ${assetSymbol}:`, reserveFactor, borrowingEnabled);
   }
   if (tokens.length) {
-    // Set helpDeployer as temporal admin
-    await waitForTx(await addressProvider.setPoolAdmin(tokenHelperDeployer.address));
-
     // Deploy init per chunks
     const enableChunks = 20;
     const chunkedSymbols = chunk(symbols, enableChunks);
@@ -274,11 +271,11 @@ export const configureReservesByHelper = async (
 
     console.log(`- Configure reserves in ${chunkedInputParams.length} txs`);
     for (let chunkIndex = 0; chunkIndex < chunkedInputParams.length; chunkIndex++) {
-      await waitForTx(await tokenHelperDeployer.configureReserves(chunkedInputParams[chunkIndex]));
-      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
+      await waitForTx(await configuator.batchConfigReserve(chunkedInputParams[chunkIndex]));
+      console.log(`  - batchConfigReserve for: ${chunkedSymbols[chunkIndex].join(", ")}`);
     }
-    // Set deployer back as admin
-    await waitForTx(await addressProvider.setPoolAdmin(admin));
+
+    await waitForTx(await configuator.setBorrowingFlagOnReserve(assetsParams, true));
   }
 };
 
@@ -288,14 +285,12 @@ export const configureNftsByHelper = async (
   admin: tEthereumAddress
 ) => {
   const addressProvider = await getLendPoolAddressesProvider();
-  const tokenHelperDeployer = await getBTokensAndBNFTsHelper();
+  const configuator = await getLendPoolConfiguratorProxy();
   const tokens: string[] = [];
   const symbols: string[] = [];
 
   console.log("addressesProvider:", addressProvider.address);
-  const addressProviderInHelper = await getLendPoolAddressesProvider(await tokenHelperDeployer.addressesProvider());
-  console.log("addressProviderInHelper:", addressProviderInHelper.address);
-  console.log("getLendPoolConfigurator:", await addressProviderInHelper.getLendPoolConfigurator());
+  console.log("configuator:", configuator.address);
 
   const inputParams: {
     asset: string;
@@ -306,6 +301,7 @@ export const configureNftsByHelper = async (
     auctionDuration: BigNumberish;
     redeemFine: BigNumberish;
     redeemThreshold: BigNumberish;
+    minBidFine: BigNumberish;
   }[] = [];
 
   console.log(`- Configure NFTs`);
@@ -319,6 +315,7 @@ export const configureNftsByHelper = async (
       auctionDuration,
       redeemFine,
       redeemThreshold,
+      minBidFine,
     },
   ] of Object.entries(nftsParams) as [string, INftParams][]) {
     if (!nftAddresses[assetSymbol]) {
@@ -340,6 +337,7 @@ export const configureNftsByHelper = async (
       auctionDuration: auctionDuration,
       redeemFine: redeemFine,
       redeemThreshold: redeemThreshold,
+      minBidFine: minBidFine,
     });
 
     tokens.push(tokenAddress);
@@ -353,13 +351,11 @@ export const configureNftsByHelper = async (
       redeemDuration,
       auctionDuration,
       redeemFine,
-      redeemThreshold
+      redeemThreshold,
+      minBidFine
     );
   }
   if (tokens.length) {
-    // Set helpDeployer as temporal admin
-    await waitForTx(await addressProvider.setPoolAdmin(tokenHelperDeployer.address));
-
     // Deploy init per chunks
     const enableChunks = 20;
     const chunkedSymbols = chunk(symbols, enableChunks);
@@ -368,10 +364,8 @@ export const configureNftsByHelper = async (
     console.log(`- Configure NFTs in ${chunkedInputParams.length} txs`);
     for (let chunkIndex = 0; chunkIndex < chunkedInputParams.length; chunkIndex++) {
       //console.log("configureNfts:", chunkedInputParams[chunkIndex]);
-      await waitForTx(await tokenHelperDeployer.configureNfts(chunkedInputParams[chunkIndex]));
-      console.log(`  - Init for: ${chunkedSymbols[chunkIndex].join(", ")}`);
+      await waitForTx(await configuator.batchConfigNft(chunkedInputParams[chunkIndex]));
+      console.log(`  - batchConfigNft for: ${chunkedSymbols[chunkIndex].join(", ")}`);
     }
-    // Set deployer back as admin
-    await waitForTx(await addressProvider.setPoolAdmin(admin));
   }
 };

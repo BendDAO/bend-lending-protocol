@@ -4,10 +4,8 @@ import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../h
 import { ADDRESS_ID_WETH_GATEWAY } from "../../helpers/constants";
 import {
   getBNFTRegistryProxy,
-  getBTokensAndBNFTsHelper,
   getIErc721Detailed,
   getLendPoolAddressesProvider,
-  getLendPoolAddressesProviderRegistry,
   getLendPoolConfiguratorProxy,
   getWETHGateway,
 } from "../../helpers/contracts-getters";
@@ -71,24 +69,34 @@ task("encode-add-nft-to-pool", "Init and config new nft asset to lend pool")
     ]);
     console.log("EncodeData: batchInitNft:", batchInitNftEncodeData);
 
-    console.log("Configure nft collateral parameters to lend pool");
-    const configureNftAsCollateralEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData(
-      "configureNftAsCollateral",
-      [asset, nftParam.baseLTVAsCollateral, nftParam.liquidationThreshold, nftParam.liquidationBonus]
-    );
-    console.log("EncodeData: configureNftAsCollateralEncode: ", configureNftAsCollateralEncodeData);
-
-    console.log("Configure nft auction parameters to lend pool");
-    const configureNftAsAuctionEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData(
-      "configureNftAsAuction",
-      [asset, nftParam.redeemDuration, nftParam.auctionDuration, nftParam.redeemFine]
-    );
-    console.log("EncodeData: configureNftAsAuction: ", configureNftAsAuctionEncodeData);
-    const setNftRedeemThresholdEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData(
-      "setNftRedeemThreshold",
-      [asset, nftParam.redeemThreshold]
-    );
-    console.log("EncodeData: setNftRedeemThreshold: ", setNftRedeemThresholdEncodeData);
+    console.log("Configure nft parameters to lend pool");
+    let cfgInputParams: {
+      asset: string;
+      baseLTV: BigNumberish;
+      liquidationThreshold: BigNumberish;
+      liquidationBonus: BigNumberish;
+      redeemDuration: BigNumberish;
+      auctionDuration: BigNumberish;
+      redeemFine: BigNumberish;
+      redeemThreshold: BigNumberish;
+      minBidFine: BigNumberish;
+    }[] = [
+      {
+        asset: asset,
+        baseLTV: nftParam.baseLTVAsCollateral,
+        liquidationThreshold: nftParam.liquidationThreshold,
+        liquidationBonus: nftParam.liquidationBonus,
+        redeemDuration: nftParam.redeemDuration,
+        auctionDuration: nftParam.auctionDuration,
+        redeemFine: nftParam.redeemFine,
+        redeemThreshold: nftParam.redeemThreshold,
+        minBidFine: nftParam.minBidFine,
+      },
+    ];
+    const batchCfgNftEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData("batchConfigNft", [
+      cfgInputParams,
+    ]);
+    console.log("EncodeData: batchConfigNft:", batchCfgNftEncodeData);
 
     console.log("OK");
   });
