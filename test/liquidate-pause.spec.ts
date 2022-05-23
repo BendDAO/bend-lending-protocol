@@ -158,6 +158,9 @@ makeSuite("Liquidate: Pause", async (testEnv) => {
     // auction by liquidator B
     await mintERC20(testEnv, liquidatorB, "WETH", "100");
     await approveERC20(testEnv, liquidatorB, "WETH");
+
+    await advanceTimeAndBlock(100);
+
     const auctionAmountB = new BigNumber(auctionAmount).multipliedBy(1.2).toFixed(0);
     await auction(testEnv, liquidatorB, "BAYC", tokenId, auctionAmountB, liquidator, true, "success", "");
 
