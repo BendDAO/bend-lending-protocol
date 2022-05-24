@@ -6,7 +6,7 @@ export const strategyNftClassA: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
-  redeemFine: "100", // 1%
+  redeemFine: "500", // 5%
   redeemThreshold: "5000", // 50%
   minBidFine: "5000", // 0.5 ETH
   bNftImpl: eContractid.BNFT,
@@ -18,7 +18,7 @@ export const strategyNftClassB: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
-  redeemFine: "100", // 1%
+  redeemFine: "500", // 5%
   redeemThreshold: "5000", // 50%
   minBidFine: "5000", // 0.5 ETH
   bNftImpl: eContractid.BNFT,
@@ -30,7 +30,7 @@ export const strategyNftClassC: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "2", // 2 day
   auctionDuration: "2", // 2 day
-  redeemFine: "100", // 1%
+  redeemFine: "500", // 5%
   redeemThreshold: "5000", // 50%
   minBidFine: "5000", // 0.5 ETH
   bNftImpl: eContractid.BNFT,
@@ -42,7 +42,7 @@ export const strategyNftClassD: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
-  redeemFine: "100", // 1%
+  redeemFine: "500", // 5%
   redeemThreshold: "5000", // 50%
   minBidFine: "5000", // 0.5 ETH
   bNftImpl: eContractid.BNFT,
@@ -54,7 +54,7 @@ export const strategyNftClassE: INftParams = {
   liquidationBonus: '500', // 5%
   redeemDuration: "2", // 2 days
   auctionDuration: "2", // 2 days
-  redeemFine: "100", // 1%
+  redeemFine: "500", // 5%
   redeemThreshold: "5000", // 50%
   minBidFine: "5000", // 0.5 ETH
   bNftImpl: eContractid.BNFT,
