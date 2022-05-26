@@ -27,7 +27,12 @@ The documentation of Bend Protocol is in the following [Bend documentation](http
 For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.benddao.xyz/developers/deployed-contracts) page at the documentation to stay up to date.
 
 ## Audits
-[Certik Online Report](https://www.certik.com/projects/bend-dao).
+1. [Verilog Solutions Online Report](https://hackmd.io/@verilog/benddao-audit).
+2. [Certik Online Report](https://www.certik.com/projects/bend-dao).
+
+## Thanks
+Bend protocol refers to the architecture design and adopts some of the code of [AAVE](https://github.com/aave).
+We are very grateful to AAVE for providing us with an excellent DeFi platform.
 
 ## Connect with the community
 
