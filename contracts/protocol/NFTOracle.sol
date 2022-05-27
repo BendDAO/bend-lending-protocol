@@ -137,11 +137,11 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     onlyAdmin
   {
     require(_nftContracts.length == _prices.length, "NFTOracle: data length not match");
+    uint256 _timestamp = _blockTimestamp();
     for (uint256 i = 0; i < _nftContracts.length; i++) {
       bool _paused = nftPaused[_nftContracts[i]];
       if (!_paused) {
         requireKeyExisted(_nftContracts[i], true);
-        uint256 _timestamp = _blockTimestamp();
         require(_timestamp > getLatestTimestamp(_nftContracts[i]), "NFTOracle: incorrect timestamp");
         require(_prices[i] > 0, "NFTOracle: price can not be 0");
         bool dataValidity = checkValidityOfPrice(_nftContracts[i], _prices[i], _timestamp);
