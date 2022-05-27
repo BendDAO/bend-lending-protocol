@@ -131,6 +131,34 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
   }
 
+  function setMultipleAssetsData(address[] calldata _nftContracts, uint256[] calldata _prices)
+    external
+    override
+    onlyAdmin
+  {
+    require(_nftContracts.length == _prices.length, "NFTOracle: data length not match");
+    for (uint256 i = 0; i < _nftContracts.length; i++) {
+      bool _paused = nftPaused[_nftContracts[i]];
+      if (!_paused) {
+        requireKeyExisted(_nftContracts[i], true);
+        uint256 _timestamp = _blockTimestamp();
+        require(_timestamp > getLatestTimestamp(_nftContracts[i]), "NFTOracle: incorrect timestamp");
+        require(_prices[i] > 0, "NFTOracle: price can not be 0");
+        bool dataValidity = checkValidityOfPrice(_nftContracts[i], _prices[i], _timestamp);
+        require(dataValidity, "NFTOracle: invalid price data");
+        uint256 len = getPriceFeedLength(_nftContracts[i]);
+        NFTPriceData memory data = NFTPriceData({price: _prices[i], timestamp: _timestamp, roundId: len});
+        nftPriceFeedMap[_nftContracts[i]].nftPriceData.push(data);
+
+        uint256 twapPrice = calculateTwapPrice(_nftContracts[i]);
+        twapPriceMap[_nftContracts[i]] = twapPrice;
+
+        emit SetAssetData(_nftContracts[i], _prices[i], _timestamp, len);
+        emit SetAssetTwapPrice(_nftContracts[i], twapPrice, _timestamp);
+      }
+    }
+  }
+
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
