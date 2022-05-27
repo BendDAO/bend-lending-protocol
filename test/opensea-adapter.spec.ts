@@ -28,8 +28,10 @@ import {
   buildAtomicMatchParams,
   buildFlashloanParams,
   createSellOrder,
+  encodeFlashLoanParams,
   makeBuyOrder,
   Order,
+  signFlashLoanParams,
   signOrder,
 } from "./helpers/opensea";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
@@ -109,6 +111,12 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
       testEnv.bendCollector.address
     );
 
+    console.log(
+      await downpaymentAdapter._decodeParams(
+        "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000588d1a07ccdb224cb28dcd8e3dd46e16b3a72b5e0000000000000000000000000000000000000000000000000000000000002260000000000000000000000000dd54d660178b28f6033a953b0e55073cfa7e374400000000000000000000000099791b7397d793f3e5d4e4ad78de9e64002c63fb000000000000000000000000f354cc22b402a659b42be180f9947d8e38b4631f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000045b594792a5cdc008d0de1c1d69faa3d16b3ddc100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000dd54d660178b28f6033a953b0e55073cfa7e3744000000000000000000000000f354cc22b402a659b42be180f9947d8e38b4631f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000005b3256965e7c3cf26e11fcaf296dfc8807c0107300000000000000000000000045b594792a5cdc008d0de1c1d69faa3d16b3ddc10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fa0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000627fa7d90000000000000000000000000000000000000000000000000000000062a886a2152fd24842fbfeee4e6e102cdae665c6ac1667b5cd773e3c2d2541a2053540ac00000000000000000000000000000000000000000000000000000000000000fa0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000de0b6b3a7640000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000627fa7d90000000000000000000000000000000000000000000000000000000062a886a22a719c823ed8567178b8570358192757e8550cf343f208367a10cb41e9d684d00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000006e0000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000009200000000000000000000000000000000000000000000000000000000000000a400000000000000000000000000000000000000000000000000000000000000b600000000000000000000000000000000000000000000000000000000000000b80000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000001cd7fc2ef63a6def794323be4e14e0ef39862088b692613ee84ca5ea290bf16e2d7d10ab968e8f93b38b8087455cdb1edd7ae060ce6509094db441821ebf9942f3ccfee348460f8d73a3d838f99722431fa6fc3121298d3ae2569d63f6e029f92433d535cc8c81b4459c7a569fa6e2f8c5230cef7c97e0e0c4a57ac83e200c82d9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4fb16a595000000000000000000000000000000000000000000000000000000000000000000000000000000000000000099791b7397d793f3e5d4e4ad78de9e64002c63fb000000000000000000000000588d1a07ccdb224cb28dcd8e3dd46e16b3a72b5e0000000000000000000000000000000000000000000000000000000000002260000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4fb16a595000000000000000000000000f354cc22b402a659b42be180f9947d8e38b4631f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000588d1a07ccdb224cb28dcd8e3dd46e16b3a72b5e0000000000000000000000000000000000000000000000000000000000002260000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e400000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      )
+    );
+
     await testEnv.weth.connect(deployer.signer).deposit({ value: parseEther("10001") });
 
     await testEnv.weth.connect(deployer.signer).transfer(aaveLendingPool.address, parseEther("10000"));
@@ -157,6 +165,8 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
     let nonce = await openseaExchange.nonces(user);
     return signOrder(privateKey, order, chainId, nonce.toNumber());
   }
+
+  it("decode", async () => {});
 
   it("opensea atomic match", async () => {
     const seller = testEnv.users[1];
@@ -229,6 +239,11 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
     let buySig: ECDSASignature;
     let debtWETH: DebtToken;
     let bWETH: BToken;
+    const emptySig = {
+      v: 0,
+      r: Buffer.from(NULL_BLOCK_HASH.substring(2), "hex"),
+      s: Buffer.from(NULL_BLOCK_HASH.substring(2), "hex"),
+    };
 
     async function approveBuyerWeth() {
       await testEnv.weth.connect(buyer.signer).approve(downpaymentAdapter.address, constants.MaxUint256);
@@ -259,17 +274,33 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
       await testEnv.nftOracle.setAssetData(nftToken.address, parseEther("100"), lastTime, lastTime);
 
       buyOrder = makeBuyOrder(sellOrder, downpaymentAdapter.address, testEnv.deployer.address, sellOrder.listingTime);
-      //empty sig
-      buySig = {
-        v: 0,
-        r: Buffer.from(NULL_BLOCK_HASH.substring(2), "hex"),
-        s: Buffer.from(NULL_BLOCK_HASH.substring(2), "hex"),
-      };
     });
 
-    async function expectDownpaymentSuccessed(borowAmount: BigNumber) {
+    async function expectDownpaymentSuccessed(borowAmount: BigNumber, nonce: string) {
       const aaveWethBalanceBefore = await testEnv.weth.balanceOf(aaveLendingPool.address);
       const buyerWethBalance = await testEnv.weth.balanceOf(buyer.address);
+      let params = buildFlashloanParams(
+        nftToken.address,
+        tokenId,
+        buyOrder,
+        emptySig,
+        sellOrder,
+        sellSig,
+        NULL_BLOCK_HASH
+      );
+      buySig = signFlashLoanParams(
+        secretKeys[3],
+        chainId,
+        nonce,
+        downpaymentAdapter.address,
+        nftToken.address,
+        tokenId.toString(),
+        buyOrder,
+        sellOrder,
+        sellSig,
+        NULL_BLOCK_HASH
+      );
+      params = buildFlashloanParams(nftToken.address, tokenId, buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
       await aaveLendingPool
         .connect(buyer.signer)
         .flashLoan(
@@ -278,7 +309,7 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
           [borowAmount],
           [0],
           constants.AddressZero,
-          buildFlashloanParams(nftToken.address, tokenId, buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH),
+          encodeFlashLoanParams(params),
           0
         );
 
@@ -296,7 +327,31 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
       );
     }
 
-    function exceptDownpaymentReverted(borowAmount: BigNumber) {
+    function exceptDownpaymentReverted(borowAmount: BigNumber, nonce: string) {
+      let params = buildFlashloanParams(
+        nftToken.address,
+        tokenId,
+        buyOrder,
+        emptySig,
+        sellOrder,
+        sellSig,
+        NULL_BLOCK_HASH
+      );
+      buySig = signFlashLoanParams(
+        secretKeys[3],
+        chainId,
+        nonce,
+        downpaymentAdapter.address,
+        nftToken.address,
+        tokenId.toString(),
+        buyOrder,
+        sellOrder,
+        sellSig,
+        NULL_BLOCK_HASH
+      );
+
+      params = buildFlashloanParams(nftToken.address, tokenId, buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH);
+
       return expect(
         aaveLendingPool
           .connect(buyer.signer)
@@ -306,7 +361,7 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
             [borowAmount],
             [0],
             constants.AddressZero,
-            buildFlashloanParams(nftToken.address, tokenId, buyOrder, buySig, sellOrder, sellSig, NULL_BLOCK_HASH),
+            encodeFlashLoanParams(params),
             0
           )
       );
@@ -315,39 +370,40 @@ makeSuite("opensea downpayment adapter tests", (testEnv: TestEnv) => {
     it("downpayment buy", async () => {
       const borowAmount = parseEther("40");
 
+      let nonce = (await downpaymentAdapter.nonces(buyer.address)).toString();
       buyOrder.maker = testEnv.users[3].address;
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("Buyer must be this contract");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Buyer must be this contract");
       buyOrder.maker = downpaymentAdapter.address;
 
       buyOrder.paymentToken = testEnv.weth.address;
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("Buyer payment token should be ETH");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Buyer payment token should be ETH");
       buyOrder.paymentToken = constants.AddressZero;
 
       sellOrder.saleKind = 1;
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("Order must be fixed price sale kind");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Order must be fixed price sale kind");
       sellOrder.saleKind = 0;
 
       buyOrder.basePrice = buyOrder.basePrice.sub(parseEther("1"));
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("Order price must be same");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Order price must be same");
       buyOrder.basePrice = sellOrder.basePrice;
 
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("Insufficient payment");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Insufficient payment");
       await testEnv.weth.connect(buyer.signer).deposit({ value: parseEther("62") });
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("Insufficient payment");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Insufficient payment");
       await approveBuyerWeth();
 
       buyOrder.feeMethod = 0;
-      await exceptDownpaymentReverted(borowAmount).to.revertedWith("order not matched");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("order not matched");
       buyOrder.feeMethod = 1;
 
       let _calldata = buyOrder.calldata;
       buyOrder.calldata = _calldata.replace("f", "0");
-      await exceptDownpaymentReverted(borowAmount).to.be.reverted;
+      await exceptDownpaymentReverted(borowAmount, nonce).to.be.reverted;
       buyOrder.calldata = _calldata;
 
-      await exceptDownpaymentReverted(borowAmount).to.be.reverted;
+      await exceptDownpaymentReverted(borowAmount, nonce).to.be.reverted;
       await approveBuyerDebtWeth();
-      await expectDownpaymentSuccessed(borowAmount);
+      await expectDownpaymentSuccessed(borowAmount, nonce);
     });
   });
 });

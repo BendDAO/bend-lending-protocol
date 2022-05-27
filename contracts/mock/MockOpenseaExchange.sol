@@ -1802,29 +1802,29 @@ contract Exchange is ExchangeCore {
     return
       atomicMatch(
         Order(
-          addrs[0],
-          addrs[1],
-          addrs[2],
-          uints[0],
-          uints[1],
-          uints[2],
-          uints[3],
-          addrs[3],
-          FeeMethod(feeMethodsSidesKindsHowToCalls[0]),
-          SaleKindInterface.Side(feeMethodsSidesKindsHowToCalls[1]),
-          SaleKindInterface.SaleKind(feeMethodsSidesKindsHowToCalls[2]),
-          addrs[4],
-          AuthenticatedProxy.HowToCall(feeMethodsSidesKindsHowToCalls[3]),
-          calldataBuy,
-          replacementPatternBuy,
-          addrs[5],
-          staticExtradataBuy,
-          ERC20(addrs[6]),
-          uints[4],
-          uints[5],
-          uints[6],
-          uints[7],
-          uints[8]
+          addrs[0], // exchange
+          addrs[1], // maker
+          addrs[2], // taker
+          uints[0], // makerRelayerFee
+          uints[1], // takerRelayerFee
+          uints[2], // makerProtocolFee
+          uints[3], // takerProtocolFee
+          addrs[3], // feeRecipient
+          FeeMethod(feeMethodsSidesKindsHowToCalls[0]), // feeMethod
+          SaleKindInterface.Side(feeMethodsSidesKindsHowToCalls[1]), // side
+          SaleKindInterface.SaleKind(feeMethodsSidesKindsHowToCalls[2]), // saleKind
+          addrs[4], // target
+          AuthenticatedProxy.HowToCall(feeMethodsSidesKindsHowToCalls[3]), // howToCall
+          calldataBuy, // calldata
+          replacementPatternBuy, // replacementPattern
+          addrs[5], // staticTarget
+          staticExtradataBuy, // staticExtradata
+          ERC20(addrs[6]), // paymentToken
+          uints[4], // basePrice
+          uints[5], // extra
+          uints[6], // listingTime
+          uints[7], // expirationTime
+          uints[8] // salt
         ),
         Sig(vs[0], rssMetadata[0], rssMetadata[1]),
         Order(

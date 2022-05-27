@@ -29,7 +29,7 @@ contract MockAaveLendPool {
     uint256[] memory premiums = new uint256[](assets.length);
     for (uint256 i = 0; i < assets.length; i++) {
       premiums[i] = (amounts[i] * 9) / 10000;
-      IERC20(assets[i]).safeTransferFrom(address(this), receiverAddress, amounts[i]);
+      IERC20(assets[i]).safeTransfer(receiverAddress, amounts[i]);
     }
 
     require(

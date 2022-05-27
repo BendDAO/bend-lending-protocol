@@ -325,8 +325,8 @@ export const buildFlashloanParamsFromOpenSeaOrder = (
     exchange: order.exchange,
     maker: order.maker,
     taker: order.taker,
-    makerRelayerFee: BigNumber.from(order.makerReferrerFee),
-    takerRelayerFee: BigNumber.from(order.takerProtocolFee),
+    makerRelayerFee: BigNumber.from(order.makerRelayerFee),
+    takerRelayerFee: BigNumber.from(order.takerRelayerFee),
     makerProtocolFee: BigNumber.from(order.makerProtocolFee),
     takerProtocolFee: BigNumber.from(order.takerProtocolFee),
     feeRecipient: order.feeRecipient,
@@ -350,7 +350,7 @@ export const buildFlashloanParamsFromOpenSeaOrder = (
   let buy = makeBuyOrder(sell, buyer, sell.feeRecipient, sell.listingTime);
 
   let buySig = signOrder(privateKey, buy, chainId, nonce);
-  return buildFlashloanParams(
+  let params = buildFlashloanParams(
     nftAsset,
     tokenId,
     buy,
@@ -358,6 +358,14 @@ export const buildFlashloanParamsFromOpenSeaOrder = (
     sell,
     { v: order.v || 0, r: Buffer.from(order.r || "", "hex"), s: Buffer.from(order.s || "", "hex") },
     "0x0000000000000000000000000000000000000000000000000000000000000000"
+  );
+  return encodeFlashLoanParams(params);
+};
+
+export const encodeFlashLoanParams = (params: any): string => {
+  return ethers.utils.defaultAbiCoder.encode(
+    ["(address,uint256,address[14],uint256[18],uint8[8],bytes,bytes,bytes,bytes,bytes,bytes,uint8[2],bytes32[5])"],
+    [params]
   );
 };
 
@@ -369,74 +377,187 @@ export const buildFlashloanParams = (
   sell: Order,
   sellSig: ECDSASignature,
   referrerAddress: string
-): string => {
-  return ethers.utils.defaultAbiCoder.encode(
-    ["(address,uint256,address[14],uint256[18],uint8[8],bytes,bytes,bytes,bytes,bytes,bytes,uint8[2],bytes32[5])"],
+) => {
+  return [
+    nftAsset,
+    tokenId,
     [
-      [
-        nftAsset,
-        tokenId,
-        [
-          buy.exchange,
-          buy.maker,
-          buy.taker,
-          buy.feeRecipient,
-          buy.target,
-          buy.staticTarget,
-          buy.paymentToken,
-          sell.exchange,
-          sell.maker,
-          sell.taker,
-          sell.feeRecipient,
-          sell.target,
-          sell.staticTarget,
-          sell.paymentToken,
-        ],
-        [
-          buy.makerRelayerFee.toString(),
-          buy.takerRelayerFee.toString(),
-          buy.makerProtocolFee.toString(),
-          buy.takerProtocolFee.toString(),
-          buy.basePrice.toString(),
-          buy.extra.toString(),
-          buy.listingTime.toString(),
-          buy.expirationTime.toString(),
-          buy.salt.toString(),
-          sell.makerRelayerFee.toString(),
-          sell.takerRelayerFee.toString(),
-          sell.makerProtocolFee.toString(),
-          sell.takerProtocolFee.toString(),
-          sell.basePrice.toString(),
-          sell.extra.toString(),
-          sell.listingTime.toString(),
-          sell.expirationTime.toString(),
-          sell.salt.toString(),
-        ],
-        [
-          buy.feeMethod,
-          buy.side,
-          buy.saleKind,
-          buy.howToCall,
-          sell.feeMethod,
-          sell.side,
-          sell.saleKind,
-          sell.howToCall,
-        ],
-        buy.calldata,
-        sell.calldata,
-        buy.replacementPattern,
-        sell.replacementPattern,
-        buy.staticExtradata,
-        sell.staticExtradata,
-        [buySig.v, sellSig.v],
-        [
-          "0x" + buySig.r.toString("hex"),
-          "0x" + buySig.s.toString("hex"),
-          "0x" + sellSig.r.toString("hex"),
-          "0x" + sellSig.s.toString("hex"),
-          referrerAddress,
-        ],
-      ],
-    ]
-  );
+      buy.exchange,
+      buy.maker,
+      buy.taker,
+      buy.feeRecipient,
+      buy.target,
+      buy.staticTarget,
+      buy.paymentToken,
+      sell.exchange,
+      sell.maker,
+      sell.taker,
+      sell.feeRecipient,
+      sell.target,
+      sell.staticTarget,
+      sell.paymentToken,
+    ],
+    [
+      buy.makerRelayerFee.toString(),
+      buy.takerRelayerFee.toString(),
+      buy.makerProtocolFee.toString(),
+      buy.takerProtocolFee.toString(),
+      buy.basePrice.toString(),
+      buy.extra.toString(),
+      buy.listingTime.toString(),
+      buy.expirationTime.toString(),
+      buy.salt.toString(),
+      sell.makerRelayerFee.toString(),
+      sell.takerRelayerFee.toString(),
+      sell.makerProtocolFee.toString(),
+      sell.takerProtocolFee.toString(),
+      sell.basePrice.toString(),
+      sell.extra.toString(),
+      sell.listingTime.toString(),
+      sell.expirationTime.toString(),
+      sell.salt.toString(),
+    ],
+    [buy.feeMethod, buy.side, buy.saleKind, buy.howToCall, sell.feeMethod, sell.side, sell.saleKind, sell.howToCall],
+    buy.calldata,
+    sell.calldata,
+    buy.replacementPattern,
+    sell.replacementPattern,
+    buy.staticExtradata,
+    sell.staticExtradata,
+    [buySig.v, sellSig.v],
+    [
+      "0x" + buySig.r.toString("hex"),
+      "0x" + buySig.s.toString("hex"),
+      "0x" + sellSig.r.toString("hex"),
+      "0x" + sellSig.s.toString("hex"),
+      referrerAddress,
+    ],
+  ];
 };
+
+export const strOrder = (order: Order) => {
+  return {
+    exchange: order.exchange,
+    maker: order.maker,
+    taker: order.taker,
+    makerRelayerFee: order.makerRelayerFee.toString(),
+    takerRelayerFee: order.takerRelayerFee.toString(),
+    makerProtocolFee: order.makerProtocolFee.toString(),
+    takerProtocolFee: order.takerProtocolFee.toString(),
+    feeRecipient: order.feeRecipient,
+    feeMethod: order.feeMethod.toString(),
+    side: order.side.toString(),
+    saleKind: order.saleKind.toString(),
+    target: order.target,
+    howToCall: order.howToCall.toString(),
+    calldata: order.calldata,
+    replacementPattern: order.replacementPattern,
+    staticTarget: order.staticTarget,
+    staticExtradata: order.staticExtradata,
+    paymentToken: order.paymentToken,
+    basePrice: order.basePrice.toString(),
+    extra: order.extra.toString(),
+    listingTime: order.listingTime.toString(),
+    expirationTime: order.expirationTime.toString(),
+    salt: order.salt.toString(),
+  };
+};
+
+export const signFlashLoanParams = (
+  privateKey: string,
+  chainId: number,
+  nonce: string,
+  adapter: string,
+  nftAsset: string,
+  nftTokenId: string,
+  buy: Order,
+  sell: Order,
+  sellSig: ECDSASignature,
+  metadata: string
+) => {
+  const message = {
+    types: EIP_712_PARAMS_TYPES,
+    domain: {
+      name: EIP_712_ADAPTER_DOMAIN_NAME,
+      version: EIP_712_ADAPTER_DOMAIN_VERSION,
+      chainId,
+      verifyingContract: adapter,
+    },
+    primaryType: "Params",
+    message: {
+      nftAsset,
+      nftTokenId,
+      buy: strOrder(buy),
+      sell: strOrder(sell),
+      sellSig: {
+        v: sellSig.v.toString(),
+        r: "0x" + sellSig.r.toString("hex"),
+        s: "0x" + sellSig.s.toString("hex"),
+      },
+      metadata,
+      nonce,
+    },
+  };
+  return getSignatureFromTypedData(privateKey, message);
+};
+
+export const EIP_712_PARAMS_TYPES = {
+  EIP712Domain: [
+    { name: "name", type: "string" },
+    { name: "version", type: "string" },
+    { name: "chainId", type: "uint256" },
+    { name: "verifyingContract", type: "address" },
+  ],
+  Sig: [
+    { name: "v", type: "uint8" },
+    { name: "r", type: "bytes32" },
+    { name: "s", type: "bytes32" },
+  ],
+  Order: [
+    { name: "exchange", type: "address" },
+    { name: "maker", type: "address" },
+    { name: "taker", type: "address" },
+    { name: "makerRelayerFee", type: "uint256" },
+    { name: "takerRelayerFee", type: "uint256" },
+    { name: "makerProtocolFee", type: "uint256" },
+    { name: "takerProtocolFee", type: "uint256" },
+    { name: "feeRecipient", type: "address" },
+    { name: "feeMethod", type: "uint8" },
+    { name: "side", type: "uint8" },
+    { name: "saleKind", type: "uint8" },
+    { name: "target", type: "address" },
+    { name: "howToCall", type: "uint8" },
+    { name: "calldata", type: "bytes" },
+    { name: "replacementPattern", type: "bytes" },
+    { name: "staticTarget", type: "address" },
+    { name: "staticExtradata", type: "bytes" },
+    { name: "paymentToken", type: "address" },
+    { name: "basePrice", type: "uint256" },
+    { name: "extra", type: "uint256" },
+    { name: "listingTime", type: "uint256" },
+    { name: "expirationTime", type: "uint256" },
+    { name: "salt", type: "uint256" },
+  ],
+  Params: [
+    { name: "nftAsset", type: "address" },
+    { name: "nftTokenId", type: "uint256" },
+    {
+      name: "buy",
+      type: "Order",
+    },
+    {
+      name: "sell",
+      type: "Order",
+    },
+    {
+      name: "sellSig",
+      type: "Sig",
+    },
+
+    { name: "metadata", type: "bytes32" },
+    { name: "nonce", type: "uint256" },
+  ],
+};
+
+export const EIP_712_ADAPTER_DOMAIN_NAME = "Opensea Downpayment Buy Adapter";
+export const EIP_712_ADAPTER_DOMAIN_VERSION = "1.0";

@@ -451,14 +451,14 @@ export const getBendCollectorImpl = async (address?: tEthereumAddress) =>
     await getDeploySigner()
   );
 
-export const getOpenseaAdapterProxy = async (address?: tEthereumAddress) =>
+export const getOpenseaDownpaymentBuyAdapterProxy = async (address?: tEthereumAddress) =>
   await BendCollectorFactory.connect(
-    address || (await getDb(DRE.network.name).get(`${eContractid.OpenseaAdapter}`).value()).address,
+    address || (await getDb(DRE.network.name).get(`${eContractid.OpenseaDownpaymentBuyAdapter}`).value()).address,
     await getDeploySigner()
   );
 
-export const getOpenseaAdapterImpl = async (address?: tEthereumAddress) =>
+export const getOpenseaDownpaymentBuyAdapterImpl = async (address?: tEthereumAddress) =>
   await BendCollectorFactory.connect(
-    address || (await getDb(DRE.network.name).get(`${eContractid.OpenseaAdapterImpl}`).value()).address,
+    address || (await getDb(DRE.network.name).get(`${eContractid.OpenseaDownpaymentBuyAdapterImpl}`).value()).address,
     await getDeploySigner()
   );

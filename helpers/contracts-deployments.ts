@@ -59,12 +59,15 @@ import {
   GenericLogicFactory,
   ConfiguratorLogicFactory,
   OpenseaDownpaymentBuyAdapterFactory,
+  PunkDownpaymentBuyAdapterFactory,
 } from "../types";
 import {
   withSaveAndVerify,
   registerContractInJsonDb,
   linkBytecode,
   insertContractAddressInDb,
+  deployContract,
+  verifyContract,
   getOptionalParamAddressPerNetwork,
   getContractAddressInDb,
 } from "./contracts-helpers";
@@ -596,11 +599,17 @@ export const deployBendCollector = async (args: [], verify?: boolean) => {
   return withSaveAndVerify(bendCollectorImpl, eContractid.BendCollector, [], verify);
 };
 
-export const deployOpenseaAdapterImpl = async (verify?: boolean) => {
+export const deployOpenseaDownpaymentBuyAdapterImpl = async (verify?: boolean) => {
   const impl = await new OpenseaDownpaymentBuyAdapterFactory(await getDeploySigner()).deploy();
   console.log("test");
-  await insertContractAddressInDb(eContractid.OpenseaAdapterImpl, impl.address);
-  return withSaveAndVerify(impl, eContractid.OpenseaAdapterImpl, [], verify);
+  await insertContractAddressInDb(eContractid.OpenseaDownpaymentBuyAdapterImpl, impl.address);
+  return withSaveAndVerify(impl, eContractid.OpenseaDownpaymentBuyAdapterImpl, [], verify);
+};
+
+export const deployPunkDownpaymentBuyAdapterImpl = async (verify?: boolean) => {
+  const impl = await new PunkDownpaymentBuyAdapterFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.PunkDownpaymentBuyAdapterImpl, impl.address);
+  return withSaveAndVerify(impl, eContractid.PunkDownpaymentBuyAdapterImpl, [], verify);
 };
 
 export const deployTimelockController = async (
