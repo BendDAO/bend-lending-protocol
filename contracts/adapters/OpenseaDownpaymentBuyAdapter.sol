@@ -1,36 +1,14 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import {IAaveFlashLoanReceiver} from "./interfaces/IAaveFlashLoanReceiver.sol";
-import {IOpenseaExchage} from "./interfaces/IOpenseaExchage.sol";
-import {ILendPool} from "../interfaces/ILendPool.sol";
-import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
-import {IAaveLendPoolAddressesProvider} from "./interfaces/IAaveLendPoolAddressesProvider.sol";
-import {IWETH} from "../interfaces/IWETH.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import {PercentageMath} from "../libraries/math/PercentageMath.sol";
-import {MathUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
-import {EIP712Upgradeable, ECDSAUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/draft-EIP712Upgradeable.sol";
-import {CountersUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "./interfaces/IOpenseaExchage.sol";
 
-contract OpenseaDownpaymentBuyAdapter is
-  IAaveFlashLoanReceiver,
-  OwnableUpgradeable,
-  PausableUpgradeable,
-  EIP712Upgradeable,
-  ReentrancyGuardUpgradeable,
-  IERC721ReceiverUpgradeable
-{
-  event FeeCharged(address indexed payer, uint256 fee);
+import "../libraries/math/PercentageMath.sol";
 
-  event FeeUpdated(uint256 indexed newFee);
+import "./BaseDownpaymentBuyAdapter.sol";
 
+contract OpenseaDownpaymentBuyAdapter is BaseDownpaymentBuyAdapter {
   using PercentageMath for uint256;
-  using CountersUpgradeable for CountersUpgradeable.Counter;
 
   string public constant NAME = "Opensea Downpayment Buy Adapter";
   string public constant VERSION = "1.0";
@@ -45,16 +23,7 @@ contract OpenseaDownpaymentBuyAdapter is
       "Order(address exchange,address maker,address taker,uint256 makerRelayerFee,uint256 takerRelayerFee,uint256 makerProtocolFee,uint256 takerProtocolFee,address feeRecipient,uint8 feeMethod,uint8 side,uint8 saleKind,address target,uint8 howToCall,bytes calldata,bytes replacementPattern,address staticTarget,bytes staticExtradata,address paymentToken,uint256 basePrice,uint256 extra,uint256 listingTime,uint256 expirationTime,uint256 salt)"
     );
 
-  bytes32 private constant _SIGNATURE_TYPEHASH = keccak256("Sig(uint8 v,bytes32 r,bytes32 s)");
-
-  mapping(address => CountersUpgradeable.Counter) private _nonces;
-
-  ILendPoolAddressesProvider public bendAddressesProvider;
-  IAaveLendPoolAddressesProvider public aaveAddressedProvider;
   IOpenseaExchage public openseaExchange;
-  IWETH public WETH;
-  uint256 public fee;
-  address public bendCollector;
 
   struct Params {
     // bend params
@@ -100,146 +69,67 @@ contract OpenseaDownpaymentBuyAdapter is
     uint256 salt;
   }
 
-  struct Sig {
-    uint8 v;
-    bytes32 r;
-    bytes32 s;
-  }
-
-  modifier onlyAaveLendPool() {
-    require(msg.sender == aaveAddressedProvider.getLendingPool(), "Caller must be aave lending pool");
-    _;
-  }
-
   function initialize(
-    uint256 _fee,
-    address _bendAddressesProvider,
     address _aaveAddressesProvider,
-    address _openseaExchange,
+    address _bendAddressesProvider,
     address _weth,
-    address _bendCollector
+    address _bendCollector,
+    uint256 _fee,
+    address _openseaExchange
   ) external initializer {
-    __Pausable_init();
-    __Ownable_init();
-    __ReentrancyGuard_init();
-    __EIP712_init_unchained(NAME, VERSION);
-    fee = _fee;
-    bendAddressesProvider = ILendPoolAddressesProvider(_bendAddressesProvider);
-    aaveAddressedProvider = IAaveLendPoolAddressesProvider(_aaveAddressesProvider);
-    WETH = IWETH(_weth);
+    __BaseDownpaymentBuyAdapter_init(
+      NAME,
+      VERSION,
+      _aaveAddressesProvider,
+      _bendAddressesProvider,
+      _weth,
+      _bendCollector,
+      _fee
+    );
+
     openseaExchange = IOpenseaExchage(_openseaExchange);
-    bendCollector = _bendCollector;
-    WETH.approve(bendAddressesProvider.getLendPool(), type(uint256).max);
   }
 
-  function nonces(address owner) public view returns (uint256) {
-    return _nonces[owner].current();
+  struct CheckOrderParamsLocalVars {
+    bytes32 paramsHash;
+    address buyerpaymentToken;
+    address sellerpaymentToken;
+    uint256 buyPrice;
+    uint256 sellPrice;
+    uint256 salePrice;
   }
 
-  function _useNonce(address owner) internal returns (uint256 current) {
-    CountersUpgradeable.Counter storage nonce = _nonces[owner];
-    current = nonce.current();
-    nonce.increment();
-  }
-
-  function pause() external onlyOwner whenNotPaused {
-    _pause();
-  }
-
-  function unpause() external onlyOwner whenPaused {
-    _unpause();
-  }
-
-  function updateFee(uint256 _newFee) external onlyOwner {
-    require(_newFee <= PercentageMath.PERCENTAGE_FACTOR, "Fee overflow");
-    fee = _newFee;
-    emit FeeUpdated(fee);
-  }
-
-  function executeOperation(
-    address[] calldata _assets,
-    uint256[] calldata _amounts,
-    uint256[] calldata _premiums,
-    address _initiator,
-    bytes calldata _params
-  ) external override nonReentrant whenNotPaused onlyAaveLendPool returns (bool) {
-    Params memory _orderParams = _decodeParams(_params);
-    address _buyer = _initiator;
-    _checkParams(_assets, _amounts, _premiums, _buyer, _orderParams, _useNonce(_buyer));
-
-    uint256 _flashBorrowedAmount = _amounts[0];
-    uint256 _flashFee = _premiums[0];
-    uint256 _flashLoanDebt = _flashBorrowedAmount + _flashFee;
-    uint256 _salePrice = _orderParams.uints[13];
-    uint256 _bendFeeAmount = _salePrice.percentMul(fee);
-    uint256 _buyerPayment = _bendFeeAmount + _flashFee + _salePrice - _flashBorrowedAmount;
-
-    // Prepare ETH, need buyer approve WETH to this contract
-    require(WETH.transferFrom(_buyer, address(this), _buyerPayment), "WETH transfer failed");
-    WETH.withdraw(_salePrice);
-
-    // Do opensea exchange
-    _exchange(_orderParams, _salePrice);
-
-    // Borrow WETH from bend, need buyer approve NFT to this contract
-    _borrowWETH(_orderParams.nftAsset, _orderParams.nftTokenId, _buyer, _flashBorrowedAmount);
-
-    // Charge fee, sent to bend collector
-    _chargeFee(_buyer, _bendFeeAmount);
-
-    // Repay flash loan
-    WETH.approve(aaveAddressedProvider.getLendingPool(), 0);
-    WETH.approve(aaveAddressedProvider.getLendingPool(), _flashLoanDebt);
-    return true;
-  }
-
-  function _chargeFee(address _payer, uint256 _amount) internal {
-    if (_amount > 0) {
-      _getBendLendPool().deposit(address(WETH), _amount, bendCollector, 0);
-      emit FeeCharged(_payer, _amount);
-    }
-  }
-
-  function _checkParams(
-    address[] calldata _assets,
-    uint256[] calldata _amounts,
-    uint256[] calldata _premiums,
+  function _checkOrderParams(
     address _buyer,
-    Params memory _orderParams,
+    bytes calldata _params,
     uint256 _nonce
-  ) internal view {
-    _checkSig(_orderParams, _buyer, _nonce);
-    require(_assets.length == 1 && _amounts.length == 1 && _premiums.length == 1, "Multiple assets not supported");
-    require(_assets[0] == address(WETH), "Only WETH borrowing allowed");
+  ) internal view override returns (BaseOrderParam memory) {
+    CheckOrderParamsLocalVars memory vars;
+
+    Params memory _orderParams = _decodeParams(_params);
+
+    vars.paramsHash = _hashParams(_orderParams, _nonce);
+    Sig memory _sig = Sig({v: _orderParams.vs[0], r: _orderParams.rssMetadata[0], s: _orderParams.rssMetadata[1]});
+    _checkSig(vars.paramsHash, _sig, _buyer);
+
     // Check order params
     require(address(this) == _orderParams.addrs[1], "Buyer must be this contract");
-    address _buyerpaymentToken = _orderParams.addrs[6];
-    address _sellerpaymentToken = _orderParams.addrs[13];
-    require(address(0) == _buyerpaymentToken, "Buyer payment token should be ETH");
-    require(address(0) == _sellerpaymentToken, "Seller payment token should be ETH");
+    vars.buyerpaymentToken = _orderParams.addrs[6];
+    vars.sellerpaymentToken = _orderParams.addrs[13];
+    require(address(0) == vars.buyerpaymentToken, "Buyer payment token should be ETH");
+    require(address(0) == vars.sellerpaymentToken, "Seller payment token should be ETH");
     require(
       _orderParams.feeMethodsSidesKindsHowToCalls[2] == _orderParams.feeMethodsSidesKindsHowToCalls[6] &&
         0 == _orderParams.feeMethodsSidesKindsHowToCalls[2],
       "Order must be fixed price sale kind"
     );
 
-    uint256 _buyPrice = _orderParams.uints[4];
-    uint256 _sellPrice = _orderParams.uints[13];
-    require(_buyPrice == _sellPrice, "Order price must be same");
+    vars.buyPrice = _orderParams.uints[4];
+    vars.sellPrice = _orderParams.uints[13];
+    require(vars.buyPrice == vars.sellPrice, "Order price must be same");
 
-    uint256 _flashBorrowedAmount = _amounts[0];
-    require(_flashBorrowedAmount <= WETH.balanceOf(address(this)), "Flash loan error");
-
-    // Check if the flash loan can be paid off
-    uint256 _flashFee = _premiums[0];
-
-    // Check payment sufficient
-    uint256 _salePrice = _orderParams.uints[13];
-    uint256 _bendFeeAmount = _salePrice.percentMul(fee);
-    uint256 _buyerBalance = MathUpgradeable.min(WETH.balanceOf(_buyer), WETH.allowance(_buyer, address(this)));
-    uint256 _buyerPayment = _bendFeeAmount + _flashFee + _salePrice - _flashBorrowedAmount;
-
-    require(_buyerBalance >= _buyerPayment, "Insufficient payment");
+    return
+      BaseOrderParam({nftAsset: _orderParams.nftAsset, nftTokenId: _orderParams.nftTokenId, salePrice: vars.sellPrice});
   }
 
   function _hashParams(Params memory _orderParams, uint256 _nonce) internal pure returns (bytes32) {
@@ -353,27 +243,9 @@ contract OpenseaDownpaymentBuyAdapter is
       );
   }
 
-  function _hashSig(Sig memory sig) internal pure returns (bytes32) {
-    return keccak256(abi.encode(_SIGNATURE_TYPEHASH, sig.v, sig.r, sig.s));
-  }
+  function _exchange(bytes calldata _params, uint256 _value) internal override {
+    Params memory _orderParams = _decodeParams(_params);
 
-  function _checkSig(
-    Params memory _orderParams,
-    address _buyer,
-    uint256 _nonce
-  ) internal view {
-    bytes32 paramsHash = _hashParams(_orderParams, _nonce);
-    bytes32 hash = _hashTypedDataV4(paramsHash);
-    address signer = ECDSAUpgradeable.recover(
-      hash,
-      _orderParams.vs[0],
-      _orderParams.rssMetadata[0],
-      _orderParams.rssMetadata[1]
-    );
-    require(signer == _buyer, "Invalid signature");
-  }
-
-  function _exchange(Params memory _orderParams, uint256 _value) internal {
     openseaExchange.atomicMatch_{value: _value}(
       _orderParams.addrs,
       _orderParams.uints,
@@ -389,45 +261,7 @@ contract OpenseaDownpaymentBuyAdapter is
     );
   }
 
-  function _borrowWETH(
-    address _nftAsset,
-    uint256 _nftTokenId,
-    address _onBehalfOf,
-    uint256 _amount
-  ) internal {
-    ILendPool _pool = _getBendLendPool();
-    IERC721Upgradeable _nftERC721 = IERC721Upgradeable(_nftAsset);
-
-    require(_nftERC721.ownerOf(_nftTokenId) == address(this), "Not own nft");
-    _nftERC721.approve(address(_pool), _nftTokenId);
-    _pool.borrow(address(WETH), _amount, _nftAsset, _nftTokenId, _onBehalfOf, 0);
-  }
-
-  function _getBendLendPool() internal view returns (ILendPool) {
-    return ILendPool(bendAddressesProvider.getLendPool());
-  }
-
   function _decodeParams(bytes memory _params) public pure returns (Params memory) {
     return abi.decode(_params, (Params));
-  }
-
-  function onERC721Received(
-    address operator,
-    address from,
-    uint256 tokenId,
-    bytes calldata data
-  ) external pure override returns (bytes4) {
-    operator;
-    from;
-    tokenId;
-    data;
-    return IERC721ReceiverUpgradeable.onERC721Received.selector;
-  }
-
-  /**
-   * @dev Only WETH contract is allowed to transfer ETH here. Prevent other addresses to send Ether to this contract.
-   */
-  receive() external payable {
-    require(msg.sender == address(WETH), "Receive not allowed");
   }
 }

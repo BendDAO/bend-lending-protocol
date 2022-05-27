@@ -33,12 +33,12 @@ task("dev:deploy-openseaDownpaymentBuyAdapter", "Deploy OpenseaDownpaymentBuyAda
     const aaveConfig = getParamPerNetwork(poolConfig.AAVE, network);
 
     const initEncodedData = impl.interface.encodeFunctionData("initialize", [
-      100,
-      addressesProvider.address,
       aaveConfig.addressesProvider,
-      openseaConfig.exchange,
+      addressesProvider.address,
       weth,
       (await getBendCollectorProxy()).address,
+      100,
+      openseaConfig.exchange,
     ]);
     const proxy = await deployBendUpgradeableProxy(
       eContractid.OpenseaDownpaymentBuyAdapter,
@@ -73,13 +73,13 @@ task("dev:deploy-punkDownpaymentBuyAdapter", "Deploy PunkDownpaymentBuyAdapter")
     const wrappedPunk = getParamPerNetwork(poolConfig.WrappedPunkToken, network);
 
     const initEncodedData = impl.interface.encodeFunctionData("initialize", [
-      100,
-      addressesProvider.address,
       aaveConfig.addressesProvider,
-      cryptoPunksMarket,
-      wrappedPunk,
+      addressesProvider.address,
       weth,
       (await getBendCollectorProxy()).address,
+      100,
+      cryptoPunksMarket,
+      wrappedPunk,
     ]);
     const proxy = await deployBendUpgradeableProxy(
       eContractid.PunkDownpaymentBuyAdapter,

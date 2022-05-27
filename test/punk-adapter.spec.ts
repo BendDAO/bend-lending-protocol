@@ -105,13 +105,13 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
     let user = users[0];
     downpaymentAdapter = await new PunkDownpaymentBuyAdapterFactory(deployer.signer).deploy();
     await downpaymentAdapter.initialize(
-      100,
-      testEnv.addressesProvider.address,
       aaveAddressProvider.address,
-      testEnv.cryptoPunksMarket.address,
-      testEnv.wrappedPunk.address,
+      testEnv.addressesProvider.address,
       testEnv.weth.address,
-      testEnv.bendCollector.address
+      testEnv.bendCollector.address,
+      100,
+      testEnv.cryptoPunksMarket.address,
+      testEnv.wrappedPunk.address
     );
 
     await testEnv.weth.connect(deployer.signer).deposit({ value: parseEther("10001") });
@@ -151,9 +151,9 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
   });
 
   it("update fee", async () => {
-    expect(await downpaymentAdapter.fee()).to.be.equal(100);
+    expect(await downpaymentAdapter.bendFeeRatio()).to.be.equal(100);
     await downpaymentAdapter.updateFee(200);
-    expect(await downpaymentAdapter.fee()).to.be.equal(200);
+    expect(await downpaymentAdapter.bendFeeRatio()).to.be.equal(200);
     await expect(downpaymentAdapter.updateFee(10001)).to.be.revertedWith("Fee overflow");
   });
 
@@ -161,7 +161,7 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
     let buyer: SignerWithAddress;
     let seller: SignerWithAddress;
     let tokenId: number;
-    let nftToken: CryptoPunksMarket;
+    let nftToken: string;
 
     let buyPrice: BigNumber;
     let debtWETH: DebtToken;
@@ -184,7 +184,6 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
 
     before(async () => {
       buyer = testEnv.users[2];
-      let lastTime = await getNowTimeInSeconds();
 
       const reserveData = await testEnv.pool.getReserveData(testEnv.weth.address);
       debtWETH = await getDebtToken(reserveData.debtTokenAddress);
@@ -198,8 +197,8 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
       await punkMarket.transferPunk(seller.address, tokenId);
       await punkMarket.connect(seller.signer).offerPunkForSale(tokenId, buyPrice);
 
-      nftToken = testEnv.cryptoPunksMarket;
-      await testEnv.nftOracle.setAssetData(testEnv.wrappedPunk.address, parseEther("100"), lastTime, lastTime);
+      nftToken = testEnv.wrappedPunk.address;
+      await testEnv.nftOracle.setAssetData(nftToken, parseEther("100"));
 
       let user = testEnv.users[0];
       await mintERC20(testEnv, user, "WETH", "1000");
@@ -242,7 +241,7 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
       const aaveFee = borowAmount.mul(9).div(10000);
       const bendFee = buyPrice.mul(1).div(100);
 
-      expect(await nftToken.punkIndexToAddress(tokenId)).to.be.equal(testEnv.wrappedPunk.address);
+      expect(await punkMarket.punkIndexToAddress(tokenId)).to.be.equal(testEnv.wrappedPunk.address);
       expect(await testEnv.wrappedPunk.ownerOf(tokenId)).to.be.equal(testEnv.bPUNK.address);
       expect(await testEnv.bPUNK.ownerOf(tokenId)).to.be.equal(buyer.address);
 
@@ -283,20 +282,22 @@ makeSuite("punk downpayment adapter tests", (testEnv: TestEnv) => {
     }
 
     it("downpayment buy", async () => {
-      const borowAmount = parseEther("40");
+      const nftCollateralData = await testEnv.pool.getNftCollateralData(nftToken, testEnv.weth.address);
+      const borowAmount = nftCollateralData.availableBorrowsInReserve;
+      const paymentAmount = buyPrice.sub(borowAmount).add(parseEther("2"));
+
       let nonce = (await downpaymentAdapter.nonces(buyer.address)).toString();
       let _buyPrice = buyPrice;
       buyPrice = buyPrice.sub(parseEther("1"));
       await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Order price must be same");
       buyPrice = _buyPrice;
 
-      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Insufficient payment");
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Insufficient balance");
+      await testEnv.weth.connect(buyer.signer).deposit({ value: paymentAmount });
 
+      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Insufficient allowance");
       await approveBuyerWeth();
-      await testEnv.weth.connect(buyer.signer).deposit({ value: parseEther("60") });
-      await exceptDownpaymentReverted(borowAmount, nonce).to.revertedWith("Insufficient payment");
 
-      await testEnv.weth.connect(buyer.signer).deposit({ value: parseEther("1.036") });
       await exceptDownpaymentReverted(borowAmount, nonce).to.be.reverted;
 
       await approveBuyerDebtWeth();
