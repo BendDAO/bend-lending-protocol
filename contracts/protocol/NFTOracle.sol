@@ -114,8 +114,31 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   }
 
   function setAssetData(address _nftContract, uint256 _price) external override onlyAdmin whenNotPaused(_nftContract) {
-    requireKeyExisted(_nftContract, true);
     uint256 _timestamp = _blockTimestamp();
+    _setAssetData(_nftContract, _price, _timestamp);
+  }
+
+  function setMultipleAssetsData(address[] calldata _nftContracts, uint256[] calldata _prices)
+    external
+    override
+    onlyAdmin
+  {
+    require(_nftContracts.length == _prices.length, "NFTOracle: data length not match");
+    uint256 _timestamp = _blockTimestamp();
+    for (uint256 i = 0; i < _nftContracts.length; i++) {
+      bool _paused = nftPaused[_nftContracts[i]];
+      if (!_paused) {
+        _setAssetData(_nftContracts[i], _prices[i], _timestamp);
+      }
+    }
+  }
+
+  function _setAssetData(
+    address _nftContract,
+    uint256 _price,
+    uint256 _timestamp
+  ) internal {
+    requireKeyExisted(_nftContract, true);
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
     require(_price > 0, "NFTOracle: price can not be 0");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
@@ -129,34 +152,6 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
     emit SetAssetData(_nftContract, _price, _timestamp, len);
     emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
-  }
-
-  function setMultipleAssetsData(address[] calldata _nftContracts, uint256[] calldata _prices)
-    external
-    override
-    onlyAdmin
-  {
-    require(_nftContracts.length == _prices.length, "NFTOracle: data length not match");
-    uint256 _timestamp = _blockTimestamp();
-    for (uint256 i = 0; i < _nftContracts.length; i++) {
-      bool _paused = nftPaused[_nftContracts[i]];
-      if (!_paused) {
-        requireKeyExisted(_nftContracts[i], true);
-        require(_timestamp > getLatestTimestamp(_nftContracts[i]), "NFTOracle: incorrect timestamp");
-        require(_prices[i] > 0, "NFTOracle: price can not be 0");
-        bool dataValidity = checkValidityOfPrice(_nftContracts[i], _prices[i], _timestamp);
-        require(dataValidity, "NFTOracle: invalid price data");
-        uint256 len = getPriceFeedLength(_nftContracts[i]);
-        NFTPriceData memory data = NFTPriceData({price: _prices[i], timestamp: _timestamp, roundId: len});
-        nftPriceFeedMap[_nftContracts[i]].nftPriceData.push(data);
-
-        uint256 twapPrice = calculateTwapPrice(_nftContracts[i]);
-        twapPriceMap[_nftContracts[i]] = twapPrice;
-
-        emit SetAssetData(_nftContracts[i], _prices[i], _timestamp, len);
-        emit SetAssetTwapPrice(_nftContracts[i], twapPrice, _timestamp);
-      }
-    }
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {
