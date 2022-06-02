@@ -20,6 +20,8 @@ interface INFTOracle {
 
   function setAssetData(address _nftContract, uint256 _price) external;
 
+  function setMultipleAssetsData(address[] calldata _nftContracts, uint256[] calldata _prices) external;
+
   function setPause(address _nftContract, bool val) external;
 
   function setTwapInterval(uint256 _twapInterval) external;

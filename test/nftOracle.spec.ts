@@ -97,6 +97,48 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
     await mockNftOracle.removeAsset(users[0].address);
   });
 
+  it("NFTOracle: Set Multiple Data use Multiple interface", async () => {
+    const { mockNftOracle, users } = testEnv;
+    await mockNftOracle.addAsset(users[0].address);
+    await mockNftOracle.addAsset(users[1].address);
+    const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(15));
+    let assets: string[] = [users[0].address, users[1].address];
+    let prices: string[] = ["400", "600", "800"];
+    let prices1: string[] = ["410", "610"];
+    let prices2: string[] = ["420", "620"];
+
+    await expect(mockNftOracle.setMultipleAssetsData(assets, prices)).to.be.revertedWith(
+      "NFTOracle: data length not match"
+    );
+    prices = ["400", "600"];
+    await mockNftOracle.setMultipleAssetsData(assets, prices);
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(30));
+    await mockNftOracle.setMultipleAssetsData(assets, prices1);
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(45));
+    await mockNftOracle.setPause(users[1].address, true);
+    let r = await mockNftOracle.setMultipleAssetsData(assets, prices2);
+    expect(await mockNftOracle.getPriceFeedLength(users[0].address)).to.equal("3");
+    expect(await mockNftOracle.getPriceFeedLength(users[1].address)).to.equal("2");
+    await mockNftOracle.setPause(users[0].address, true);
+    await mockNftOracle.setPause(users[1].address, false);
+    r = await mockNftOracle.setMultipleAssetsData(assets, prices2);
+    expect(await mockNftOracle.getPriceFeedLength(users[0].address)).to.equal("3");
+    expect(await mockNftOracle.getPriceFeedLength(users[1].address)).to.equal("3");
+    const price = await mockNftOracle.getAssetPrice(users[0].address);
+    expect(price).to.equal("405");
+    const price1 = await mockNftOracle.getAssetPrice(users[1].address);
+    expect(price1).to.equal("605");
+    const timestamp = await mockNftOracle.getLatestTimestamp(users[0].address);
+    expect(timestamp).to.equal(currentTime.add(45));
+    const timestamp1 = await mockNftOracle.getLatestTimestamp(users[1].address);
+    expect(timestamp1).to.equal(currentTime.add(45));
+    await mockNftOracle.mock_setBlockTimestamp(currentTime);
+    await mockNftOracle.setPause(users[0].address, false);
+    await mockNftOracle.removeAsset(users[0].address);
+    await mockNftOracle.removeAsset(users[1].address);
+  });
+
   it("NFTOracle: GetAssetPrice After Remove The Asset", async () => {
     const { mockNftOracle, users } = testEnv;
     await mockNftOracle.addAsset(users[0].address);

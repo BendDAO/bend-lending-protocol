@@ -114,8 +114,31 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   }
 
   function setAssetData(address _nftContract, uint256 _price) external override onlyAdmin whenNotPaused(_nftContract) {
-    requireKeyExisted(_nftContract, true);
     uint256 _timestamp = _blockTimestamp();
+    _setAssetData(_nftContract, _price, _timestamp);
+  }
+
+  function setMultipleAssetsData(address[] calldata _nftContracts, uint256[] calldata _prices)
+    external
+    override
+    onlyAdmin
+  {
+    require(_nftContracts.length == _prices.length, "NFTOracle: data length not match");
+    uint256 _timestamp = _blockTimestamp();
+    for (uint256 i = 0; i < _nftContracts.length; i++) {
+      bool _paused = nftPaused[_nftContracts[i]];
+      if (!_paused) {
+        _setAssetData(_nftContracts[i], _prices[i], _timestamp);
+      }
+    }
+  }
+
+  function _setAssetData(
+    address _nftContract,
+    uint256 _price,
+    uint256 _timestamp
+  ) internal {
+    requireKeyExisted(_nftContract, true);
     require(_timestamp > getLatestTimestamp(_nftContract), "NFTOracle: incorrect timestamp");
     require(_price > 0, "NFTOracle: price can not be 0");
     bool dataValidity = checkValidityOfPrice(_nftContract, _price, _timestamp);
