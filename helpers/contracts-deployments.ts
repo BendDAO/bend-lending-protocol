@@ -58,6 +58,7 @@ import {
   LiquidateLogicFactory,
   GenericLogicFactory,
   ConfiguratorLogicFactory,
+  RepayAndTransferHelperFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -605,6 +606,14 @@ export const deployTimelockController = async (
   withSaveAndVerify(
     await new TimelockControllerFactory(await getDeploySigner()).deploy(minDelay, proposers, executors),
     id,
-    [],
+    [minDelay, proposers, executors],
+    verify
+  );
+
+export const deployRepayAndTransferHelper = async (addressesProvider: string, verify?: boolean) =>
+  withSaveAndVerify(
+    await new RepayAndTransferHelperFactory(await getDeploySigner()).deploy(addressesProvider),
+    eContractid.RepayAndTransferHelper,
+    [addressesProvider],
     verify
   );

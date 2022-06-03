@@ -31,6 +31,7 @@ import {
   deployBendCollector,
   deployConfiguratorLibraries,
   deployLendPoolLibraries,
+  deployRepayAndTransferHelper,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
@@ -204,6 +205,11 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     if (contract == "BendCollector") {
       const contractImpl = await deployBendCollector([], verify);
       console.log("BendCollector implementation address:", contractImpl.address);
+    }
+
+    if (contract == "RepayAndTransferHelper") {
+      const contractImpl = await deployRepayAndTransferHelper(addressesProvider.address, verify);
+      console.log("RepayAndTransferHelper implementation address:", contractImpl.address);
     }
   });
 

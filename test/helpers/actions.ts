@@ -184,6 +184,19 @@ export const setApprovalForAllWETHGateway = async (testEnv: TestEnv, user: Signe
   await waitForTx(await token.connect(user.signer).setApprovalForAll(wethGateway.address, true));
 };
 
+export const setApprovalForAllExt = async (
+  testEnv: TestEnv,
+  user: SignerWithAddress,
+  nftSymbol: string,
+  operator: string
+) => {
+  const nftAsset = await getNftAddressFromSymbol(nftSymbol);
+
+  const token = await getMintableERC721(nftAsset);
+
+  await waitForTx(await token.connect(user.signer).setApprovalForAll(operator, true));
+};
+
 /* Param:
  * debtAmount: without decimals
  * healthPercent: 0.5 -> 50% -> 50
