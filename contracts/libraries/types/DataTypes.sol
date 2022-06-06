@@ -30,6 +30,8 @@ library DataTypes {
     address bNftAddress;
     //the id of the nft. Represents the position in the list of the active nfts
     uint8 id;
+    uint256 maxSupply;
+    uint256 maxTokenId;
   }
 
   struct ReserveConfigurationMap {

@@ -8,11 +8,16 @@ import {
   strategyUSDC,
 } from './reservesConfigs';
 import {
-  strategyNftClassA,
-  strategyNftClassB,
-  strategyNftClassC,
-  strategyNftClassD,
-  strategyNftClassE,
+  strategyNft_AZUKI,
+  strategyNft_BAYC,
+  strategyNft_CLONEX,
+  strategyNft_COOL,
+  strategyNft_DOODLE,
+  strategyNft_KONGZ,
+  strategyNft_MAYC,
+  strategyNft_MEEBITS,
+  strategyNft_WOW,
+  strategyNft_WPUNKS,
 } from './nftsConfigs';
 
 // ----------------
@@ -29,16 +34,16 @@ export const BendConfig: IBendConfiguration = {
     USDC: strategyUSDC,
   },
   NftsConfig: {
-    WPUNKS: strategyNftClassB,
-    BAYC: strategyNftClassB,
-    DOODLE: strategyNftClassC,
-    COOL: strategyNftClassC,
-    MEEBITS: strategyNftClassC,
-    MAYC: strategyNftClassC,
-    WOW: strategyNftClassC,
-    CLONEX: strategyNftClassC,
-    AZUKI: strategyNftClassC,
-    KONGZ: strategyNftClassC,
+    WPUNKS: strategyNft_WPUNKS,
+    BAYC: strategyNft_BAYC,
+    DOODLE: strategyNft_DOODLE,
+    MAYC: strategyNft_MAYC,
+    CLONEX: strategyNft_CLONEX,
+    AZUKI: strategyNft_AZUKI,
+    KONGZ: strategyNft_KONGZ,
+    COOL: strategyNft_COOL,
+    MEEBITS: strategyNft_MEEBITS,
+    WOW: strategyNft_WOW,
   },
   ReserveAssets: {
     [eEthereumNetwork.hardhat]: {},

@@ -801,6 +801,15 @@ contract LendPool is
     _nfts[asset].configuration.data = configuration;
   }
 
+  function setNftMaxSupplyAndTokenId(
+    address asset,
+    uint256 maxSupply,
+    uint256 maxTokenId
+  ) external override onlyLendPoolConfigurator {
+    _nfts[asset].maxSupply = maxSupply;
+    _nfts[asset].maxTokenId = maxTokenId;
+  }
+
   function _addReserveToList(address asset) internal {
     uint256 reservesCount = _reservesCount;
 

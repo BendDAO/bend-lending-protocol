@@ -18,6 +18,8 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     redeemFine: BigNumberish;
     redeemThreshold: BigNumberish;
     minBidFine: BigNumberish;
+    maxSupply: BigNumberish;
+    maxTokenId: BigNumberish;
   }[] = [
     {
       asset: "",
@@ -29,6 +31,8 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
       redeemFine: 0,
       redeemThreshold: 0,
       minBidFine: 0,
+      maxSupply: 10000,
+      maxTokenId: 9999,
     },
   ];
 

@@ -19,6 +19,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
 
 import {ReserveLogic} from "./ReserveLogic.sol";
 import {GenericLogic} from "./GenericLogic.sol";
@@ -86,6 +87,7 @@ library BorrowLogic {
     address reserveOracle;
     address nftOracle;
     address loanAddress;
+    uint256 totalSupply;
   }
 
   /**
@@ -162,6 +164,10 @@ library BorrowLogic {
     vars.loanAddress = addressesProvider.getLendPoolLoan();
 
     vars.loanId = ILendPoolLoan(vars.loanAddress).getCollateralLoanId(params.nftAsset, params.nftTokenId);
+
+    vars.totalSupply = IERC721EnumerableUpgradeable(params.nftAsset).totalSupply();
+    require(vars.totalSupply <= nftData.maxSupply, Errors.LP_NFT_SUPPLY_NUM_EXCEED_MAX_LIMIT);
+    require(params.nftTokenId <= nftData.maxTokenId, Errors.LP_NFT_TOKEN_ID_EXCEED_MAX_LIMIT);
 
     ValidationLogic.validateBorrow(
       params.onBehalfOf,

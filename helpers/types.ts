@@ -151,6 +151,8 @@ export enum ProtocolErrors {
   LP_AMOUNT_LESS_THAN_EXTRA_DEBT = "414",
   LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD = "415",
   LP_AMOUNT_GREATER_THAN_MAX_REPAY = "416",
+  LP_NFT_TOKEN_ID_EXCEED_MAX_LIMIT = "417",
+  LP_NFT_SUPPLY_NUM_EXCEED_MAX_LIMIT = "418",
 
   //lend pool loan errors
   LPL_INVALID_LOAN_STATE = "480",
@@ -297,6 +299,8 @@ export interface IReserveParams extends IReserveBorrowParams, IReserveCollateral
 
 export interface INftParams extends INftAuctionParams, INftCollateralParams {
   bNftImpl: eContractid;
+  maxSupply: string;
+  maxTokenId: string;
 }
 
 export interface IInterestRateStrategyParams {

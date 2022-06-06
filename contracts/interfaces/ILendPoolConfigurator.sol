@@ -17,6 +17,8 @@ interface ILendPoolConfigurator {
     uint256 redeemFine;
     uint256 redeemThreshold;
     uint256 minBidFine;
+    uint256 maxSupply;
+    uint256 maxTokenId;
   }
 
   /**
@@ -147,6 +149,8 @@ interface ILendPoolConfigurator {
   event NftRedeemThresholdChanged(address indexed asset, uint256 redeemThreshold);
 
   event NftMinBidFineChanged(address indexed asset, uint256 minBidFine);
+
+  event NftMaxSupplyAndTokenIdChanged(address indexed asset, uint256 maxSupply, uint256 maxTokenId);
 
   /**
    * @dev Emitted when an bToken implementation is upgraded

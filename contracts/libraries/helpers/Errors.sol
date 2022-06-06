@@ -65,6 +65,8 @@ library Errors {
   string public constant LP_AMOUNT_LESS_THAN_EXTRA_DEBT = "414";
   string public constant LP_AMOUNT_LESS_THAN_REDEEM_THRESHOLD = "415";
   string public constant LP_AMOUNT_GREATER_THAN_MAX_REPAY = "416";
+  string public constant LP_NFT_TOKEN_ID_EXCEED_MAX_LIMIT = "417";
+  string public constant LP_NFT_SUPPLY_NUM_EXCEED_MAX_LIMIT = "418";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";

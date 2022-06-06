@@ -791,6 +791,16 @@
             "internalType": "uint8",
             "name": "id",
             "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSupply",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxTokenId",
+            "type": "uint256"
           }
         ],
         "internalType": "struct DataTypes.NftData",
@@ -1290,6 +1300,29 @@
       }
     ],
     "name": "setNftConfiguration",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxSupply",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxTokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNftMaxSupplyAndTokenId",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
