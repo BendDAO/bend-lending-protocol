@@ -318,6 +318,19 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
+  function setNftMaxSupplyAndTokenId(
+    address[] calldata assets,
+    uint256 maxSupply,
+    uint256 maxTokenId
+  ) external onlyPoolAdmin {
+    ILendPool cachedPool = _getLendPool();
+    for (uint256 i = 0; i < assets.length; i++) {
+      cachedPool.setNftMaxSupplyAndTokenId(assets[i], maxSupply, maxTokenId);
+
+      emit NftMaxSupplyAndTokenIdChanged(assets[i], maxSupply, maxTokenId);
+    }
+  }
+
   function batchConfigNft(ConfigNftInput[] calldata inputs) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < inputs.length; i++) {
@@ -363,6 +376,10 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       );
       emit NftRedeemThresholdChanged(inputs[i].asset, inputs[i].redeemThreshold);
       emit NftMinBidFineChanged(inputs[i].asset, inputs[i].minBidFine);
+
+      // max limit
+      cachedPool.setNftMaxSupplyAndTokenId(inputs[i].asset, inputs[i].maxSupply, inputs[i].maxTokenId);
+      emit NftMaxSupplyAndTokenIdChanged(inputs[i].asset, inputs[i].maxSupply, inputs[i].maxTokenId);
     }
   }
 

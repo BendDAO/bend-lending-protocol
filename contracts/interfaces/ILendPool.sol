@@ -447,6 +447,12 @@ interface ILendPool {
 
   function setNftConfiguration(address asset, uint256 configuration) external;
 
+  function setNftMaxSupplyAndTokenId(
+    address asset,
+    uint256 maxSupply,
+    uint256 maxTokenId
+  ) external;
+
   function setMaxNumberOfReserves(uint256 val) external;
 
   function setMaxNumberOfNfts(uint256 val) external;

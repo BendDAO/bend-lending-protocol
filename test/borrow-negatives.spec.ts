@@ -104,4 +104,24 @@ makeSuite("LendPool: Borrow negative test cases", (testEnv: TestEnv) => {
 
     await borrow(testEnv, user2, "WETH", "10", "BAYC", tokenId, user2.address, "", "revert", "NFT needs exist");
   });
+
+  it("Tries to uses NFT which id exceed max limit as collateral to borrow 10 WETH (revert expected)", async () => {
+    const { users } = testEnv;
+    const user1 = users[1];
+
+    const tokenId = "100001";
+
+    await borrow(
+      testEnv,
+      user1,
+      "WETH",
+      "10",
+      "BAYC",
+      tokenId,
+      user1.address,
+      "",
+      "revert",
+      "NFT token id exceed max limit"
+    );
+  });
 });
