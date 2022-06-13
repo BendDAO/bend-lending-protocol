@@ -12,8 +12,11 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
 import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 
+import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
+import {IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 /**
  * @title ValidationLogic library
@@ -258,5 +261,14 @@ library ValidationLogic {
   function validateTransfer(address from, DataTypes.ReserveData storage reserveData) internal pure {
     from;
     reserveData;
+  }
+
+  function validateERC721Receiver(address receiver) internal view {
+    if (AddressUpgradeable.isContract(receiver)) {
+      require(
+        IERC165Upgradeable(receiver).supportsInterface(type(IERC721ReceiverUpgradeable).interfaceId),
+        Errors.VL_INVALID_ERC721_RECEIVER_ADDRESS
+      );
+    }
   }
 }

@@ -15,11 +15,14 @@ import { configuration as calculationsConfiguration } from "./helpers/utils/calc
 import BigNumber from "bignumber.js";
 import { getReservesConfigByPool } from "../helpers/configuration";
 import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
+import { MockNonERC721Receiver, MockNonERC721ReceiverFactory } from "../types";
+import { getDeploySigner } from "../helpers/contracts-getters";
 
 const { expect } = require("chai");
 
 makeSuite("LendPool: Borrow negative test cases", (testEnv: TestEnv) => {
   let cachedTokenId;
+  let mockNonERC721Receiver: MockNonERC721Receiver;
 
   before("Initializing configuration", async () => {
     // Sets BigNumber for this suite, instead of globally
@@ -32,6 +35,10 @@ makeSuite("LendPool: Borrow negative test cases", (testEnv: TestEnv) => {
 
     calculationsConfiguration.reservesParams = <iBendPoolAssets<IReserveParams>>(
       getReservesConfigByPool(BendPools.proto)
+    );
+
+    mockNonERC721Receiver = await new MockNonERC721ReceiverFactory(await getDeploySigner()).deploy(
+      testEnv.pool.address
     );
   });
   after("Reset", () => {
@@ -73,6 +80,27 @@ makeSuite("LendPool: Borrow negative test cases", (testEnv: TestEnv) => {
     );
 
     cachedTokenId = tokenId;
+  });
+
+  it("User 1 tries to uses NFT as collateral to borrow 1 WETH (revert expected)", async () => {
+    const { users } = testEnv;
+    const user1 = users[1];
+
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
+    const tokenId = cachedTokenId.toString();
+
+    await borrow(
+      testEnv,
+      user1,
+      "WETH",
+      "1",
+      "BAYC",
+      tokenId,
+      mockNonERC721Receiver.address,
+      "",
+      "revert",
+      "Non ERC721 Receiver"
+    );
   });
 
   it("User 1 tries to uses NFT as collateral to borrow 100 WETH (revert expected)", async () => {

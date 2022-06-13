@@ -125,6 +125,7 @@ library LiquidateLogic {
     DataTypes.ExecuteAuctionParams memory params
   ) external {
     require(params.onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
+    ValidationLogic.validateERC721Receiver(params.onBehalfOf);
 
     AuctionLocalVars memory vars;
     vars.initiator = params.initiator;

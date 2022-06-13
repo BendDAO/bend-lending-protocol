@@ -148,6 +148,7 @@ library BorrowLogic {
     DataTypes.ExecuteBorrowParams memory params
   ) internal {
     require(params.onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
+    ValidationLogic.validateERC721Receiver(params.onBehalfOf);
 
     ExecuteBorrowLocalVars memory vars;
     vars.initiator = params.initiator;

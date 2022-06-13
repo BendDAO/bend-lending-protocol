@@ -2,6 +2,7 @@
 pragma solidity 0.8.4;
 
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {ERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {IDebtToken} from "../interfaces/IDebtToken.sol";
@@ -11,7 +12,7 @@ import {DataTypes} from "../libraries/types/DataTypes.sol";
  * @title MaliciousHackerERC721
  * @dev Malicious Hacker Logic
  */
-contract MaliciousHackerERC721 is IERC721Receiver {
+contract MaliciousHackerERC721 is IERC721Receiver, ERC165 {
   ILendPool internal _pool;
   uint256 internal _simulateAction;
 
@@ -88,5 +89,9 @@ contract MaliciousHackerERC721 is IERC721Receiver {
     }
 
     return IERC721Receiver.onERC721Received.selector;
+  }
+
+  function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+    return interfaceId == type(IERC721Receiver).interfaceId || super.supportsInterface(interfaceId);
   }
 }
