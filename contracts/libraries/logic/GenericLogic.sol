@@ -62,7 +62,7 @@ library GenericLogic {
     address reserveOracle,
     address nftOracle
   )
-    internal
+    external
     view
     returns (
       uint256,
@@ -222,7 +222,7 @@ library GenericLogic {
     address reserveOracle,
     address nftOracle
   )
-    internal
+    external
     view
     returns (
       uint256,
@@ -278,7 +278,7 @@ library GenericLogic {
     DataTypes.LoanData memory loanData,
     address poolLoan,
     address reserveOracle
-  ) internal view returns (uint256, uint256) {
+  ) external view returns (uint256, uint256) {
     nftAsset;
 
     if (loanData.bidPrice == 0) {

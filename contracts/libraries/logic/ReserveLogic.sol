@@ -50,7 +50,7 @@ library ReserveLogic {
    * @param reserve The reserve object
    * @return the normalized income. expressed in ray
    **/
-  function getNormalizedIncome(DataTypes.ReserveData storage reserve) internal view returns (uint256) {
+  function getNormalizedIncome(DataTypes.ReserveData storage reserve) external view returns (uint256) {
     uint40 timestamp = reserve.lastUpdateTimestamp;
 
     //solium-disable-next-line
@@ -73,7 +73,7 @@ library ReserveLogic {
    * @param reserve The reserve object
    * @return The normalized variable debt. expressed in ray
    **/
-  function getNormalizedDebt(DataTypes.ReserveData storage reserve) internal view returns (uint256) {
+  function getNormalizedDebt(DataTypes.ReserveData storage reserve) external view returns (uint256) {
     uint40 timestamp = reserve.lastUpdateTimestamp;
 
     //solium-disable-next-line
@@ -93,7 +93,7 @@ library ReserveLogic {
    * @dev Updates the liquidity cumulative index and the variable borrow index.
    * @param reserve the reserve object
    **/
-  function updateState(DataTypes.ReserveData storage reserve) internal {
+  function updateState(DataTypes.ReserveData storage reserve) external {
     uint256 scaledVariableDebt = IDebtToken(reserve.debtTokenAddress).scaledTotalSupply();
     uint256 previousVariableBorrowIndex = reserve.variableBorrowIndex;
     uint256 previousLiquidityIndex = reserve.liquidityIndex;
@@ -180,7 +180,7 @@ library ReserveLogic {
     address bTokenAddress,
     uint256 liquidityAdded,
     uint256 liquidityTaken
-  ) internal {
+  ) external {
     UpdateInterestRatesLocalVars memory vars;
 
     //calculates the total variable debt locally using the scaled borrow amount instead

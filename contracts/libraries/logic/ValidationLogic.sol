@@ -186,7 +186,7 @@ library ValidationLogic {
     DataTypes.NftData storage nftData,
     DataTypes.LoanData memory loanData,
     uint256 bidPrice
-  ) internal view {
+  ) external view {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
@@ -237,7 +237,7 @@ library ValidationLogic {
     DataTypes.ReserveData storage reserveData,
     DataTypes.NftData storage nftData,
     DataTypes.LoanData memory loanData
-  ) internal view {
+  ) external view {
     require(nftData.bNftAddress != address(0), Errors.LPC_INVALIED_BNFT_ADDRESS);
     require(reserveData.bTokenAddress != address(0), Errors.VL_INVALID_RESERVE_ADDRESS);
 
@@ -255,7 +255,7 @@ library ValidationLogic {
    * @param from The user from which the bTokens are being transferred
    * @param reserveData The state of the reserve
    */
-  function validateTransfer(address from, DataTypes.ReserveData storage reserveData) internal pure {
+  function validateTransfer(address from, DataTypes.ReserveData storage reserveData) external pure {
     from;
     reserveData;
   }

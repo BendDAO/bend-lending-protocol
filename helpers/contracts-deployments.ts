@@ -165,8 +165,10 @@ export const deployValidationLogic = async (reserveLogic: Contract, genericLogic
 };
 
 export const deploySupplyLogicLibrary = async (verify?: boolean) => {
+  const reserveLogicAddress = await getContractAddressInDb(eContractid.ReserveLogic);
   const validateLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
   const libraries = {
+    [PLACEHOLDER_RESERVE_LOGIC]: reserveLogicAddress,
     [PLACEHOLDER_VALIDATION_LOGIC]: validateLogicAddress,
   };
 
@@ -179,8 +181,10 @@ export const deploySupplyLogicLibrary = async (verify?: boolean) => {
 };
 
 export const deployBorrowLogicLibrary = async (verify?: boolean) => {
+  const reserveLogicAddress = await getContractAddressInDb(eContractid.ReserveLogic);
   const validateLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
   const libraries = {
+    [PLACEHOLDER_RESERVE_LOGIC]: reserveLogicAddress,
     [PLACEHOLDER_VALIDATION_LOGIC]: validateLogicAddress,
   };
 
@@ -193,8 +197,12 @@ export const deployBorrowLogicLibrary = async (verify?: boolean) => {
 };
 
 export const deployLiquidateLogicLibrary = async (verify?: boolean) => {
+  const genericLogicAddress = await getContractAddressInDb(eContractid.GenericLogic);
+  const reserveLogicAddress = await getContractAddressInDb(eContractid.ReserveLogic);
   const validateLogicAddress = await getContractAddressInDb(eContractid.ValidationLogic);
   const libraries = {
+    [PLACEHOLDER_GENERIC_LOGIC]: genericLogicAddress,
+    [PLACEHOLDER_RESERVE_LOGIC]: reserveLogicAddress,
     [PLACEHOLDER_VALIDATION_LOGIC]: validateLogicAddress,
   };
 
@@ -243,8 +251,8 @@ export const getLendPoolLibraries = async (verify?: boolean): Promise<LendPoolLi
   // libPath example: contracts/libraries/logic/GenericLogic.sol
   // libName example: GenericLogic
   return {
-    //[PLACEHOLDER_GENERIC_LOGIC]: genericLogic.address,
-    //[PLACEHOLDER_VALIDATION_LOGIC]: validationLogicAddress,
+    [PLACEHOLDER_GENERIC_LOGIC]: genericLogicAddress,
+    [PLACEHOLDER_VALIDATION_LOGIC]: validationLogicAddress,
     [PLACEHOLDER_RESERVE_LOGIC]: reserveLogicAddress,
     [PLACEHOLDER_NFT_LOGIC]: nftLogicAddress,
     [PLACEHOLDER_SUPPLY_LOGIC]: supplyLogicAddress,
