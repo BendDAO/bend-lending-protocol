@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { ethers } from "ethers";
 
 // ----------------
 // MATH
@@ -33,8 +34,8 @@ export const BEND_REFERRAL = "0";
 // ----------------
 // ADDRESS IDS IN PROVIDER
 // ----------------
-export const ADDRESS_ID_WETH_GATEWAY = "0xADDE000000000000000000000000000000000000000000000000000000000001";
-export const ADDRESS_ID_PUNK_GATEWAY = "0xADDE000000000000000000000000000000000000000000000000000000000002";
+export const ADDRESS_ID_WETH_GATEWAY = ethers.utils.formatBytes32String("AID_WETH_GATEWAY");
+export const ADDRESS_ID_PUNK_GATEWAY = ethers.utils.formatBytes32String("AID_PUNK_GATEWAY");
 
 //Price source: https://data.chain.link/ethereum/mainnet/stablecoins
 export const MOCK_RESERVE_AGGREGATORS_PRICES = {

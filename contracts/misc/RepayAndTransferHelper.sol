@@ -11,7 +11,7 @@ import "../interfaces/ILendPoolLoan.sol";
 import "../interfaces/IWETHGateway.sol";
 
 contract RepayAndTransferHelper is ReentrancyGuard, Ownable {
-  bytes32 public constant ADDRESS_ID_WETH_GATEWAY = 0xADDE000000000000000000000000000000000000000000000000000000000001;
+  bytes32 public constant ADDRESS_ID_WETH_GATEWAY = "AID_WETH_GATEWAY";
 
   ILendPoolAddressesProvider public addressProvider;
 

@@ -7,6 +7,7 @@ import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
 
+import {Constants} from "../libraries/helpers/Constants.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
@@ -20,13 +21,11 @@ import {IWETH} from "../interfaces/IWETH.sol";
 
 import {EmergencyTokenRecoveryUpgradeable} from "./EmergencyTokenRecoveryUpgradeable.sol";
 
-import "hardhat/console.sol";
-
 contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRecoveryUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   ILendPoolAddressesProvider internal _addressProvider;
-  IWETHGateway internal _wethGateway;
+  IWETHGateway internal _wethGateway; // Deprecated, use _getWETHGateway instead
 
   IPunks public punks;
   IWrappedPunks public wrappedPunks;
@@ -88,8 +87,12 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return ILendPoolLoan(_addressProvider.getLendPoolLoan());
   }
 
+  function _getWETHGateway() internal view returns (IWETHGateway) {
+    return IWETHGateway(_addressProvider.getAddress(Constants.AID_WETH_GATEWAY));
+  }
+
   function _getWETH() internal view returns (IWETH) {
-    return IWETH(_wethGateway.getWETHAddress());
+    return IWETH(_getWETHGateway().getWETHAddress());
   }
 
   function authorizeLendPoolERC20(address[] calldata tokens) external nonReentrant onlyOwner {
@@ -482,7 +485,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   }
 
   function _wrapAndTransferWETH(uint256 amount) internal returns (uint256) {
-    IWETH weth = IWETH(_wethGateway.getWETHAddress());
+    IWETH weth = _getWETH();
     uint256 wethSendAmount = 0;
     if (msg.value > 0) {
       wethSendAmount = msg.value;
@@ -496,7 +499,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   }
 
   function _unwrapAndRefundWETH(uint256 sendAmount, uint256 paidAmount) internal {
-    IWETH weth = IWETH(_wethGateway.getWETHAddress());
+    IWETH weth = _getWETH();
     if (sendAmount > paidAmount) {
       uint256 remainAmount = sendAmount - paidAmount;
       if (msg.value >= sendAmount) {
