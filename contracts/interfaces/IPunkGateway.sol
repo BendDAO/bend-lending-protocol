@@ -121,7 +121,11 @@ interface IPunkGateway {
    * @param onBehalfOf Address of the user who will receive the CryptoPunk. Should be the address of the user itself
    * calling the function if he wants to get collateral
    **/
-  function auctionETH(uint256 punkIndex, address onBehalfOf) external payable;
+  function auctionETH(
+    uint256 punkIndex,
+    uint256 bidPrice,
+    address onBehalfOf
+  ) external payable;
 
   /**
    * @notice liquidate a unhealth punk loan with native ETH
@@ -139,5 +143,5 @@ interface IPunkGateway {
    * @notice liquidate a unhealth punk loan with native ETH
    * @param punkIndex The index of the CryptoPunk to repay
    **/
-  function liquidateETH(uint256 punkIndex) external payable returns (uint256);
+  function liquidateETH(uint256 punkIndex, uint256 extraAmount) external payable returns (uint256);
 }

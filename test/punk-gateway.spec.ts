@@ -117,7 +117,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     const usdcBalanceBefore = await getERC20TokenBalance(usdc.address, borrower.address);
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(usdc.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
     await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
@@ -187,7 +187,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
       await cryptoPunksMarket.connect(user.signer).offerPunkForSaleToAddress(punkIndex, 0, punkGateway.address)
     );
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(usdc.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
     await waitForTx(await debtToken.connect(user.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
@@ -254,17 +254,19 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
 
     const ethBalanceBefore = await user.signer.getBalance();
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(weth.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
-    await waitForTx(await debtToken.connect(user.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
+    await waitForTx(await debtToken.connect(user.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
 
     // borrow first eth
+    console.log("borrow first eth", punkIndex);
     await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize1, punkIndex, user.address, "0"));
 
     await advanceTimeAndBlock(100);
 
     // borrow more eth
+    console.log("borrow more eth", punkIndex);
     await waitForTx(await punkGateway.connect(user.signer).borrowETH(borrowSize2, punkIndex, user.address, "0"));
 
     // Check debt
@@ -280,6 +282,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await advanceTimeAndBlock(100);
 
     // Repay partial
+    console.log("Repay partial", punkIndex);
     await waitForTx(
       await punkGateway.connect(user.signer).repayETH(punkIndex, repaySize.div(2), {
         value: repaySize.div(2),
@@ -298,9 +301,10 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     await advanceTimeAndBlock(100);
 
     // Repay full
+    console.log("Repay full", punkIndex);
     await waitForTx(await wrappedPunk.connect(user.signer).setApprovalForAll(punkGateway.address, true));
     await waitForTx(
-      await punkGateway.connect(user.signer).repayETH(punkIndex, MAX_UINT_AMOUNT, {
+      await punkGateway.connect(user.signer).repayETH(punkIndex, repaySize, {
         value: repaySize,
       })
     );
@@ -336,7 +340,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     // Delegates borrowing power of WETH to WETHGateway
     const reserveData = await pool.getReserveData(weth.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
-    await waitForTx(await debtToken.connect(user.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
+    await waitForTx(await debtToken.connect(user.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
 
     // borrow all eth
     await waitForTx(
@@ -350,7 +354,7 @@ makeSuite("PunkGateway", (testEnv: TestEnv) => {
     // Repay all eth
     await waitForTx(await wrappedPunk.connect(user.signer).setApprovalForAll(punkGateway.address, true));
     await waitForTx(
-      await punkGateway.connect(user.signer).repayETH(punkIndex, MAX_UINT_AMOUNT, {
+      await punkGateway.connect(user.signer).repayETH(punkIndex, repaySize.toFixed(0), {
         value: repaySize.toFixed(0),
       })
     );

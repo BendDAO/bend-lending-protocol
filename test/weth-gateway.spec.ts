@@ -184,7 +184,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     // Full Repay WETH loan with native ETH
     await waitForTx(
-      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, MAX_UINT_AMOUNT, {
+      await wethGateway.connect(user.signer).repayETH(nftAsset, tokenId, repaySize, {
         value: repaySize,
       })
     );
@@ -267,7 +267,7 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
 
     console.log("Full Repay ETH loan with native ETH");
     await waitForTx(
-      await wethGateway.connect(borrower.signer).repayETH(nftAsset, tokenId, MAX_UINT_AMOUNT, {
+      await wethGateway.connect(borrower.signer).repayETH(nftAsset, tokenId, repaySize, {
         value: repaySize,
       })
     );
@@ -352,14 +352,19 @@ makeSuite("WETHGateway", (testEnv: TestEnv) => {
     await advanceTimeAndBlock(100);
 
     console.log("batch repay eth - full");
-    const repaySize1Full = loanData1AfterRepayPart.currentAmount;
-    const repaySize2Full = loanData2AfterRepayPart.currentAmount;
+    const repaySize1Full = loanData1AfterRepayPart.currentAmount.multipliedBy(1.01);
+    const repaySize2Full = loanData2AfterRepayPart.currentAmount.multipliedBy(1.01);
     await waitForTx(
       await wethGateway
         .connect(borrower.signer)
-        .batchRepayETH([nftAsset, nftAsset], [tokenId1, tokenId2], [MAX_UINT_AMOUNT, MAX_UINT_AMOUNT], {
-          value: repaySize1Full.plus(repaySize2Full).multipliedBy(1.01).toFixed(0),
-        })
+        .batchRepayETH(
+          [nftAsset, nftAsset],
+          [tokenId1, tokenId2],
+          [repaySize1Full.toFixed(0), repaySize2Full.toFixed(0)],
+          {
+            value: repaySize1Full.plus(repaySize2Full).toFixed(0),
+          }
+        )
     );
 
     const loanData1AfterRepayFull = await getLoanData(

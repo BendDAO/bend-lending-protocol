@@ -121,7 +121,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     await waitForTx(
       await wethGateway
         .connect(liquidator.signer)
-        .auctionETH(nftAsset, tokenId, liquidator.address, { value: auctionAmountSend })
+        .auctionETH(nftAsset, tokenId, auctionAmountSend, liquidator.address, { value: auctionAmountSend })
     );
 
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
@@ -136,7 +136,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
       .toFixed(0);
     console.log("liquidateETH:", "extraAmount:", extraAmount);
     await waitForTx(
-      await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, { value: extraAmount })
+      await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, extraAmount, { value: extraAmount })
     );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataBeforeAuction.loanId);
@@ -208,7 +208,9 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     await waitForTx(
       await wethGateway
         .connect(liquidator.signer)
-        .auctionETH(nftAsset, tokenId, liquidator.address, { value: liquidateAmountSend })
+        .auctionETH(nftAsset, tokenId, liquidateAmountSend.toString(), liquidator.address, {
+          value: liquidateAmountSend,
+        })
     );
 
     // Redeem ETH loan with native ETH

@@ -131,16 +131,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   ) external override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
-    ILendPool cachedPool = _getLendPool();
-    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
-
-    uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAsset, nftTokenId);
-    if (loanId == 0) {
-      IERC721Upgradeable(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
-    }
-    cachedPool.borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
-    WETH.withdraw(amount);
-    _safeTransferETH(onBehalfOf, amount);
+    _borrowETH(amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
   }
 
   function batchBorrowETH(
@@ -155,19 +146,31 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      _borrowETH(amounts[i], nftAssets[i], nftTokenIds[i], onBehalfOf, referralCode);
+    }
+  }
+
+  function _borrowETH(
+    uint256 amount,
+    address nftAsset,
+    uint256 nftTokenId,
+    address onBehalfOf,
+    uint16 referralCode
+  ) internal {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
-    for (uint256 i = 0; i < nftAssets.length; i++) {
-      uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAssets[i], nftTokenIds[i]);
-      if (loanId == 0) {
-        IERC721Upgradeable(nftAssets[i]).safeTransferFrom(msg.sender, address(this), nftTokenIds[i]);
-      }
-      cachedPool.borrow(address(WETH), amounts[i], nftAssets[i], nftTokenIds[i], onBehalfOf, referralCode);
-
-      WETH.withdraw(amounts[i]);
-      _safeTransferETH(onBehalfOf, amounts[i]);
+    // check nft has been used as collateral or not
+    uint256 loanId = cachedPoolLoan.getCollateralLoanId(nftAsset, nftTokenId);
+    if (loanId == 0) {
+      IERC721Upgradeable(nftAsset).safeTransferFrom(msg.sender, address(this), nftTokenId);
     }
+
+    cachedPool.borrow(address(WETH), amount, nftAsset, nftTokenId, onBehalfOf, referralCode);
+
+    WETH.withdraw(amount);
+    _safeTransferETH(onBehalfOf, amount);
   }
 
   function repayETH(
@@ -175,12 +178,13 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 nftTokenId,
     uint256 amount
   ) external payable override nonReentrant returns (uint256, bool) {
-    (uint256 repayAmount, bool repayAll) = _repayETH(nftAsset, nftTokenId, amount, 0);
+    // convert eth to weth and make sure enough weth
+    uint256 wethSentAmount = _wrapAndTransferWETH(amount);
+
+    (uint256 repayAmount, bool repayAll) = _repayETH(nftAsset, nftTokenId, amount, 0, wethSentAmount);
 
     // refund remaining dust eth
-    if (msg.value > repayAmount) {
-      _safeTransferETH(msg.sender, msg.value - repayAmount);
-    }
+    _unwrapAndRefundWETH(wethSentAmount, repayAmount);
 
     return (repayAmount, repayAll);
   }
@@ -193,20 +197,31 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     require(nftAssets.length == amounts.length, "inconsistent amounts length");
     require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
 
+    // convert eth to weth and make sure enough weth
+    uint256 totalSendAmount = 0;
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      totalSendAmount += amounts[i];
+    }
+    uint256 wethSentAmount = _wrapAndTransferWETH(totalSendAmount);
+
     uint256[] memory repayAmounts = new uint256[](nftAssets.length);
     bool[] memory repayAlls = new bool[](nftAssets.length);
     uint256 allRepayDebtAmount = 0;
 
     for (uint256 i = 0; i < nftAssets.length; i++) {
-      (repayAmounts[i], repayAlls[i]) = _repayETH(nftAssets[i], nftTokenIds[i], amounts[i], allRepayDebtAmount);
+      (repayAmounts[i], repayAlls[i]) = _repayETH(
+        nftAssets[i],
+        nftTokenIds[i],
+        amounts[i],
+        allRepayDebtAmount,
+        wethSentAmount
+      );
 
       allRepayDebtAmount += repayAmounts[i];
     }
 
     // refund remaining dust eth
-    if (msg.value > allRepayDebtAmount) {
-      _safeTransferETH(msg.sender, msg.value - allRepayDebtAmount);
-    }
+    _unwrapAndRefundWETH(wethSentAmount, allRepayDebtAmount);
 
     return (repayAmounts, repayAlls);
   }
@@ -215,7 +230,8 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address nftAsset,
     uint256 nftTokenId,
     uint256 amount,
-    uint256 accAmount
+    uint256 accAmount,
+    uint256 wethSentAmount
   ) internal returns (uint256, bool) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
@@ -230,9 +246,8 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
       repayDebtAmount = amount;
     }
 
-    require(msg.value >= (accAmount + repayDebtAmount), "msg.value is less than repay amount");
+    require(wethSentAmount >= (accAmount + repayDebtAmount), "balance is less than repay amount");
 
-    WETH.deposit{value: repayDebtAmount}();
     (uint256 paybackAmount, bool burn) = cachedPool.repay(nftAsset, nftTokenId, amount);
 
     return (paybackAmount, burn);
@@ -241,6 +256,7 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   function auctionETH(
     address nftAsset,
     uint256 nftTokenId,
+    uint256 bidPrice,
     address onBehalfOf
   ) external payable override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
@@ -254,8 +270,10 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
     require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
 
-    WETH.deposit{value: msg.value}();
-    cachedPool.auction(nftAsset, nftTokenId, msg.value, onBehalfOf);
+    // convert eth to weth and make sure enough weth
+    _wrapAndTransferWETH(bidPrice);
+
+    cachedPool.auction(nftAsset, nftTokenId, bidPrice, onBehalfOf);
   }
 
   function redeemETH(
@@ -273,22 +291,22 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
     require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
 
-    require(msg.value >= (amount + bidFine), "msg.value is less than redeem amount");
-
-    WETH.deposit{value: msg.value}();
+    // convert eth to weth and make sure enough weth
+    uint256 wethSentAmount = _wrapAndTransferWETH(amount + bidFine);
 
     uint256 paybackAmount = cachedPool.redeem(nftAsset, nftTokenId, amount, bidFine);
 
-    // refund remaining dust eth
-    if (msg.value > paybackAmount) {
-      WETH.withdraw(msg.value - paybackAmount);
-      _safeTransferETH(msg.sender, msg.value - paybackAmount);
-    }
+    // refund remaining dust weth
+    _unwrapAndRefundWETH(wethSentAmount, paybackAmount);
 
     return paybackAmount;
   }
 
-  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable override nonReentrant returns (uint256) {
+  function liquidateETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 extraAmount
+  ) external payable override nonReentrant returns (uint256) {
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
@@ -298,18 +316,14 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
     require(loan.reserveAsset == address(WETH), "loan reserve not WETH");
 
-    if (msg.value > 0) {
-      WETH.deposit{value: msg.value}();
-    }
+    uint256 wethSentAmount = _wrapAndTransferWETH(extraAmount);
 
-    uint256 extraAmount = cachedPool.liquidate(nftAsset, nftTokenId, msg.value);
+    uint256 paidExtraAmount = cachedPool.liquidate(nftAsset, nftTokenId, extraAmount);
 
-    if (msg.value > extraAmount) {
-      WETH.withdraw(msg.value - extraAmount);
-      _safeTransferETH(msg.sender, msg.value - extraAmount);
-    }
+    // refund remaining dust weth
+    _unwrapAndRefundWETH(wethSentAmount, paidExtraAmount);
 
-    return (extraAmount);
+    return (paidExtraAmount);
   }
 
   /**
@@ -325,8 +339,33 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   /**
    * @dev Get WETH address used by WETHGateway
    */
-  function getWETHAddress() external view returns (address) {
+  function getWETHAddress() external view override returns (address) {
     return address(WETH);
+  }
+
+  function _wrapAndTransferWETH(uint256 amount) internal returns (uint256) {
+    uint256 wethSendAmount = 0;
+    if (msg.value > 0) {
+      wethSendAmount = msg.value;
+      WETH.deposit{value: msg.value}();
+    }
+    if (msg.value < amount) {
+      wethSendAmount = amount;
+      WETH.transferFrom(msg.sender, address(this), (amount - msg.value));
+    }
+    return wethSendAmount;
+  }
+
+  function _unwrapAndRefundWETH(uint256 sendAmount, uint256 paidAmount) internal {
+    if (sendAmount > paidAmount) {
+      uint256 remainAmount = sendAmount - paidAmount;
+      if (msg.value >= sendAmount) {
+        WETH.withdraw(remainAmount);
+        _safeTransferETH(msg.sender, (remainAmount));
+      } else {
+        WETH.transferFrom(address(this), msg.sender, remainAmount);
+      }
+    }
   }
 
   /**

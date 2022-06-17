@@ -80,7 +80,7 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
 
     const usdcBalanceBefore = await getERC20TokenBalance(usdc.address, borrower.address);
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(usdc.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
     await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
@@ -170,10 +170,10 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
       await cryptoPunksMarket.connect(borrower.signer).offerPunkForSaleToAddress(punkIndex2, 0, punkGateway.address)
     );
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(weth.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
-    await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
+    await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
 
     const userBalanceBeforeBorrow = await borrower.signer.getBalance();
 
@@ -218,13 +218,13 @@ makeSuite("PunkGateway: Batch borrow", (testEnv: TestEnv) => {
     expect(loanData2AfterRepayPart.state).to.be.eq(ProtocolLoanState.Active);
 
     console.log("Batch repay eth - full");
-    const repaySize1Full = new BigNumber(loanData1AfterRepayPart.currentAmount.toString());
-    const repaySize2Full = new BigNumber(loanData2AfterRepayPart.currentAmount.toString());
+    const repaySize1Full = new BigNumber(loanData1AfterRepayPart.currentAmount.toString()).multipliedBy(1.01);
+    const repaySize2Full = new BigNumber(loanData2AfterRepayPart.currentAmount.toString()).multipliedBy(1.01);
     await waitForTx(
       await punkGateway
         .connect(borrower.signer)
-        .batchRepayETH([punkIndex1, punkIndex2], [MAX_UINT_AMOUNT, MAX_UINT_AMOUNT], {
-          value: repaySize1Full.plus(repaySize2Full).multipliedBy(1.001).toFixed(0),
+        .batchRepayETH([punkIndex1, punkIndex2], [repaySize1Full.toFixed(0), repaySize2Full.toFixed(0)], {
+          value: repaySize1Full.plus(repaySize2Full).toFixed(0),
         })
     );
 

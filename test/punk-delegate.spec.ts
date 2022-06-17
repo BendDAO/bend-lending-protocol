@@ -81,7 +81,9 @@ makeSuite("PunkGateway: Delegate", (testEnv: TestEnv) => {
 
     console.log("auctionETH");
     await expect(
-      punkGateway.connect(hacker.signer).auctionETH(tokenId, liquidator.address, { value: depositSize })
+      punkGateway
+        .connect(hacker.signer)
+        .auctionETH(tokenId, depositSize.toString(), liquidator.address, { value: depositSize })
     ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_ONBEHALFOF_OR_IN_WHITELIST);
   });
 });

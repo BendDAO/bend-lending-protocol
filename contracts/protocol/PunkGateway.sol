@@ -16,8 +16,11 @@ import {IWrappedPunks} from "../interfaces/IWrappedPunks.sol";
 import {IPunkGateway} from "../interfaces/IPunkGateway.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {IWETHGateway} from "../interfaces/IWETHGateway.sol";
+import {IWETH} from "../interfaces/IWETH.sol";
 
 import {EmergencyTokenRecoveryUpgradeable} from "./EmergencyTokenRecoveryUpgradeable.sol";
+
+import "hardhat/console.sol";
 
 contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRecoveryUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -83,6 +86,10 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
   function _getLendPoolLoan() internal view returns (ILendPoolLoan) {
     return ILendPoolLoan(_addressProvider.getLendPoolLoan());
+  }
+
+  function _getWETH() internal view returns (IWETH) {
+    return IWETH(_wethGateway.getWETHAddress());
   }
 
   function authorizeLendPoolERC20(address[] calldata tokens) external nonReentrant onlyOwner {
@@ -300,8 +307,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   ) external override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
-    _depositPunk(punkIndex);
-    _wethGateway.borrowETH(amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
+    _borrowETH(amount, punkIndex, onBehalfOf, referralCode);
   }
 
   function batchBorrowETH(
@@ -314,22 +320,36 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
-    address[] memory nftAssets = new address[](punkIndexs.length);
     for (uint256 i = 0; i < punkIndexs.length; i++) {
-      nftAssets[i] = address(wrappedPunks);
-      _depositPunk(punkIndexs[i]);
+      _borrowETH(amounts[i], punkIndexs[i], onBehalfOf, referralCode);
     }
+  }
 
-    _wethGateway.batchBorrowETH(amounts, nftAssets, punkIndexs, onBehalfOf, referralCode);
+  function _borrowETH(
+    uint256 amount,
+    uint256 punkIndex,
+    address onBehalfOf,
+    uint16 referralCode
+  ) internal {
+    ILendPool cachedPool = _getLendPool();
+    IWETH weth = _getWETH();
+
+    _depositPunk(punkIndex);
+
+    cachedPool.borrow(address(weth), amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
+
+    weth.withdraw(amount);
+    _safeTransferETH(onBehalfOf, amount);
   }
 
   function repayETH(uint256 punkIndex, uint256 amount) external payable override nonReentrant returns (uint256, bool) {
-    (uint256 paybackAmount, bool burn) = _repayETH(punkIndex, amount, 0);
+    // convert eth to weth and make sure enough weth
+    uint256 wethSendAmount = _wrapAndTransferWETH(amount);
+
+    (uint256 paybackAmount, bool burn) = _repayETH(punkIndex, amount);
 
     // refund remaining dust eth
-    if (msg.value > paybackAmount) {
-      _safeTransferETH(msg.sender, msg.value - paybackAmount);
-    }
+    _unwrapAndRefundWETH(wethSendAmount, paybackAmount);
 
     return (paybackAmount, burn);
   }
@@ -343,28 +363,31 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   {
     require(punkIndexs.length == amounts.length, "inconsistent amounts length");
 
+    // convert eth to weth and make sure enough weth
+    uint256 totalRepayAmount = 0;
+    for (uint256 i = 0; i < punkIndexs.length; i++) {
+      totalRepayAmount += amounts[i];
+    }
+    uint256 wethSendAmount = _wrapAndTransferWETH(totalRepayAmount);
+
+    // recording all repaid amounts
     uint256[] memory repayAmounts = new uint256[](punkIndexs.length);
     bool[] memory repayAlls = new bool[](punkIndexs.length);
     uint256 allRepayAmount = 0;
 
     for (uint256 i = 0; i < punkIndexs.length; i++) {
-      (repayAmounts[i], repayAlls[i]) = _repayETH(punkIndexs[i], amounts[i], allRepayAmount);
+      (repayAmounts[i], repayAlls[i]) = _repayETH(punkIndexs[i], amounts[i]);
       allRepayAmount += repayAmounts[i];
     }
 
     // refund remaining dust eth
-    if (msg.value > allRepayAmount) {
-      _safeTransferETH(msg.sender, msg.value - allRepayAmount);
-    }
+    _unwrapAndRefundWETH(wethSendAmount, allRepayAmount);
 
     return (repayAmounts, repayAlls);
   }
 
-  function _repayETH(
-    uint256 punkIndex,
-    uint256 amount,
-    uint256 accAmount
-  ) internal returns (uint256, bool) {
+  function _repayETH(uint256 punkIndex, uint256 amount) internal returns (uint256, bool) {
+    ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
@@ -373,18 +396,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     address borrower = cachedPoolLoan.borrowerOf(loanId);
     require(borrower == _msgSender(), "PunkGateway: caller is not borrower");
 
-    (, uint256 repayDebtAmount) = cachedPoolLoan.getLoanReserveBorrowAmount(loanId);
-    if (amount < repayDebtAmount) {
-      repayDebtAmount = amount;
-    }
-
-    require(msg.value >= (accAmount + repayDebtAmount), "msg.value is less than repay amount");
-
-    (uint256 paybackAmount, bool burn) = _wethGateway.repayETH{value: repayDebtAmount}(
-      address(wrappedPunks),
-      punkIndex,
-      amount
-    );
+    (uint256 paybackAmount, bool burn) = cachedPool.repay(address(wrappedPunks), punkIndex, amount);
 
     if (burn) {
       _withdrawPunk(punkIndex, borrower);
@@ -393,10 +405,19 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     return (paybackAmount, burn);
   }
 
-  function auctionETH(uint256 punkIndex, address onBehalfOf) external payable override nonReentrant {
+  function auctionETH(
+    uint256 punkIndex,
+    uint256 bidPrice,
+    address onBehalfOf
+  ) external payable override nonReentrant {
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
-    _wethGateway.auctionETH{value: msg.value}(address(wrappedPunks), punkIndex, onBehalfOf);
+    ILendPool cachedPool = _getLendPool();
+
+    // convert eth to weth and make sure enough weth
+    _wrapAndTransferWETH(bidPrice);
+
+    cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
 
   function redeemETH(
@@ -404,25 +425,35 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256 amount,
     uint256 bidFine
   ) external payable override nonReentrant returns (uint256) {
+    ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    // convert eth to weth and make sure enough weth
+    uint256 wethSendAmount = _wrapAndTransferWETH(amount + bidFine);
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
 
-    //DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
-
-    uint256 paybackAmount = _wethGateway.redeemETH{value: msg.value}(address(wrappedPunks), punkIndex, amount, bidFine);
+    uint256 paybackAmount = cachedPool.redeem(address(wrappedPunks), punkIndex, amount, bidFine);
 
     // refund remaining dust eth
-    if (msg.value > paybackAmount) {
-      _safeTransferETH(msg.sender, msg.value - paybackAmount);
-    }
+    _unwrapAndRefundWETH(wethSendAmount, paybackAmount);
 
     return paybackAmount;
   }
 
-  function liquidateETH(uint256 punkIndex) external payable override nonReentrant returns (uint256) {
+  function liquidateETH(uint256 punkIndex, uint256 extraAmount)
+    external
+    payable
+    override
+    nonReentrant
+    returns (uint256)
+  {
+    ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+
+    // convert eth to weth and make sure enough weth
+    uint256 wethSendAmount = _wrapAndTransferWETH(extraAmount);
 
     uint256 loanId = cachedPoolLoan.getCollateralLoanId(address(wrappedPunks), punkIndex);
     require(loanId != 0, "PunkGateway: no loan with such punkIndex");
@@ -430,16 +461,14 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
     require(loan.bidderAddress == _msgSender(), "PunkGateway: caller is not bidder");
 
-    uint256 extraAmount = _wethGateway.liquidateETH{value: msg.value}(address(wrappedPunks), punkIndex);
+    uint256 paidExtraAmount = cachedPool.liquidate(address(wrappedPunks), punkIndex, extraAmount);
 
     _withdrawPunk(punkIndex, loan.bidderAddress);
 
     // refund remaining dust eth
-    if (msg.value > extraAmount) {
-      _safeTransferETH(msg.sender, msg.value - extraAmount);
-    }
+    _unwrapAndRefundWETH(wethSendAmount, paidExtraAmount);
 
-    return extraAmount;
+    return paidExtraAmount;
   }
 
   /**
@@ -450,6 +479,33 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
   function _safeTransferETH(address to, uint256 value) internal {
     (bool success, ) = to.call{value: value}(new bytes(0));
     require(success, "ETH_TRANSFER_FAILED");
+  }
+
+  function _wrapAndTransferWETH(uint256 amount) internal returns (uint256) {
+    IWETH weth = IWETH(_wethGateway.getWETHAddress());
+    uint256 wethSendAmount = 0;
+    if (msg.value > 0) {
+      wethSendAmount = msg.value;
+      weth.deposit{value: msg.value}();
+    }
+    if (msg.value < amount) {
+      wethSendAmount = amount;
+      weth.transferFrom(msg.sender, address(this), (amount - msg.value));
+    }
+    return wethSendAmount;
+  }
+
+  function _unwrapAndRefundWETH(uint256 sendAmount, uint256 paidAmount) internal {
+    IWETH weth = IWETH(_wethGateway.getWETHAddress());
+    if (sendAmount > paidAmount) {
+      uint256 remainAmount = sendAmount - paidAmount;
+      if (msg.value >= sendAmount) {
+        weth.withdraw(remainAmount);
+        _safeTransferETH(msg.sender, (remainAmount));
+      } else {
+        weth.transferFrom(address(this), msg.sender, remainAmount);
+      }
+    }
   }
 
   /**

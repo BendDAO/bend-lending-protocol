@@ -178,7 +178,9 @@ task("dev:weth-liquidate", "Doing WETH liquidate task")
 
     const wethGateway = await getWETHGateway();
 
-    await waitForTx(await wethGateway.liquidateETH(token, id, { value: extraAmount.toFixed(0) }));
+    await waitForTx(
+      await wethGateway.liquidateETH(token, id, extraAmount.toFixed(0), { value: extraAmount.toFixed(0) })
+    );
 
     console.log("OK");
   });
@@ -246,7 +248,7 @@ task("dev:punk-liquidate-eth", "Doing CryptoPunks liquidate ETH task")
 
     const punkGateway = await getPunkGateway();
 
-    await waitForTx(await punkGateway.liquidateETH(id));
+    await waitForTx(await punkGateway.liquidateETH(id, 0));
 
     console.log("OK");
   });

@@ -71,6 +71,7 @@ interface IWETHGateway {
   function auctionETH(
     address nftAsset,
     uint256 nftTokenId,
+    uint256 bidPrice,
     address onBehalfOf
   ) external payable;
 
@@ -93,5 +94,11 @@ interface IWETHGateway {
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
    */
-  function liquidateETH(address nftAsset, uint256 nftTokenId) external payable returns (uint256);
+  function liquidateETH(
+    address nftAsset,
+    uint256 nftTokenId,
+    uint256 extraAmount
+  ) external payable returns (uint256);
+
+  function getWETHAddress() external view returns (address);
 }

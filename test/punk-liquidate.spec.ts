@@ -74,7 +74,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     await sleep(1000 * 1);
     await setNftAssetPrice(testEnv, "WPUNKS", punkInitPrice.toString());
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(usdc.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
     await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
@@ -187,7 +187,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
 
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(usdc.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
     await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
@@ -304,10 +304,10 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
 
     const nftCfgData = await dataProvider.getNftConfigurationData(wrappedPunk.address);
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(weth.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
-    await waitForTx(await debtToken.connect(user.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
+    await waitForTx(await debtToken.connect(user.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
 
     // borrow eth, health factor above 1
     const nftColDataBefore = await pool.getNftCollateralData(wrappedPunk.address, weth.address);
@@ -340,13 +340,15 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     await waitForTx(
       await punkGateway
         .connect(liquidator.signer)
-        .auctionETH(punkIndex, liquidator.address, { value: liquidateAmountSend })
+        .auctionETH(punkIndex, liquidateAmountSend.toString(), liquidator.address, { value: liquidateAmountSend })
     );
 
     await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
 
     const extraAmount = await convertToCurrencyDecimals(weth.address, "1");
-    await waitForTx(await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex, { value: extraAmount }));
+    await waitForTx(
+      await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex, extraAmount, { value: extraAmount })
+    );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Defaulted, "Invalid loan state after liquidation");
@@ -402,10 +404,10 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     // borrow eth, health factor above 1
     const nftColDataBefore = await pool.getNftCollateralData(wrappedPunk.address, weth.address);
 
-    // Delegates borrowing power of WETH to WETHGateway
+    // Delegates borrowing power of WETH to gateway
     const reserveData = await pool.getReserveData(weth.address);
     const debtToken = await getDebtToken(reserveData.debtTokenAddress);
-    await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(wethGateway.address, MAX_UINT_AMOUNT));
+    await waitForTx(await debtToken.connect(borrower.signer).approveDelegation(punkGateway.address, MAX_UINT_AMOUNT));
 
     const wethPrice = await reserveOracle.getAssetPrice(weth.address);
     const amountBorrow = await convertToCurrencyDecimals(
@@ -437,7 +439,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     await waitForTx(
       await punkGateway
         .connect(liquidator.signer)
-        .auctionETH(punkIndex, liquidator.address, { value: liquidateAmountSend })
+        .auctionETH(punkIndex, liquidateAmountSend.toString(), liquidator.address, { value: liquidateAmountSend })
     );
 
     // Redeem ETH loan with native ETH
@@ -467,7 +469,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     const debtDataBeforeRepay = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
     const repayAmount = new BigNumber(debtDataBeforeRepay.totalDebt.toString()).multipliedBy(1.1).toFixed(0);
     await waitForTx(
-      await punkGateway.connect(borrower.signer).repayETH(punkIndex, MAX_UINT_AMOUNT, { value: repayAmount })
+      await punkGateway.connect(borrower.signer).repayETH(punkIndex, repayAmount, { value: repayAmount })
     );
 
     const loanDataAfterRepay = await dataProvider.getLoanDataByLoanId(nftDebtDataAfterBorrow.loanId);
