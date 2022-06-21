@@ -214,9 +214,5 @@
   "NWETHAggregator": {
     "address": "0x590328845A6dbAe96ef618b07552e5a62B93DEad",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
-  },
-  "RepayAndTransferHelper": {
-    "address": "0x5230c8554CF937c733b548190345437f62EdB462",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
