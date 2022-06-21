@@ -82,7 +82,6 @@ export enum eContractid {
   BendCollectorImpl = "BendCollectorImpl",
   TimelockControllerFast = "TimelockControllerFast",
   TimelockControllerSlow = "TimelockControllerSlow",
-  RepayAndTransferHelper = "RepayAndTransferHelper",
 }
 
 export enum ProtocolLoanState {
