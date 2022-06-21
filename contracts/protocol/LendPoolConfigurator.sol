@@ -408,6 +408,11 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     cachedPool.setPause(val);
   }
 
+  function setPoolPausedTime(uint256 startTime, uint256 durationTime) external onlyEmergencyAdmin {
+    ILendPool cachedPool = _getLendPool();
+    cachedPool.setPausedTime(startTime, durationTime);
+  }
+
   function getTokenImplementation(address proxyAddress) external view onlyPoolAdmin returns (address) {
     return ConfiguratorLogic.getTokenImplementation(proxyAddress);
   }

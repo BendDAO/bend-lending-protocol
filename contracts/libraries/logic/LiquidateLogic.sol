@@ -109,6 +109,7 @@ library LiquidateLogic {
     uint256 borrowAmount;
     uint256 auctionEndTimestamp;
     uint256 minBidDelta;
+    uint256 extraAuctionDuration;
   }
 
   /**
@@ -116,12 +117,14 @@ library LiquidateLogic {
    * @dev Emits the `Auction()` event.
    * @param reservesData The state of all the reserves
    * @param nftsData The state of all the nfts
+   * @param poolStates The state of the lend pool
    * @param params The additional parameters needed to execute the auction function
    */
   function executeAuction(
     ILendPoolAddressesProvider addressesProvider,
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(address => DataTypes.NftData) storage nftsData,
+    DataTypes.ExecuteLendPoolStates memory poolStates,
     DataTypes.ExecuteAuctionParams memory params
   ) external {
     require(params.onBehalfOf != address(0), Errors.VL_INVALID_ONBEHALFOF_ADDRESS);
@@ -171,7 +174,13 @@ library LiquidateLogic {
       // bid price must greater than borrow debt
       require(params.bidPrice >= vars.borrowAmount, Errors.LPL_BID_PRICE_LESS_THAN_BORROW);
 
-      vars.auctionEndTimestamp = loanData.bidStartTimestamp + (nftData.configuration.getAuctionDuration() * 1 days);
+      if ((poolStates.pauseDurationTime > 0) && (loanData.bidStartTimestamp <= poolStates.pauseStartTime)) {
+        vars.extraAuctionDuration = poolStates.pauseDurationTime;
+      }
+      vars.auctionEndTimestamp =
+        loanData.bidStartTimestamp +
+        vars.extraAuctionDuration +
+        (nftData.configuration.getAuctionDuration() * 1 days);
       require(block.timestamp <= vars.auctionEndTimestamp, Errors.LPL_BID_AUCTION_DURATION_HAS_END);
 
       // bid price must greater than highest bid + delta
@@ -225,6 +234,7 @@ library LiquidateLogic {
     uint256 redeemEndTimestamp;
     uint256 minBidFinePct;
     uint256 minBidFine;
+    uint256 extraRedeemDuration;
   }
 
   /**
@@ -232,12 +242,14 @@ library LiquidateLogic {
    * @dev Emits the `Redeem()` event.
    * @param reservesData The state of all the reserves
    * @param nftsData The state of all the nfts
+   * @param poolStates The state of the lend pool
    * @param params The additional parameters needed to execute the redeem function
    */
   function executeRedeem(
     ILendPoolAddressesProvider addressesProvider,
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(address => DataTypes.NftData) storage nftsData,
+    DataTypes.ExecuteLendPoolStates memory poolStates,
     DataTypes.ExecuteRedeemParams memory params
   ) external returns (uint256) {
     RedeemLocalVars memory vars;
@@ -257,7 +269,13 @@ library LiquidateLogic {
 
     ValidationLogic.validateRedeem(reserveData, nftData, loanData, params.amount);
 
-    vars.redeemEndTimestamp = (loanData.bidStartTimestamp + nftData.configuration.getRedeemDuration() * 1 days);
+    if ((poolStates.pauseDurationTime > 0) && (loanData.bidStartTimestamp <= poolStates.pauseStartTime)) {
+      vars.extraRedeemDuration = poolStates.pauseDurationTime;
+    }
+    vars.redeemEndTimestamp = (loanData.bidStartTimestamp +
+      vars.extraRedeemDuration +
+      nftData.configuration.getRedeemDuration() *
+      1 days);
     require(block.timestamp <= vars.redeemEndTimestamp, Errors.LPL_BID_REDEEM_DURATION_HAS_END);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index
@@ -352,6 +370,7 @@ library LiquidateLogic {
     uint256 extraDebtAmount;
     uint256 remainAmount;
     uint256 auctionEndTimestamp;
+    uint256 extraAuctionDuration;
   }
 
   /**
@@ -359,12 +378,14 @@ library LiquidateLogic {
    * @dev Emits the `Liquidate()` event.
    * @param reservesData The state of all the reserves
    * @param nftsData The state of all the nfts
+   * @param poolStates The state of the lend pool
    * @param params The additional parameters needed to execute the liquidate function
    */
   function executeLiquidate(
     ILendPoolAddressesProvider addressesProvider,
     mapping(address => DataTypes.ReserveData) storage reservesData,
     mapping(address => DataTypes.NftData) storage nftsData,
+    DataTypes.ExecuteLendPoolStates memory poolStates,
     DataTypes.ExecuteLiquidateParams memory params
   ) external returns (uint256) {
     LiquidateLocalVars memory vars;
@@ -384,7 +405,13 @@ library LiquidateLogic {
 
     ValidationLogic.validateLiquidate(reserveData, nftData, loanData);
 
-    vars.auctionEndTimestamp = loanData.bidStartTimestamp + (nftData.configuration.getAuctionDuration() * 1 days);
+    if ((poolStates.pauseDurationTime > 0) && (loanData.bidStartTimestamp <= poolStates.pauseStartTime)) {
+      vars.extraAuctionDuration = poolStates.pauseDurationTime;
+    }
+    vars.auctionEndTimestamp =
+      loanData.bidStartTimestamp +
+      vars.extraAuctionDuration +
+      (nftData.configuration.getAuctionDuration() * 1 days);
     require(block.timestamp > vars.auctionEndTimestamp, Errors.LPL_BID_AUCTION_DURATION_NOT_END);
 
     // update state MUST BEFORE get borrow amount which is depent on latest borrow index

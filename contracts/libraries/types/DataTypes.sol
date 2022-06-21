@@ -176,4 +176,9 @@ library DataTypes {
     uint256 nftTokenId;
     uint256 amount;
   }
+
+  struct ExecuteLendPoolStates {
+    uint256 pauseStartTime;
+    uint256 pauseDurationTime;
+  }
 }

@@ -289,6 +289,7 @@ contract LendPool is
       _addressesProvider,
       _reserves,
       _nfts,
+      _buildLendPoolVars(),
       DataTypes.ExecuteAuctionParams({
         initiator: _msgSender(),
         nftAsset: nftAsset,
@@ -318,6 +319,7 @@ contract LendPool is
         _addressesProvider,
         _reserves,
         _nfts,
+        _buildLendPoolVars(),
         DataTypes.ExecuteRedeemParams({
           initiator: _msgSender(),
           nftAsset: nftAsset,
@@ -345,6 +347,7 @@ contract LendPool is
         _addressesProvider,
         _reserves,
         _nfts,
+        _buildLendPoolVars(),
         DataTypes.ExecuteLiquidateParams({
           initiator: _msgSender(),
           nftAsset: nftAsset,
@@ -686,11 +689,15 @@ contract LendPool is
    * @param val `true` to pause the pool, `false` to un-pause it
    */
   function setPause(bool val) external override onlyLendPoolConfigurator {
-    _paused = val;
-    if (_paused) {
-      emit Paused();
-    } else {
-      emit Unpaused();
+    if (_paused != val) {
+      _paused = val;
+      if (_paused) {
+        _pauseStartTime = block.timestamp;
+        emit Paused();
+      } else {
+        _pauseDurationTime = block.timestamp - _pauseStartTime;
+        emit Unpaused();
+      }
     }
   }
 
@@ -699,6 +706,16 @@ contract LendPool is
    */
   function paused() external view override returns (bool) {
     return _paused;
+  }
+
+  function setPausedTime(uint256 startTime, uint256 durationTime) external override onlyLendPoolConfigurator {
+    _pauseStartTime = startTime;
+    _pauseDurationTime = durationTime;
+    emit PausedTimeUpdated(startTime, durationTime);
+  }
+
+  function getPausedTime() external view override returns (uint256, uint256) {
+    return (_pauseStartTime, _pauseDurationTime);
   }
 
   /**
@@ -859,5 +876,9 @@ contract LendPool is
         revert(errorMessage);
       }
     }
+  }
+
+  function _buildLendPoolVars() internal view returns (DataTypes.ExecuteLendPoolStates memory) {
+    return DataTypes.ExecuteLendPoolStates({pauseStartTime: _pauseStartTime, pauseDurationTime: _pauseDurationTime});
   }
 }
