@@ -1,28 +1,27 @@
-[![Build pass](https://github.com/BendDAO/bend-protocol/actions/workflows/node.js.yml/badge.svg)](https://github.com/BendDAO/bend-protocol/actions/workflows/node.js.yml)
-[![codecov](https://codecov.io/gh/BendDAO/bend-protocol/branch/main/graph/badge.svg?token=Z4Y9S158JS)](https://codecov.io/gh/BendDAO/bend-protocol)
+[![Build pass](https://github.com/BendDAO/bend-lending-protocol/actions/workflows/node.js.yml/badge.svg)](https://github.com/BendDAO/bend-lending-protocol/actions/workflows/node.js.yml)
+[![codecov](https://codecov.io/gh/BendDAO/bend-lending-protocol/branch/main/graph/badge.svg?token=Z4Y9S158JS)](https://codecov.io/gh/BendDAO/bend-lending-protocol)
 
 ```
-'########::'########:'##::: ##:'########::
- ##.... ##: ##.....:: ###:: ##: ##.... ##:
- ##:::: ##: ##::::::: ####: ##: ##:::: ##:
- ########:: ######::: ## ## ##: ##:::: ##:
- ##.... ##: ##...:::: ##. ####: ##:::: ##:
- ##:::: ##: ##::::::: ##:. ###: ##:::: ##:
- ########:: ########: ##::. ##: ########::
-........:::........::..::::..::........:::                              
+######                       ######     #    ####### 
+#     # ###### #    # #####  #     #   # #   #     # 
+#     # #      ##   # #    # #     #  #   #  #     # 
+######  #####  # #  # #    # #     # #     # #     # 
+#     # #      #  # # #    # #     # ####### #     # 
+#     # #      #   ## #    # #     # #     # #     # 
+######  ###### #    # #####  ######  #     # ####### 
 ```
 
-# Bend Protocol
+# BendDAO Lending Protocol
 
-This repository contains the smart contracts source code and markets configuration for Bend Protocol. The repository uses Hardhat as development enviroment for compilation, testing and deployment tasks.
+This repository contains the smart contracts source code and markets configuration for BendDAO Lending Protocol. The repository uses Hardhat as development enviroment for compilation, testing and deployment tasks.
 
-## What is Bend?
+## What is BendDAO Lending Protocol?
 
-Bend is a decentralized non-custodial NFT lending protocol where users can participate as depositors or borrowers. Depositors provide liquidity to the market to earn a passive income, while borrowers are able to borrow in an overcollateralized fashion, using NFTs as collaterl.
+BendDAO Lending Protocol is a decentralized non-custodial NFT lending protocol where users can participate as depositors or borrowers. Depositors provide liquidity to the market to earn a passive income, while borrowers are able to borrow in an overcollateralized fashion, using NFTs as collaterl.
 
 ## Documentation
 
-The documentation of Bend Protocol is in the following [Bend documentation](https://docs.benddao.xyz) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
+The documentation of BendDAO Lending Protocol is in the following [BendDAO documentation](https://docs.benddao.xyz) link. At the documentation you can learn more about the protocol, see the contract interfaces, integration guides and audits.
 
 For getting the latest contracts addresses, please check the [Deployed contracts](https://docs.benddao.xyz/developers/deployed-contracts) page at the documentation to stay up to date.
 
@@ -31,12 +30,12 @@ For getting the latest contracts addresses, please check the [Deployed contracts
 2. [Certik Online Report](https://www.certik.com/projects/bend-dao).
 
 ## Thanks
-Bend protocol refers to the architecture design and adopts some of the code of [AAVE](https://github.com/aave).
+BendDAO lending protocol refers to the architecture design and adopts some of the code of [AAVE](https://github.com/aave).
 We are very grateful to AAVE for providing us with an excellent DeFi platform.
 
 ## Connect with the community
 
-You can join at the [Discord](https://discord.gg/benddao) channel or at the [Governance](https://snapshot.org/#/benddao.eth) for asking questions about the protocol or talk about Bend with other peers.
+You can join at the [Discord](https://discord.gg/benddao) channel or at the [Governance](https://snapshot.org/#/benddao.eth) for asking questions about the protocol or talk about BendDAO with other peers.
 
 ## Getting Started
 
@@ -93,9 +92,9 @@ ETHERSCAN_KEY=""
 
 ## Markets configuration
 
-The configurations related with the Bend Markets are located at `markets` directory. You can follow the `IBendConfiguration` interface to create new Markets configuration or extend the current Bend configuration.
+The configurations related with the BendDAO Markets are located at `markets` directory. You can follow the `IBendConfiguration` interface to create new Markets configuration or extend the current BendDAO configuration.
 
-Each market should have his own Market configuration file, and their own set of deployment tasks, using the Bend market config and tasks as a reference.
+Each market should have his own Market configuration file, and their own set of deployment tasks, using the BendDAO market config and tasks as a reference.
 
 ## Test
 
@@ -117,7 +116,7 @@ npm run test
 
 ## Deployments
 
-For deploying Bend Protocol, you can use the available scripts located at `package.json`. For a complete list, run `npm run` to see all the tasks.
+For deploying BendDAO Lending Protocol, you can use the available scripts located at `package.json`. For a complete list, run `npm run` to see all the tasks.
 
 ### Prepare
 ```
@@ -170,9 +169,9 @@ npx hardhat --network localhost "dev:deploy-mock-bnft-tokens" --pool Bend
 npm run bend:rinkeby:full:migration
 ```
 
-## Interact with Bend in Mainnet via console
+## Interact with BendDAO Lending Protocol in Mainnet via console
 
-You can interact with Bend at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at [deployed-contracts](https://docs.benddao.xyz/developers/deployed-contracts).
+You can interact with BendDAO Lending Protocol at Mainnet network using the Hardhat console, in the scenario where the frontend is down or you want to interact directly. You can check the deployed addresses at [deployed-contracts](https://docs.benddao.xyz/developers/deployed-contracts).
 
 Run the Hardhat console pointing to the Mainnet network:
 
