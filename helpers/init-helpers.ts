@@ -30,7 +30,7 @@ export const initReservesByHelper = async (
   debtTokenNamePrefix: string,
   debtTokenSymbolPrefix: string,
   admin: tEthereumAddress,
-  treasuryAddress: tEthereumAddress,
+  collectorAddress: tEthereumAddress,
   poolName: ConfigNames,
   verify: boolean
 ) => {
@@ -100,7 +100,7 @@ export const initReservesByHelper = async (
       underlyingAssetDecimals: reserveDecimals,
       interestRateAddress: strategyAddresses[strategy.name],
       underlyingAsset: tokenAddresses[symbol],
-      treasury: treasuryAddress,
+      treasury: collectorAddress,
       underlyingAssetName: symbol,
       bTokenName: `${bTokenNamePrefix} ${symbol}`,
       bTokenSymbol: `${bTokenSymbolPrefix}${symbol}`,

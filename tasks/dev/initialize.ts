@@ -6,7 +6,7 @@ import {
 } from "../../helpers/contracts-deployments";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
 import { eNetwork } from "../../helpers/types";
-import { ConfigNames, getTreasuryAddress, loadPoolConfig } from "../../helpers/configuration";
+import { ConfigNames, getReserveFactorCollectorAddress, loadPoolConfig } from "../../helpers/configuration";
 
 import { tEthereumAddress, BendPools, eContractid } from "../../helpers/types";
 import { waitForTx, filterMapBy, notFalsyOrZeroAddress } from "../../helpers/misc-utils";
@@ -44,9 +44,9 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
     } = poolConfig;
     const addressesProvider = await getLendPoolAddressesProvider();
     const admin = await addressesProvider.getPoolAdmin();
-    const treasuryAddress = await getTreasuryAddress(poolConfig);
-    if (treasuryAddress == undefined || !notFalsyOrZeroAddress(treasuryAddress)) {
-      throw Error("Invalid treasury address in pool config");
+    const collectorAddress = await getReserveFactorCollectorAddress(poolConfig);
+    if (collectorAddress == undefined || !notFalsyOrZeroAddress(collectorAddress)) {
+      throw Error("Invalid collector address in pool config");
     }
 
     const dataProvider = await deployBendProtocolDataProvider(addressesProvider.address, verify);
@@ -65,7 +65,7 @@ task("dev:initialize-lend-pool", "Initialize lend pool configuration.")
       DebtTokenNamePrefix,
       DebtTokenSymbolPrefix,
       admin,
-      treasuryAddress,
+      collectorAddress,
       pool,
       verify
     );

@@ -1,5 +1,5 @@
 import { task } from "hardhat/config";
-import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
+import { loadPoolConfig, ConfigNames } from "../../helpers/configuration";
 import {
   getBToken,
   getDebtToken,

@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 import { getParamPerNetwork } from "../../helpers/contracts-helpers";
-import { loadPoolConfig, ConfigNames, getTreasuryAddress } from "../../helpers/configuration";
+import { loadPoolConfig, ConfigNames, getReserveFactorCollectorAddress } from "../../helpers/configuration";
 import { getWETHGateway, getPunkGateway } from "../../helpers/contracts-getters";
 import { eNetwork, ICommonConfiguration } from "../../helpers/types";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
@@ -26,7 +26,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
 
       const admin = await addressesProvider.getPoolAdmin();
 
-      const treasuryAddress = await getTreasuryAddress(poolConfig);
+      const collectorAddress = await getReserveFactorCollectorAddress(poolConfig);
 
       //////////////////////////////////////////////////////////////////////////
       console.log("Init & Config Reserve assets");
@@ -43,7 +43,7 @@ task("full:initialize-lend-pool", "Initialize lend pool configuration.")
         poolConfig.DebtTokenNamePrefix,
         poolConfig.DebtTokenSymbolPrefix,
         admin,
-        treasuryAddress,
+        collectorAddress,
         pool,
         verify
       );

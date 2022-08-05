@@ -414,7 +414,7 @@ export interface ICommonConfiguration {
   CryptoPunksMarket: iParamsPerNetwork<tEthereumAddress>;
   WrappedPunkToken: iParamsPerNetwork<tEthereumAddress>;
 
-  ReserveFactorTreasuryAddress: iParamsPerNetwork<tEthereumAddress>;
+  ReserveFactorCollectorAddress: iParamsPerNetwork<tEthereumAddress>;
   IncentivesController: iParamsPerNetwork<tEthereumAddress>;
   DebtTokenImplementation?: iParamsPerNetwork<tEthereumAddress>;
 

@@ -32,7 +32,7 @@ import { Signer } from "ethers";
 import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
 import { MintableERC20 } from "../types/MintableERC20";
 import { MintableERC721 } from "../types/MintableERC721";
-import { ConfigNames, getTreasuryAddress, loadPoolConfig } from "../helpers/configuration";
+import { ConfigNames, getReserveFactorCollectorAddress, loadPoolConfig } from "../helpers/configuration";
 import { initializeMakeSuite } from "./helpers/make-suite";
 
 import {
@@ -299,7 +299,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   console.log("-> Prepare Reserve init and configure...");
   const { BTokenNamePrefix, BTokenSymbolPrefix, DebtTokenNamePrefix, DebtTokenSymbolPrefix } = config;
-  const treasuryAddress = await getTreasuryAddress(config);
+  const collectorAddress = await getReserveFactorCollectorAddress(config);
 
   await initReservesByHelper(
     reservesParams,
@@ -309,7 +309,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
     DebtTokenNamePrefix,
     DebtTokenSymbolPrefix,
     poolAdmin,
-    treasuryAddress,
+    collectorAddress,
     ConfigNames.Bend,
     false
   );

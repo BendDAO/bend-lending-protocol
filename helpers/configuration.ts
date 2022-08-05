@@ -88,9 +88,9 @@ export const getEmergencyAdmin = async (config: ICommonConfiguration): Promise<t
   return addressList[addressIndex];
 };
 
-export const getTreasuryAddress = async (config: ICommonConfiguration): Promise<tEthereumAddress> => {
+export const getReserveFactorCollectorAddress = async (config: ICommonConfiguration): Promise<tEthereumAddress> => {
   const currentNetwork = process.env.FORK ? process.env.FORK : DRE.network.name;
-  return getParamPerNetwork(config.ReserveFactorTreasuryAddress, <eNetwork>currentNetwork);
+  return getParamPerNetwork(config.ReserveFactorCollectorAddress, <eNetwork>currentNetwork);
 };
 
 export const getWrappedNativeTokenAddress = async (config: ICommonConfiguration) => {
