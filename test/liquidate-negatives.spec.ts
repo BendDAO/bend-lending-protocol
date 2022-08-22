@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { advanceTimeAndBlock, DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
-import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors } from "../helpers/types";
@@ -255,7 +255,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
 
     const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
 
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).add(100).toNumber());
   });
 
   it("User 1 redeem after duration is end", async () => {
@@ -276,7 +276,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
     const deltaDuration = nftCfgData.auctionDuration.sub(nftCfgData.redeemDuration);
 
-    await increaseTime(deltaDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(deltaDuration.mul(ONE_HOUR).add(100).toNumber());
   });
 
   it("User 3 auction after duration is end", async () => {

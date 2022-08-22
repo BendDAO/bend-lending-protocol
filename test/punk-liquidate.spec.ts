@@ -3,7 +3,7 @@ import { BigNumber as BN } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther, ONE_HOUR } from "../helpers/constants";
 import { getDebtToken } from "../helpers/contracts-getters";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { advanceBlock, advanceTimeAndBlock, increaseTime, sleep, waitForTx } from "../helpers/misc-utils";
@@ -137,7 +137,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
       await punkGateway.connect(liquidator.signer).auction(punkIndex, liquidateAmount, liquidator.address)
     );
 
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).add(100).toNumber());
 
     const extraAmount = await convertToCurrencyDecimals(usdc.address, "100");
     await waitForTx(await punkGateway.connect(liquidator.signer).liquidate(punkIndex, extraAmount));
@@ -235,7 +235,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     await mintERC20(testEnv, borrower, "USDC", depositUnit.toString());
     await approveERC20PunkGateway(testEnv, borrower, "USDC");
 
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(3600).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).sub(3600).toNumber());
 
     const nftDebtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);
     const nftAuctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
@@ -343,7 +343,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
         .auctionETH(punkIndex, liquidator.address, { value: liquidateAmountSend })
     );
 
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).add(100).toNumber());
 
     const extraAmount = await convertToCurrencyDecimals(weth.address, "1");
     await waitForTx(await punkGateway.connect(liquidator.signer).liquidateETH(punkIndex, { value: extraAmount }));
@@ -441,7 +441,7 @@ makeSuite("PunkGateway-Liquidate", (testEnv: TestEnv) => {
     );
 
     // Redeem ETH loan with native ETH
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(3600).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).sub(3600).toNumber());
 
     const auctionDataBeforeRedeem = await pool.getNftAuctionData(wrappedPunk.address, punkIndex);
     const debtDataBeforeRedeem = await pool.getNftDebtData(wrappedPunk.address, punkIndex);

@@ -4,7 +4,7 @@ import { parseEther } from "ethers/lib/utils";
 import DRE from "hardhat";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
+import { MAX_UINT_AMOUNT } from "../helpers/constants";
 import { deploySelfdestructTransferMock } from "../helpers/contracts-deployments";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { advanceTimeAndBlock, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
