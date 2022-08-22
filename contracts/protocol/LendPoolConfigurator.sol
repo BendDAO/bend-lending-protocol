@@ -246,7 +246,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       require(ltv <= liquidationThreshold, Errors.LPC_INVALID_CONFIGURATION);
 
       if (liquidationThreshold != 0) {
-        //liquidation bonus must be smaller than 100.00%
+        //liquidation bonus must be smaller than or equal 100.00%
         require(liquidationBonus <= PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
       } else {
         require(liquidationBonus == 0, Errors.LPC_INVALID_CONFIGURATION);
@@ -342,7 +342,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
       require(inputs[i].baseLTV <= inputs[i].liquidationThreshold, Errors.LPC_INVALID_CONFIGURATION);
 
       if (inputs[i].liquidationThreshold != 0) {
-        //liquidation bonus must be smaller than 100.00%
+        //liquidation bonus must be smaller than or equal 100.00%
         require(inputs[i].liquidationBonus <= PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
       } else {
         require(inputs[i].liquidationBonus == 0, Errors.LPC_INVALID_CONFIGURATION);
