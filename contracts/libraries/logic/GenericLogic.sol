@@ -303,4 +303,27 @@ library GenericLogic {
 
     return (vars.minBidFineInReserve, vars.bidFineInReserve);
   }
+
+  function calculateLoanAuctionEndTimestamp(
+    DataTypes.NftData storage nftData,
+    DataTypes.LoanData memory loanData,
+    uint256 pauseStartTime,
+    uint256 pauseDurationTime
+  ) internal view returns (uint256 auctionEndTimestamp, uint256 redeemEndTimestamp) {
+    uint256 extraDuration = 0;
+
+    if ((pauseDurationTime > 0) && (loanData.bidStartTimestamp <= pauseStartTime)) {
+      extraDuration = pauseDurationTime;
+    }
+
+    auctionEndTimestamp =
+      loanData.bidStartTimestamp +
+      extraDuration +
+      (nftData.configuration.getAuctionDuration() * 1 hours);
+
+    redeemEndTimestamp =
+      loanData.bidStartTimestamp +
+      extraDuration +
+      (nftData.configuration.getRedeemDuration() * 1 hours);
+  }
 }

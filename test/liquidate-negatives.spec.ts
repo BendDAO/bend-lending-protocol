@@ -251,7 +251,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("Ends redeem duration", async () => {
-    const { bayc, dataProvider } = testEnv;
+    const { bayc, dataProvider, pool } = testEnv;
 
     const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
 

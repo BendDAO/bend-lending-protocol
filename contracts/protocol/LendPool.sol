@@ -582,6 +582,36 @@ contract LendPool is
     }
   }
 
+  function getNftAuctionEndTime(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    override
+    returns (
+      uint256 loanId,
+      uint256 bidStartTimestamp,
+      uint256 bidEndTimestamp,
+      uint256 redeemEndTimestamp
+    )
+  {
+    DataTypes.NftData storage nftData = _nfts[nftAsset];
+    ILendPoolLoan poolLoan = ILendPoolLoan(_addressesProvider.getLendPoolLoan());
+
+    loanId = poolLoan.getCollateralLoanId(nftAsset, nftTokenId);
+    if (loanId != 0) {
+      DataTypes.LoanData memory loan = ILendPoolLoan(_addressesProvider.getLendPoolLoan()).getLoan(loanId);
+
+      bidStartTimestamp = loan.bidStartTimestamp;
+      if (bidStartTimestamp > 0) {
+        (bidEndTimestamp, redeemEndTimestamp) = GenericLogic.calculateLoanAuctionEndTimestamp(
+          nftData,
+          loan,
+          _pauseStartTime,
+          _pauseDurationTime
+        );
+      }
+    }
+  }
+
   struct GetLiquidationPriceLocalVars {
     address poolLoan;
     uint256 loanId;
