@@ -93,7 +93,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ConfiguratorLogic": {
-    "address": "0xfDE825Dd9622E0Dfc7230536fb18661548960fD4",
+    "address": "0xB0ad8c9c221D27af3524511Cf7FAa917E8aDEfD5",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
@@ -109,7 +109,7 @@
     "address": "0xbc622a62bAC3B7de0659A0Dc7b50E4d59aF11377"
   },
   "LendPoolConfiguratorImpl": {
-    "address": "0xD738d9E7F6F26723Ba93a71f746Bd11B239931b0"
+    "address": "0x08c73458a822d1b4f83E6fEbb5f80f0ccE608758"
   },
   "LendPoolConfigurator": {
     "address": "0x97987245f5Cb66c1EF4A1f750eb6865931486Fd6"
