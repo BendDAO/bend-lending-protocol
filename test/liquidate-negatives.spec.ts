@@ -53,6 +53,16 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const { configurator, bayc, pool, users } = testEnv;
     const user1 = users[1];
 
+    const nftCfgOld = await testEnv.dataProvider.getNftConfigurationData(testEnv.bayc.address);
+    await waitForTx(
+      await configurator.configureNftAsCollateral(
+        [testEnv.bayc.address],
+        nftCfgOld.ltv,
+        nftCfgOld.liquidationThreshold,
+        500
+      )
+    );
+
     await expect(pool.connect(user1.signer).liquidate(bayc.address, "102", "0")).to.be.revertedWith(
       ProtocolErrors.LP_NFT_IS_NOT_USED_AS_COLLATERAL
     );

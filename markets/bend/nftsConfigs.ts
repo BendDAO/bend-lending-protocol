@@ -3,7 +3,7 @@ import { eContractid, INftParams, SymbolMap } from '../../helpers/types';
 export const strategyNftClassA: INftParams = {
   baseLTVAsCollateral: '5000', // 50%
   liquidationThreshold: '9000', // 90%
-  liquidationBonus: '500', // 5%
+  liquidationBonus: '10000', // 5%
   redeemDuration: "4", // 4 hours
   auctionDuration: "4", // 4 hours
   redeemFine: "500", // 5%
@@ -17,7 +17,7 @@ export const strategyNftClassA: INftParams = {
 export const strategyNftClassB: INftParams = {
   baseLTVAsCollateral: '4000', // 40%
   liquidationThreshold: '9000', // 90%
-  liquidationBonus: '500', // 5%
+  liquidationBonus: '10000', // 5%
   redeemDuration: "4", // 4 hours
   auctionDuration: "4", // 4 hours
   redeemFine: "500", // 5%
@@ -31,7 +31,7 @@ export const strategyNftClassB: INftParams = {
 export const strategyNftClassC: INftParams = {
   baseLTVAsCollateral: '3000', // 30%
   liquidationThreshold: '9000', // 90%
-  liquidationBonus: '500', // 5%
+  liquidationBonus: '10000', // 5%
   redeemDuration: "4", // 4 hours
   auctionDuration: "4", // 4 hours
   redeemFine: "500", // 5%
@@ -45,7 +45,7 @@ export const strategyNftClassC: INftParams = {
 export const strategyNftClassD: INftParams = {
   baseLTVAsCollateral: '2000', // 20%
   liquidationThreshold: '9000', // 90%
-  liquidationBonus: '500', // 5%
+  liquidationBonus: '10000', // 5%
   redeemDuration: "4", // 4 hours
   auctionDuration: "4", // 4 hours
   redeemFine: "500", // 5%
@@ -59,7 +59,7 @@ export const strategyNftClassD: INftParams = {
 export const strategyNftClassE: INftParams = {
   baseLTVAsCollateral: '1000', // 10%
   liquidationThreshold: '9000', // 90%
-  liquidationBonus: '500', // 5%
+  liquidationBonus: '10000', // 5%
   redeemDuration: "4", // 4 hours
   auctionDuration: "4", // 4 hours
   redeemFine: "500", // 5%
