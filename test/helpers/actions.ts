@@ -38,7 +38,7 @@ import {
   getIErc20Detailed,
   getDebtToken,
 } from "../../helpers/contracts-getters";
-import { MAX_UINT_AMOUNT, oneEther, ONE_DAY, ONE_HOUR, ONE_YEAR } from "../../helpers/constants";
+import { MAX_UINT_AMOUNT, ONE_HOUR, ONE_YEAR } from "../../helpers/constants";
 import { SignerWithAddress, TestEnv } from "./make-suite";
 import {
   advanceTimeAndBlock,
@@ -271,9 +271,9 @@ export const increaseRedeemDuration = async (testEnv: TestEnv, nftSymbol: string
 
   const nftCfgData = await dataProvider.getNftConfigurationData(nftAsset);
   if (isEnd) {
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).add(ONE_HOUR).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).add(ONE_HOUR).toNumber());
   } else {
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).sub(ONE_HOUR).toNumber());
   }
 };
 
@@ -284,9 +284,9 @@ export const increaseAuctionDuration = async (testEnv: TestEnv, nftSymbol: strin
 
   const nftCfgData = await dataProvider.getNftConfigurationData(nftAsset);
   if (isEnd) {
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(ONE_HOUR).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).add(ONE_HOUR).toNumber());
   } else {
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).sub(ONE_HOUR).toNumber());
   }
 };
 

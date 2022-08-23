@@ -4,7 +4,7 @@ import { parseEther } from "ethers/lib/utils";
 import DRE from "hardhat";
 
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { MAX_UINT_AMOUNT, oneEther, ONE_DAY } from "../helpers/constants";
+import { MAX_UINT_AMOUNT, oneEther, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
 import { BendPools, iBendPoolAssets, IReserveParams, ProtocolLoanState } from "../helpers/types";
@@ -124,19 +124,20 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
         .auctionETH(nftAsset, tokenId, liquidator.address, { value: auctionAmountSend })
     );
 
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).add(100).toNumber());
 
-    await increaseTime(new BigNumber(ONE_DAY).multipliedBy(365).toNumber()); // accrue more interest, debt exceed bid price
+    await increaseTime(new BigNumber(ONE_HOUR).multipliedBy(365).toNumber()); // accrue more interest, debt exceed bid price
 
     const loanDataBeforeLiquidate = await dataProvider.getLoanDataByCollateral(nftAsset, tokenId);
-    const extraAmount = new BigNumber(
-      loanDataBeforeLiquidate.currentAmount.sub(loanDataBeforeLiquidate.bidPrice).toString()
-    )
-      .multipliedBy(1.1)
-      .toFixed(0);
-    console.log("liquidateETH:", "extraAmount:", extraAmount);
+    let extraAmount = new BigNumber(0);
+    if (loanDataBeforeLiquidate.currentAmount.gt(loanDataBeforeLiquidate.bidPrice)) {
+      extraAmount = new BigNumber(
+        loanDataBeforeLiquidate.currentAmount.sub(loanDataBeforeLiquidate.bidPrice).toString()
+      ).multipliedBy(1.1);
+    }
+    console.log("liquidateETH:", "extraAmount:", extraAmount.toFixed(0));
     await waitForTx(
-      await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, { value: extraAmount })
+      await wethGateway.connect(liquidator.signer).liquidateETH(nftAsset, tokenId, { value: extraAmount.toFixed(0) })
     );
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(nftDebtDataBeforeAuction.loanId);
@@ -212,7 +213,7 @@ makeSuite("WETHGateway - Liquidate", (testEnv: TestEnv) => {
     );
 
     // Redeem ETH loan with native ETH
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).sub(100).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).sub(100).toNumber());
     const auctionData = await pool.getNftAuctionData(nftAsset, tokenId);
     const bidFineAmount = new BigNumber(auctionData.bidFine.toString()).multipliedBy(1.1).toFixed(0);
     const repayAmount = new BigNumber(auctionData.bidBorrowAmount.toString()).multipliedBy(0.51).toFixed(0);

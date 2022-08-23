@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { advanceTimeAndBlock, DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
-import { APPROVAL_AMOUNT_LENDING_POOL, MAX_UINT_AMOUNT, oneEther, ONE_DAY, ONE_HOUR } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, MAX_UINT_AMOUNT, oneEther, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
@@ -151,7 +151,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const userReserveDataBefore = await getUserData(pool, dataProvider, weth.address, borrower.address);
 
     // redeem duration
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "101");
     const repayDebtAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);
@@ -353,7 +353,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
     const loanDataBefore = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
 
     // redeem duration
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).sub(ONE_HOUR).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).sub(ONE_HOUR).toNumber());
 
     const debtDataBeforeRedeem = await pool.getNftDebtData(bayc.address, "102");
     const repayDebtAmount = new BigNumber(debtDataBeforeRedeem.totalDebt.toString()).multipliedBy(0.6).toFixed(0);

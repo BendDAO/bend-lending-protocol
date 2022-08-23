@@ -416,6 +416,16 @@ interface ILendPool {
       uint256 bidFine
     );
 
+  function getNftAuctionEndTime(address nftAsset, uint256 nftTokenId)
+    external
+    view
+    returns (
+      uint256 loanId,
+      uint256 bidStartTimestamp,
+      uint256 bidEndTimestamp,
+      uint256 redeemEndTimestamp
+    );
+
   function getNftLiquidatePrice(address nftAsset, uint256 nftTokenId)
     external
     view

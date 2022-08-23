@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 
 import { advanceTimeAndBlock, DRE, increaseTime, waitForTx } from "../helpers/misc-utils";
-import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors } from "../helpers/types";
@@ -52,6 +52,16 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   it("User 1 liquidate on a non-existent NFT", async () => {
     const { configurator, bayc, pool, users } = testEnv;
     const user1 = users[1];
+
+    const nftCfgOld = await testEnv.dataProvider.getNftConfigurationData(testEnv.bayc.address);
+    await waitForTx(
+      await configurator.configureNftAsCollateral(
+        [testEnv.bayc.address],
+        nftCfgOld.ltv,
+        nftCfgOld.liquidationThreshold,
+        500
+      )
+    );
 
     await expect(pool.connect(user1.signer).liquidate(bayc.address, "102", "0")).to.be.revertedWith(
       ProtocolErrors.LP_NFT_IS_NOT_USED_AS_COLLATERAL
@@ -251,11 +261,11 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("Ends redeem duration", async () => {
-    const { bayc, dataProvider } = testEnv;
+    const { bayc, dataProvider, pool } = testEnv;
 
     const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
 
-    await increaseTime(nftCfgData.redeemDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.redeemDuration.mul(ONE_HOUR).add(100).toNumber());
   });
 
   it("User 1 redeem after duration is end", async () => {
@@ -276,7 +286,7 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
     const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
     const deltaDuration = nftCfgData.auctionDuration.sub(nftCfgData.redeemDuration);
 
-    await increaseTime(deltaDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(deltaDuration.mul(ONE_HOUR).add(100).toNumber());
   });
 
   it("User 3 auction after duration is end", async () => {

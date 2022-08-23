@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import { BigNumber as BN } from "ethers";
 import { DRE, getNowTimeInSeconds, increaseTime, waitForTx } from "../helpers/misc-utils";
-import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_DAY } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, oneEther, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals, convertToCurrencyUnits } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors, ProtocolLoanState } from "../helpers/types";
@@ -132,6 +132,22 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
   });
 
+  it("WETH - Check auction end time", async () => {
+    const { users, pool, bayc, dataProvider } = testEnv;
+
+    const nftCfgData = await dataProvider.getNftConfigurationData(bayc.address);
+
+    const auctionEndTimeAfter = await pool.getNftAuctionEndTime(bayc.address, "101");
+    //console.log("auctionEndTimeAfter:", auctionEndTimeAfter);
+
+    const expectEndTime = auctionEndTimeAfter.bidStartTimestamp.add(nftCfgData.auctionDuration.mul(ONE_HOUR));
+    const redeemEndTime = auctionEndTimeAfter.bidStartTimestamp.add(nftCfgData.redeemDuration.mul(ONE_HOUR));
+
+    expect(auctionEndTimeAfter.bidStartTimestamp).to.be.gt(0, "Invalid auction start timestamp");
+    expect(auctionEndTimeAfter.bidEndTimestamp).to.be.equal(expectEndTime, "Invalid auction end timestamp");
+    expect(auctionEndTimeAfter.redeemEndTimestamp).to.be.equal(redeemEndTime, "Invalid redeem end timestamp");
+  });
+
   it("WETH - Liquidates the borrow", async () => {
     const { weth, bayc, users, pool, dataProvider } = testEnv;
     const liquidator = users[3];
@@ -146,7 +162,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const userReserveDataBefore = await getUserData(pool, dataProvider, weth.address, borrower.address);
 
     // end auction duration
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).add(100).toNumber());
 
     const extraAmount = await convertToCurrencyDecimals(weth.address, "1");
     await pool.connect(liquidator.signer).liquidate(bayc.address, "101", extraAmount);
@@ -350,7 +366,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
     const userReserveDataBefore = await getUserData(pool, dataProvider, usdc.address, borrower.address);
 
     // end auction duration
-    await increaseTime(nftCfgData.auctionDuration.mul(ONE_DAY).add(100).toNumber());
+    await increaseTime(nftCfgData.auctionDuration.mul(ONE_HOUR).add(100).toNumber());
 
     const extraAmount = await convertToCurrencyDecimals(usdc.address, "10");
     await pool.connect(liquidator.signer).liquidate(bayc.address, "102", extraAmount);
