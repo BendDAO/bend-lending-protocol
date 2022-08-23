@@ -211,7 +211,7 @@ task("dev:deploy-new-interest-rate", "Deploy new interest rate implementation")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("optUtilRate", "Optimal Utilization Rate, 0-1, 0.65")
-  .addParam("baseRate", "Optimal Utilization Rate, 0-1, 0.03")
+  .addParam("baseRate", "Base Interest Rate, 0-1, 0.1")
   .addParam("rateSlope1", "Variable Rate Slope1, 0-1, 0.08")
   .addParam("rateSlope2", "Variable Rate Slope2, 0-1, 1.0")
   .setAction(async ({ verify, pool, optUtilRate, baseRate, rateSlope1, rateSlope2 }, DRE) => {

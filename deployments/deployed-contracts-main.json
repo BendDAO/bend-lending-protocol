@@ -94,8 +94,8 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "InterestRate": {
-    "address": "0x710A2b4B5f267047728402F1594f440a2aCbaE02",
-    "deployer": "0x8Bd671Ff94fCF7cAFF7e396A3aC38db2720DB3a7"
+    "address": "0x9Dc361cbc7b2855424A534428eCe32084F54e2dc",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "rateStrategyWETH": {
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
