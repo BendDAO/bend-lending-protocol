@@ -45,6 +45,7 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
   .addFlag("upgrade", "Upgrade contract")
   .setAction(async ({ verify, pool, contract, upgrade }, DRE) => {
     await DRE.run("set-DRE");
+    await DRE.run("compile");
 
     const network = DRE.network.name as eNetwork;
     const poolConfig = loadPoolConfig(pool);
