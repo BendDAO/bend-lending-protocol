@@ -12,6 +12,10 @@ contract LendPoolStorageExt {
   uint256 internal _pauseStartTime;
   uint256 internal _pauseDurationTime;
 
+  // keccak256(abi.encodePacked(nftAsset, nftTokenId))
+  mapping(bytes32 => address) internal _nftItemEscrowAccounts;
+  address internal _auctionEscrowVaultImpl;
+
   // For upgradable, add one new variable above, minus 1 at here
-  uint256[47] private __gap;
+  uint256[46] private __gap;
 }
