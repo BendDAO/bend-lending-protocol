@@ -1,47 +1,60 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
-import {ILendPool} from "../interfaces/ILendPool.sol";
-import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IERC20, SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {Errors} from "../libraries/helpers/Errors.sol";
-import {WadRayMath} from "../libraries/math/WadRayMath.sol";
-import {GenericLogic} from "../libraries/logic/GenericLogic.sol";
-import {PercentageMath} from "../libraries/math/PercentageMath.sol";
-import {ReserveLogic} from "../libraries/logic/ReserveLogic.sol";
-import {NftLogic} from "../libraries/logic/NftLogic.sol";
-import {ValidationLogic} from "../libraries/logic/ValidationLogic.sol";
-import {SupplyLogic} from "../libraries/logic/SupplyLogic.sol";
-import {BorrowLogic} from "../libraries/logic/BorrowLogic.sol";
-import {LiquidateLogic} from "../libraries/logic/LiquidateLogic.sol";
+import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
+import {IAuctionVaultProxy} from "../interfaces/IAuctionVaultProxy.sol";
+import {IAuctionVaultManager} from "../interfaces/IAuctionVaultManager.sol";
 
-import {ReserveConfiguration} from "../libraries/configuration/ReserveConfiguration.sol";
-import {NftConfiguration} from "../libraries/configuration/NftConfiguration.sol";
-import {DataTypes} from "../libraries/types/DataTypes.sol";
-import {LendPoolStorage} from "./LendPoolStorage.sol";
-import {LendPoolStorageExt} from "./LendPoolStorageExt.sol";
+contract AuctionVaultProxy is IAuctionVaultProxy, Initializable {
+  using SafeERC20 for IERC20;
+  IAuctionVaultManager public manager;
 
-import {AddressUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {ContextUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+  modifier onlyAuthedCaller() {
+    require(manager.checkAuthorizedCaller(msg.sender), "Proxy: permission denied");
+    _;
+  }
 
-/**
- * @title AuctionVaultProxy contract
- * @dev Main point of interaction with an Bend protocol's market
- * @author BendDAO
- **/
-contract AuctionVaultProxy is
-  Initializable,
-  ILendPool,
-  LendPoolStorage,
-  ContextUpgradeable,
-  IERC721ReceiverUpgradeable,
-  LendPoolStorageExt
-{
+  function initialize(address _manager) external override initializer {
+    manager = IAuctionVaultManager(_manager);
+  }
 
+  function safeTransfer(
+    address token,
+    address to,
+    uint256 amount
+  ) external override onlyAuthedCaller {
+    IERC20(token).safeTransferFrom(address(this), to, amount);
+  }
+
+  function withdrawToken(address token, address to) external override onlyAuthedCaller {
+    uint256 amount = IERC20(token).balanceOf(address(this));
+    IERC20(token).safeTransfer(to, amount);
+  }
+
+  function delegatecall(address dest, bytes memory data)
+    external
+    override
+    onlyAuthedCaller
+    returns (bool success, bytes memory returndata)
+  {
+    (success, returndata) = dest.delegatecall(data);
+  }
+
+  function claimRewards(
+    address _controller,
+    address[] memory _assets,
+    address token,
+    address to
+  ) external override onlyAuthedCaller returns (uint256) {
+    uint256 rewardAmount = IIncentivesController(_controller).getRewardsBalance(_assets, address(this));
+    uint256 claimedAmount = IIncentivesController(_controller).claimRewards(_assets, rewardAmount);
+
+    IERC20(token).safeTransferFrom(address(this), to, claimedAmount);
+
+    return claimedAmount;
+  }
 }
