@@ -53,7 +53,7 @@ contract AuctionVaultManager is Initializable, ContextUpgradeable, IAuctionVault
     return false;
   }
 
-  function setAuthorizedCallers(address[] callers, bool flag) external override onlyPoolAdmin {
+  function setAuthorizedCallers(address[] memory callers, bool flag) external override onlyPoolAdmin {
     for (uint256 i = 0; i < callers.length; i++) {
       authorizedCallers[callers[i]] = flag;
       emit AuthorizedCallerUpdated(callers[i], flag);
@@ -61,14 +61,14 @@ contract AuctionVaultManager is Initializable, ContextUpgradeable, IAuctionVault
   }
 
   function checkAuthorizedDelegate(address delegate) external view override returns (bool) {
-    if (authorizedDelegates[caller]) {
+    if (authorizedDelegates[delegate]) {
       return true;
     }
 
     return false;
   }
 
-  function setAuthorizedDelegates(address[] delegates, bool flag) external override onlyPoolAdmin {
+  function setAuthorizedDelegates(address[] memory delegates, bool flag) external override onlyPoolAdmin {
     for (uint256 i = 0; i < delegates.length; i++) {
       authorizedDelegates[delegates[i]] = flag;
       emit AuthorizedDelegateUpdated(delegates[i], flag);
@@ -79,6 +79,12 @@ contract AuctionVaultManager is Initializable, ContextUpgradeable, IAuctionVault
     proxyImplemention = newImpl;
 
     emit ProxyImplementionUpdated(newImpl);
+  }
+
+  function upgradeProxy(address nftAsset, address nftTokenId) external override onlyLendPool returns (address) {
+    bytes32 hashKey = keccak256(abi.encodePacked(nftAsset, nftTokenId));
+    proxies[hashKey] = address(0);
+    return _registerProxyFor(hashKey);
   }
 
   function registerProxy(address nftAsset, address nftTokenId) external override onlyLendPool returns (address) {

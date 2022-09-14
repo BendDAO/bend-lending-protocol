@@ -11,6 +11,7 @@ import {IAuctionVaultManager} from "../interfaces/IAuctionVaultManager.sol";
 
 contract AuctionVaultProxy is IAuctionVaultProxy, Initializable {
   using SafeERC20 for IERC20;
+  uint256 public constant VERSION = 1;
   IAuctionVaultManager public manager;
 
   modifier onlyAuthedCaller() {

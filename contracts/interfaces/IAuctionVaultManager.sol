@@ -11,11 +11,17 @@ interface IAuctionVaultManager {
 
   function checkAuthorizedCaller(address caller) external view returns (bool);
 
+  function setAuthorizedCallers(address[] memory callers, bool flag) external;
+
   function checkAuthorizedDelegate(address delegate) external view returns (bool);
+
+  function setAuthorizedDelegates(address[] memory delegates, bool flag) external;
 
   function setProxyImplemention(address newImpl) external;
 
   function getProxy(address nftAsset, address nftTokenId) external view returns (address);
 
   function registerProxy(address nftAsset, address nftTokenId) external returns (address);
+
+  function upgradeProxy(address nftAsset, address nftTokenId) external returns (address);
 }

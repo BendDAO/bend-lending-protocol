@@ -14,6 +14,8 @@ const protocolContractList = [
   "DebtToken",
   "PunkGateway",
   "WETHGateway",
+  "AuctionVaultManager",
+  "AuctionVaultProxy",
 ];
 
 const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "WalletBalanceProvider"];
