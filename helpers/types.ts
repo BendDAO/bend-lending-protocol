@@ -10,9 +10,8 @@ export enum eEthereumNetwork {
   coverage = "coverage",
   hardhat = "hardhat",
   localhost = "localhost",
-  develop = "develop",
+  goerli = "goerli",
   rinkeby = "rinkeby",
-  kovan = "kovan",
   main = "main",
 }
 
@@ -262,13 +261,10 @@ export interface iNftBase<T> {
   WPUNKS: T;
   BAYC: T;
   DOODLE: T;
-  COOL: T;
-  MEEBITS: T;
+  SDOODLE: T;
   MAYC: T;
-  WOW: T;
   CLONEX: T;
   AZUKI: T;
-  KONGZ: T;
 }
 
 export type iMultiPoolsNfts<T> = iNftCommon<T> | iBendPoolNfts<T>;
@@ -281,13 +277,10 @@ export enum NftContractId {
   WPUNKS = "WPUNKS",
   BAYC = "BAYC",
   DOODLE = "DOODLE",
-  COOL = "COOL",
-  MEEBITS = "MEEBITS",
+  SDOODLE = "SDOODLE",
   MAYC = "MAYC",
-  WOW = "WOW",
   CLONEX = "CLONEX",
   AZUKI = "AZUKI",
-  KONGZ = "KONGZ",
 }
 
 export interface IReserveParams extends IReserveBorrowParams, IReserveCollateralParams {
@@ -343,9 +336,8 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.coverage]: T;
   [eEthereumNetwork.hardhat]: T;
   [eEthereumNetwork.localhost]: T;
-  [eEthereumNetwork.develop]: T;
+  [eEthereumNetwork.goerli]: T;
   [eEthereumNetwork.rinkeby]: T;
-  [eEthereumNetwork.kovan]: T;
   [eEthereumNetwork.main]: T;
 }
 

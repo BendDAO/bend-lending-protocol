@@ -11,6 +11,7 @@ import {
   getBendProxyAdminById,
 } from "../../helpers/contracts-getters";
 import { NFTOracle, BendUpgradeableProxy } from "../../types";
+import { BigNumber as BN } from "ethers";
 
 task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .addFlag("verify", "Verify contracts at Etherscan")
@@ -21,6 +22,8 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
   .setAction(async ({ verify, pool, skipOracle, skipProvider, feedAdmin }, DRE) => {
     try {
       await DRE.run("set-DRE");
+      await DRE.run("compile");
+
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
       const { NftsAssets } = poolConfig as ICommonConfiguration;
@@ -57,8 +60,8 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
       const nftOracleImpl = await deployNFTOracle(verify);
       const initEncodedData = nftOracleImpl.interface.encodeFunctionData("initialize", [
         feedAdmin,
-        2e17,
-        1e17,
+        BN.from(2).mul(BN.from(10).pow(17)), //2e17
+        BN.from(1).mul(BN.from(10).pow(17)), //1e17
         1800,
         600,
         21600,

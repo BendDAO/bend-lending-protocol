@@ -18,6 +18,7 @@ task(`full:deploy-weth-gateway`, `Deploys the WETHGateway contract`)
   .addFlag("verify", `Verify contract via Etherscan API.`)
   .setAction(async ({ verify, pool }, DRE) => {
     await DRE.run("set-DRE");
+    await DRE.run("compile");
 
     if (!DRE.network.config.chainId) {
       throw new Error("INVALID_CHAIN_ID");

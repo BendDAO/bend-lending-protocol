@@ -18,6 +18,8 @@ task("full:deploy-data-provider", "Deploy data provider for full enviroment")
   .addFlag("ui", "Deploy ui data provider")
   .setAction(async ({ verify, wallet, protocol, ui }, DRE) => {
     await DRE.run("set-DRE");
+    await DRE.run("compile");
+
     const addressesProvider = await getLendPoolAddressesProvider();
 
     // this contract is not support upgrade, just deploy new contract

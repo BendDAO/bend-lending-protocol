@@ -14,6 +14,8 @@ task("bend:mainnet", "Deploy full enviroment")
   .setAction(async ({ verify, skipRegistry, skipOracle }, DRE) => {
     const POOL_NAME = ConfigNames.Bend;
     await DRE.run("set-DRE");
+    await DRE.run("compile");
+
     const poolConfig = loadPoolConfig(POOL_NAME);
 
     const deployerSigner = await getDeploySigner();
@@ -49,6 +51,10 @@ task("bend:mainnet", "Deploy full enviroment")
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy proxy admin");
     await DRE.run("full:deploy-proxy-admin", { pool: POOL_NAME });
+
+    //////////////////////////////////////////////////////////////////////////
+    console.log("\n\nDeploy bend collector");
+    await DRE.run("full:deploy-bend-collector", { pool: POOL_NAME });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy address provider");

@@ -17,7 +17,7 @@ deployed-contracts.json
 !/deployments/deployed-contracts-main*.json
 !/deployments/deployed-contracts-rinkeby*.json
 !/deployments/deployed-contracts-develop*.json
-!/deployments/deployed-contracts-kovan*.json
+!/deployments/deployed-contracts-goerli*.json
 
 /flattened
 bend-flattened.*

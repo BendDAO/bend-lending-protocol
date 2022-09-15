@@ -14,6 +14,8 @@ task("full:deploy-proxy-admin", "Deploy proxy admin contract")
   .addFlag("skipFund", "Skip proxy admin for FUND")
   .setAction(async ({ verify, pool, skipPool, skipFund }, DRE) => {
     await DRE.run("set-DRE");
+    await DRE.run("compile");
+
     const poolConfig = loadPoolConfig(pool);
     const network = <eNetwork>DRE.network.name;
 

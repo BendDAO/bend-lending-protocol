@@ -106,9 +106,8 @@ const buidlerConfig: HardhatUserConfig = {
       chainId: BUIDLEREVM_CHAINID,
       accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => (secretKey)),
     },
-    develop: getCommonNetworkConfig(eEthereumNetwork.develop, 4),
+    goerli: getCommonNetworkConfig(eEthereumNetwork.goerli, 5),
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
-    kovan: getCommonNetworkConfig(eEthereumNetwork.kovan, 42),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
     hardhat: {
       hardfork: "london",

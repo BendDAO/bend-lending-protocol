@@ -51,13 +51,10 @@ export const MOCK_NFT_AGGREGATORS_PRICES = {
   WPUNKS: oneEther.multipliedBy("66.99").toFixed(),
   BAYC: oneEther.multipliedBy("52.77").toFixed(),
   DOODLE: oneEther.multipliedBy("2.69").toFixed(),
-  COOL: oneEther.multipliedBy("6.66").toFixed(),
-  MEEBITS: oneEther.multipliedBy("2.88").toFixed(),
+  SDOODLE: oneEther.multipliedBy("2.69").toFixed(),
   MAYC: oneEther.multipliedBy("6.23").toFixed(),
-  WOW: oneEther.multipliedBy("7.77").toFixed(),
   CLONEX: oneEther.multipliedBy("11.95").toFixed(),
   AZUKI: oneEther.multipliedBy("10.50").toFixed(),
-  KONGZ: oneEther.multipliedBy("7.90").toFixed(),
 };
 
 export const MOCK_NFT_BASE_URIS = {

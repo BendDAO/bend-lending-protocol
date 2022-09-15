@@ -13,6 +13,8 @@ task("full:deploy-address-provider", "Deploy address provider for full enviromen
   .addFlag("skipRegistry")
   .setAction(async ({ verify, pool, skipRegistry }, DRE) => {
     await DRE.run("set-DRE");
+    await DRE.run("compile");
+
     const network = <eNetwork>DRE.network.name;
     const poolConfig = loadPoolConfig(pool);
     const signer = await getDeploySigner();

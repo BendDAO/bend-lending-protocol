@@ -29,6 +29,8 @@ task("full:deploy-lend-pool", "Deploy lend pool for full enviroment")
   .setAction(async ({ verify, pool }, DRE: HardhatRuntimeEnvironment) => {
     try {
       await DRE.run("set-DRE");
+      await DRE.run("compile");
+
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
       const addressesProvider = await getLendPoolAddressesProvider();

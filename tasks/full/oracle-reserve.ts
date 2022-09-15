@@ -24,6 +24,8 @@ task("full:deploy-oracle-reserve", "Deploy reserve oracle for full enviroment")
   .setAction(async ({ verify, skipOracle, pool }, DRE) => {
     try {
       await DRE.run("set-DRE");
+      await DRE.run("compile");
+
       const network = <eNetwork>DRE.network.name;
       const poolConfig = loadPoolConfig(pool);
       const UsdAddress = poolConfig.ProtocolGlobalParams.UsdAddress;

@@ -1,0 +1,128 @@
+{
+  "BendProxyAdminPool": {
+    "address": "0x19Fc1F11e1BEA5317ce54d97bbf5675a38e2F4a3"
+  },
+  "BendProxyAdminFund": {
+    "address": "0xd9E1e945e042fa29cD984cb0f280ae5Ce990D993"
+  },
+  "BendCollectorImpl": {
+    "address": "0xE8e43e27b32642F3FD44F9d46239fE157Ef160E7"
+  },
+  "BendCollector": {
+    "address": "0x32B08f895d93a207e8A5C9405870D780A43b25Dd",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "LendPoolAddressesProvider": {
+    "address": "0x1cba0A3e18be7f210713c9AC9FE17955359cC99B",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "LendPoolAddressesProviderRegistry": {
+    "address": "0x5eff819a886474503004d39C64b5c057FFD6fAe2",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "GenericLogic": {
+    "address": "0xeecE96DD81B84c8a1670Cb5FB04D8386D61C1333",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "ReserveLogic": {
+    "address": "0xaCc33956aC0fE98DCb64Cd75c6C4D5f5977299a5",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "NftLogic": {
+    "address": "0x52A3E46A33e308D4c041911Cf8abF9D75fA3585a",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "ValidationLogic": {
+    "address": "0x08012D29438Ab7c7Ebac8AeFB2Bb692Dd746E9B6",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "SupplyLogic": {
+    "address": "0xDc2eD96b4f87Ab47e20B8F659596da47F75864FF",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "BorrowLogic": {
+    "address": "0x8cfb1B0Beaa98a2b460D431e486f018eB59CfF1D",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "LiquidateLogic": {
+    "address": "0xA9A847a7e7743750C9d80aCADcD24Ae884156fBa",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "ConfiguratorLogic": {
+    "address": "0xa56FB749fcB3be126f48A6A242C776ac97efd3e0",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "LendPoolImpl": {
+    "address": "0x047D0803f5d341550B5Bb52991dCA7aeDc99a7de"
+  },
+  "LendPool": {
+    "address": "0x84a47EaEca69f8B521C21739224251c8c4566Bbc"
+  },
+  "LendPoolLoanImpl": {
+    "address": "0x46d607b976aB45fDC41a5e074F87ddc6f8C457dc"
+  },
+  "LendPoolLoan": {
+    "address": "0x7F64c32a3c13Bd245a7141a607A7E60DA585BA86"
+  },
+  "LendPoolConfiguratorImpl": {
+    "address": "0xF08f40fa0312B23C31C4b027F26fDbc95Bcd7781"
+  },
+  "LendPoolConfigurator": {
+    "address": "0x365661b853845F90b2b5B28a1A61bE5c54aE9FB2"
+  },
+  "BToken": {
+    "address": "0x45cf659918f98322D6cc1D8bE381E7DB96fcE06B",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "DebtToken": {
+    "address": "0x27178E0D2fFc80742B6abBD4a2b0a85eDaF24862",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "ReserveOracleImpl": {
+    "address": "0x5Cc271Bd7bd770Be3d89D7c1597D955d7B42d6Bf"
+  },
+  "ReserveOracle": {
+    "address": "0xFFC171ff66bba4303Ea8334d08dB5779daF860a3",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "NFTOracleImpl": {
+    "address": "0xf8c43C594826A778026c0e32ca6c3A300E122cb3"
+  },
+  "NFTOracle": {
+    "address": "0xE7E268cC1D025906fe8f6b076ecc40FF1a8dfA61",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "InterestRate": {
+    "address": "0xBcca1fCa8eE76e72Ff48A79E6F146936d81ada6E",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWETH": {
+    "address": "0xBcca1fCa8eE76e72Ff48A79E6F146936d81ada6E"
+  },
+  "WETHGatewayImpl": {
+    "address": "0xB2647ce016647BD32301cd55EbD5d556471fBcd6"
+  },
+  "WETHGateway": {
+    "address": "0xB926DD4A16c264F02986B575b546123D5D0bC607",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "PunkGatewayImpl": {
+    "address": "0x675B54905Ae457D9B7BcA72B58a7CC33AD3AB514"
+  },
+  "PunkGateway": {
+    "address": "0xa7076550Ee79DB0320BE98f89D775797D859140c",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "WalletBalanceProvider": {
+    "address": "0xe54EEF2aFb3cBdBBe58370F33296d533a34123E5",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "BendProtocolDataProvider": {
+    "address": "0xeFC513D24D2AC6dA4fF3C6429642DD6C497B0845",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "UIPoolDataProvider": {
+    "address": "0x15073180CA8b933C7a8099e811FFAD0568eAb861",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  }
+}
