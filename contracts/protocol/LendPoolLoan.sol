@@ -375,6 +375,10 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     return _userNftCollateral[user][nftAsset];
   }
 
+  function getCurrentLoanId() public view returns (uint256) {
+    return _loanIdTracker.current();
+  }
+
   function _getLendPool() internal view returns (ILendPool) {
     return ILendPool(_addressesProvider.getLendPool());
   }
