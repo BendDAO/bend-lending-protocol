@@ -6,6 +6,8 @@ interface IBNFTRegistry {
   event GenericImplementationUpdated(address genericImpl);
   event BNFTCreated(address indexed nftAsset, address bNftImpl, address bNftProxy, uint256 totals);
   event BNFTUpgraded(address indexed nftAsset, address bNftImpl, address bNftProxy, uint256 totals);
+  event CustomeSymbolsAdded(address[] nftAssets, string[] symbols);
+  event ClaimAdminUpdated(address oldAdmin, address newAdmin);
 
   function getBNFTAddresses(address nftAsset) external view returns (address bNftProxy, address bNftImpl);
 
@@ -47,6 +49,10 @@ interface IBNFTRegistry {
     address bNftImpl,
     bytes memory encodedCallData
   ) external;
+
+  function batchUpgradeBNFT(address[] calldata nftAssets) external;
+
+  function batchUpgradeAllBNFT() external;
 
   /**
    * @dev Adding custom symbol for some special NFTs like CryptoPunks

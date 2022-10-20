@@ -29,11 +29,24 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   mapping(address => uint256) private _nftTotalCollateral;
   mapping(address => mapping(address => uint256)) private _userNftCollateral;
 
+  // interceptor whitelist
+  mapping(address => bool) private _interceptorWhitelist;
+
   /**
    * @dev Only lending pool can call functions marked by this modifier
    **/
   modifier onlyLendPool() {
     require(_msgSender() == address(_getLendPool()), Errors.CT_CALLER_MUST_BE_LEND_POOL);
+    _;
+  }
+
+  modifier onlyLendPoolConfigurator() {
+    require(_msgSender() == _addressesProvider.getLendPoolConfigurator(), Errors.LP_CALLER_NOT_LEND_POOL_CONFIGURATOR);
+    _;
+  }
+
+  modifier onlyInterceptor() {
+    require(_interceptorWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_INTERCEPTOR);
     _;
   }
 
@@ -303,6 +316,27 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       borrowAmount,
       borrowIndex
     );
+  }
+
+  function approveTokenInterceptor(address interceptor, bool approved) public override onlyLendPoolConfigurator {
+    _interceptorWhitelist[interceptor] = approved;
+    emit TokenInterceptorApproval(interceptor, approved);
+  }
+
+  function purgeTokenInterceptor(
+    address bNftAddress,
+    uint256 tokenId,
+    address interceptor
+  ) public override onlyLendPoolConfigurator {
+    IBNFT(bNftAddress).deleteTokenInterceptor(tokenId, interceptor);
+  }
+
+  function addTokenInterceptor(address bNftAddress, uint256 tokenId) public override onlyInterceptor {
+    IBNFT(bNftAddress).addTokenInterceptor(tokenId, _msgSender());
+  }
+
+  function deleteTokenInterceptor(address bNftAddress, uint256 tokenId) public override onlyInterceptor {
+    IBNFT(bNftAddress).deleteTokenInterceptor(tokenId, _msgSender());
   }
 
   function onERC721Received(

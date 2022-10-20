@@ -413,6 +413,11 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     cachedPool.setPausedTime(startTime, durationTime);
   }
 
+  function approveTokenInterceptor(address interceptor, bool approved) public onlyPoolAdmin {
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+    cachedPoolLoan.approveTokenInterceptor(interceptor, approved);
+  }
+
   function getTokenImplementation(address proxyAddress) external view onlyPoolAdmin returns (address) {
     return ConfiguratorLogic.getTokenImplementation(proxyAddress);
   }

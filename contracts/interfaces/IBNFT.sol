@@ -1,16 +1,26 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-import {IERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
-import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
-import {IERC721ReceiverUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-
-interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC721EnumerableUpgradeable {
+interface IBNFT {
   /**
    * @dev Emitted when an bNFT is initialized
-   * @param underlyingAsset The address of the underlying asset
+   * @param underlyingAsset_ The address of the underlying asset
    **/
-  event Initialized(address indexed underlyingAsset);
+  event Initialized(address indexed underlyingAsset_);
+
+  /**
+   * @dev Emitted when the ownership is transferred
+   * @param oldOwner The address of the old owner
+   * @param newOwner The address of the new owner
+   **/
+  event OwnershipTransferred(address oldOwner, address newOwner);
+
+  /**
+   * @dev Emitted when the claim admin is updated
+   * @param oldAdmin The address of the old admin
+   * @param newAdmin The address of the new admin
+   **/
+  event ClaimAdminUpdated(address oldAdmin, address newAdmin);
 
   /**
    * @dev Emitted on mint
@@ -39,21 +49,35 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
    **/
   event FlashLoan(address indexed target, address indexed initiator, address indexed nftAsset, uint256 tokenId);
 
+  event ClaimERC20Airdrop(address indexed token, address indexed to, uint256 amount);
+
+  event ClaimERC721Airdrop(address indexed token, address indexed to, uint256[] ids);
+
+  event ClaimERC1155Airdrop(address indexed token, address indexed to, uint256[] ids, uint256[] amounts, bytes data);
+
+  event ExecuteAirdrop(address indexed airdropContract);
+
+  event FlashLoanApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+  event TokenInterceptorUpdated(address indexed minter, uint256 tokenId, address indexed interceptor, bool approved);
+
   /**
    * @dev Initializes the bNFT
-   * @param underlyingAsset The address of the underlying asset of this bNFT (E.g. PUNK for bPUNK)
+   * @param underlyingAsset_ The address of the underlying asset of this bNFT (E.g. PUNK for bPUNK)
    */
   function initialize(
-    address underlyingAsset,
+    address underlyingAsset_,
     string calldata bNftName,
-    string calldata bNftSymbol
+    string calldata bNftSymbol,
+    address owner_,
+    address claimAdmin_
   ) external;
 
   /**
    * @dev Mints bNFT token to the user address
    *
    * Requirements:
-   *  - The caller must be contract address.
+   *  - The caller can be contract address and EOA.
    *  - `nftTokenId` must not exist.
    *
    * @param to The owner address receive the bNFT token
@@ -65,7 +89,7 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
    * @dev Burns user bNFT token
    *
    * Requirements:
-   *  - The caller must be contract address.
+   *  - The caller can be contract address and EOA.
    *  - `tokenId` must exist.
    *
    * @param tokenId token id of the underlying asset of NFT
@@ -89,6 +113,61 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
   ) external;
 
   /**
+   * @dev Approve or remove the flash loan `operator` as an operator for the caller.
+   * Operators can call {flashLoan} for any token owned by the caller.
+   *
+   * Requirements:
+   *
+   * - The `operator` cannot be the caller.
+   */
+  function setFlashLoanApprovalForAll(address operator, bool approved) external;
+
+  /**
+   * @dev Returns if the `operator` is allowed to call flash loan of the assets of `owner`.
+   */
+  function isFlashLoanApprovedForAll(address owner, address operator) external view returns (bool);
+
+  /**
+   * @dev Add the `interceptor` as an interceptor for the minter.
+   * Interceptors will be called when {mint} and {burn} executed for any token owned by the minter.
+   *
+   */
+  function addTokenInterceptor(uint256 tokenId, address interceptor) external;
+
+  /**
+   * @dev Delete the `interceptor` as an interceptor for the minter.
+   *
+   */
+  function deleteTokenInterceptor(uint256 tokenId, address interceptor) external;
+
+  /**
+   * @dev Returns the interceptors are allowed to be called for the assets of `minter`.
+   */
+  function getTokenInterceptors(address tokenMinter, uint256 tokenId) external view returns (address[] memory);
+
+  function claimERC20Airdrop(
+    address token,
+    address to,
+    uint256 amount
+  ) external;
+
+  function claimERC721Airdrop(
+    address token,
+    address to,
+    uint256[] calldata ids
+  ) external;
+
+  function claimERC1155Airdrop(
+    address token,
+    address to,
+    uint256[] calldata ids,
+    uint256[] calldata amounts,
+    bytes calldata data
+  ) external;
+
+  function executeAirdrop(address airdropContract, bytes calldata airdropParams) external;
+
+  /**
    * @dev Returns the owner of the `nftTokenId` token.
    *
    * Requirements:
@@ -97,4 +176,14 @@ interface IBNFT is IERC721MetadataUpgradeable, IERC721ReceiverUpgradeable, IERC7
    * @param tokenId token id of the underlying asset of NFT
    */
   function minterOf(uint256 tokenId) external view returns (address);
+
+  /**
+   * @dev Returns the address of the underlying asset.
+   */
+  function underlyingAsset() external view returns (address);
+
+  /**
+   * @dev Returns the contract-level metadata.
+   */
+  function contractURI() external view returns (string memory);
 }
