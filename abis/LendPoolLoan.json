@@ -337,25 +337,6 @@
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "interceptor",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "approved",
-        "type": "bool"
-      }
-    ],
-    "name": "TokenInterceptorApproval",
-    "type": "event"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -809,6 +790,25 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      }
+    ],
+    "name": "isInterceptorApproved",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "initiator",
         "type": "address"
       },
@@ -880,9 +880,9 @@
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
+        "internalType": "uint256[]",
+        "name": "tokenIds",
+        "type": "uint256[]"
       },
       {
         "internalType": "address",

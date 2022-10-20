@@ -99,8 +99,6 @@ interface ILendPoolLoan {
     uint256 borrowIndex
   );
 
-  event TokenInterceptorApproval(address indexed interceptor, bool approved);
-
   function initNft(address nftAsset, address bNftAddress) external;
 
   /**
@@ -211,9 +209,11 @@ interface ILendPoolLoan {
 
   function approveTokenInterceptor(address interceptor, bool approved) external;
 
+  function isInterceptorApproved(address interceptor) external view returns (bool);
+
   function purgeTokenInterceptor(
     address bNftAddress,
-    uint256 tokenId,
+    uint256[] calldata tokenIds,
     address interceptor
   ) external;
 

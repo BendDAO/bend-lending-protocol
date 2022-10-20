@@ -412,6 +412,25 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "name": "TokenInterceptorApproval",
+    "type": "event"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -698,6 +717,29 @@
       }
     ],
     "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "bNftAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "tokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      }
+    ],
+    "name": "purgeTokenInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

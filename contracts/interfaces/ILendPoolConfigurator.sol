@@ -152,6 +152,8 @@ interface ILendPoolConfigurator {
 
   event NftMaxSupplyAndTokenIdChanged(address indexed asset, uint256 maxSupply, uint256 maxTokenId);
 
+  event TokenInterceptorApproval(address indexed interceptor, bool approved);
+
   /**
    * @dev Emitted when an bToken implementation is upgraded
    * @param asset The address of the underlying asset of the reserve

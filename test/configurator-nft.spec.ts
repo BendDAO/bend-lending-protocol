@@ -4,6 +4,7 @@ import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { ProtocolErrors } from "../helpers/types";
 import { strategyNftClassB } from "../markets/bend/nftsConfigs";
 import { BigNumberish } from "ethers";
+import { waitForTx } from "../helpers/misc-utils";
 
 const { expect } = require("chai");
 
@@ -306,6 +307,36 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     const { configurator, users, pool } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setMaxNumberOfNfts(512),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Config approveTokenInterceptor valid value", async () => {
+    const { configurator, users, pool, loan } = testEnv;
+
+    await waitForTx(await configurator.approveTokenInterceptor(pool.address, true));
+
+    const wantVal1 = await loan.isInterceptorApproved(pool.address);
+    expect(wantVal1).to.be.equal(true);
+
+    await waitForTx(await configurator.approveTokenInterceptor(pool.address, false));
+
+    const wantVal2 = await loan.isInterceptorApproved(pool.address);
+    expect(wantVal2).to.be.equal(false);
+  });
+
+  it("Check the onlyAdmin on approveTokenInterceptor ", async () => {
+    const { configurator, users, pool } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).approveTokenInterceptor(pool.address, true),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Check the onlyAdmin on approveTokenInterceptor ", async () => {
+    const { configurator, users, pool, bBAYC } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).purgeTokenInterceptor(bBAYC.address, [100], pool.address),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });

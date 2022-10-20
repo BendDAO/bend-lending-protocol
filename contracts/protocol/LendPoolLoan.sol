@@ -320,15 +320,20 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
   function approveTokenInterceptor(address interceptor, bool approved) public override onlyLendPoolConfigurator {
     _interceptorWhitelist[interceptor] = approved;
-    emit TokenInterceptorApproval(interceptor, approved);
+  }
+
+  function isInterceptorApproved(address interceptor) public view override returns (bool) {
+    return _interceptorWhitelist[interceptor];
   }
 
   function purgeTokenInterceptor(
     address bNftAddress,
-    uint256 tokenId,
+    uint256[] calldata tokenIds,
     address interceptor
   ) public override onlyLendPoolConfigurator {
-    IBNFT(bNftAddress).deleteTokenInterceptor(tokenId, interceptor);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      IBNFT(bNftAddress).deleteTokenInterceptor(tokenIds[i], interceptor);
+    }
   }
 
   function addTokenInterceptor(address bNftAddress, uint256 tokenId) public override onlyInterceptor {

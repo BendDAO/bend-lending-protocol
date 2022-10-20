@@ -275,10 +275,11 @@ contract BNFT is IBNFT, ERC721EnumerableUpgradeable, IERC721ReceiverUpgradeable,
    */
   function addTokenInterceptor(uint256 tokenId, address interceptor) public override nonReentrant {
     address tokenMinter = _msgSender();
-    for (uint256 i = 0; i < _tokenInterceptors[tokenMinter][tokenId].length; i++) {
-      require(_tokenInterceptors[tokenMinter][tokenId][i] != interceptor, "BNFT: interceptor already existed");
+    address[] storage interceptors = _tokenInterceptors[tokenMinter][tokenId];
+    for (uint256 i = 0; i < interceptors.length; i++) {
+      require(interceptors[i] != interceptor, "BNFT: interceptor already existed");
     }
-    _tokenInterceptors[tokenMinter][tokenId].push(interceptor);
+    interceptors.push(interceptor);
     emit TokenInterceptorUpdated(tokenMinter, tokenId, interceptor, true);
   }
 
@@ -299,10 +300,10 @@ contract BNFT is IBNFT, ERC721EnumerableUpgradeable, IERC721ReceiverUpgradeable,
     }
 
     if (isFind) {
-      uint256 lastInterceptorIndex = interceptors.length;
+      uint256 lastInterceptorIndex = interceptors.length - 1;
       // When the token to delete is the last item, the swap operation is unnecessary.
       // Move the last interceptor to the slot of the to-delete interceptor
-      if (lastInterceptorIndex > findIndex) {
+      if (findIndex < lastInterceptorIndex) {
         address lastInterceptorAddr = interceptors[lastInterceptorIndex];
         interceptors[findIndex] = lastInterceptorAddr;
       }
