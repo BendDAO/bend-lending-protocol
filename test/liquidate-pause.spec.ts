@@ -127,6 +127,8 @@ makeSuite("Liquidate: Pause", async (testEnv) => {
 
     await setApprovalForAll(testEnv, borrower, "BAYC");
 
+    await advanceTimeAndBlock(100);
+
     await borrow(testEnv, borrower, "WETH", "10", "BAYC", tokenId, borrower.address, "365", "success", "");
 
     await advanceTimeAndBlock(100);
@@ -143,6 +145,8 @@ makeSuite("Liquidate: Pause", async (testEnv) => {
     await auction(testEnv, liquidator, "BAYC", tokenId, auctionAmount.toString(), liquidator, true, "success", "");
 
     await increaseAuctionDuration(testEnv, "BAYC", false);
+
+    await advanceTimeAndBlock(100);
 
     // pause
     console.log("pause and unpause the pool");
