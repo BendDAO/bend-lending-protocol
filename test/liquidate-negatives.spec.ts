@@ -5,6 +5,7 @@ import { APPROVAL_AMOUNT_LENDING_POOL, ONE_HOUR } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { makeSuite } from "./helpers/make-suite";
 import { ProtocolErrors } from "../helpers/types";
+import { setNftAssetPriceForDebt, setNftAssetPriceForDebtDecimals } from "./helpers/actions";
 
 const chai = require("chai");
 
@@ -132,50 +133,43 @@ makeSuite("LendPool: Liquidation negtive test cases", (testEnv) => {
   });
 
   it("Drop loan health factor below 1", async () => {
-    const { bayc, nftOracle, pool, users } = testEnv;
+    const { weth, bayc, pool, dataProvider } = testEnv;
 
     const poolLoanData = await pool.getNftDebtData(bayc.address, "101");
-    const baycPrice = new BigNumber(poolLoanData.totalDebt.toString())
-      .percentMul(new BigNumber(5000)) // 50%
-      .toFixed(0);
-    await advanceTimeAndBlock(100);
-    await nftOracle.setAssetData(bayc.address, baycPrice);
-    await advanceTimeAndBlock(200);
-    await nftOracle.setAssetData(bayc.address, baycPrice);
+
+    await setNftAssetPriceForDebtDecimals(testEnv, bayc.address, weth.address, poolLoanData.totalDebt.toString(), "99");
+
+    // set liquidation bonus to 5%
+    const oldNftParams = await dataProvider.getNftConfigurationData(bayc.address);
+    await waitForTx(
+      await testEnv.configurator.configureNftAsCollateral(
+        [bayc.address],
+        oldNftParams.ltv,
+        oldNftParams.liquidationThreshold,
+        "500"
+      )
+    );
   });
 
   it("User 2 auction price is unable to cover borrow", async () => {
     const { bayc, pool, users } = testEnv;
     const user2 = users[2];
 
-    const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
+    const { paybackAmount } = await pool.getNftLiquidatePrice(bayc.address, "101");
+    const auctionPriceFail = new BigNumber(paybackAmount.toString()).minus(1000).toFixed(0);
 
     await expect(
-      pool.connect(user2.signer).auction(bayc.address, "101", liquidatePrice, user2.address)
+      pool.connect(user2.signer).auction(bayc.address, "101", auctionPriceFail, user2.address)
     ).to.be.revertedWith(ProtocolErrors.LPL_BID_PRICE_LESS_THAN_BORROW);
   });
 
   it("User 2 auction price is less than liquidate price", async () => {
-    const { weth, bayc, nftOracle, pool, users } = testEnv;
+    const { bayc, pool, users } = testEnv;
     const user2 = users[2];
-
-    const nftColData = await pool.getNftCollateralData(bayc.address, weth.address);
-    const nftDebtData = await pool.getNftDebtData(bayc.address, "101");
-    // Price * LH / Debt = HF => Price * LH = Debt * HF => Price = Debt * HF / LH
-    // LH is 2 decimals
-    const baycPrice = new BigNumber(nftDebtData.totalDebt.toString())
-      .percentMul(new BigNumber(9500)) //95%
-      .percentDiv(new BigNumber(nftColData.liquidationThreshold.toString()))
-      .toFixed(0);
-
-    await advanceTimeAndBlock(100);
-    await nftOracle.setAssetData(bayc.address, baycPrice);
-    await advanceTimeAndBlock(200);
-    await nftOracle.setAssetData(bayc.address, baycPrice);
 
     const { liquidatePrice } = await pool.getNftLiquidatePrice(bayc.address, "101");
 
-    const auctionPriceFail = new BigNumber(liquidatePrice.toString()).multipliedBy(0.8).toFixed(0);
+    const auctionPriceFail = new BigNumber(liquidatePrice.toString()).minus(1000).toFixed(0);
 
     await expect(
       pool.connect(user2.signer).auction(bayc.address, "101", auctionPriceFail, user2.address)

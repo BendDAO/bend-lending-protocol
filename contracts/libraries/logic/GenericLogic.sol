@@ -255,7 +255,13 @@ library GenericLogic {
 
     vars.thresholdPrice = vars.nftPriceInReserve.percentMul(vars.liquidationThreshold);
 
-    vars.liquidatePrice = vars.nftPriceInReserve.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
+    if (vars.liquidationBonus < PercentageMath.PERCENTAGE_FACTOR) {
+      vars.liquidatePrice = vars.nftPriceInReserve.percentMul(PercentageMath.PERCENTAGE_FACTOR - vars.liquidationBonus);
+    }
+
+    if (vars.liquidatePrice < vars.borrowAmount) {
+      vars.liquidatePrice = vars.borrowAmount;
+    }
 
     return (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice);
   }
