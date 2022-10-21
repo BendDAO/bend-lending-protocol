@@ -165,11 +165,11 @@ library LiquidateLogic {
       // loan's accumulated debt must exceed threshold (heath factor below 1.0)
       require(vars.borrowAmount > vars.thresholdPrice, Errors.LP_BORROW_NOT_EXCEED_LIQUIDATION_THRESHOLD);
 
-      // bid price must greater than liquidate price
-      require(params.bidPrice >= vars.liquidatePrice, Errors.LPL_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE);
-
       // bid price must greater than borrow debt
       require(params.bidPrice >= vars.borrowAmount, Errors.LPL_BID_PRICE_LESS_THAN_BORROW);
+
+      // bid price must greater than liquidate price
+      require(params.bidPrice >= vars.liquidatePrice, Errors.LPL_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE);
     } else {
       // bid price must greater than borrow debt
       require(params.bidPrice >= vars.borrowAmount, Errors.LPL_BID_PRICE_LESS_THAN_BORROW);
