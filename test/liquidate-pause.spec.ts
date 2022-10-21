@@ -104,6 +104,8 @@ makeSuite("Liquidate: Pause", async (testEnv) => {
     await approveERC20(testEnv, borrower, "WETH");
 
     await redeem(testEnv, borrower, "BAYC", tokenId, "-1", "success", "");
+
+    await advanceTimeAndBlock(3600);
   });
 
   it("borrow-auction-liquidate", async () => {
@@ -114,7 +116,11 @@ makeSuite("Liquidate: Pause", async (testEnv) => {
     const liquidatorB = users[3];
     const emAdmin = await getEmergencyAdminSigner();
 
+    await advanceTimeAndBlock(3600);
+
     await setNftAssetPrice(testEnv, "BAYC", saveBaycAssetPrice);
+
+    await advanceTimeAndBlock(3600);
 
     console.log("deposit");
     await mintERC20(testEnv, depositor, "WETH", "100");
@@ -173,5 +179,7 @@ makeSuite("Liquidate: Pause", async (testEnv) => {
     // liquidate
     console.log("liquidate");
     await liquidate(testEnv, liquidator, "BAYC", tokenId, "0", "success", "");
+
+    await advanceTimeAndBlock(3600);
   });
 });
