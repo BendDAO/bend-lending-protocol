@@ -10,7 +10,9 @@ makeSuite("LendPoolLoan: Token Interceptor", (testEnv: TestEnv) => {
   let mockTokenInterceptor: MockTokenInterceptor;
 
   before("Before liquidation: set config", async () => {
-    mockTokenInterceptor = await new MockTokenInterceptorFactory(testEnv.deployer.signer).deploy(testEnv.loan.address);
+    mockTokenInterceptor = await new MockTokenInterceptorFactory(testEnv.deployer.signer).deploy(
+      testEnv.addressesProvider.address
+    );
   });
 
   it("Tries to invoke approveTokenInterceptor not being the Configurator", async () => {

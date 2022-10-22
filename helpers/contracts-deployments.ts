@@ -58,6 +58,7 @@ import {
   LiquidateLogicFactory,
   GenericLogicFactory,
   ConfiguratorLogicFactory,
+  MockTokenInterceptorFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -606,5 +607,13 @@ export const deployTimelockController = async (
     await new TimelockControllerFactory(await getDeploySigner()).deploy(minDelay, proposers, executors),
     id,
     [minDelay, proposers, executors],
+    verify
+  );
+
+export const deployMockTokenInterceptor = async (addressesProvider: string, verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockTokenInterceptorFactory(await getDeploySigner()).deploy(addressesProvider),
+    eContractid.MockTokenInterceptor,
+    [addressesProvider],
     verify
   );
