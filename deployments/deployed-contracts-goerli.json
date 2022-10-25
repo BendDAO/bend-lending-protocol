@@ -49,7 +49,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ConfiguratorLogic": {
-    "address": "0xCE89537e53b0D22ae88dd02A49109Ec3AF0C2bB6",
+    "address": "0xD5ADf96d30a088a3cEbc4732989800Ec5681D737",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
@@ -59,13 +59,13 @@
     "address": "0x84a47EaEca69f8B521C21739224251c8c4566Bbc"
   },
   "LendPoolLoanImpl": {
-    "address": "0xa0F55502fF68cE2f47a22646B5E6D2983D390a07"
+    "address": "0xF7C82E8a5917f74c3e65218CE67CED6924BDE4dB"
   },
   "LendPoolLoan": {
     "address": "0x7F64c32a3c13Bd245a7141a607A7E60DA585BA86"
   },
   "LendPoolConfiguratorImpl": {
-    "address": "0xD754eC5DfAFF8416AdFCE18223b497e1eEf09bdA"
+    "address": "0x773C332D651C60aBe9aDb369970534d017df30e9"
   },
   "LendPoolConfigurator": {
     "address": "0x365661b853845F90b2b5B28a1A61bE5c54aE9FB2"
@@ -126,7 +126,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "MockTokenInterceptor": {
-    "address": "0x938fcFA4b16e120740d2E91023D5dE5e5bB11fd7",
+    "address": "0x742cF461228043aA70883608E2841416d666357c",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

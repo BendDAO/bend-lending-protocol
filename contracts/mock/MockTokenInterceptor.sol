@@ -3,61 +3,51 @@ pragma solidity 0.8.4;
 
 import "../interfaces/IBNFT.sol";
 import "../interfaces/IBNFTRegistry.sol";
-import "../interfaces/IBNFTInterceptor.sol";
+import "../interfaces/IBNFTBurnInterceptor.sol";
 import "../interfaces/ILendPoolLoan.sol";
 import "../interfaces/ILendPoolAddressesProvider.sol";
 
-contract MockTokenInterceptor is IBNFTInterceptor {
+contract MockTokenInterceptor is IBNFTBurnInterceptor {
   ILendPoolAddressesProvider public addressProvider;
 
-  bool public isPreHandleMintCalled;
-  bool public isPreHandleBurnCalled;
+  bool public isBeforeTokenBurnCalled;
+  bool public isAfterTokenBurnCalled;
 
-  event PreHandleMint(address indexed nftAsset, uint256 nftTokenId);
-  event PreHandleBurn(address indexed nftAsset, uint256 nftTokenId);
+  event BeforeTokenBurn(address indexed nftAsset, uint256 nftTokenId);
+  event AfterTokenBurn(address indexed nftAsset, uint256 nftTokenId);
 
   constructor(address addressProvider_) {
     addressProvider = ILendPoolAddressesProvider(addressProvider_);
   }
 
-  function addTokenInterceptor(address bNftAddress, uint256 tokenId) public {
+  function addTokenBurnInterceptor(address bNftAddress, uint256 tokenId) public {
     ILendPoolLoan poolLoan = ILendPoolLoan(addressProvider.getLendPoolLoan());
-    poolLoan.addTokenInterceptor(bNftAddress, tokenId);
+    poolLoan.addTokenBurnInterceptor(bNftAddress, tokenId);
   }
 
-  function deleteTokenInterceptor(address bNftAddress, uint256 tokenId) public {
+  function deleteTokenBurnInterceptor(address bNftAddress, uint256 tokenId) public {
     ILendPoolLoan poolLoan = ILendPoolLoan(addressProvider.getLendPoolLoan());
-    poolLoan.deleteTokenInterceptor(bNftAddress, tokenId);
-  }
-
-  function preHandleMint(address nftAsset, uint256 nftTokenId) public override returns (bool) {
-    nftAsset;
-    nftTokenId;
-
-    IBNFTRegistry bnftRegistry = IBNFTRegistry(addressProvider.getBNFTRegistry());
-    (address bnftProxy, ) = bnftRegistry.getBNFTAddresses(nftAsset);
-    require(bnftProxy == msg.sender, "caller not bnft");
-
-    isPreHandleMintCalled = true;
-    emit PreHandleMint(nftAsset, nftTokenId);
-    return true;
-  }
-
-  function preHandleBurn(address nftAsset, uint256 nftTokenId) public override returns (bool) {
-    nftAsset;
-    nftTokenId;
-
-    IBNFTRegistry bnftRegistry = IBNFTRegistry(addressProvider.getBNFTRegistry());
-    (address bnftProxy, ) = bnftRegistry.getBNFTAddresses(nftAsset);
-    require(bnftProxy == msg.sender, "caller not bnft");
-
-    isPreHandleBurnCalled = true;
-    emit PreHandleBurn(nftAsset, nftTokenId);
-    return true;
+    poolLoan.deleteTokenBurnInterceptor(bNftAddress, tokenId);
   }
 
   function resetCallState() public {
-    isPreHandleMintCalled = false;
-    isPreHandleBurnCalled = false;
+    isBeforeTokenBurnCalled = false;
+    isAfterTokenBurnCalled = false;
+  }
+
+  function beforeTokenBurn(address nftAsset, uint256 nftTokenId) public override returns (bool) {
+    nftAsset;
+    nftTokenId;
+    isBeforeTokenBurnCalled = true;
+    emit BeforeTokenBurn(nftAsset, nftTokenId);
+    return true;
+  }
+
+  function afterTokenBurn(address nftAsset, uint256 nftTokenId) public override returns (bool) {
+    nftAsset;
+    nftTokenId;
+    isAfterTokenBurnCalled = true;
+    emit AfterTokenBurn(nftAsset, nftTokenId);
+    return true;
   }
 }

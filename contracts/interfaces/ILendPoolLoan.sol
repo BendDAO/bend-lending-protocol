@@ -207,19 +207,19 @@ interface ILendPoolLoan {
     uint256 borrowIndex
   ) external;
 
-  function approveTokenInterceptor(address interceptor, bool approved) external;
+  function approveTokenBurnInterceptor(address interceptor, bool approved) external;
 
-  function isInterceptorApproved(address interceptor) external view returns (bool);
+  function isTokenBurnInterceptorApproved(address interceptor) external view returns (bool);
 
-  function purgeTokenInterceptor(
+  function purgeTokenBurnInterceptor(
     address bNftAddress,
     uint256[] calldata tokenIds,
     address interceptor
   ) external;
 
-  function addTokenInterceptor(address bNftAddress, uint256 tokenId) external;
+  function addTokenBurnInterceptor(address bNftAddress, uint256 tokenId) external;
 
-  function deleteTokenInterceptor(address bNftAddress, uint256 tokenId) external;
+  function deleteTokenBurnInterceptor(address bNftAddress, uint256 tokenId) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);
 

@@ -311,32 +311,32 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Config approveTokenInterceptor valid value", async () => {
+  it("Config approveTokenBurnInterceptor valid value", async () => {
     const { configurator, users, pool, loan } = testEnv;
 
-    await waitForTx(await configurator.approveTokenInterceptor(pool.address, true));
+    await waitForTx(await configurator.approveTokenBurnInterceptor(pool.address, true));
 
-    const wantVal1 = await loan.isInterceptorApproved(pool.address);
+    const wantVal1 = await loan.isTokenBurnInterceptorApproved(pool.address);
     expect(wantVal1).to.be.equal(true);
 
-    await waitForTx(await configurator.approveTokenInterceptor(pool.address, false));
+    await waitForTx(await configurator.approveTokenBurnInterceptor(pool.address, false));
 
-    const wantVal2 = await loan.isInterceptorApproved(pool.address);
+    const wantVal2 = await loan.isTokenBurnInterceptorApproved(pool.address);
     expect(wantVal2).to.be.equal(false);
   });
 
-  it("Check the onlyAdmin on approveTokenInterceptor ", async () => {
+  it("Check the onlyAdmin on approveTokenBurnInterceptor ", async () => {
     const { configurator, users, pool } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).approveTokenInterceptor(pool.address, true),
+      configurator.connect(users[2].signer).approveTokenBurnInterceptor(pool.address, true),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Check the onlyAdmin on approveTokenInterceptor ", async () => {
+  it("Check the onlyAdmin on approveTokenBurnInterceptor ", async () => {
     const { configurator, users, pool, bBAYC } = testEnv;
     await expect(
-      configurator.connect(users[2].signer).purgeTokenInterceptor(bBAYC.address, [100], pool.address),
+      configurator.connect(users[2].signer).purgeTokenBurnInterceptor(bBAYC.address, [100], pool.address),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });

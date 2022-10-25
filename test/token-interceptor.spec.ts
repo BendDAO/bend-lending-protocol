@@ -15,57 +15,59 @@ makeSuite("LendPoolLoan: Token Interceptor", (testEnv: TestEnv) => {
     );
   });
 
-  it("Tries to invoke approveTokenInterceptor not being the Configurator", async () => {
+  it("Tries to invoke approveTokenBurnInterceptor not being the Configurator", async () => {
     const { loan, pool } = testEnv;
-    await expect(loan.approveTokenInterceptor(pool.address, true)).to.be.revertedWith(
+    await expect(loan.approveTokenBurnInterceptor(pool.address, true)).to.be.revertedWith(
       LP_CALLER_NOT_LEND_POOL_CONFIGURATOR
     );
   });
 
-  it("Tries to invoke purgeTokenInterceptor not being the Configurator", async () => {
+  it("Tries to invoke purgeTokenBurnInterceptor not being the Configurator", async () => {
     const { loan, pool, bBAYC } = testEnv;
-    await expect(loan.purgeTokenInterceptor(bBAYC.address, [], pool.address)).to.be.revertedWith(
+    await expect(loan.purgeTokenBurnInterceptor(bBAYC.address, [], pool.address)).to.be.revertedWith(
       LP_CALLER_NOT_LEND_POOL_CONFIGURATOR
     );
   });
 
-  it("Tries to invoke addTokenInterceptor not being the Interceptor", async () => {
+  it("Tries to invoke addTokenBurnInterceptor not being the Interceptor", async () => {
     const { bBAYC, pool, loan } = testEnv;
-    await expect(loan.addTokenInterceptor(bBAYC.address, 100)).to.be.revertedWith(LP_CALLER_NOT_VALID_INTERCEPTOR);
+    await expect(loan.addTokenBurnInterceptor(bBAYC.address, 100)).to.be.revertedWith(LP_CALLER_NOT_VALID_INTERCEPTOR);
   });
 
   it("Tries to invoke deleteTokenInterceptor not being the Interceptor", async () => {
     const { bBAYC, pool, loan } = testEnv;
-    await expect(loan.deleteTokenInterceptor(bBAYC.address, 100)).to.be.revertedWith(LP_CALLER_NOT_VALID_INTERCEPTOR);
+    await expect(loan.deleteTokenBurnInterceptor(bBAYC.address, 100)).to.be.revertedWith(
+      LP_CALLER_NOT_VALID_INTERCEPTOR
+    );
   });
 
   it("Interceptor add and delete some tokens", async () => {
     const { bBAYC, pool, loan, configurator } = testEnv;
 
-    await waitForTx(await configurator.approveTokenInterceptor(mockTokenInterceptor.address, true));
+    await waitForTx(await configurator.approveTokenBurnInterceptor(mockTokenInterceptor.address, true));
 
-    await waitForTx(await mockTokenInterceptor.addTokenInterceptor(bBAYC.address, 100));
-    const checkInterceptors1 = await bBAYC.getTokenInterceptors(loan.address, 100);
+    await waitForTx(await mockTokenInterceptor.addTokenBurnInterceptor(bBAYC.address, 100));
+    const checkInterceptors1 = await bBAYC.getTokenBurnInterceptors(loan.address, 100);
     expect(checkInterceptors1.length).eq(1);
     expect(checkInterceptors1[0]).eq(mockTokenInterceptor.address);
 
-    await waitForTx(await mockTokenInterceptor.deleteTokenInterceptor(bBAYC.address, 100));
-    const checkInterceptors2 = await bBAYC.getTokenInterceptors(loan.address, 100);
+    await waitForTx(await mockTokenInterceptor.deleteTokenBurnInterceptor(bBAYC.address, 100));
+    const checkInterceptors2 = await bBAYC.getTokenBurnInterceptors(loan.address, 100);
     expect(checkInterceptors2.length).eq(0);
   });
 
   it("Configurator forcedly purge token interceptors", async () => {
     const { bBAYC, pool, loan, configurator } = testEnv;
 
-    await waitForTx(await configurator.approveTokenInterceptor(mockTokenInterceptor.address, true));
+    await waitForTx(await configurator.approveTokenBurnInterceptor(mockTokenInterceptor.address, true));
 
-    await waitForTx(await mockTokenInterceptor.addTokenInterceptor(bBAYC.address, 100));
-    const checkInterceptors1 = await bBAYC.getTokenInterceptors(loan.address, 100);
+    await waitForTx(await mockTokenInterceptor.addTokenBurnInterceptor(bBAYC.address, 100));
+    const checkInterceptors1 = await bBAYC.getTokenBurnInterceptors(loan.address, 100);
     expect(checkInterceptors1.length).eq(1);
     expect(checkInterceptors1[0]).eq(mockTokenInterceptor.address);
 
-    await waitForTx(await configurator.purgeTokenInterceptor(bBAYC.address, [100], mockTokenInterceptor.address));
-    const checkInterceptors2 = await bBAYC.getTokenInterceptors(loan.address, 100);
+    await waitForTx(await configurator.purgeTokenBurnInterceptor(bBAYC.address, [100], mockTokenInterceptor.address));
+    const checkInterceptors2 = await bBAYC.getTokenBurnInterceptors(loan.address, 100);
     expect(checkInterceptors2.length).eq(0);
   });
 });

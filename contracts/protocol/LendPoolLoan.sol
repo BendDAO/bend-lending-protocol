@@ -30,7 +30,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   mapping(address => mapping(address => uint256)) private _userNftCollateral;
 
   // interceptor whitelist
-  mapping(address => bool) private _interceptorWhitelist;
+  mapping(address => bool) private _burnInterceptorWhitelist;
 
   /**
    * @dev Only lending pool can call functions marked by this modifier
@@ -45,8 +45,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     _;
   }
 
-  modifier onlyInterceptor() {
-    require(_interceptorWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_INTERCEPTOR);
+  modifier onlyBurnInterceptor() {
+    require(_burnInterceptorWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_INTERCEPTOR);
     _;
   }
 
@@ -318,30 +318,30 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     );
   }
 
-  function approveTokenInterceptor(address interceptor, bool approved) public override onlyLendPoolConfigurator {
-    _interceptorWhitelist[interceptor] = approved;
+  function approveTokenBurnInterceptor(address interceptor, bool approved) public override onlyLendPoolConfigurator {
+    _burnInterceptorWhitelist[interceptor] = approved;
   }
 
-  function isInterceptorApproved(address interceptor) public view override returns (bool) {
-    return _interceptorWhitelist[interceptor];
+  function isTokenBurnInterceptorApproved(address interceptor) public view override returns (bool) {
+    return _burnInterceptorWhitelist[interceptor];
   }
 
-  function purgeTokenInterceptor(
+  function purgeTokenBurnInterceptor(
     address bNftAddress,
     uint256[] calldata tokenIds,
     address interceptor
   ) public override onlyLendPoolConfigurator {
     for (uint256 i = 0; i < tokenIds.length; i++) {
-      IBNFT(bNftAddress).deleteTokenInterceptor(tokenIds[i], interceptor);
+      IBNFT(bNftAddress).deleteTokenBurnInterceptor(tokenIds[i], interceptor);
     }
   }
 
-  function addTokenInterceptor(address bNftAddress, uint256 tokenId) public override onlyInterceptor {
-    IBNFT(bNftAddress).addTokenInterceptor(tokenId, _msgSender());
+  function addTokenBurnInterceptor(address bNftAddress, uint256 tokenId) public override onlyBurnInterceptor {
+    IBNFT(bNftAddress).addTokenBurnInterceptor(tokenId, _msgSender());
   }
 
-  function deleteTokenInterceptor(address bNftAddress, uint256 tokenId) public override onlyInterceptor {
-    IBNFT(bNftAddress).deleteTokenInterceptor(tokenId, _msgSender());
+  function deleteTokenBurnInterceptor(address bNftAddress, uint256 tokenId) public override onlyBurnInterceptor {
+    IBNFT(bNftAddress).deleteTokenBurnInterceptor(tokenId, _msgSender());
   }
 
   function onERC721Received(

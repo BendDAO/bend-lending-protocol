@@ -349,7 +349,7 @@
         "type": "uint256"
       }
     ],
-    "name": "addTokenInterceptor",
+    "name": "addTokenBurnInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -367,7 +367,7 @@
         "type": "bool"
       }
     ],
-    "name": "approveTokenInterceptor",
+    "name": "approveTokenBurnInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -496,7 +496,7 @@
         "type": "uint256"
       }
     ],
-    "name": "deleteTokenInterceptor",
+    "name": "deleteTokenBurnInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -807,7 +807,7 @@
         "type": "address"
       }
     ],
-    "name": "isInterceptorApproved",
+    "name": "isTokenBurnInterceptorApproved",
     "outputs": [
       {
         "internalType": "bool",
@@ -903,7 +903,7 @@
         "type": "address"
       }
     ],
-    "name": "purgeTokenInterceptor",
+    "name": "purgeTokenBurnInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

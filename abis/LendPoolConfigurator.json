@@ -427,7 +427,7 @@
         "type": "bool"
       }
     ],
-    "name": "TokenInterceptorApproval",
+    "name": "TokenBurnInterceptorApproval",
     "type": "event"
   },
   {
@@ -443,7 +443,7 @@
         "type": "bool"
       }
     ],
-    "name": "approveTokenInterceptor",
+    "name": "approveTokenBurnInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -739,7 +739,7 @@
         "type": "address"
       }
     ],
-    "name": "purgeTokenInterceptor",
+    "name": "purgeTokenBurnInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
