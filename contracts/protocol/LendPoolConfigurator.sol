@@ -413,19 +413,19 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     cachedPool.setPausedTime(startTime, durationTime);
   }
 
-  function approveTokenBurnInterceptor(address interceptor, bool approved) public onlyPoolAdmin {
+  function approveLoanRepaidInterceptor(address interceptor, bool approved) public onlyPoolAdmin {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
-    cachedPoolLoan.approveTokenBurnInterceptor(interceptor, approved);
-    emit TokenBurnInterceptorApproval(interceptor, approved);
+    cachedPoolLoan.approveLoanRepaidInterceptor(interceptor, approved);
+    emit LoanRepaidInterceptorApproval(interceptor, approved);
   }
 
-  function purgeTokenBurnInterceptor(
-    address bNftAddress,
+  function purgeLoanRepaidInterceptor(
+    address nftAddress,
     uint256[] calldata tokenIds,
     address interceptor
   ) public onlyPoolAdmin {
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
-    cachedPoolLoan.purgeTokenBurnInterceptor(bNftAddress, tokenIds, interceptor);
+    cachedPoolLoan.purgeLoanRepaidInterceptor(nftAddress, tokenIds, interceptor);
   }
 
   function getTokenImplementation(address proxyAddress) external view onlyPoolAdmin returns (address) {

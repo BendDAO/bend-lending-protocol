@@ -59,13 +59,6 @@ interface IBNFT {
 
   event FlashLoanApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
-  event TokenBurnInterceptorUpdated(
-    address indexed minter,
-    uint256 tokenId,
-    address indexed interceptor,
-    bool approved
-  );
-
   /**
    * @dev Initializes the bNFT
    * @param underlyingAsset_ The address of the underlying asset of this bNFT (E.g. PUNK for bPUNK)
@@ -131,24 +124,6 @@ interface IBNFT {
    * @dev Returns if the `operator` is allowed to call flash loan of the assets of `owner`.
    */
   function isFlashLoanApprovedForAll(address owner, address operator) external view returns (bool);
-
-  /**
-   * @dev Add the `interceptor` as an interceptor for the minter.
-   * Interceptors will be called when {mint} and {burn} executed for any token owned by the minter.
-   *
-   */
-  function addTokenBurnInterceptor(uint256 tokenId, address interceptor) external;
-
-  /**
-   * @dev Delete the `interceptor` as an interceptor for the minter.
-   *
-   */
-  function deleteTokenBurnInterceptor(uint256 tokenId, address interceptor) external;
-
-  /**
-   * @dev Returns the interceptors are allowed to be called for the assets of `minter`.
-   */
-  function getTokenBurnInterceptors(address tokenMinter, uint256 tokenId) external view returns (address[] memory);
 
   function claimERC20Airdrop(
     address token,

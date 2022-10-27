@@ -124,9 +124,5 @@
   "UIPoolDataProvider": {
     "address": "0x15073180CA8b933C7a8099e811FFAD0568eAb861",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
-  },
-  "MockTokenInterceptor": {
-    "address": "0x742cF461228043aA70883608E2841416d666357c",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

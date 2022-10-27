@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
-interface IBNFTBurnInterceptor {
+interface ILoanRepaidInterceptor {
   /**
-   * @dev Handles before the burn is executed by the owner
+   * @dev Handles before the loan is repaid by the borrower
    * @param nftAsset The address of the underlying asset of the BNFT
    * @param nftTokenId The token id of the underlying asset of the BNFT
    **/
-  function beforeTokenBurn(address nftAsset, uint256 nftTokenId) external returns (bool);
+  function beforeLoanRepaid(address nftAsset, uint256 nftTokenId) external returns (bool);
 
   /**
-   * @dev Handles after the burn is executed by the owner
+   * @dev Handles after the loan is repaid by the borrower
    * @param nftAsset The address of the underlying asset of the BNFT
    * @param nftTokenId The token id of the underlying asset of the BNFT
    **/
-  function afterTokenBurn(address nftAsset, uint256 nftTokenId) external returns (bool);
+  function afterLoanRepaid(address nftAsset, uint256 nftTokenId) external returns (bool);
 }

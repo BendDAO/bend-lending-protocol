@@ -152,7 +152,7 @@ interface ILendPoolConfigurator {
 
   event NftMaxSupplyAndTokenIdChanged(address indexed asset, uint256 maxSupply, uint256 maxTokenId);
 
-  event TokenBurnInterceptorApproval(address indexed interceptor, bool approved);
+  event LoanRepaidInterceptorApproval(address indexed interceptor, bool approved);
 
   /**
    * @dev Emitted when an bToken implementation is upgraded

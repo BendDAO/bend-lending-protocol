@@ -5,6 +5,7 @@ import {IBNFT} from "../interfaces/IBNFT.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
+import {ILoanRepaidInterceptor} from "../interfaces/ILoanRepaidInterceptor.sol";
 import {Errors} from "../libraries/helpers/Errors.sol";
 import {DataTypes} from "../libraries/types/DataTypes.sol";
 import {WadRayMath} from "../libraries/math/WadRayMath.sol";
@@ -30,7 +31,9 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   mapping(address => mapping(address => uint256)) private _userNftCollateral;
 
   // interceptor whitelist
-  mapping(address => bool) private _burnInterceptorWhitelist;
+  mapping(address => bool) private _loanRepaidInterceptorWhitelist;
+  // Mapping from token to approved burn interceptor addresses
+  mapping(address => mapping(uint256 => address[])) private _loanRepaidInterceptors;
 
   /**
    * @dev Only lending pool can call functions marked by this modifier
@@ -45,8 +48,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     _;
   }
 
-  modifier onlyBurnInterceptor() {
-    require(_burnInterceptorWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_INTERCEPTOR);
+  modifier onlyLoanRepaidInterceptor() {
+    require(_loanRepaidInterceptorWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_INTERCEPTOR);
     _;
   }
 
@@ -175,6 +178,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // Ensure valid loan state
     require(loan.state == DataTypes.LoanState.Active, Errors.LPL_INVALID_LOAN_STATE);
 
+    _handleBeforeLoanRepaid(loan.nftAsset, loan.nftTokenId);
+
     // state changes and cleanup
     // NOTE: these must be performed before assets are released to prevent reentrance
     _loans[loanId].state = DataTypes.LoanState.Repaid;
@@ -193,6 +198,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), _msgSender(), loan.nftTokenId);
 
     emit LoanRepaid(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amount, borrowIndex);
+
+    _handleAfterLoanRepaid(loan.nftAsset, loan.nftTokenId);
   }
 
   /**
@@ -289,6 +296,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // Ensure valid loan state
     require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
+    _handleBeforeLoanRepaid(loan.nftAsset, loan.nftTokenId);
+
     // state changes and cleanup
     // NOTE: these must be performed before assets are released to prevent reentrance
     _loans[loanId].state = DataTypes.LoanState.Defaulted;
@@ -316,32 +325,69 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       borrowAmount,
       borrowIndex
     );
+
+    _handleAfterLoanRepaid(loan.nftAsset, loan.nftTokenId);
   }
 
-  function approveTokenBurnInterceptor(address interceptor, bool approved) public override onlyLendPoolConfigurator {
-    _burnInterceptorWhitelist[interceptor] = approved;
+  function approveLoanRepaidInterceptor(address interceptor, bool approved) public override onlyLendPoolConfigurator {
+    _loanRepaidInterceptorWhitelist[interceptor] = approved;
   }
 
-  function isTokenBurnInterceptorApproved(address interceptor) public view override returns (bool) {
-    return _burnInterceptorWhitelist[interceptor];
+  function isLoanRepaidInterceptorApproved(address interceptor) public view override returns (bool) {
+    return _loanRepaidInterceptorWhitelist[interceptor];
   }
 
-  function purgeTokenBurnInterceptor(
-    address bNftAddress,
+  function purgeLoanRepaidInterceptor(
+    address nftAsset,
     uint256[] calldata tokenIds,
     address interceptor
   ) public override onlyLendPoolConfigurator {
     for (uint256 i = 0; i < tokenIds.length; i++) {
-      IBNFT(bNftAddress).deleteTokenBurnInterceptor(tokenIds[i], interceptor);
+      address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenIds[i]];
+      for (uint256 findIndex = 0; findIndex < interceptors.length; findIndex++) {
+        if (interceptors[findIndex] == interceptor) {
+          _deleteLoanRepaidInterceptor(nftAsset, tokenIds[i], findIndex);
+          break;
+        }
+      }
     }
   }
 
-  function addTokenBurnInterceptor(address bNftAddress, uint256 tokenId) public override onlyBurnInterceptor {
-    IBNFT(bNftAddress).addTokenBurnInterceptor(tokenId, _msgSender());
+  function addLoanRepaidInterceptor(address nftAsset, uint256 tokenId) public override onlyLoanRepaidInterceptor {
+    address interceptor = _msgSender();
+    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+    for (uint256 i = 0; i < interceptors.length; i++) {
+      require(interceptors[i] != interceptor, "BNFT: interceptor already existed");
+    }
+    interceptors.push(interceptor);
+    emit LoanRepaidInterceptorUpdated(nftAsset, tokenId, interceptor, true);
   }
 
-  function deleteTokenBurnInterceptor(address bNftAddress, uint256 tokenId) public override onlyBurnInterceptor {
-    IBNFT(bNftAddress).deleteTokenBurnInterceptor(tokenId, _msgSender());
+  function deleteLoanRepaidInterceptor(address nftAsset, uint256 tokenId) public override onlyLoanRepaidInterceptor {
+    address interceptor = _msgSender();
+    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+
+    bool isFind = false;
+    uint256 findIndex = 0;
+    for (; findIndex < interceptors.length; findIndex++) {
+      if (interceptors[findIndex] == interceptor) {
+        isFind = true;
+        break;
+      }
+    }
+
+    if (isFind) {
+      _deleteLoanRepaidInterceptor(nftAsset, tokenId, findIndex);
+    }
+  }
+
+  function getLoanRepaidInterceptors(address nftAsset, uint256 tokenId)
+    public
+    view
+    override
+    returns (address[] memory)
+  {
+    return _loanRepaidInterceptors[nftAsset][tokenId];
   }
 
   function onERC721Received(
@@ -420,5 +466,39 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
   function _getLendPool() internal view returns (ILendPool) {
     return ILendPool(_addressesProvider.getLendPool());
+  }
+
+  function _deleteLoanRepaidInterceptor(
+    address nftAsset,
+    uint256 tokenId,
+    uint256 findIndex
+  ) internal {
+    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+    address findInterceptor = interceptors[findIndex];
+    uint256 lastInterceptorIndex = interceptors.length - 1;
+    // When the token to delete is the last item, the swap operation is unnecessary.
+    // Move the last interceptor to the slot of the to-delete interceptor
+    if (findIndex < lastInterceptorIndex) {
+      address lastInterceptorAddr = interceptors[lastInterceptorIndex];
+      interceptors[findIndex] = lastInterceptorAddr;
+    }
+    interceptors.pop();
+    emit LoanRepaidInterceptorUpdated(nftAsset, tokenId, findInterceptor, false);
+  }
+
+  function _handleBeforeLoanRepaid(address nftAsset, uint256 tokenId) internal {
+    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+    for (uint256 i = 0; i < interceptors.length; i++) {
+      bool checkHandle = ILoanRepaidInterceptor(interceptors[i]).beforeLoanRepaid(nftAsset, tokenId);
+      require(checkHandle, "BNFT: call interceptor before token burn failed");
+    }
+  }
+
+  function _handleAfterLoanRepaid(address nftAsset, uint256 tokenId) internal {
+    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+    for (uint256 i = 0; i < interceptors.length; i++) {
+      bool checkHandle = ILoanRepaidInterceptor(interceptors[i]).afterLoanRepaid(nftAsset, tokenId);
+      require(checkHandle, "BNFT: call interceptor after token burn failed");
+    }
   }
 }

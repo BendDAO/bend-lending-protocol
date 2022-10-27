@@ -1,6 +1,6 @@
 import { task } from "hardhat/config";
 import { ConfigNames, loadPoolConfig } from "../../helpers/configuration";
-import { deployMockTokenInterceptor } from "../../helpers/contracts-deployments";
+import { deployMockLoanRepaidInterceptor } from "../../helpers/contracts-deployments";
 import { getLendPoolAddressesProvider } from "../../helpers/contracts-getters";
 
 task("dev:deploy-mock-interceptor", "Deploy mock interceptor for dev enviroment")
@@ -12,7 +12,7 @@ task("dev:deploy-mock-interceptor", "Deploy mock interceptor for dev enviroment"
     const poolConfig = loadPoolConfig(pool);
     const addressesProvider = await getLendPoolAddressesProvider();
 
-    const mockInterceptor = await deployMockTokenInterceptor(addressesProvider.address, verify);
+    const mockInterceptor = await deployMockLoanRepaidInterceptor(addressesProvider.address, verify);
 
-    console.log("MockTokenInterceptor:", mockInterceptor.address);
+    console.log("MockLoanRepaidInterceptor:", mockInterceptor.address);
   });
