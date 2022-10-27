@@ -81,6 +81,25 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "name": "LoanRepaidInterceptorApproval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "asset",
         "type": "address"
       }
@@ -412,25 +431,6 @@
     "type": "event"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "interceptor",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "approved",
-        "type": "bool"
-      }
-    ],
-    "name": "TokenBurnInterceptorApproval",
-    "type": "event"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -443,7 +443,7 @@
         "type": "bool"
       }
     ],
-    "name": "approveTokenBurnInterceptor",
+    "name": "approveLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -725,7 +725,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "bNftAddress",
+        "name": "nftAddress",
         "type": "address"
       },
       {
@@ -739,7 +739,7 @@
         "type": "address"
       }
     ],
-    "name": "purgeTokenBurnInterceptor",
+    "name": "purgeLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

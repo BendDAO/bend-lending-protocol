@@ -285,6 +285,37 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
+    "name": "LoanRepaidInterceptorUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "user",
@@ -340,7 +371,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "bNftAddress",
+        "name": "nftAsset",
         "type": "address"
       },
       {
@@ -349,7 +380,7 @@
         "type": "uint256"
       }
     ],
-    "name": "addTokenBurnInterceptor",
+    "name": "addLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -367,7 +398,7 @@
         "type": "bool"
       }
     ],
-    "name": "approveTokenBurnInterceptor",
+    "name": "approveLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -487,7 +518,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "bNftAddress",
+        "name": "nftAsset",
         "type": "address"
       },
       {
@@ -496,7 +527,7 @@
         "type": "uint256"
       }
     ],
-    "name": "deleteTokenBurnInterceptor",
+    "name": "deleteLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -680,6 +711,30 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getLoanRepaidInterceptors",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "loanId",
         "type": "uint256"
@@ -807,7 +862,7 @@
         "type": "address"
       }
     ],
-    "name": "isTokenBurnInterceptorApproved",
+    "name": "isLoanRepaidInterceptorApproved",
     "outputs": [
       {
         "internalType": "bool",
@@ -889,7 +944,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "bNftAddress",
+        "name": "nftAsset",
         "type": "address"
       },
       {
@@ -903,7 +958,7 @@
         "type": "address"
       }
     ],
-    "name": "purgeTokenBurnInterceptor",
+    "name": "purgeLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
