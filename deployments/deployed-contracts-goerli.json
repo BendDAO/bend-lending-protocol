@@ -49,7 +49,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ConfiguratorLogic": {
-    "address": "0xD5ADf96d30a088a3cEbc4732989800Ec5681D737",
+    "address": "0xBE4CC856225945ea80460899ff2Fbf0143358550",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
@@ -59,13 +59,13 @@
     "address": "0x84a47EaEca69f8B521C21739224251c8c4566Bbc"
   },
   "LendPoolLoanImpl": {
-    "address": "0xF7C82E8a5917f74c3e65218CE67CED6924BDE4dB"
+    "address": "0xa98c6CF4ee3F02f8031771eB562b70A6Ef2A19bF"
   },
   "LendPoolLoan": {
     "address": "0x7F64c32a3c13Bd245a7141a607A7E60DA585BA86"
   },
   "LendPoolConfiguratorImpl": {
-    "address": "0x773C332D651C60aBe9aDb369970534d017df30e9"
+    "address": "0xaDB6038D35AAF174880132d650F93F8Cf899Abe5"
   },
   "LendPoolConfigurator": {
     "address": "0x365661b853845F90b2b5B28a1A61bE5c54aE9FB2"
@@ -123,6 +123,10 @@
   },
   "UIPoolDataProvider": {
     "address": "0x15073180CA8b933C7a8099e811FFAD0568eAb861",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "MockLoanRepaidInterceptor": {
+    "address": "0x64D945FFb3e571b4aCba10EbA937F8bFfCE35eF2",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
