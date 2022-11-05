@@ -365,7 +365,9 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     address interceptor = _msgSender();
     address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
     for (uint256 i = 0; i < interceptors.length; i++) {
-      require(interceptors[i] != interceptor, "BNFT: interceptor already existed");
+      if (interceptors[i] == interceptor) {
+        return;
+      }
     }
     interceptors.push(interceptor);
     emit LoanRepaidInterceptorUpdated(nftAsset, tokenId, interceptor, true);
@@ -398,12 +400,12 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     return _loanRepaidInterceptors[nftAsset][tokenId];
   }
 
-  function approveFlashLoanLocker(address interceptor, bool approved) public override onlyLendPoolConfigurator {
-    _flashLoanLockerWhitelist[interceptor] = approved;
+  function approveFlashLoanLocker(address locker, bool approved) public override onlyLendPoolConfigurator {
+    _flashLoanLockerWhitelist[locker] = approved;
   }
 
-  function isFlashLoanLockerApproved(address interceptor) public view override returns (bool) {
-    return _flashLoanLockerWhitelist[interceptor];
+  function isFlashLoanLockerApproved(address locker) public view override returns (bool) {
+    return _flashLoanLockerWhitelist[locker];
   }
 
   function setFlashLoanLocking(
