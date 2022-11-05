@@ -154,6 +154,8 @@ interface ILendPoolConfigurator {
 
   event LoanRepaidInterceptorApproval(address indexed interceptor, bool approved);
 
+  event FlashLoanLockerApproval(address indexed locker, bool approved);
+
   /**
    * @dev Emitted when an bToken implementation is upgraded
    * @param asset The address of the underlying asset of the reserve

@@ -68,6 +68,7 @@ library Errors {
   string public constant LP_NFT_TOKEN_ID_EXCEED_MAX_LIMIT = "417";
   string public constant LP_NFT_SUPPLY_NUM_EXCEED_MAX_LIMIT = "418";
   string public constant LP_CALLER_NOT_VALID_INTERCEPTOR = "419";
+  string public constant LP_CALLER_NOT_VALID_LOCKER = "420";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";

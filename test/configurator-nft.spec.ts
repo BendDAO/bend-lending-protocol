@@ -340,4 +340,34 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
+
+  it("Config approve locker valid value", async () => {
+    const { configurator, users, pool, loan } = testEnv;
+
+    await waitForTx(await configurator.approveFlashLoanLocker(pool.address, true));
+
+    const wantVal1 = await loan.isFlashLoanLockerApproved(pool.address);
+    expect(wantVal1).to.be.equal(true);
+
+    await waitForTx(await configurator.approveFlashLoanLocker(pool.address, false));
+
+    const wantVal2 = await loan.isFlashLoanLockerApproved(pool.address);
+    expect(wantVal2).to.be.equal(false);
+  });
+
+  it("Check the onlyAdmin on approve locker ", async () => {
+    const { configurator, users, pool } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).approveFlashLoanLocker(pool.address, true),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Check the onlyAdmin on approve locker ", async () => {
+    const { configurator, users, pool, bBAYC } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).purgeFlashLoanLocking(bBAYC.address, [100], pool.address),
+      CALLER_NOT_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
 });

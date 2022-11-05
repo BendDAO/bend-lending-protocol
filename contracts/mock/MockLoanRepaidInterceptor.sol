@@ -30,6 +30,15 @@ contract MockLoanRepaidInterceptor is ILoanRepaidInterceptor {
     poolLoan.deleteLoanRepaidInterceptor(nftAddress, tokenId);
   }
 
+  function setFlashLoanLocking(
+    address nftAddress,
+    uint256 tokenId,
+    bool locked
+  ) public {
+    ILendPoolLoan poolLoan = ILendPoolLoan(addressProvider.getLendPoolLoan());
+    poolLoan.setFlashLoanLocking(nftAddress, tokenId, locked);
+  }
+
   function resetCallState() public {
     isBeforeHookCalled = false;
     isAfterHookCalled = false;

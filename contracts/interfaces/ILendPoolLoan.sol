@@ -225,6 +225,22 @@ interface ILendPoolLoan {
 
   function getLoanRepaidInterceptors(address nftAsset, uint256 tokenId) external view returns (address[] memory);
 
+  function approveFlashLoanLocker(address interceptor, bool approved) external;
+
+  function isFlashLoanLockerApproved(address interceptor) external view returns (bool);
+
+  function setFlashLoanLocking(
+    address nftAsset,
+    uint256 tokenId,
+    bool locked
+  ) external;
+
+  function purgeFlashLoanLocking(
+    address nftAsset,
+    uint256[] calldata tokenIds,
+    address locker
+  ) external;
+
   function borrowerOf(uint256 loanId) external view returns (address);
 
   function getCollateralLoanId(address nftAsset, uint256 nftTokenId) external view returns (uint256);

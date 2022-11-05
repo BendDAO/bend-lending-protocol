@@ -2,6 +2,7 @@
 pragma solidity 0.8.4;
 
 import {IBNFT} from "../interfaces/IBNFT.sol";
+import {IBNFTRegistry} from "../interfaces/IBNFTRegistry.sol";
 import {ILendPoolLoan} from "../interfaces/ILendPoolLoan.sol";
 import {ILendPool} from "../interfaces/ILendPool.sol";
 import {ILendPoolAddressesProvider} from "../interfaces/ILendPoolAddressesProvider.sol";
@@ -34,6 +35,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   mapping(address => bool) private _loanRepaidInterceptorWhitelist;
   // Mapping from token to approved burn interceptor addresses
   mapping(address => mapping(uint256 => address[])) private _loanRepaidInterceptors;
+  // locker whitelist
+  mapping(address => bool) private _flashLoanLockerWhitelist;
 
   /**
    * @dev Only lending pool can call functions marked by this modifier
@@ -50,6 +53,11 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
   modifier onlyLoanRepaidInterceptor() {
     require(_loanRepaidInterceptorWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_INTERCEPTOR);
+    _;
+  }
+
+  modifier onlyFlashLoanLocker() {
+    require(_flashLoanLockerWhitelist[_msgSender()], Errors.LP_CALLER_NOT_VALID_LOCKER);
     _;
   }
 
@@ -388,6 +396,36 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     returns (address[] memory)
   {
     return _loanRepaidInterceptors[nftAsset][tokenId];
+  }
+
+  function approveFlashLoanLocker(address interceptor, bool approved) public override onlyLendPoolConfigurator {
+    _flashLoanLockerWhitelist[interceptor] = approved;
+  }
+
+  function isFlashLoanLockerApproved(address interceptor) public view override returns (bool) {
+    return _flashLoanLockerWhitelist[interceptor];
+  }
+
+  function setFlashLoanLocking(
+    address nftAsset,
+    uint256 tokenId,
+    bool locked
+  ) public override onlyFlashLoanLocker {
+    (address bnftProxy, ) = IBNFTRegistry(_addressesProvider.getBNFTRegistry()).getBNFTAddresses(nftAsset);
+
+    IBNFT(bnftProxy).setFlashLoanLocking(tokenId, _msgSender(), locked);
+  }
+
+  function purgeFlashLoanLocking(
+    address nftAsset,
+    uint256[] calldata tokenIds,
+    address locker
+  ) public override onlyLendPoolConfigurator {
+    (address bnftProxy, ) = IBNFTRegistry(_addressesProvider.getBNFTRegistry()).getBNFTAddresses(nftAsset);
+
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      IBNFT(bnftProxy).setFlashLoanLocking(tokenIds[i], locker, false);
+    }
   }
 
   function onERC721Received(

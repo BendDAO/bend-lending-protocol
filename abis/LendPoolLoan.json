@@ -398,6 +398,24 @@
         "type": "bool"
       }
     ],
+    "name": "approveFlashLoanLocker",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "approved",
+        "type": "bool"
+      }
+    ],
     "name": "approveLoanRepaidInterceptor",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -862,6 +880,25 @@
         "type": "address"
       }
     ],
+    "name": "isFlashLoanLockerApproved",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "interceptor",
+        "type": "address"
+      }
+    ],
     "name": "isLoanRepaidInterceptorApproved",
     "outputs": [
       {
@@ -954,6 +991,29 @@
       },
       {
         "internalType": "address",
+        "name": "locker",
+        "type": "address"
+      }
+    ],
+    "name": "purgeFlashLoanLocking",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "tokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
         "name": "interceptor",
         "type": "address"
       }
@@ -1020,6 +1080,29 @@
       }
     ],
     "name": "repayLoan",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "nftAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "locked",
+        "type": "bool"
+      }
+    ],
+    "name": "setFlashLoanLocking",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
