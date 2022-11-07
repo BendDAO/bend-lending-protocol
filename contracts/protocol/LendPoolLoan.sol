@@ -527,7 +527,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   }
 
   function _handleBeforeLoanRepaid(address nftAsset, uint256 tokenId) internal {
-    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+    // CAUTION: interceptor maybe deleted in the called function
+    address[] memory interceptors = getLoanRepaidInterceptors(nftAsset, tokenId);
     for (uint256 i = 0; i < interceptors.length; i++) {
       bool checkHandle = ILoanRepaidInterceptor(interceptors[i]).beforeLoanRepaid(nftAsset, tokenId);
       require(checkHandle, "BNFT: call interceptor before token burn failed");
@@ -535,7 +536,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
   }
 
   function _handleAfterLoanRepaid(address nftAsset, uint256 tokenId) internal {
-    address[] storage interceptors = _loanRepaidInterceptors[nftAsset][tokenId];
+    // CAUTION: interceptor maybe deleted in the called function
+    address[] memory interceptors = getLoanRepaidInterceptors(nftAsset, tokenId);
     for (uint256 i = 0; i < interceptors.length; i++) {
       bool checkHandle = ILoanRepaidInterceptor(interceptors[i]).afterLoanRepaid(nftAsset, tokenId);
       require(checkHandle, "BNFT: call interceptor after token burn failed");

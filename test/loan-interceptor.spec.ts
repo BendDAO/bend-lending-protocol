@@ -171,6 +171,9 @@ makeSuite("LendPoolLoan: Token Interceptor", (testEnv: TestEnv) => {
 
     await advanceTimeAndBlock(100);
 
+    await waitForTx(await mockLoanRepaidInterceptor.resetCallState());
+    await waitForTx(await mockLoanRepaidInterceptor2.resetCallState());
+
     console.log("borrower do repay");
     await repay(testEnv, borrower, "", "BAYC", tokenId, "-1", borrower, "success", "");
 

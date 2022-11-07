@@ -56,6 +56,17 @@ contract MockLoanRepaidInterceptor is ILoanRepaidInterceptor {
     nftAsset;
     nftTokenId;
     isAfterHookCalled = true;
+
+    ILendPoolLoan poolLoan = ILendPoolLoan(addressProvider.getLendPoolLoan());
+
+    if (poolLoan.isFlashLoanLockerApproved(address(this))) {
+      poolLoan.setFlashLoanLocking(nftAsset, nftTokenId, false);
+    }
+
+    if (poolLoan.isLoanRepaidInterceptorApproved(address(this))) {
+      poolLoan.deleteLoanRepaidInterceptor(nftAsset, nftTokenId);
+    }
+
     emit AfterHookCalled(nftAsset, nftTokenId);
     return true;
   }

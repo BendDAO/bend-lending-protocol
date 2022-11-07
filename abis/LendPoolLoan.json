@@ -389,7 +389,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "interceptor",
+        "name": "locker",
         "type": "address"
       },
       {
@@ -876,7 +876,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "interceptor",
+        "name": "locker",
         "type": "address"
       }
     ],
