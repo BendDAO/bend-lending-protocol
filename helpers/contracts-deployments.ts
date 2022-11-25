@@ -58,6 +58,7 @@ import {
   LiquidateLogicFactory,
   GenericLogicFactory,
   ConfiguratorLogicFactory,
+  MockLoanRepaidInterceptorFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -606,5 +607,13 @@ export const deployTimelockController = async (
     await new TimelockControllerFactory(await getDeploySigner()).deploy(minDelay, proposers, executors),
     id,
     [minDelay, proposers, executors],
+    verify
+  );
+
+export const deployMockLoanRepaidInterceptor = async (addressesProvider: string, verify?: boolean) =>
+  withSaveAndVerify(
+    await new MockLoanRepaidInterceptorFactory(await getDeploySigner()).deploy(addressesProvider),
+    eContractid.MockLoanRepaidInterceptor,
+    [addressesProvider],
     verify
   );

@@ -81,6 +81,7 @@ export enum eContractid {
   BendCollectorImpl = "BendCollectorImpl",
   TimelockControllerFast = "TimelockControllerFast",
   TimelockControllerSlow = "TimelockControllerSlow",
+  MockLoanRepaidInterceptor = "MockLoanRepaidInterceptor",
 }
 
 export enum ProtocolLoanState {
@@ -151,6 +152,8 @@ export enum ProtocolErrors {
   LP_AMOUNT_GREATER_THAN_MAX_REPAY = "416",
   LP_NFT_TOKEN_ID_EXCEED_MAX_LIMIT = "417",
   LP_NFT_SUPPLY_NUM_EXCEED_MAX_LIMIT = "418",
+  LP_CALLER_NOT_VALID_INTERCEPTOR = "419",
+  LP_CALLER_NOT_VALID_LOCKER = "420",
 
   //lend pool loan errors
   LPL_INVALID_LOAN_STATE = "480",

@@ -99,6 +99,8 @@ interface ILendPoolLoan {
     uint256 borrowIndex
   );
 
+  event LoanRepaidInterceptorUpdated(address nftAsset, uint256 tokenId, address indexed interceptor, bool approved);
+
   function initNft(address nftAsset, address bNftAddress) external;
 
   /**
@@ -205,6 +207,54 @@ interface ILendPoolLoan {
     address bNftAddress,
     uint256 borrowAmount,
     uint256 borrowIndex
+  ) external;
+
+  /**
+   * @dev Add or remove the interceptor from the whitelist
+   * @param interceptor The address of the interceptor contract
+   * @param approved add or remove
+   */
+  function approveLoanRepaidInterceptor(address interceptor, bool approved) external;
+
+  function isLoanRepaidInterceptorApproved(address interceptor) external view returns (bool);
+
+  function purgeLoanRepaidInterceptor(
+    address nftAddress,
+    uint256[] calldata tokenIds,
+    address interceptor
+  ) external;
+
+  function addLoanRepaidInterceptor(address nftAsset, uint256 tokenId) external;
+
+  function deleteLoanRepaidInterceptor(address nftAsset, uint256 tokenId) external;
+
+  function getLoanRepaidInterceptors(address nftAsset, uint256 tokenId) external view returns (address[] memory);
+
+  /**
+   * @dev Add or remove the locker from the whitelist
+   * @param locker The address of the locker contract
+   * @param approved add or remove
+   */
+  function approveFlashLoanLocker(address locker, bool approved) external;
+
+  function isFlashLoanLockerApproved(address locker) external view returns (bool);
+
+  /**
+   * @dev Lock or unlock the flash loan caller
+   * @param nftAsset The address of the NFT asset
+   * @param tokenId The id of the NFT token
+   * @param locked lock or unlock
+   */
+  function setFlashLoanLocking(
+    address nftAsset,
+    uint256 tokenId,
+    bool locked
+  ) external;
+
+  function purgeFlashLoanLocking(
+    address nftAsset,
+    uint256[] calldata tokenIds,
+    address locker
   ) external;
 
   function borrowerOf(uint256 loanId) external view returns (address);

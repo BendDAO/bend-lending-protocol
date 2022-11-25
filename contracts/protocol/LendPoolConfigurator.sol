@@ -413,6 +413,36 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     cachedPool.setPausedTime(startTime, durationTime);
   }
 
+  function approveLoanRepaidInterceptor(address interceptor, bool approved) public onlyPoolAdmin {
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+    cachedPoolLoan.approveLoanRepaidInterceptor(interceptor, approved);
+    emit LoanRepaidInterceptorApproval(interceptor, approved);
+  }
+
+  function purgeLoanRepaidInterceptor(
+    address nftAddress,
+    uint256[] calldata tokenIds,
+    address interceptor
+  ) public onlyPoolAdmin {
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+    cachedPoolLoan.purgeLoanRepaidInterceptor(nftAddress, tokenIds, interceptor);
+  }
+
+  function approveFlashLoanLocker(address locker, bool approved) public onlyPoolAdmin {
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+    cachedPoolLoan.approveFlashLoanLocker(locker, approved);
+    emit FlashLoanLockerApproval(locker, approved);
+  }
+
+  function purgeFlashLoanLocking(
+    address nftAddress,
+    uint256[] calldata tokenIds,
+    address locker
+  ) public onlyPoolAdmin {
+    ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
+    cachedPoolLoan.purgeFlashLoanLocking(nftAddress, tokenIds, locker);
+  }
+
   function getTokenImplementation(address proxyAddress) external view onlyPoolAdmin returns (address) {
     return ConfiguratorLogic.getTokenImplementation(proxyAddress);
   }
