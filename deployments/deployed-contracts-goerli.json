@@ -128,5 +128,9 @@
   "MockLoanRepaidInterceptor": {
     "address": "0xA3E10e91fEA0901C2d216B80a9E8C087aB85DECa",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "PausableTimelockController": {
+    "address": "0x61749537e6D4BC2c78acD4f0b538a3aE80e291DB",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
