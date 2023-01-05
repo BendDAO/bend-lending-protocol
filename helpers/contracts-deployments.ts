@@ -51,6 +51,7 @@ import {
   UiPoolDataProviderFactory,
   BendCollectorFactory,
   TimelockControllerFactory,
+  PausableTimelockControllerFactory,
   WETH9,
   WETH9Factory,
   SupplyLogicFactory,
@@ -607,6 +608,28 @@ export const deployTimelockController = async (
     await new TimelockControllerFactory(await getDeploySigner()).deploy(minDelay, proposers, executors),
     id,
     [minDelay, proposers, executors],
+    verify
+  );
+
+export const deployPausableTimelockController = async (
+  id: string,
+  minDelay: string,
+  proposers: string[],
+  executors: string[],
+  pausers: string[],
+  admin: string,
+  verify?: boolean
+) =>
+  withSaveAndVerify(
+    await new PausableTimelockControllerFactory(await getDeploySigner()).deploy(
+      minDelay,
+      proposers,
+      executors,
+      pausers,
+      admin
+    ),
+    id,
+    [minDelay, proposers, executors, pausers, admin],
     verify
   );
 

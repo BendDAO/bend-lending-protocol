@@ -60,6 +60,8 @@ import {
   MockIncentivesController,
   UiPoolDataProvider,
   WalletBalanceProvider,
+  MockBlockContext,
+  MockBlockContextFactory,
 } from "../../types";
 import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
 import { USD_ADDRESS } from "../../helpers/constants";
@@ -109,6 +111,8 @@ export interface TestEnv {
 
   roundIdTracker: number;
   nowTimeTracker: number;
+
+  mockBlockContext: MockBlockContext;
 }
 
 let buidlerevmSnapshotId: string = "0x1";
@@ -148,6 +152,7 @@ const testEnv: TestEnv = {
   tokenIdTracker: {} as number,
   roundIdTracker: {} as number,
   nowTimeTracker: {} as number,
+  mockBlockContext: {} as MockBlockContext,
 } as TestEnv;
 
 export async function initializeMakeSuite() {
@@ -247,6 +252,8 @@ export async function initializeMakeSuite() {
 
   testEnv.roundIdTracker = 1;
   testEnv.nowTimeTracker = Number(await getNowTimeInSeconds());
+
+  testEnv.mockBlockContext = await new MockBlockContextFactory(testEnv.deployer.signer).deploy();
 }
 
 const setSnapshot = async () => {
