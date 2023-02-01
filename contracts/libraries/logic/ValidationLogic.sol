@@ -94,7 +94,8 @@ library ValidationLogic {
     address loanAddress,
     uint256 loanId,
     address reserveOracle,
-    address nftOracle
+    address nftOracle,
+    uint256 nftTokenId
   ) external view {
     ValidateBorrowLocalVars memory vars;
 
@@ -131,7 +132,8 @@ library ValidationLogic {
       loanAddress,
       loanId,
       reserveOracle,
-      nftOracle
+      nftOracle,
+      nftTokenId
     );
 
     require(vars.userCollateralBalance > 0, Errors.VL_COLLATERAL_BALANCE_IS_0);

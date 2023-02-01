@@ -10,4 +10,6 @@ interface INFTOracleGetter {
     @dev returns the asset price in ETH
      */
   function getAssetPrice(address asset) external view returns (uint256);
+
+  function getAssetPriceByTokenId(address _nftContract, uint256 tokenId) external view returns (uint256);
 }

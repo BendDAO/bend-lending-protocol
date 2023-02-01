@@ -9,6 +9,8 @@ interface INFTOracle {
   // get asset price
   function getAssetPrice(address _nftContract) external view returns (uint256);
 
+  function getAssetPriceByTokenId(address _nftContract, uint256 tokenId) external view returns (uint256);
+
   // get latest timestamp
   function getLatestTimestamp(address _nftContract) external view returns (uint256);
 

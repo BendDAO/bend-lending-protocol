@@ -3,10 +3,15 @@ pragma solidity 0.8.4;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {EnumerableSetUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+
 import {INFTOracle} from "../interfaces/INFTOracle.sol";
+import {INFTLevelAsset} from "../interfaces/INFTLevelAsset.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
 
 contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContext {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+
   modifier onlyAdmin() {
     require(_msgSender() == priceFeedAdmin, "NFTOracle: !admin");
     _;
@@ -17,6 +22,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   event FeedAdminUpdated(address indexed admin);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
   event SetAssetTwapPrice(address indexed asset, uint256 price, uint256 timestamp);
+  event LevelAssetAdded(address indexed nftContract, address indexed levelAsset);
+  event LevelAssetRemoved(address indexed nftContract, address indexed levelAsset);
 
   struct NFTPriceData {
     uint256 roundId;
@@ -53,6 +60,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   uint256 public twapInterval;
   mapping(address => uint256) public twapPriceMap;
+
+  mapping(address => EnumerableSetUpgradeable.AddressSet) private _nftLevelAssets;
 
   function _whenNotPaused(address _nftContract) internal view {
     bool _paused = nftPaused[_nftContract];
@@ -98,7 +107,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     emit AssetAdded(_nftContract);
   }
 
-  function removeAsset(address _nftContract) external onlyOwner {
+  function removeAsset(address _nftContract) public onlyOwner {
     requireKeyExisted(_nftContract, true);
     delete nftPriceFeedMap[_nftContract];
 
@@ -111,6 +120,48 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       }
     }
     emit AssetRemoved(_nftContract);
+  }
+
+  /**
+   * @dev Add a new level asset.
+   *
+   * Requirements:
+   *
+   * - `levelAsset` must not exist in set.
+   */
+  function addLevelAsset(address levelAsset) public onlyOwner {
+    address _nftContract = INFTLevelAsset(levelAsset).nftContract();
+    bytes32 _nftLevelKey = INFTLevelAsset(levelAsset).nftLevelKey();
+
+    // check level asset added or not
+    address[] memory existLevelAssets = _nftLevelAssets[_nftContract].values();
+    for (uint256 i = 0; i < existLevelAssets.length; i++) {
+      require(existLevelAssets[i] != levelAsset, "NFTOracle: level asset exist");
+      require(INFTLevelAsset(existLevelAssets[i]).nftLevelKey() != _nftLevelKey, "NFTOracle: level key same");
+    }
+
+    _nftLevelAssets[_nftContract].add(levelAsset);
+
+    _addAsset(levelAsset);
+
+    emit LevelAssetAdded(_nftContract, levelAsset);
+  }
+
+  /**
+   * @dev Remove a exist level asset.
+   *
+   * Requirements:
+   *
+   * - `levelAsset` must exist in set.
+   */
+  function removeLevelAsset(address levelAsset) public onlyOwner {
+    address _nftContract = INFTLevelAsset(levelAsset).nftContract();
+
+    _nftLevelAssets[_nftContract].remove(levelAsset);
+
+    removeAsset(levelAsset);
+
+    emit LevelAssetRemoved(_nftContract, levelAsset);
   }
 
   function setAssetData(address _nftContract, uint256 _price) external override onlyAdmin whenNotPaused(_nftContract) {
@@ -154,7 +205,30 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
   }
 
-  function getAssetPrice(address _nftContract) external view override returns (uint256) {
+  /**
+   * @dev Returns the asset price according the token id.
+   */
+  function getAssetPriceByTokenId(address _nftContract, uint256 tokenId) public view override returns (uint256) {
+    address priceContract = getLevelAssetByTokenId(_nftContract, tokenId);
+    return getAssetPrice(priceContract);
+  }
+
+  /**
+   * @dev Returns the level asset according the token id.
+   */
+  function getLevelAssetByTokenId(address _nftContract, uint256 tokenId) public view returns (address) {
+    address[] memory levelAssets = _nftLevelAssets[_nftContract].values();
+    for (uint256 i = 0; i < levelAssets.length; i++) {
+      bool valid = INFTLevelAsset(levelAssets[i]).isValid(tokenId);
+      if (valid) {
+        return levelAssets[i];
+      }
+    }
+
+    return _nftContract;
+  }
+
+  function getAssetPrice(address _nftContract) public view override returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
     require(len > 0, "NFTOracle: no price data");

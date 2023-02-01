@@ -179,7 +179,8 @@ library BorrowLogic {
       vars.loanAddress,
       vars.loanId,
       vars.reserveOracle,
-      vars.nftOracle
+      vars.nftOracle,
+      params.nftTokenId
     );
 
     if (vars.loanId == 0) {
