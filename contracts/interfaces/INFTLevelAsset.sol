@@ -6,5 +6,7 @@ interface INFTLevelAsset {
 
   function nftLevelKey() external view returns (bytes32);
 
+  function nftLevelName() external view returns (string memory);
+
   function isValid(uint256 tokenId) external view returns (bool);
 }

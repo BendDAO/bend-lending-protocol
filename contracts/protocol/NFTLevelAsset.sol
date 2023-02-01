@@ -18,6 +18,7 @@ contract NFTLevelAsset is INFTLevelAsset, OwnableUpgradeable {
   // https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#potentially-unsafe-operations
   address public override nftContract;
   bytes32 public override nftLevelKey;
+  string public override nftLevelName;
   BitMaps.BitMap private _bitmap;
 
   // For upgradable, add one new variable above, minus 1 at here
@@ -28,12 +29,14 @@ contract NFTLevelAsset is INFTLevelAsset, OwnableUpgradeable {
   function initialize(
     address nftContract_,
     bytes32 nftLevelKey_,
-    uint256[] memory data_
+    string memory nftLevelName_,
+    uint256[] calldata data_
   ) public initializer {
     __Ownable_init();
 
     nftContract = nftContract_;
     nftLevelKey = nftLevelKey_;
+    nftLevelName = nftLevelName_;
 
     _bitmap.init(data_);
   }
