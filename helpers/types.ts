@@ -49,6 +49,7 @@ export enum eContractid {
   BendProxyAdminTest = "BendProxyAdminTest",
   BendProxyAdminPool = "BendProxyAdminPool", //LendPool Contracts, etc Oracle(Reserve, NFT)
   BendProxyAdminFund = "BendProxyAdminFund", //Treasury Fundings, etc Collector
+  BendProxyAdminWTL = "BendProxyAdminWTL", //Common Proxy Admin Without Timelock
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   DebtToken = "DebtToken",
@@ -268,6 +269,7 @@ export interface iNftBase<T> {
   MAYC: T;
   CLONEX: T;
   AZUKI: T;
+  WKODA: T;
 }
 
 export type iMultiPoolsNfts<T> = iNftCommon<T> | iBendPoolNfts<T>;
@@ -284,6 +286,7 @@ export enum NftContractId {
   MAYC = "MAYC",
   CLONEX = "CLONEX",
   AZUKI = "AZUKI",
+  WKODA = "WKODA",
 }
 
 export interface IReserveParams extends IReserveBorrowParams, IReserveCollateralParams {
@@ -384,6 +387,7 @@ export interface ICommonConfiguration {
 
   ProxyAdminPool: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProxyAdminFund: iParamsPerNetwork<tEthereumAddress | undefined>;
+  ProxyAdminWTL: iParamsPerNetwork<tEthereumAddress | undefined>;
 
   BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
 

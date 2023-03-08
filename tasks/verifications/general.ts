@@ -75,6 +75,9 @@ task("verify:general", "Verify general contracts at Etherscan")
     const proxyAdminPool = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
     await verifyContract(eContractid.BendProxyAdminPool, proxyAdminPool, []);
 
+    const proxyAdminWTL = await getBendProxyAdminById(eContractid.BendProxyAdminWTL);
+    await verifyContract(eContractid.BendProxyAdminWTL, proxyAdminWTL, []);
+
     if (all) {
       const dataProvider = await getBendProtocolDataProvider();
       const walletProvider = await getWalletProvider();

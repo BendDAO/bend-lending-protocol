@@ -59,12 +59,16 @@ import {
   GenericLogicFactory,
   ConfiguratorLogicFactory,
   MockLoanRepaidInterceptorFactory,
+  MockerERC721WrapperFactory,
+  WrapperGatewayFactory,
+  MockerERC721Wrapper,
 } from "../types";
 import {
   withSaveAndVerify,
   registerContractInJsonDb,
   linkBytecode,
   insertContractAddressInDb,
+  rawInsertContractAddressInDb,
   getOptionalParamAddressPerNetwork,
   getContractAddressInDb,
 } from "./contracts-helpers";
@@ -411,7 +415,7 @@ export const deployAllMockTokens = async (forTestCases: boolean, verify?: boolea
 };
 
 export const deployAllMockNfts = async (verify?: boolean) => {
-  const tokens: { [symbol: string]: MockContract | MintableERC721 | WrappedPunk } = {};
+  const tokens: { [symbol: string]: MockContract | MintableERC721 | WrappedPunk | MockerERC721Wrapper } = {};
 
   for (const tokenSymbol of Object.keys(NftContractId)) {
     const tokenName = "Bend Mock " + tokenSymbol;
@@ -419,6 +423,16 @@ export const deployAllMockNfts = async (verify?: boolean) => {
       const cryptoPunksMarket = await deployCryptoPunksMarket([], verify);
       const wrappedPunk = await deployWrappedPunk([cryptoPunksMarket.address], verify);
       tokens[tokenSymbol] = wrappedPunk;
+      await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
+      continue;
+    } else if (tokenSymbol == "WKODA") {
+      const mockOtherdeed = await deployMockERC721Underlying("MockOtherdeed", ["Otherdeed", "OTHR"], verify);
+      const wrappedKoda = await deployMockERC721Wrapper(
+        "WrappedKoda",
+        [mockOtherdeed.address, "Wrapped Otherdeed Koda", "WKODA"],
+        verify
+      );
+      tokens[tokenSymbol] = wrappedKoda;
       await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
       continue;
     }
@@ -617,3 +631,15 @@ export const deployMockLoanRepaidInterceptor = async (addressesProvider: string,
     [addressesProvider],
     verify
   );
+
+export const deployMockERC721Underlying = async (id: string, args: [string, string], verify?: boolean) =>
+  withSaveAndVerify(await new MintableERC721Factory(await getDeploySigner()).deploy(...args), id, args, verify);
+
+export const deployMockERC721Wrapper = async (id: string, args: [string, string, string], verify?: boolean) =>
+  withSaveAndVerify(await new MockerERC721WrapperFactory(await getDeploySigner()).deploy(...args), id, args, verify);
+
+export const deployWrapperGateway = async (id: string, verify?: boolean) => {
+  const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
+  await rawInsertContractAddressInDb(id + "Impl", gatewayImpl.address);
+  return withSaveAndVerify(gatewayImpl, id, [], verify);
+};

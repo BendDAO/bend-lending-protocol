@@ -65,6 +65,14 @@ export const CommonsConfig: ICommonConfiguration = {
     [eEthereumNetwork.rinkeby]: '0x64DA9D7651CA78caAB756740C6057e2b7B1E63De',
     [eEthereumNetwork.main]: '0x2A71a0F5cef1fFc519027AD12f19453110e70666',
   },
+  ProxyAdminWTL: {
+    [eEthereumNetwork.coverage]: undefined,
+    [eEthereumNetwork.hardhat]: undefined,
+    [eEthereumNetwork.localhost]: undefined,
+    [eEthereumNetwork.goerli]: "0x1055d0961CE2E1aF92f57b208171B90f8f1c7916",
+    [eEthereumNetwork.rinkeby]: undefined,
+    [eEthereumNetwork.main]: undefined,
+  },
 
   // If PoolAdmin/emergencyAdmin is set, will take priority over PoolAdminIndex/emergencyAdminIndex
   PoolAdmin: {

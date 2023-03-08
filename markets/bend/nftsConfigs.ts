@@ -130,6 +130,12 @@ export const strategyNft_WOW: INftParams = {
   maxTokenId: "9999",
 };
 
+export const strategyNft_WKODA: INftParams = {
+  ...strategyNftClassB,
+  maxSupply: "10000",
+  maxTokenId: "99999",
+};
+
 export const strategyNftParams: SymbolMap<INftParams> = {
   "ClassA": strategyNftClassA,
   "ClassB": strategyNftClassB,
@@ -147,4 +153,5 @@ export const strategyNftParams: SymbolMap<INftParams> = {
   "COOL": strategyNft_COOL,
   "MEEBITS": strategyNft_MEEBITS,
   "WOW": strategyNft_WOW,
+  "WKODA": strategyNft_WKODA,
 };

@@ -1,7 +1,11 @@
 import rawBRE from "hardhat";
 import { MockContract } from "ethereum-waffle";
 import "./helpers/utils/math";
-import { insertContractAddressInDb, registerContractInJsonDb } from "../helpers/contracts-helpers";
+import {
+  insertContractAddressInDb,
+  rawInsertContractAddressInDb,
+  registerContractInJsonDb,
+} from "../helpers/contracts-helpers";
 import {
   deployLendPoolAddressesProvider,
   deployBTokenImplementations,
@@ -27,9 +31,10 @@ import {
   deployUiPoolDataProvider,
   deployMockChainlinkOracle,
   deployBendLibraries,
+  deployWrapperGateway,
 } from "../helpers/contracts-deployments";
 import { Signer } from "ethers";
-import { eContractid, tEthereumAddress, BendPools } from "../helpers/types";
+import { eContractid, tEthereumAddress, BendPools, NftContractId } from "../helpers/types";
 import { MintableERC20 } from "../types/MintableERC20";
 import { MintableERC721 } from "../types/MintableERC721";
 import { ConfigNames, getReserveFactorCollectorAddress, loadPoolConfig } from "../helpers/configuration";
@@ -63,12 +68,17 @@ import {
   getWrappedPunk,
   getWETHGateway,
   getPunkGateway,
+  getMockERC721Wrapper,
+  getMintableERC721,
+  getAddressById,
+  getMockERC721Underlying,
+  getWrapperGateway,
 } from "../helpers/contracts-getters";
 import { WETH9Mocked } from "../types/WETH9Mocked";
 import { getNftAddressFromSymbol } from "./helpers/utils/helpers";
 import { WrappedPunk } from "../types/WrappedPunk";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY } from "../helpers/constants";
-import { WETH9 } from "../types";
+import { MockerERC721Wrapper, WETH9 } from "../types";
 
 const MOCK_USD_PRICE = BendConfig.ProtocolGlobalParams.MockUsdPrice;
 const ALL_ASSETS_INITIAL_PRICES = BendConfig.Mocks.AllAssetsInitialPrices;
@@ -95,13 +105,16 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
 
   console.log("-> Prepare mock external ERC721 NFTs, such as WPUNKS, BAYC...");
   const mockNfts: {
-    [symbol: string]: MockContract | MintableERC721 | WrappedPunk;
+    [symbol: string]: MockContract | MintableERC721 | WrappedPunk | MockerERC721Wrapper;
   } = {
     ...(await deployAllMockNfts(false)),
   };
   const cryptoPunksMarket = await getCryptoPunksMarket();
   await waitForTx(await cryptoPunksMarket.allInitialOwnersAssigned());
   const wrappedPunk = await getWrappedPunk();
+
+  const mockOtherdeed = await getMockERC721Underlying("MockOtherdeed");
+  const wrappedKoda = await getMockERC721Wrapper(NftContractId.WKODA);
 
   console.log("-> Prepare mock external IncentivesController...");
   const mockIncentivesController = await deployMockIncentivesController();
@@ -358,7 +371,9 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   );
   await waitForTx(await addressesProvider.setAddress(ADDRESS_ID_WETH_GATEWAY, wethGatewayProxy.address));
   const wethGateway = await getWETHGateway(await addressesProvider.getAddress(ADDRESS_ID_WETH_GATEWAY));
-  await waitForTx(await wethGateway.authorizeLendPoolNFT([allNftsAddresses.BAYC, allNftsAddresses.WPUNKS]));
+  await waitForTx(
+    await wethGateway.authorizeLendPoolNFT([allNftsAddresses.BAYC, allNftsAddresses.WPUNKS, allNftsAddresses.WKODA])
+  );
   await insertContractAddressInDb(eContractid.WETHGateway, wethGateway.address);
 
   console.log("-> Prepare PUNK gateway...");
@@ -387,6 +402,33 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   await insertContractAddressInDb(eContractid.PunkGateway, punkGateway.address);
 
   await waitForTx(await wethGateway.authorizeCallerWhitelist([punkGateway.address], true));
+
+  console.log("-> Prepare Wrapper gateway...");
+  const wrapperGatewayId = "KodaWrapperGateway";
+  const wrapperGatewayImpl = await deployWrapperGateway("KodaWrapperGateway");
+  const wrapperGwInitEncodedData = wrapperGatewayImpl.interface.encodeFunctionData("initialize", [
+    addressesProvider.address,
+    wethGateway.address,
+    mockOtherdeed.address,
+    wrappedKoda.address,
+  ]);
+  const wrapperGatewayProxy = await deployBendUpgradeableProxy(
+    wrapperGatewayId,
+    bendProxyAdmin.address,
+    wrapperGatewayImpl.address,
+    wrapperGwInitEncodedData
+  );
+  const wrapperGateway = await getWrapperGateway(wrapperGatewayId, wrapperGatewayProxy.address);
+  await waitForTx(
+    await wrapperGateway.authorizeLendPoolERC20([
+      allReservesAddresses.WETH,
+      allReservesAddresses.DAI,
+      allReservesAddresses.USDC,
+    ])
+  );
+  await rawInsertContractAddressInDb(wrapperGatewayId, wrapperGateway.address);
+
+  await waitForTx(await wethGateway.authorizeCallerWhitelist([wrapperGateway.address], true));
 
   console.timeEnd("setup");
 };

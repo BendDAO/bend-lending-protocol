@@ -5,6 +5,10 @@
   "BendProxyAdminFund": {
     "address": "0xd9E1e945e042fa29cD984cb0f280ae5Ce990D993"
   },
+  "BendProxyAdminWTL": {
+    "address": "0x1055d0961CE2E1aF92f57b208171B90f8f1c7916",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
   "BendCollectorImpl": {
     "address": "0xE8e43e27b32642F3FD44F9d46239fE157Ef160E7"
   },
@@ -127,6 +131,13 @@
   },
   "MockLoanRepaidInterceptor": {
     "address": "0xA3E10e91fEA0901C2d216B80a9E8C087aB85DECa",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "KodaGatewayImpl": {
+    "address": "0xA7bb6431BF998D4e3380ed73DcB226e23E37AA27"
+  },
+  "KodaGateway": {
+    "address": "0x3fa746EcDC1C53c7657a57c71bFaB497be2e0BF5",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

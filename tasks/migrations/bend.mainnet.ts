@@ -50,7 +50,7 @@ task("bend:mainnet", "Deploy full enviroment")
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy proxy admin");
-    await DRE.run("full:deploy-proxy-admin", { pool: POOL_NAME });
+    await DRE.run("full:deploy-proxy-admin", { pool: POOL_NAME, all: true });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy bend collector");
