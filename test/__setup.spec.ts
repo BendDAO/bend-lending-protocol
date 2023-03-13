@@ -150,6 +150,7 @@ const buildTestEnv = async (deployer: Signer, secondaryWallet: Signer) => {
   const addressesProvider = await deployLendPoolAddressesProvider(BendConfig.MarketId);
   await waitForTx(await addressesProvider.setPoolAdmin(poolAdmin));
   await waitForTx(await addressesProvider.setEmergencyAdmin(emergencyAdmin));
+  await waitForTx(await addressesProvider.setAddress(await addressesProvider.RISK_ADMIN(), poolAdmin));
 
   await waitForTx(
     await addressesProviderRegistry.registerAddressesProvider(addressesProvider.address, BendConfig.ProviderId)

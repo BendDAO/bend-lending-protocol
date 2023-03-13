@@ -54,7 +54,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(isActive).to.be.equal(true);
   });
 
-  it("Check the onlyAdmin on deactivateRNft ", async () => {
+  it("Check the onlyPoolAdmin on deactivateRNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setActiveFlagOnNft([bayc.address], false),
@@ -62,7 +62,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Check the onlyAdmin on activateNft ", async () => {
+  it("Check the onlyPoolAdmin on activateNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setActiveFlagOnNft([bayc.address], true),
@@ -88,20 +88,20 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(isFrozen).to.be.equal(false);
   });
 
-  it("Check the onlyAdmin on freezeNft ", async () => {
+  it("Check the onlyRiskAdmin on freezeNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setFreezeFlagOnNft([bayc.address], true),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_ADMIN);
   });
 
-  it("Check the onlyAdmin on unfreezeNft ", async () => {
+  it("Check the onlyRiskAdmin on unfreezeNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setFreezeFlagOnNft([bayc.address], false),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_ADMIN);
   });
 
   it("Deactivates the BAYC NFT as collateral", async () => {
@@ -126,7 +126,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(liquidationBonus).to.be.equal(500);
   });
 
-  it("Check the onlyAdmin on configureNftAsCollateral ", async () => {
+  it("Check the onlyPoolAdmin on configureNftAsCollateral ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).configureNftAsCollateral([bayc.address], "7500", "8000", "500"),
@@ -166,7 +166,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(minBidFine).to.be.equal(5000);
   });
 
-  it("Check the onlyAdmin on configureNftAsAuction ", async () => {
+  it("Check the onlyPoolAdmin on configureNftAsAuction ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).configureNftAsAuction([bayc.address], "1", "1", "100"),
@@ -216,7 +216,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(liquidationBonus).to.be.equal(500);
   });
 
-  it("Check the onlyAdmin on batchConfigNft ", async () => {
+  it("Check the onlyPoolAdmin on batchConfigNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).batchConfigNft(cfgInputParams),
@@ -303,7 +303,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     );
   });
 
-  it("Check the onlyAdmin on setMaxNumberOfNfts ", async () => {
+  it("Check the onlyPoolAdmin on setMaxNumberOfNfts ", async () => {
     const { configurator, users, pool } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setMaxNumberOfNfts(512),
@@ -325,7 +325,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(wantVal2).to.be.equal(false);
   });
 
-  it("Check the onlyAdmin on approve interceptor ", async () => {
+  it("Check the onlyPoolAdmin on approve interceptor ", async () => {
     const { configurator, users, pool } = testEnv;
     await expect(
       configurator.connect(users[2].signer).approveLoanRepaidInterceptor(pool.address, true),
@@ -333,7 +333,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Check the onlyAdmin on approve interceptor ", async () => {
+  it("Check the onlyPoolAdmin on approve interceptor ", async () => {
     const { configurator, users, pool, bBAYC } = testEnv;
     await expect(
       configurator.connect(users[2].signer).purgeLoanRepaidInterceptor(bBAYC.address, [100], pool.address),
@@ -355,7 +355,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(wantVal2).to.be.equal(false);
   });
 
-  it("Check the onlyAdmin on approve locker ", async () => {
+  it("Check the onlyPoolAdmin on approve locker ", async () => {
     const { configurator, users, pool } = testEnv;
     await expect(
       configurator.connect(users[2].signer).approveFlashLoanLocker(pool.address, true),
@@ -363,7 +363,7 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Check the onlyAdmin on approve locker ", async () => {
+  it("Check the onlyPoolAdmin on approve locker ", async () => {
     const { configurator, users, pool, bBAYC } = testEnv;
     await expect(
       configurator.connect(users[2].signer).purgeFlashLoanLocking(bBAYC.address, [100], pool.address),
