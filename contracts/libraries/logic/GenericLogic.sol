@@ -60,7 +60,8 @@ library GenericLogic {
     address loanAddress,
     uint256 loanId,
     address reserveOracle,
-    address nftOracle
+    address nftOracle,
+    uint256 nftTokenId
   )
     internal
     view
@@ -92,7 +93,9 @@ library GenericLogic {
       nftAddress,
       nftData,
       reserveOracle,
-      nftOracle
+      nftOracle,
+      nftTokenId,
+      true
     );
 
     // calculate health by borrow and collateral
@@ -133,7 +136,9 @@ library GenericLogic {
     address nftAddress,
     DataTypes.NftData storage nftData,
     address reserveOracle,
-    address nftOracle
+    address nftOracle,
+    uint256 nftTokenId,
+    bool useNftTokenId
   ) internal view returns (uint256, uint256) {
     reserveData;
     nftData;
@@ -143,7 +148,11 @@ library GenericLogic {
     // calculate total collateral balance for the nft
     // all asset price has converted to ETH based, unit is in WEI (18 decimals)
 
-    vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPrice(nftAddress);
+    if (useNftTokenId) {
+      vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPriceByTokenId(nftAddress, nftTokenId);
+    } else {
+      vars.nftUnitPrice = INFTOracleGetter(nftOracle).getAssetPrice(nftAddress);
+    }
     vars.totalCollateralInETH = vars.nftUnitPrice;
 
     if (reserveAddress != address(0)) {
@@ -220,7 +229,8 @@ library GenericLogic {
     DataTypes.NftData storage nftData,
     address poolLoan,
     address reserveOracle,
-    address nftOracle
+    address nftOracle,
+    uint256 nftTokenId
   )
     internal
     view
@@ -248,7 +258,7 @@ library GenericLogic {
 
     (vars.ltv, vars.liquidationThreshold, vars.liquidationBonus) = nftData.configuration.getCollateralParams();
 
-    vars.nftPriceInETH = INFTOracleGetter(nftOracle).getAssetPrice(nftAsset);
+    vars.nftPriceInETH = INFTOracleGetter(nftOracle).getAssetPriceByTokenId(nftAsset, nftTokenId);
     vars.reservePriceInETH = IReserveOracleGetter(reserveOracle).getAssetPrice(reserveAsset);
 
     vars.nftPriceInReserve = ((10**vars.reserveDecimals) * vars.nftPriceInETH) / vars.reservePriceInETH;

@@ -157,7 +157,8 @@ library LiquidateLogic {
       nftData,
       vars.loanAddress,
       vars.reserveOracle,
-      vars.nftOracle
+      vars.nftOracle,
+      loanData.nftTokenId
     );
 
     // first time bid need to burn debt tokens and transfer reserve to bTokens
@@ -289,7 +290,8 @@ library LiquidateLogic {
       nftData,
       vars.poolLoan,
       vars.reserveOracle,
-      vars.nftOracle
+      vars.nftOracle,
+      loanData.nftTokenId
     );
 
     // check bid fine in min & max range
@@ -425,7 +427,8 @@ library LiquidateLogic {
       nftData,
       vars.poolLoan,
       vars.reserveOracle,
-      vars.nftOracle
+      vars.nftOracle,
+      loanData.nftTokenId
     );
 
     // Last bid price can not cover borrow amount

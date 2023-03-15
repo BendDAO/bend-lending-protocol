@@ -467,7 +467,9 @@ contract LendPool is
       nftAsset,
       nftData,
       _addressesProvider.getReserveOracle(),
-      _addressesProvider.getNFTOracle()
+      _addressesProvider.getNFTOracle(),
+      0,
+      false
     );
 
     availableBorrowsInETH = GenericLogic.calculateAvailableBorrows(totalCollateralInETH, 0, ltv);
@@ -518,7 +520,9 @@ contract LendPool is
       nftAsset,
       nftData,
       _addressesProvider.getReserveOracle(),
-      _addressesProvider.getNFTOracle()
+      _addressesProvider.getNFTOracle(),
+      loan.nftTokenId,
+      true
     );
 
     (, totalDebt) = GenericLogic.calculateNftDebtData(
@@ -648,7 +652,8 @@ contract LendPool is
       nftData,
       vars.poolLoan,
       _addressesProvider.getReserveOracle(),
-      _addressesProvider.getNFTOracle()
+      _addressesProvider.getNFTOracle(),
+      loanData.nftTokenId
     );
 
     if (vars.liquidatePrice < vars.paybackAmount) {
