@@ -25,8 +25,11 @@ import {
   getDebtToken,
   getWalletProvider,
   getUIPoolDataProvider,
+  getMockERC721Wrapper,
+  getWrapperGateway,
+  getMockERC721Underlying,
 } from "../../helpers/contracts-getters";
-import { eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
+import { eContractid, eEthereumNetwork, eNetwork, tEthereumAddress } from "../../helpers/types";
 import { LendPool } from "../../types/LendPool";
 import { BendProtocolDataProvider } from "../../types/BendProtocolDataProvider";
 import { MintableERC20 } from "../../types/MintableERC20";
@@ -60,6 +63,8 @@ import {
   MockIncentivesController,
   UiPoolDataProvider,
   WalletBalanceProvider,
+  MockerERC721Wrapper,
+  WrapperGateway,
 } from "../../types";
 import { MockChainlinkOracle } from "../../types/MockChainlinkOracle";
 import { USD_ADDRESS } from "../../helpers/constants";
@@ -107,6 +112,12 @@ export interface TestEnv {
   wrappedPunk: WrappedPunk;
   punkGateway: PunkGateway;
 
+  mockOtherdeed: MintableERC721;
+  landIdTracker: number;
+  wrappedKoda: MockerERC721Wrapper;
+  bWKoda: BNFT;
+  wrapperGateway: WrapperGateway;
+
   roundIdTracker: number;
   nowTimeTracker: number;
 }
@@ -145,6 +156,12 @@ const testEnv: TestEnv = {
   addressesProvider: {} as LendPoolAddressesProvider,
   wethGateway: {} as WETHGateway,
   //wpunksGateway: {} as WPUNKSGateway,
+  mockOtherdeed: {} as MintableERC721,
+  wrappedKoda: {} as MockerERC721Wrapper,
+  bWKoda: {} as BNFT,
+  wrapperGateway: {} as WrapperGateway,
+  punkIndexTracker: {} as number,
+  landIdTracker: {} as number,
   tokenIdTracker: {} as number,
   roundIdTracker: {} as number,
   nowTimeTracker: {} as number,
@@ -220,9 +237,11 @@ export async function initializeMakeSuite() {
   //console.log("allBNftTokens", allBNftTokens);
   const bPunkAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WPUNKS")?.bNftAddress;
   const bByacAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "BAYC")?.bNftAddress;
+  const bWKodaAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WKODA")?.bNftAddress;
 
   const wpunksAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WPUNKS")?.nftAddress;
   const baycAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "BAYC")?.nftAddress;
+  const wkodaAddress = allBNftTokens.find((tokenData) => tokenData.nftSymbol === "WKODA")?.nftAddress;
 
   if (!bByacAddress || !bPunkAddress) {
     console.error("Invalid BNFT Tokens", bByacAddress, bPunkAddress);
@@ -242,8 +261,14 @@ export async function initializeMakeSuite() {
   testEnv.wrappedPunk = await getWrappedPunk();
   testEnv.punkGateway = await getPunkGateway();
 
+  testEnv.mockOtherdeed = await getMockERC721Underlying("MockOtherdeed");
+  testEnv.wrappedKoda = await getMockERC721Wrapper("WKODA", wkodaAddress);
+  testEnv.bWKoda = await getBNFT(bWKodaAddress);
+  testEnv.wrapperGateway = await getWrapperGateway("KodaWrapperGateway");
+
   testEnv.tokenIdTracker = 100;
   testEnv.punkIndexTracker = 0;
+  testEnv.landIdTracker = 0;
 
   testEnv.roundIdTracker = 1;
   testEnv.nowTimeTracker = Number(await getNowTimeInSeconds());

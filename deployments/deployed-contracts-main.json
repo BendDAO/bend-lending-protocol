@@ -123,5 +123,16 @@
   "UIPoolDataProvider": {
     "address": "0x132E3E3eC6652299B235A26D601aa9C68806e3FE",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "BendProxyAdminWTL": {
+    "address": "0x489097c238e2021C00E071479AED1655417bAc34",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "KodaGatewayImpl": {
+    "address": "0x3837Ddc0b0Ee70aA9007dB6bED3f40b9cAEbd202"
+  },
+  "KodaGateway": {
+    "address": "0x56ECe8EDba529943b9A8ED966253b1F5ac54BF55",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

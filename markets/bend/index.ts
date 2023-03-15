@@ -16,6 +16,7 @@ import {
   strategyNft_KONGZ,
   strategyNft_MAYC,
   strategyNft_MEEBITS,
+  strategyNft_WKODA,
   strategyNft_WOW,
   strategyNft_WPUNKS,
 } from './nftsConfigs';
@@ -41,6 +42,7 @@ export const BendConfig: IBendConfiguration = {
     MAYC: strategyNft_MAYC,
     CLONEX: strategyNft_CLONEX,
     AZUKI: strategyNft_AZUKI,
+    WKODA: strategyNft_WKODA,
   },
   ReserveAssets: {
     [eEthereumNetwork.hardhat]: {},
