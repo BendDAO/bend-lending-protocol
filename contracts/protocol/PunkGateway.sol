@@ -116,6 +116,9 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
       return;
     }
 
+    // !!! CAUTION: MUST CHECK THE OWNERSHIP HERE !!!
+    // Beware many holders can sell the punk to this gateway at the same time.
+    // If we do not check the ownership, attacker can borrow eth using victime's punk.
     address owner = punks.punkIndexToAddress(punkIndex);
     require(owner == _msgSender(), "PunkGateway: not owner of punkIndex");
 
