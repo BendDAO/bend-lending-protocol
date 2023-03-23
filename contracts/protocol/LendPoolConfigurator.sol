@@ -42,8 +42,11 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     _;
   }
 
-  modifier onlyRiskAdmin() {
-    require(_addressesProvider.getAddress(RISK_ADMIN) == msg.sender, Errors.CALLER_NOT_RISK_ADMIN);
+  modifier onlyRiskOrPoolAdmin() {
+    require(
+      (_addressesProvider.getAddress(RISK_ADMIN) == msg.sender) || (_addressesProvider.getPoolAdmin() == msg.sender),
+      Errors.CALLER_NOT_RISK_OR_POOL_ADMIN
+    );
     _;
   }
 
@@ -92,7 +95,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function setBorrowingFlagOnReserve(address[] calldata assets, bool flag) external onlyRiskAdmin {
+  function setBorrowingFlagOnReserve(address[] calldata assets, bool flag) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(assets[i]);
@@ -132,7 +135,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function setFreezeFlagOnReserve(address[] calldata assets, bool flag) external onlyRiskAdmin {
+  function setFreezeFlagOnReserve(address[] calldata assets, bool flag) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(assets[i]);
@@ -211,7 +214,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function setFreezeFlagOnNft(address[] calldata assets, bool flag) external onlyRiskAdmin {
+  function setFreezeFlagOnNft(address[] calldata assets, bool flag) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(assets[i]);
@@ -328,7 +331,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     address[] calldata assets,
     uint256 maxSupply,
     uint256 maxTokenId
-  ) external onlyRiskAdmin {
+  ) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       cachedPool.setNftMaxSupplyAndTokenId(assets[i], maxSupply, maxTokenId);

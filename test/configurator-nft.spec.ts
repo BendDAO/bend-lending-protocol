@@ -88,20 +88,20 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     expect(isFrozen).to.be.equal(false);
   });
 
-  it("Check the onlyRiskAdmin on freezeNft ", async () => {
+  it("Check the onlyAdmin on freezeNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setFreezeFlagOnNft([bayc.address], true),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
-  it("Check the onlyRiskAdmin on unfreezeNft ", async () => {
+  it("Check the onlyAdmin on unfreezeNft ", async () => {
     const { configurator, users, bayc } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setFreezeFlagOnNft([bayc.address], false),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
   it("Deactivates the BAYC NFT as collateral", async () => {
