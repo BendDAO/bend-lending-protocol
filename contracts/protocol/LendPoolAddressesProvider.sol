@@ -34,6 +34,7 @@ contract LendPoolAddressesProvider is Ownable, ILendPoolAddressesProvider {
   bytes32 private constant BEND_DATA_PROVIDER = "BEND_DATA_PROVIDER";
   bytes32 private constant UI_DATA_PROVIDER = "UI_DATA_PROVIDER";
   bytes32 private constant WALLET_BALANCE_PROVIDER = "WALLET_BALANCE_PROVIDER";
+  bytes32 public constant RISK_ADMIN = "RISK_ADMIN";
 
   constructor(string memory marketId) {
     _setMarketId(marketId);
