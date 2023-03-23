@@ -42,7 +42,7 @@ export const MOCK_RESERVE_AGGREGATORS_PRICES = {
   DAI: oneEther.multipliedBy("0.000233211").toFixed(),
   //BUSD: oneEther.multipliedBy('0.0002343946').toFixed(),
   USDC: oneEther.multipliedBy("0.0002349162").toFixed(),
-  //USDT: oneEther.multipliedBy('0.0002359253').toFixed(),
+  USDT: oneEther.multipliedBy("0.0002359253").toFixed(),
 };
 
 //Price source: https://nftpricefloor.com/

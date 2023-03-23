@@ -367,12 +367,13 @@ export const deployMintableERC721 = async (args: [string, string], verify?: bool
   );
 
 export const deployInterestRate = async (args: [tEthereumAddress, string, string, string, string], verify: boolean) =>
-  withSaveAndVerify(
-    await new InterestRateFactory(await getDeploySigner()).deploy(...args),
-    eContractid.InterestRate,
-    args,
-    verify
-  );
+  deployInterestRateWithID(eContractid.InterestRate, args, verify);
+
+export const deployInterestRateWithID = async (
+  id: string,
+  args: [tEthereumAddress, string, string, string, string],
+  verify: boolean
+) => withSaveAndVerify(await new InterestRateFactory(await getDeploySigner()).deploy(...args), id, args, verify);
 
 export const deployGenericDebtToken = async (verify?: boolean) =>
   withSaveAndVerify(await new DebtTokenFactory(await getDeploySigner()).deploy(), eContractid.DebtToken, [], verify);

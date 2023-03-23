@@ -146,5 +146,9 @@
   "USDT": {
     "address": "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyStableThree": {
+    "address": "0x124A8d7D5E8C72e0951D1B247bDac02640914b19",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
