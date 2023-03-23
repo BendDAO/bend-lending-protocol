@@ -149,6 +149,7 @@ export const CommonsConfig: ICommonConfiguration = {
     },
     [eEthereumNetwork.goerli]: {
       USD: '0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e', //ETH - USD
+      USDT: '0xF82ced221150d59ac33D42bfc4b0f1ED845B2da6',
     },
     [eEthereumNetwork.rinkeby]: {
       DAI: '0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D',
@@ -157,6 +158,9 @@ export const CommonsConfig: ICommonConfiguration = {
     },
     [eEthereumNetwork.main]: {
       USD: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419', //ETH - USD
+      USDT: '0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46',
+      DAI: '0x773616E4d11A78F511299002da57A0a94577F1f4',
+      USDC: '0x986b5E1e1755e3C2440e960477f25201B0a8bbD4',
     },
   },
   ReserveAssets: {

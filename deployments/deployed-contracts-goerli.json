@@ -138,5 +138,13 @@
   "KodaGateway": {
     "address": "0x3fa746EcDC1C53c7657a57c71bFaB497be2e0BF5",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "MintableERC20": {
+    "address": "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "USDT": {
+    "address": "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

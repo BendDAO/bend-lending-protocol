@@ -402,6 +402,9 @@ export const deployAllMockTokens = async (forTestCases: boolean, verify?: boolea
     }
 
     let decimals = "18";
+    if (tokenSymbol === "USDT" || tokenSymbol === "USDC") {
+      decimals = "6";
+    }
 
     let configData = (<any>protoConfigData)[tokenSymbol];
 
@@ -412,6 +415,26 @@ export const deployAllMockTokens = async (forTestCases: boolean, verify?: boolea
     await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
   }
   return tokens;
+};
+
+export const deployOneMockToken = async (tokenSymbol: string, verify?: boolean) => {
+  const protoConfigData = getReservesConfigByPool(BendPools.proto);
+
+  const tokenName = "Bend Mock " + tokenSymbol;
+
+  let decimals = "18";
+  if (tokenSymbol === "USDT" || tokenSymbol === "USDC") {
+    decimals = "6";
+  }
+
+  let configData = (<any>protoConfigData)[tokenSymbol];
+  const tokenContract = await deployMintableERC20(
+    [tokenName, tokenSymbol, configData ? configData.reserveDecimals : decimals],
+    verify
+  );
+  await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokenContract);
+
+  return tokenContract;
 };
 
 export const deployAllMockNfts = async (verify?: boolean) => {
