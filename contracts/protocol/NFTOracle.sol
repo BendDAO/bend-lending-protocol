@@ -5,8 +5,11 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {INFTOracle} from "../interfaces/INFTOracle.sol";
 import {BlockContext} from "../utils/BlockContext.sol";
+import {EnumerableSetUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContext {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+
   modifier onlyAdmin() {
     require(_msgSender() == priceFeedAdmin, "NFTOracle: !admin");
     _;
@@ -14,6 +17,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   event AssetAdded(address indexed asset);
   event AssetRemoved(address indexed asset);
+  event AssetMappingAdded(address indexed mappedAsset, address indexed originAsset);
+  event AssetMappingRemoved(address indexed mappedAsset, address indexed originAsset);
   event FeedAdminUpdated(address indexed admin);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
   event SetAssetTwapPrice(address indexed asset, uint256 price, uint256 timestamp);
@@ -53,6 +58,9 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   uint256 public twapInterval;
   mapping(address => uint256) public twapPriceMap;
+  mapping(address => EnumerableSetUpgradeable.AddressSet) private _assetMapping;
+
+  // For upgradable, add one new variable above!!!!!!!!!!!!!!!!!!!!
 
   function _whenNotPaused(address _nftContract) internal view {
     bool _paused = nftPaused[_nftContract];
@@ -74,6 +82,24 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     timeIntervalWithPrice = _timeIntervalWithPrice;
     minUpdateTime = _minUpdateTime;
     twapInterval = _twapInterval;
+  }
+
+  function setAssetMapping(
+    address mappedAsset,
+    address originAsset,
+    bool added
+  ) external onlyOwner {
+    requireKeyExisted(mappedAsset, true);
+    requireKeyExisted(originAsset, true);
+    if (added) {
+      _assetMapping[mappedAsset].add(originAsset);
+
+      emit AssetMappingAdded(mappedAsset, originAsset);
+    } else {
+      _assetMapping[mappedAsset].remove(originAsset);
+
+      emit AssetMappingRemoved(mappedAsset, originAsset);
+    }
   }
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
@@ -152,6 +178,22 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
     emit SetAssetData(_nftContract, _price, _timestamp, len);
     emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
+
+    if (_assetMapping[_nftContract].length() > 0) {
+      address[] memory addresses = _assetMapping[_nftContract].values();
+      for (uint256 i = 0; i < _assetMapping[_nftContract].length(); i++) {
+        requireKeyExisted(addresses[i], true);
+        nftPriceFeedMap[addresses[i]].nftPriceData.push(data);
+        twapPriceMap[addresses[i]] = twapPrice;
+
+        emit SetAssetData(addresses[i], _price, _timestamp, len);
+        emit SetAssetTwapPrice(addresses[i], twapPrice, _timestamp);
+      }
+    }
+  }
+
+  function getAssetMapping(address _nftContract) external view override returns (address[] memory) {
+    return _assetMapping[_nftContract].values();
   }
 
   function getAssetPrice(address _nftContract) external view override returns (uint256) {

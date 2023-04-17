@@ -139,6 +139,39 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
     await mockNftOracle.removeAsset(users[1].address);
   });
 
+  it("NFTOracle: Set asset mapping", async () => {
+    const { mockNftOracle, users } = testEnv;
+    await mockNftOracle.addAsset(users[0].address);
+    await mockNftOracle.addAsset(users[1].address);
+    await mockNftOracle.addAsset(users[2].address);
+
+    const originAddresses = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(originAddresses.length).to.be.equal(0);
+
+    await mockNftOracle.setAssetMapping(users[0].address, users[1].address, true);
+    const originAddresses1 = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(originAddresses1.length).to.be.equal(1);
+
+    const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
+    await mockNftOracle.mock_setBlockTimestamp(currentTime.add(15));
+    let assets: string[] = [users[0].address];
+    let prices: string[] = ["400"];
+
+    await mockNftOracle.setMultipleAssetsData(assets, prices);
+    const price = await mockNftOracle.getAssetPrice(users[0].address);
+    expect(price).to.equal("400");
+
+    const price1 = await mockNftOracle.getAssetPrice(users[1].address);
+    expect(price1).to.equal("400");
+    await mockNftOracle.setAssetMapping(users[0].address, users[1].address, false);
+    const originAddresses2 = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(originAddresses2.length).to.be.equal(0);
+
+    await mockNftOracle.removeAsset(users[0].address);
+    await mockNftOracle.removeAsset(users[1].address);
+    await mockNftOracle.removeAsset(users[2].address);
+  });
+
   it("NFTOracle: GetAssetPrice After Remove The Asset", async () => {
     const { mockNftOracle, users } = testEnv;
     await mockNftOracle.addAsset(users[0].address);
