@@ -5,7 +5,43 @@ const { expect } = require("chai");
 makeSuite("NFTOracle", (testEnv: TestEnv) => {
   before(async () => {});
 
-  it("NFTOracle: Set Admin", async () => {
+  it("NFTOracle: Check owner (revert expected)", async () => {
+    const { mockNftOracle, users } = testEnv;
+
+    const mockNftOracleNotOwner = mockNftOracle.connect(users[5].signer);
+
+    await expect(mockNftOracleNotOwner.setPriceFeedAdmin(users[0].address)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+
+    await expect(mockNftOracleNotOwner.setAssets([users[0].address])).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+    await expect(mockNftOracleNotOwner.addAsset(users[0].address)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+    await expect(mockNftOracleNotOwner.removeAsset(users[0].address)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+
+    await expect(mockNftOracleNotOwner.setAssetMapping(users[0].address, users[1].address, true)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("NFTOracle: Check feed admin (revert expected)", async () => {
+    const { mockNftOracle, users } = testEnv;
+
+    const mockNftOracleNotFeedAdmin = mockNftOracle.connect(users[5].signer);
+
+    await expect(mockNftOracleNotFeedAdmin.setAssetData(users[0].address, 400)).to.be.revertedWith("NFTOracle: !admin");
+
+    await expect(mockNftOracleNotFeedAdmin.setMultipleAssetsData([users[0].address], [400])).to.be.revertedWith(
+      "NFTOracle: !admin"
+    );
+  });
+
+  it("NFTOracle: Set Feed Admin", async () => {
     const { mockNftOracle, users } = testEnv;
     const admin = await mockNftOracle.priceFeedAdmin();
     await mockNftOracle.setPriceFeedAdmin(users[0].address);
@@ -141,35 +177,82 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
 
   it("NFTOracle: Set asset mapping", async () => {
     const { mockNftOracle, users } = testEnv;
+
+    // add assets
     await mockNftOracle.addAsset(users[0].address);
     await mockNftOracle.addAsset(users[1].address);
     await mockNftOracle.addAsset(users[2].address);
+    await mockNftOracle.addAsset(users[3].address);
 
-    const originAddresses = await mockNftOracle.getAssetMapping(users[0].address);
-    expect(originAddresses.length).to.be.equal(0);
+    // add mapping
+    const mappedAddresses = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(mappedAddresses.length).to.be.equal(0);
 
     await mockNftOracle.setAssetMapping(users[0].address, users[1].address, true);
-    const originAddresses1 = await mockNftOracle.getAssetMapping(users[0].address);
-    expect(originAddresses1.length).to.be.equal(1);
+    const mappedAddresses101 = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(mappedAddresses101.length).to.be.equal(1);
+    const isMapped101 = await mockNftOracle.isAssetMapped(users[0].address, users[1].address);
+    expect(isMapped101).to.be.equal(true);
 
+    await mockNftOracle.setAssetMapping(users[0].address, users[2].address, true);
+    const mappedAddresses102 = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(mappedAddresses102.length).to.be.equal(2);
+    const isMapped102 = await mockNftOracle.isAssetMapped(users[0].address, users[2].address);
+    expect(isMapped102).to.be.equal(true);
+
+    // mapped asset can not be mapped again
+    await expect(mockNftOracle.setAssetMapping(users[0].address, users[1].address, true)).to.be.revertedWith(
+      "NFTOracle: mapped asset can not mapped again"
+    );
+    await expect(mockNftOracle.setAssetMapping(users[3].address, users[0].address, true)).to.be.revertedWith(
+      "NFTOracle: mapped asset already used as original asset"
+    );
+    await expect(mockNftOracle.setAssetMapping(users[1].address, users[3].address, true)).to.be.revertedWith(
+      "NFTOracle: original asset already used as mapped asset"
+    );
+
+    // update price
     const currentTime = await mockNftOracle.mock_getCurrentTimestamp();
     await mockNftOracle.mock_setBlockTimestamp(currentTime.add(15));
     let assets: string[] = [users[0].address];
     let prices: string[] = ["400"];
 
     await mockNftOracle.setMultipleAssetsData(assets, prices);
-    const price = await mockNftOracle.getAssetPrice(users[0].address);
-    expect(price).to.equal("400");
+    const ogAssetPrice = await mockNftOracle.getAssetPrice(users[0].address);
+    expect(ogAssetPrice).to.equal("400");
 
-    const price1 = await mockNftOracle.getAssetPrice(users[1].address);
-    expect(price1).to.equal("400");
+    const mapAsset1Price = await mockNftOracle.getAssetPrice(users[1].address);
+    expect(mapAsset1Price).to.equal("400");
+
+    const mapAsset2Price = await mockNftOracle.getAssetPrice(users[2].address);
+    expect(mapAsset2Price).to.equal("400");
+
+    // assets can not be removed before removing mapping
+    await expect(mockNftOracle.removeAsset(users[0].address)).to.be.revertedWith(
+      "NFTOracle: origin asset need unmapped first"
+    );
+    await expect(mockNftOracle.removeAsset(users[1].address)).to.be.revertedWith(
+      "NFTOracle: mapped asset need unmapped first"
+    );
+
+    // remove mapping
     await mockNftOracle.setAssetMapping(users[0].address, users[1].address, false);
-    const originAddresses2 = await mockNftOracle.getAssetMapping(users[0].address);
-    expect(originAddresses2.length).to.be.equal(0);
+    const mappedAddresses201 = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(mappedAddresses201.length).to.be.equal(1);
+    const isMapped201 = await mockNftOracle.isAssetMapped(users[0].address, users[1].address);
+    expect(isMapped201).to.be.equal(false);
 
+    await mockNftOracle.setAssetMapping(users[0].address, users[2].address, false);
+    const mappedAddresses202 = await mockNftOracle.getAssetMapping(users[0].address);
+    expect(mappedAddresses202.length).to.be.equal(0);
+    const isMapped202 = await mockNftOracle.isAssetMapped(users[0].address, users[2].address);
+    expect(isMapped202).to.be.equal(false);
+
+    // remove assets
     await mockNftOracle.removeAsset(users[0].address);
     await mockNftOracle.removeAsset(users[1].address);
     await mockNftOracle.removeAsset(users[2].address);
+    await mockNftOracle.removeAsset(users[3].address);
   });
 
   it("NFTOracle: GetAssetPrice After Remove The Asset", async () => {

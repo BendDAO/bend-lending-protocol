@@ -34,6 +34,10 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     NFTPriceData[] nftPriceData;
   }
 
+  //////////////////////////////////////////////////////////////////////////////
+  // !!! Add new variable MUST append it only, do not insert, update type & name, or change order !!!
+  // https://docs.openzeppelin.com/upgrades-plugins/1.x/writing-upgradeable#potentially-unsafe-operations
+
   address public priceFeedAdmin;
 
   // key is nft contract address
@@ -51,16 +55,21 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   mapping(address => bool) public nftPaused;
 
+  uint256 public twapInterval;
+  mapping(address => uint256) public twapPriceMap;
+
+  // Mapping from original asset to mapped asset
+  mapping(address => EnumerableSetUpgradeable.AddressSet) private _originalAssetToMappedAsset;
+  // Mapping from mapped asset to original asset
+  mapping(address => address) private _mappedAssetToOriginalAsset;
+
+  // !!! For upgradable, MUST append one new variable above !!!
+  //////////////////////////////////////////////////////////////////////////////
+
   modifier whenNotPaused(address _nftContract) {
     _whenNotPaused(_nftContract);
     _;
   }
-
-  uint256 public twapInterval;
-  mapping(address => uint256) public twapPriceMap;
-  mapping(address => EnumerableSetUpgradeable.AddressSet) private _assetMapping;
-
-  // For upgradable, add one new variable above!!!!!!!!!!!!!!!!!!!!
 
   function _whenNotPaused(address _nftContract) internal view {
     bool _paused = nftPaused[_nftContract];
@@ -82,24 +91,6 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     timeIntervalWithPrice = _timeIntervalWithPrice;
     minUpdateTime = _minUpdateTime;
     twapInterval = _twapInterval;
-  }
-
-  function setAssetMapping(
-    address mappedAsset,
-    address originAsset,
-    bool added
-  ) external onlyOwner {
-    requireKeyExisted(mappedAsset, true);
-    requireKeyExisted(originAsset, true);
-    if (added) {
-      _assetMapping[mappedAsset].add(originAsset);
-
-      emit AssetMappingAdded(mappedAsset, originAsset);
-    } else {
-      _assetMapping[mappedAsset].remove(originAsset);
-
-      emit AssetMappingRemoved(mappedAsset, originAsset);
-    }
   }
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
@@ -126,6 +117,10 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   function removeAsset(address _nftContract) external onlyOwner {
     requireKeyExisted(_nftContract, true);
+    // make sure the asset mapping is empty before remove asset
+    require(_originalAssetToMappedAsset[_nftContract].length() == 0, "NFTOracle: origin asset need unmapped first");
+    require(_mappedAssetToOriginalAsset[_nftContract] == address(0), "NFTOracle: mapped asset need unmapped first");
+
     delete nftPriceFeedMap[_nftContract];
 
     uint256 length = nftPriceFeedKeys.length;
@@ -137,6 +132,39 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       }
     }
     emit AssetRemoved(_nftContract);
+  }
+
+  function setAssetMapping(
+    address originAsset,
+    address mappedAsset,
+    bool added
+  ) public onlyOwner {
+    requireKeyExisted(originAsset, true);
+    requireKeyExisted(mappedAsset, true);
+
+    if (added) {
+      // extra check for mapped asset
+      require(_mappedAssetToOriginalAsset[mappedAsset] == address(0), "NFTOracle: mapped asset can not mapped again");
+      require(
+        _originalAssetToMappedAsset[mappedAsset].length() == (0),
+        "NFTOracle: mapped asset already used as original asset"
+      );
+      // extra check for origin asset
+      require(
+        _mappedAssetToOriginalAsset[originAsset] == address(0),
+        "NFTOracle: original asset already used as mapped asset"
+      );
+
+      _originalAssetToMappedAsset[originAsset].add(mappedAsset);
+      _mappedAssetToOriginalAsset[mappedAsset] = originAsset;
+
+      emit AssetMappingAdded(mappedAsset, originAsset);
+    } else {
+      _originalAssetToMappedAsset[originAsset].remove(mappedAsset);
+      _mappedAssetToOriginalAsset[mappedAsset] = address(0);
+
+      emit AssetMappingRemoved(originAsset, mappedAsset);
+    }
   }
 
   function setAssetData(address _nftContract, uint256 _price) external override onlyAdmin whenNotPaused(_nftContract) {
@@ -179,24 +207,26 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     emit SetAssetData(_nftContract, _price, _timestamp, len);
     emit SetAssetTwapPrice(_nftContract, twapPrice, _timestamp);
 
-    if (_assetMapping[_nftContract].length() > 0) {
-      address[] memory addresses = _assetMapping[_nftContract].values();
-      for (uint256 i = 0; i < _assetMapping[_nftContract].length(); i++) {
-        requireKeyExisted(addresses[i], true);
-        nftPriceFeedMap[addresses[i]].nftPriceData.push(data);
-        twapPriceMap[addresses[i]] = twapPrice;
+    // Set data for mapped assets
+    address[] memory mappedAddresses = _originalAssetToMappedAsset[_nftContract].values();
+    for (uint256 i = 0; i < mappedAddresses.length; i++) {
+      nftPriceFeedMap[mappedAddresses[i]].nftPriceData.push(data);
+      twapPriceMap[mappedAddresses[i]] = twapPrice;
 
-        emit SetAssetData(addresses[i], _price, _timestamp, len);
-        emit SetAssetTwapPrice(addresses[i], twapPrice, _timestamp);
-      }
+      emit SetAssetData(mappedAddresses[i], _price, _timestamp, len);
+      emit SetAssetTwapPrice(mappedAddresses[i], twapPrice, _timestamp);
     }
   }
 
-  function getAssetMapping(address _nftContract) external view override returns (address[] memory) {
-    return _assetMapping[_nftContract].values();
+  function getAssetMapping(address originAsset) public view override returns (address[] memory) {
+    return _originalAssetToMappedAsset[originAsset].values();
   }
 
-  function getAssetPrice(address _nftContract) external view override returns (uint256) {
+  function isAssetMapped(address originAsset, address mappedAsset) public view override returns (bool) {
+    return _originalAssetToMappedAsset[originAsset].contains(mappedAsset);
+  }
+
+  function getAssetPrice(address _nftContract) public view override returns (uint256) {
     require(isExistedKey(_nftContract), "NFTOracle: key not existed");
     uint256 len = getPriceFeedLength(_nftContract);
     require(len > 0, "NFTOracle: no price data");
