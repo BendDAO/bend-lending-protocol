@@ -163,7 +163,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       _originalAssetToMappedAsset[originAsset].remove(mappedAsset);
       _mappedAssetToOriginalAsset[mappedAsset] = address(0);
 
-      emit AssetMappingRemoved(originAsset, mappedAsset);
+      emit AssetMappingRemoved(mappedAsset, originAsset);
     }
   }
 
