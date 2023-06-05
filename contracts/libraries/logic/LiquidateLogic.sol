@@ -469,7 +469,10 @@ library LiquidateLogic {
     }
 
     // transfer erc721 to bidder
-    IERC721Upgradeable(loanData.nftAsset).safeTransferFrom(address(this), loanData.bidderAddress, params.nftTokenId);
+    require(
+      IERC721Upgradeable(loanData.nftAsset).ownerOf(params.nftTokenId) == loanData.bidderAddress,
+      Errors.LPL_INVALID_NFT_OWNER
+    );
 
     emit Liquidate(
       vars.initiator,
