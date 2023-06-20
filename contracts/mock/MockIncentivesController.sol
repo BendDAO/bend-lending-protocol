@@ -8,6 +8,7 @@ contract MockIncentivesController is IIncentivesController {
   address private _asset;
   uint256 private _totalSupply;
   uint256 private _userBalance;
+  uint256 private _emissionPerSecond;
 
   /**
    * @dev Called by the corresponding asset on any update that affects the rewards distribution
@@ -24,6 +25,11 @@ contract MockIncentivesController is IIncentivesController {
     _asset = asset;
     _totalSupply = totalSupply;
     _userBalance = userBalance;
+  }
+
+  function configureAssets(address[] calldata _assets, uint256[] calldata _emissionsPerSeconds) external override {
+    _asset = _assets[0];
+    _emissionPerSecond = _emissionsPerSeconds[0];
   }
 
   function checkHandleActionIsCorrect(

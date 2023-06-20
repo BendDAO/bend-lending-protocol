@@ -37,3 +37,7 @@ cache
 artifacts
 storage_layout
 out.html
+
+# Foundry
+cache_forge
+out

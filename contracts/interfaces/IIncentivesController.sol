@@ -13,4 +13,6 @@ interface IIncentivesController {
     uint256 totalSupply,
     uint256 userBalance
   ) external;
+
+  function configureAssets(address[] calldata _assets, uint256[] calldata _emissionsPerSecond) external;
 }
