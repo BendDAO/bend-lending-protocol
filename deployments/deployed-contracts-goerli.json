@@ -110,11 +110,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGatewayImpl": {
-    "address": "0x675B54905Ae457D9B7BcA72B58a7CC33AD3AB514"
+    "address": "0xF322391B5444fC4B7Ad43859E4b0B0ddA75C31f9"
   },
   "PunkGateway": {
-    "address": "0xa7076550Ee79DB0320BE98f89D775797D859140c",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0xa7076550Ee79DB0320BE98f89D775797D859140c"
   },
   "WalletBalanceProvider": {
     "address": "0xe54EEF2aFb3cBdBBe58370F33296d533a34123E5",
