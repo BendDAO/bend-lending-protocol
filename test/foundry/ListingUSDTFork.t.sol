@@ -68,13 +68,13 @@ contract ListingUSDTForkTest is Test {
     assertGt(usdtEthPrice, 0, "failed to get USDT / ETH price");
     console.log("USDT / ETH price: ", usdtEthPrice);
 
-    // config usdt asset in configurator
+    // config usdt asset in configurator, decimals is 27
     InterestRate usdtInterestRate = new InterestRate(
       ILendPoolAddressesProvider(poolProviderAddress),
-      650000000000000000000000000,
-      50000000000000000000000000,
-      160000000000000000000000000,
-      1000000000000000000000000000
+      650000000000000000000000000, // optimalUtilizationRate, 65%
+      100000000000000000000000000, // baseVariableBorrowRate, 10%
+      160000000000000000000000000, // variableRateSlope1, 16%
+      2000000000000000000000000000 // variableRateSlope2, 200%
     );
 
     LendPoolConfigurator configurator = LendPoolConfigurator(addressProvider.getLendPoolConfigurator());
