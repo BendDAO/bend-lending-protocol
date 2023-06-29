@@ -50,7 +50,7 @@ contract ListingUSDTForkTest is Test {
   IDebtToken public debtUSDTToken;
 
   // how to run this testcase
-  // forge test --match-contract ListingUSDTForkTest --fork-url https://RPC --fork-block-number 17512878
+  // forge test --match-contract ListingUSDTForkTest --fork-url https://RPC --fork-block-number 17577548
 
   function setUp() public {
     proxyAdminPool = BendProxyAdmin(proxyAdminAddress);
@@ -182,10 +182,17 @@ contract ListingUSDTForkTest is Test {
 
     vm.startPrank(testWallet);
 
+    uint256 usdtBalanceBeforeBorrow = IERC20(reserve).balanceOf(address(bendUSDTToken));
+    console.log("USDT balanceOf(bendUSDT) before borrow", usdtBalanceBeforeBorrow);
+
     // moonbirds
     address nftAsset = 0x23581767a106ae21c074b2276D25e5C3e136a68b;
     uint256 nftTokenId = 939;
     (, , , uint256 availableBorrowsInReserve, , , ) = pool.getNftCollateralData(nftAsset, reserve);
+    if (availableBorrowsInReserve > usdtBalanceBeforeBorrow) {
+      availableBorrowsInReserve = usdtBalanceBeforeBorrow;
+    }
+    availableBorrowsInReserve = availableBorrowsInReserve * 99 / 100;
     IERC721(nftAsset).setApprovalForAll(address(pool), true);
     pool.borrow(reserve, availableBorrowsInReserve, nftAsset, nftTokenId, testWallet, 0);
 
@@ -219,14 +226,18 @@ contract ListingUSDTForkTest is Test {
 
     debtUSDTToken.approveDelegation(address(punkGateway), type(uint256).max);
 
-    console.log("USDT balanceOf(bendUSDT) before borrow", IERC20(reserve).balanceOf(address(bendUSDTToken)));
+    uint256 usdtBalanceBeforeBorrow = IERC20(reserve).balanceOf(address(bendUSDTToken));
+    console.log("USDT balanceOf(bendUSDT) before borrow", usdtBalanceBeforeBorrow);
 
     // punks
     address nftAsset = address(punkGateway.wrappedPunks());
     uint256 punkIdex = 8580;
     punk.offerPunkForSaleToAddress(punkIdex, 0, address(punkGateway));
-    //(, , , uint256 availableBorrowsInReserve, , , ) = pool.getNftCollateralData(nftAsset, reserve);
-    uint256 availableBorrowsInReserve = 5432 * 1e6;
+    (, , , uint256 availableBorrowsInReserve, , , ) = pool.getNftCollateralData(nftAsset, reserve);
+    if (availableBorrowsInReserve > usdtBalanceBeforeBorrow) {
+      availableBorrowsInReserve = usdtBalanceBeforeBorrow;
+    }
+    availableBorrowsInReserve = availableBorrowsInReserve * 99 / 100;
     punkGateway.borrow(reserve, availableBorrowsInReserve, punkIdex, testWallet, 0);
 
     console.log("USDT balanceOf(bendUSDT) after borrow", IERC20(reserve).balanceOf(address(bendUSDTToken)));
