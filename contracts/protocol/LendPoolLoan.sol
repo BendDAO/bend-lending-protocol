@@ -233,6 +233,8 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       loan.state = DataTypes.LoanState.Auction;
       loan.bidStartTimestamp = block.timestamp;
       loan.firstBidderAddress = onBehalfOf;
+
+      _setFlashLoanLocking(loan.nftAsset, loan.nftTokenId, address(this), true);
     } else {
       require(loan.state == DataTypes.LoanState.Auction, Errors.LPL_INVALID_LOAN_STATE);
 
@@ -285,6 +287,9 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     loan.bidPrice = 0;
     loan.firstBidderAddress = address(0);
 
+    // clear flash loan lock when exit auction
+    _setFlashLoanLocking(loan.nftAsset, loan.nftTokenId, address(this), false);
+
     emit LoanRedeemed(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amountTaken, borrowIndex);
   }
 
@@ -318,6 +323,9 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
 
     require(_nftTotalCollateral[loan.nftAsset] >= 1, Errors.LP_INVALIED_NFT_AMOUNT);
     _nftTotalCollateral[loan.nftAsset] -= 1;
+
+    // clear flash loan lock when exit auction
+    _setFlashLoanLocking(loan.nftAsset, loan.nftTokenId, address(this), false);
 
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
@@ -413,9 +421,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     uint256 tokenId,
     bool locked
   ) public override onlyFlashLoanLocker {
-    (address bnftProxy, ) = IBNFTRegistry(_addressesProvider.getBNFTRegistry()).getBNFTAddresses(nftAsset);
-
-    IBNFT(bnftProxy).setFlashLoanLocking(tokenId, _msgSender(), locked);
+    _setFlashLoanLocking(nftAsset, tokenId, _msgSender(), locked);
   }
 
   function purgeFlashLoanLocking(
@@ -542,5 +548,16 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
       bool checkHandle = ILoanRepaidInterceptor(interceptors[i]).afterLoanRepaid(nftAsset, tokenId);
       require(checkHandle, "BNFT: call interceptor after token burn failed");
     }
+  }
+
+  function _setFlashLoanLocking(
+    address nftAsset,
+    uint256 tokenId,
+    address operator,
+    bool locked
+  ) internal {
+    (address bnftProxy, ) = IBNFTRegistry(_addressesProvider.getBNFTRegistry()).getBNFTAddresses(nftAsset);
+
+    IBNFT(bnftProxy).setFlashLoanLocking(tokenId, operator, locked);
   }
 }
