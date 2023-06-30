@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
+import {IScaledBalanceToken} from "../interfaces/IScaledBalanceToken.sol";
 import {IIncentivesController} from "../interfaces/IIncentivesController.sol";
 
 contract MockIncentivesController is IIncentivesController {
@@ -27,8 +28,11 @@ contract MockIncentivesController is IIncentivesController {
     _userBalance = userBalance;
   }
 
-  function configureAssets(address[] calldata _assets, uint256[] calldata _emissionsPerSeconds) external override {
-    _asset = _assets[0];
+  function configureAssets(IScaledBalanceToken[] calldata _assets, uint256[] calldata _emissionsPerSeconds)
+    external
+    override
+  {
+    _asset = address(_assets[0]);
     _emissionPerSecond = _emissionsPerSeconds[0];
   }
 

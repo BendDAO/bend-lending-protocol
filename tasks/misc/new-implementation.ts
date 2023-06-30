@@ -31,9 +31,14 @@ import {
   deployBendCollector,
   deployConfiguratorLibraries,
   deployLendPoolLibraries,
+  deployWrapperGateway,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import {
+  getContractAddressInDb,
+  getEthersSignerByAddress,
+  insertContractAddressInDb,
+} from "../../helpers/contracts-helpers";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY, oneRay } from "../../helpers/constants";
 import { BytesLike } from "ethers";
 import BigNumber from "bignumber.js";
@@ -171,6 +176,25 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
     }
 
+    if (contract == "KodaGateway") {
+      const proxyAddress = await getContractAddressInDb(eContractid[contract]);
+
+      const kodaGatewayImpl = await deployWrapperGateway(eContractid[contract], verify);
+      console.log("KodaGateway implementation address:", kodaGatewayImpl.address);
+
+      await insertContractAddressInDb(eContractid[contract], proxyAddress);
+
+      if (upgrade) {
+        await DRE.run("dev:upgrade-implementation", {
+          pool: pool,
+          contract,
+          proxy: proxyAddress,
+          impl: kodaGatewayImpl.address,
+          admin: eContractid.BendProxyAdminWTL,
+        });
+      }
+    }
+
     if (contract == "BendProtocolDataProvider") {
       const contractImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
       console.log("BendProtocolDataProvider implementation address:", contractImpl.address);
@@ -210,10 +234,11 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
 
 task("dev:upgrade-implementation", "Update implementation to address provider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .addParam("contract", "Contract name")
+  .addParam("contract", "Contract id")
   .addParam("proxy", "Contract proxy address")
   .addParam("impl", "Contract implementation address")
-  .setAction(async ({ pool, contract, proxy, impl }, DRE) => {
+  .addOptionalParam("admin", "Proxy admin address")
+  .setAction(async ({ pool, contract, proxy, impl, admin }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -221,7 +246,10 @@ task("dev:upgrade-implementation", "Update implementation to address provider")
 
     const bendProxy = await getBendUpgradeableProxy(proxy);
 
-    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
+    if (admin == undefined || admin == "") {
+      admin = eContractid.BendProxyAdminPool;
+    }
+    const proxyAdmin = await getBendProxyAdminById(admin);
     if (proxyAdmin == undefined || !notFalsyOrZeroAddress(proxyAdmin.address)) {
       throw Error("Invalid pool proxy admin in config");
     }

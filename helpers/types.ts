@@ -83,6 +83,8 @@ export enum eContractid {
   TimelockControllerFast = "TimelockControllerFast",
   TimelockControllerSlow = "TimelockControllerSlow",
   MockLoanRepaidInterceptor = "MockLoanRepaidInterceptor",
+  KodaGateway = "KodaGateway",
+  KodaGatewayImpl = "KodaGatewayImpl",
 }
 
 export enum ProtocolLoanState {

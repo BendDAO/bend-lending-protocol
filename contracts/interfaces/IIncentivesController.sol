@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: agpl-3.0
 pragma solidity 0.8.4;
 
+import {IScaledBalanceToken} from "./IScaledBalanceToken.sol";
+
 interface IIncentivesController {
   /**
    * @dev Called by the corresponding asset on any update that affects the rewards distribution
@@ -14,5 +16,5 @@ interface IIncentivesController {
     uint256 userBalance
   ) external;
 
-  function configureAssets(address[] calldata _assets, uint256[] calldata _emissionsPerSecond) external;
+  function configureAssets(IScaledBalanceToken[] calldata _assets, uint256[] calldata _emissionsPerSecond) external;
 }

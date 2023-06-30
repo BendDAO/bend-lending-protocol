@@ -132,11 +132,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "KodaGatewayImpl": {
-    "address": "0xA7bb6431BF998D4e3380ed73DcB226e23E37AA27"
+    "address": "0x683a9367e79934BD196D05A2AdD30a6C58Aa0ce0"
   },
   "KodaGateway": {
-    "address": "0x3fa746EcDC1C53c7657a57c71bFaB497be2e0BF5",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0x3fa746EcDC1C53c7657a57c71bFaB497be2e0BF5"
   },
   "MintableERC20": {
     "address": "0x8096Fd3B381164af8421F25c84063B8afC637fE5",

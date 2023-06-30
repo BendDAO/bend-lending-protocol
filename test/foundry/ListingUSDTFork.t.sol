@@ -192,7 +192,7 @@ contract ListingUSDTForkTest is Test {
     if (availableBorrowsInReserve > usdtBalanceBeforeBorrow) {
       availableBorrowsInReserve = usdtBalanceBeforeBorrow;
     }
-    availableBorrowsInReserve = availableBorrowsInReserve * 99 / 100;
+    availableBorrowsInReserve = (availableBorrowsInReserve * 99) / 100;
     IERC721(nftAsset).setApprovalForAll(address(pool), true);
     pool.borrow(reserve, availableBorrowsInReserve, nftAsset, nftTokenId, testWallet, 0);
 
@@ -237,7 +237,7 @@ contract ListingUSDTForkTest is Test {
     if (availableBorrowsInReserve > usdtBalanceBeforeBorrow) {
       availableBorrowsInReserve = usdtBalanceBeforeBorrow;
     }
-    availableBorrowsInReserve = availableBorrowsInReserve * 99 / 100;
+    availableBorrowsInReserve = (availableBorrowsInReserve * 99) / 100;
     punkGateway.borrow(reserve, availableBorrowsInReserve, punkIdex, testWallet, 0);
 
     console.log("USDT balanceOf(bendUSDT) after borrow", IERC20(reserve).balanceOf(address(bendUSDTToken)));
