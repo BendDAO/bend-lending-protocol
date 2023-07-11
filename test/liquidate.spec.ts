@@ -92,7 +92,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
   });
 
   it("WETH - Auctions the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -130,6 +130,9 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     const loanDataAfter = await dataProvider.getLoanDataByLoanId(loanDataBefore.loanId);
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("101", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(true);
   });
 
   it("WETH - Check auction end time", async () => {
@@ -149,7 +152,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
   });
 
   it("WETH - Liquidates the borrow", async () => {
-    const { weth, bayc, users, pool, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -209,6 +212,9 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
       new BigNumber(ethReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
       "Invalid principal available liquidity"
     );
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("101", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(false);
   });
 
   it("USDC - Borrows USDC", async () => {
@@ -278,7 +284,7 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
   });
 
   it("USDC - Auctions the borrow at first time", async () => {
-    const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { usdc, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -314,10 +320,13 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     const loanDataAfter = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("102", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(true);
   });
 
   it("USDC - Auctions the borrow at second time with higher price", async () => {
-    const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { usdc, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator3 = users[3];
     const liquidator4 = users[4];
 
@@ -350,10 +359,13 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
 
     const loanDataAfter = await dataProvider.getLoanDataByCollateral(bayc.address, "102");
     expect(loanDataAfter.state).to.be.equal(ProtocolLoanState.Auction, "Invalid loan state after acution");
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("102", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(true);
   });
 
   it("USDC - Liquidates the borrow", async () => {
-    const { usdc, bayc, users, pool, dataProvider } = testEnv;
+    const { usdc, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[4];
     const borrower = users[1];
 
@@ -415,5 +427,8 @@ makeSuite("LendPool: Liquidation", (testEnv) => {
       new BigNumber(usdcReserveDataBefore.availableLiquidity.toString()).plus(expectedLiquidateAmount).toFixed(0),
       "Invalid principal available liquidity"
     );
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("102", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(false);
   });
 });
