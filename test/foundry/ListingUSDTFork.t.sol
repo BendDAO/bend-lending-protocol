@@ -16,6 +16,7 @@ import "../../contracts/interfaces/IPunks.sol";
 import "../../contracts/interfaces/IIncentivesController.sol";
 import "../../contracts/interfaces/IBToken.sol";
 import "../../contracts/interfaces/IDebtToken.sol";
+import "../../contracts/interfaces/IScaledBalanceToken.sol";
 
 import "../../contracts/libraries/proxy/BendProxyAdmin.sol";
 import "../../contracts/libraries/proxy/BendUpgradeableProxy.sol";
@@ -30,7 +31,7 @@ contract ListingUSDTForkTest is Test {
   using SafeERC20 for IERC20;
 
   // the address of the contract on the mainnet fork
-  address constant multisigOwnerAddress = 0x652DB942BE3Ab09A8Fd6F14776a52ed2A73bF214;
+  address constant multisigOwnerAddress = 0xe6b80f77a8B8FcD124aB748C720B7EAEA83dDb4C;
   address constant timelockController7DAddress = 0x4e4C314E2391A58775be6a15d7A05419ba7D2B6e;
   address constant timelockController24HAddress = 0x652DB942BE3Ab09A8Fd6F14776a52ed2A73bF214;
   address constant poolProviderAddress = 0x24451F47CaF13B24f4b5034e1dF6c0E401ec0e46;
@@ -61,7 +62,7 @@ contract ListingUSDTForkTest is Test {
   function testFork_ListingUSDT() public {
     // configure usdt asset in oracle
     ReserveOracle reserveOracle = ReserveOracle(reserveOracleAddress);
-    vm.prank(multisigOwnerAddress);
+    vm.prank(timelockController24HAddress);
     reserveOracle.addAggregator(usdtTokenAddress, usdtAggregatorAddress);
 
     uint256 usdtEthPrice = reserveOracle.getAssetPrice(usdtTokenAddress);
@@ -112,10 +113,12 @@ contract ListingUSDTForkTest is Test {
     );
     bendUSDTToken = IBToken(reserveTokenData.bTokenAddress);
     debtUSDTToken = IDebtToken(reserveTokenData.debtTokenAddress);
-    vm.prank(multisigOwnerAddress);
-    address[] memory icAssets = new address[](2);
-    icAssets[0] = reserveTokenData.bTokenAddress;
-    icAssets[1] = reserveTokenData.debtTokenAddress;
+    vm.prank(timelockController24HAddress);
+    IScaledBalanceToken[] memory icAssets = new IScaledBalanceToken[](2);
+    icAssets[0] = IScaledBalanceToken(bendUSDTToken);
+    icAssets[1] = IScaledBalanceToken(debtUSDTToken);
+    console.log("bendUSDT address: ", reserveTokenData.bTokenAddress);
+    console.log("debtUSDT address: ", reserveTokenData.debtTokenAddress);
     uint256[] memory icEmissions = new uint256[](2);
     incentiveController.configureAssets(icAssets, icEmissions);
 
