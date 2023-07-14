@@ -14,7 +14,7 @@ import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../hel
 import { eContractid, eNetwork, INftParams } from "../../helpers/types";
 import { strategyNftParams } from "../../markets/bend/nftsConfigs";
 
-task("add-nft-to-pool", "Add and config new nft asset to lend pool")
+task("helpers:add-nft-to-pool", "Add and config new nft asset to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of underlying nft asset contract")
   .addOptionalParam("strategy", "Name of nft strategy, supported: ClassA, ClassB, ClassC, ClassD, ClassE")

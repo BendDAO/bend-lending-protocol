@@ -61,3 +61,10 @@ export const strategyWETH: IReserveParams = {
   bTokenImpl: eContractid.BToken,
   reserveFactor: '3000'
 };
+
+export const strategyReserveParams: SymbolMap<IReserveParams> = {
+  "WETH": strategyWETH,
+  "USDT": strategyUSDT,
+  "USDC": strategyUSDC,
+  "DAI": strategyDAI,
+};

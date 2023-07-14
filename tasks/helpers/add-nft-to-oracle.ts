@@ -7,7 +7,7 @@ import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../hel
 import { eContractid, eNetwork } from "../../helpers/types";
 import { strategyNftParams } from "../../markets/bend/nftsConfigs";
 
-task("add-nft-to-oracle", "Add new nft asset to oracle")
+task("helpers:add-nft-to-oracle", "Add new nft asset to oracle")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of underlying nft asset contract")
   .setAction(async ({ pool, asset, strategy }, DRE) => {

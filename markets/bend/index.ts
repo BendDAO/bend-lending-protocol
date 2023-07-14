@@ -6,6 +6,7 @@ import {
   strategyWETH,
   strategyDAI,
   strategyUSDC,
+  strategyUSDT,
 } from './reservesConfigs';
 import {
   strategyNft_AZUKI,
@@ -33,6 +34,7 @@ export const BendConfig: IBendConfiguration = {
     WETH: strategyWETH,
     DAI: strategyDAI,
     USDC: strategyUSDC,
+    USDT: strategyUSDT,
   },
   NftsConfig: {
     WPUNKS: strategyNft_WPUNKS,
@@ -54,6 +56,7 @@ export const BendConfig: IBendConfiguration = {
     },
     [eEthereumNetwork.goerli]: {
       WETH: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
+      USDT: '0x8096Fd3B381164af8421F25c84063B8afC637fE5',
     },
     [eEthereumNetwork.rinkeby]: {
       WETH: '0xc778417E063141139Fce010982780140Aa0cD5Ab',

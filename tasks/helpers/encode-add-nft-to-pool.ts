@@ -14,7 +14,7 @@ import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../hel
 import { eContractid, eNetwork, INftParams } from "../../helpers/types";
 import { strategyNftParams } from "../../markets/bend/nftsConfigs";
 
-task("encode-add-nft-to-pool", "Init and config new nft asset to lend pool")
+task("helpers:encode-add-nft-to-pool", "Init and config new nft asset to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("asset", "Address of underlying nft asset contract")
   .addOptionalParam("strategy", "Name of nft strategy, supported: ClassA, ClassB, ClassC, ClassD, ClassE")
@@ -105,7 +105,7 @@ task("encode-add-nft-to-pool", "Init and config new nft asset to lend pool")
     console.log("OK");
   });
 
-task("encode-authorize-lendpool-nft", "WETH gateway authorize to lend pool")
+task("helpers:encode-authorize-lendpool-nft", "WETH gateway authorize to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addParam("assets", "Address list of underlying nft asset contract")
   .setAction(async ({ pool, assets }, DRE) => {

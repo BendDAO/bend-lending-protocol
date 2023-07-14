@@ -4,6 +4,7 @@ pragma solidity 0.8.4;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
 import {IPunks} from "../interfaces/IPunks.sol";
 
@@ -13,6 +14,8 @@ import {IPunks} from "../interfaces/IPunks.sol";
  * @author Bend
  **/
 abstract contract EmergencyTokenRecoveryUpgradeable is OwnableUpgradeable {
+  using SafeERC20Upgradeable for IERC20Upgradeable;
+
   event EmergencyEtherTransfer(address indexed to, uint256 amount);
 
   function __EmergencyTokenRecovery_init() internal onlyInitializing {
@@ -31,7 +34,7 @@ abstract contract EmergencyTokenRecoveryUpgradeable is OwnableUpgradeable {
     address to,
     uint256 amount
   ) external onlyOwner {
-    IERC20Upgradeable(token).transfer(to, amount);
+    IERC20Upgradeable(token).safeTransfer(to, amount);
   }
 
   /**

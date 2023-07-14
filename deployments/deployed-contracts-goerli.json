@@ -110,11 +110,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "PunkGatewayImpl": {
-    "address": "0x675B54905Ae457D9B7BcA72B58a7CC33AD3AB514"
+    "address": "0xF322391B5444fC4B7Ad43859E4b0B0ddA75C31f9"
   },
   "PunkGateway": {
-    "address": "0xa7076550Ee79DB0320BE98f89D775797D859140c",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0xa7076550Ee79DB0320BE98f89D775797D859140c"
   },
   "WalletBalanceProvider": {
     "address": "0xe54EEF2aFb3cBdBBe58370F33296d533a34123E5",
@@ -133,10 +132,21 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "KodaGatewayImpl": {
-    "address": "0xA7bb6431BF998D4e3380ed73DcB226e23E37AA27"
+    "address": "0x683a9367e79934BD196D05A2AdD30a6C58Aa0ce0"
   },
   "KodaGateway": {
-    "address": "0x3fa746EcDC1C53c7657a57c71bFaB497be2e0BF5",
+    "address": "0x3fa746EcDC1C53c7657a57c71bFaB497be2e0BF5"
+  },
+  "MintableERC20": {
+    "address": "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "USDT": {
+    "address": "0x8096Fd3B381164af8421F25c84063B8afC637fE5",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyStableThree": {
+    "address": "0x124A8d7D5E8C72e0951D1B247bDac02640914b19",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

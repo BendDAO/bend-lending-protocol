@@ -107,7 +107,7 @@
     "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88"
   },
   "PunkGatewayImpl": {
-    "address": "0x70a987A0E1ea971728A1F872eacD764eDAE190B1"
+    "address": "0x0Fccf4bB61c78CE7dEF3A1e84772Fe6d3b4A450a"
   },
   "PunkGateway": {
     "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30"
@@ -129,10 +129,13 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "KodaGatewayImpl": {
-    "address": "0x3837Ddc0b0Ee70aA9007dB6bED3f40b9cAEbd202"
+    "address": "0x228fEb12E514d9f547B2f5C41449a5F4CbA93a86"
   },
   "KodaGateway": {
-    "address": "0x56ECe8EDba529943b9A8ED966253b1F5ac54BF55",
+    "address": "0x56ECe8EDba529943b9A8ED966253b1F5ac54BF55"
+  },
+  "rateStrategyUSDT230628": {
+    "address": "0x8B8BefFDf3aC2C32aF746DaFaE49E085f4D07267",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
