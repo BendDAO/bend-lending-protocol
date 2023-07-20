@@ -44,6 +44,8 @@ export enum eContractid {
   MockChainlinkOracle = "MockChainlinkOracle",
   MockNFTOracle = "MockNFTOracle",
   MockReserveOracle = "MockReserveOracle",
+  ChainlinkAggregatorHelper = "ChainlinkAggregatorHelper",
+  ChainlinkAggregatorHelperImpl = "ChainlinkAggregatorHelperImpl",
   InterestRate = "InterestRate",
   BendUpgradeableProxy = "BendUpgradeableProxy",
   BendProxyAdminTest = "BendProxyAdminTest",

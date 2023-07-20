@@ -137,5 +137,12 @@
   "rateStrategyUSDT230628": {
     "address": "0x8B8BefFDf3aC2C32aF746DaFaE49E085f4D07267",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "ChainlinkAggregatorHelperImpl": {
+    "address": "0x4E840EcC421016c132E8515353c5Ee2Fe162D8a8"
+  },
+  "ChainlinkAggregatorHelper": {
+    "address": "0xDcdE2dBd52B493de0b2C6Ff707562eEf7C3C7706",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

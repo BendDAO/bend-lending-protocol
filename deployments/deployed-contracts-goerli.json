@@ -148,5 +148,11 @@
   "rateStrategyStableThree": {
     "address": "0x124A8d7D5E8C72e0951D1B247bDac02640914b19",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "ChainlinkAggregatorHelperImpl": {
+    "address": "0xC133Cd86FE48344B7ce86eC4368Cc37C3FEfe012"
+  },
+  "ChainlinkAggregatorHelper": {
+    "address": "0x2302B5faEBE36C033939C9C312390ce5B1589E0d"
   }
 }
