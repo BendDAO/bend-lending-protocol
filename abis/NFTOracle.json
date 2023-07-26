@@ -18,6 +18,44 @@
       {
         "indexed": true,
         "internalType": "address",
+        "name": "mappedAsset",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "originAsset",
+        "type": "address"
+      }
+    ],
+    "name": "AssetMappingAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "mappedAsset",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "originAsset",
+        "type": "address"
+      }
+    ],
+    "name": "AssetMappingRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "asset",
         "type": "address"
       }
@@ -140,6 +178,25 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "originAsset",
+        "type": "address"
+      }
+    ],
+    "name": "getAssetMapping",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -308,6 +365,30 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "originAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "mappedAsset",
+        "type": "address"
+      }
+    ],
+    "name": "isAssetMapped",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "maxPriceDeviation",
     "outputs": [
@@ -463,6 +544,29 @@
       }
     ],
     "name": "setAssetData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "originAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "mappedAsset",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "added",
+        "type": "bool"
+      }
+    ],
+    "name": "setAssetMapping",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

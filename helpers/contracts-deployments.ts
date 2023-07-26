@@ -62,6 +62,7 @@ import {
   MockerERC721WrapperFactory,
   WrapperGatewayFactory,
   MockerERC721Wrapper,
+  ChainlinkAggregatorHelperFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -307,6 +308,12 @@ export const deployMockChainlinkOracle = async (decimals: string, verify?: boole
     [decimals],
     verify
   );
+
+export const deployChainlinkAggregatorHelper = async (args: [], verify?: boolean) => {
+  const aggHelperImpl = await new ChainlinkAggregatorHelperFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.ChainlinkAggregatorHelperImpl, aggHelperImpl.address);
+  return withSaveAndVerify(aggHelperImpl, eContractid.ChainlinkAggregatorHelper, [], verify);
+};
 
 export const deployNFTOracle = async (verify?: boolean) => {
   const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
