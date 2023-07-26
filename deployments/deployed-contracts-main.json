@@ -100,6 +100,9 @@
   "rateStrategyWETH": {
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
   },
+  "rateStrategyWETH220919": {
+    "address": "0x2a41398B89d1B9A3919D5B0feb4cC582f5B48C64"
+  },
   "WETHGatewayImpl": {
     "address": "0xE79575692Ed7092dD6C5cBbC7203D8dF48494C33"
   },
@@ -138,11 +141,16 @@
     "address": "0x8B8BefFDf3aC2C32aF746DaFaE49E085f4D07267",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
+<<<<<<< HEAD
   "ChainlinkAggregatorHelperImpl": {
     "address": "0x4E840EcC421016c132E8515353c5Ee2Fe162D8a8"
   },
   "ChainlinkAggregatorHelper": {
     "address": "0xDcdE2dBd52B493de0b2C6Ff707562eEf7C3C7706",
+=======
+  "rateStrategyWETH230724": {
+    "address": "0x746F1ff42618b99Dfc9Bc941249B7f98b0011049",
+>>>>>>> eaf3527 (deploy new interest rate for eth according bip39)
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
