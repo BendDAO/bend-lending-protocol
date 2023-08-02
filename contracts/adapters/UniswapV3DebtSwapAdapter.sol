@@ -4,7 +4,7 @@ pragma solidity 0.8.4;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {IERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import {ERC721HolderUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
@@ -76,7 +76,6 @@ contract UniswapV3DebtSwapAdapter is
     address[] nftAssets;
     uint256[] nftTokenIds;
     address toDebtReserve;
-    address[] toDebtAmounts;
   }
 
   struct SwapLocaVars {
@@ -90,14 +89,14 @@ contract UniswapV3DebtSwapAdapter is
     uint256 oldDebtAmount;
     uint256 bidFine;
     address paramsBorrower;
-    uint256[] paramsNewDebtAmounts;
+    uint256[] paramsFromDebtWithFeeAmounts;
     address[] aaveAssets;
     uint256[] aaveAmounts;
     uint256[] aaveModes;
     bytes aaveParms;
   }
 
-  function swap(SwapParams calldata swapParams) public whenNotPaused nonReentrant {
+  function swapDebt(SwapParams calldata swapParams) public whenNotPaused nonReentrant {
     SwapLocaVars memory vars;
 
     require(swapParams.nftTokenIds.length > 0, "U3DSA: empty token ids");
@@ -108,8 +107,7 @@ contract UniswapV3DebtSwapAdapter is
     vars.aaveAssets = new address[](1);
     vars.aaveAmounts = new uint256[](1);
     vars.aaveModes = new uint256[](1);
-
-    vars.paramsNewDebtAmounts = new uint256[](swapParams.nftTokenIds.length);
+    vars.paramsFromDebtWithFeeAmounts = new uint256[](swapParams.nftTokenIds.length);
 
     for (uint256 i = 0; i < swapParams.nftTokenIds.length; i++) {
       (, , , , vars.bidFine) = bendLendPool.getNftAuctionData(swapParams.nftAssets[i], swapParams.nftTokenIds[i]);
@@ -135,20 +133,26 @@ contract UniswapV3DebtSwapAdapter is
       }
 
       // new debt should cover old debt + flash loan premium
-      vars.aaveFlashLoanPremium =
-        ((vars.oldDebtAmount + vars.bidFine) * vars.aaveFlashLoanFeeRatio) /
-        PERCENTAGE_FACTOR;
+      vars.aaveAmounts[0] += vars.oldDebtAmount;
+
+      vars.aaveFlashLoanPremium = (vars.oldDebtAmount * vars.aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
       vars.aaveFlashLoanAllSumPremium += vars.aaveFlashLoanPremium;
-      vars.paramsNewDebtAmounts[i] = (vars.oldDebtAmount + vars.bidFine) + vars.aaveFlashLoanPremium;
-      vars.aaveAmounts[0] += (vars.oldDebtAmount + vars.bidFine);
-    }
-    // because of the math rounding, we need to add delta (1) wei to the first debt amount
-    vars.aaveFlashLoanTotalPremium = (vars.aaveAmounts[0] * vars.aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
-    if (vars.aaveFlashLoanTotalPremium > vars.aaveFlashLoanAllSumPremium) {
-      vars.paramsNewDebtAmounts[0] += (vars.aaveFlashLoanTotalPremium - vars.aaveFlashLoanAllSumPremium);
+      vars.paramsFromDebtWithFeeAmounts[i] = vars.oldDebtAmount + vars.aaveFlashLoanPremium;
     }
 
-    vars.aaveParms = abi.encode(vars.paramsBorrower, nftAssets, nftTokenIds, vars.paramsNewDebtAmounts);
+    // because of the math rounding, we need to add some delta wei to the first debt amount
+    vars.aaveFlashLoanTotalPremium = (vars.aaveAmounts[0] * vars.aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
+    if (vars.aaveFlashLoanTotalPremium > vars.aaveFlashLoanAllSumPremium) {
+      vars.paramsFromDebtWithFeeAmounts[0] += (vars.aaveFlashLoanTotalPremium - vars.aaveFlashLoanAllSumPremium);
+    }
+
+    vars.aaveParms = abi.encode(
+      vars.paramsBorrower,
+      swapParams.nftAssets,
+      swapParams.nftTokenIds,
+      vars.paramsFromDebtWithFeeAmounts,
+      swapParams.toDebtReserve
+    );
 
     aaveLendPool.flashLoan(
       address(this),
@@ -164,9 +168,15 @@ contract UniswapV3DebtSwapAdapter is
   struct ExecuteOperationLocalVars {
     address aaveFlashLoanAsset;
     uint256 aaveFlashLoanFeeRatio;
+    address borrower;
     address[] nftAssets;
     uint256[] nftTokenIds;
     address toReserve;
+    uint256[] fromDebtWithFeeAmounts;
+    uint256[] toDebtAmounts;
+    uint256 balanceBeforeSwap;
+    uint256 balanceAfterSwap;
+    uint256 balanceDeltaAmount;
   }
 
   function executeOperation(
@@ -176,7 +186,7 @@ contract UniswapV3DebtSwapAdapter is
     address initiator,
     bytes calldata params
   ) external override returns (bool) {
-    ExecuteOperationLocalVars execOpVars;
+    ExecuteOperationLocalVars memory execOpVars;
 
     // only aave and this contract can call this function
     require(msg.sender == address(aaveLendPool), "U3DSA: caller must be aave lending pool");
@@ -187,11 +197,21 @@ contract UniswapV3DebtSwapAdapter is
     execOpVars.aaveFlashLoanAsset = assets[0];
     execOpVars.aaveFlashLoanFeeRatio = aaveLendPool.FLASHLOAN_PREMIUM_TOTAL();
 
-    (execOpVars.nftAssets, execOpVars.nftTokenIds, execOpVars.toReserve) = abi.decode(
-      params,
-      (address[], uint256[], address)
-    );
+    (
+      execOpVars.borrower,
+      execOpVars.nftAssets,
+      execOpVars.nftTokenIds,
+      execOpVars.fromDebtWithFeeAmounts,
+      execOpVars.toReserve
+    ) = abi.decode(params, (address, address[], uint256[], uint256[], address));
     require(execOpVars.nftAssets.length == execOpVars.nftTokenIds.length, "U3DSA: inconsistent assets and token ids");
+    require(
+      execOpVars.nftAssets.length == execOpVars.fromDebtWithFeeAmounts.length,
+      "U3DSA: inconsistent assets and debt amounts"
+    );
+
+    // the balance already included the borrowed amount from aave
+    execOpVars.balanceBeforeSwap = IERC20Upgradeable(assets[0]).balanceOf(address(this));
 
     IERC20Upgradeable(assets[0]).safeApprove(address(bendLendPool), amounts[0]);
 
@@ -200,8 +220,23 @@ contract UniswapV3DebtSwapAdapter is
 
       swapOneNftVars.nftAsset = execOpVars.nftAssets[i];
       swapOneNftVars.nftTokenId = execOpVars.nftTokenIds[i];
+      swapOneNftVars.toDebtReserve = execOpVars.toReserve;
+      swapOneNftVars.fromDebtWithFeeAmount = execOpVars.fromDebtWithFeeAmounts[i];
 
       _swapOneNft(execOpVars, swapOneNftVars);
+    }
+
+    // check the balance after swap
+    // the balance should included the borrowed amount from aave plus flash loan fee
+    execOpVars.balanceAfterSwap = IERC20Upgradeable(assets[0]).balanceOf(address(this));
+    require(execOpVars.balanceAfterSwap > execOpVars.balanceBeforeSwap, "U3DSA: balance too small after swap");
+
+    execOpVars.balanceDeltaAmount = execOpVars.balanceAfterSwap - execOpVars.balanceBeforeSwap;
+    require(execOpVars.balanceDeltaAmount >= premiums[0], "U3DSA: insufficient balance to repay aave premiums");
+
+    if (execOpVars.balanceDeltaAmount > premiums[0]) {
+      // transfer back the extra amount to borrower
+      IERC20Upgradeable(assets[0]).safeTransfer(execOpVars.borrower, execOpVars.balanceDeltaAmount - premiums[0]);
     }
 
     IERC20Upgradeable(assets[0]).safeApprove(address(bendLendPool), 0);
@@ -214,6 +249,7 @@ contract UniswapV3DebtSwapAdapter is
   struct SwapOneNftLocaVars {
     address nftAsset;
     uint256 nftTokenId;
+    uint256 fromDebtWithFeeAmount;
     address toDebtReserve;
     uint256 toDebtAmount;
     uint256 fromLoanId;
@@ -221,31 +257,37 @@ contract UniswapV3DebtSwapAdapter is
     address fromDebtReserve;
     uint256 fromDebtAmount;
     uint256 fromReserveBalanceBeforeRepay;
+    uint256 toLoanId;
+    address toBorrower;
     uint256 toReserveBalanceBeforeBorrow;
     uint256 toReserveBalanceAfterBorrow;
-    uint256 swapAmountOutMinimum;
   }
 
-  function _swapOneNft(ExecuteOperationLocalVars execOpVars, SwapOneNftLocaVars memory vars) internal {
+  function _swapOneNft(ExecuteOperationLocalVars memory execOpVars, SwapOneNftLocaVars memory vars) internal {
     // query current debt
     (vars.fromLoanId, vars.fromDebtReserve, , vars.fromDebtAmount, , ) = bendLendPool.getNftDebtData(
       vars.nftAsset,
       vars.nftTokenId
     );
     vars.fromBorrower = bendLendLoan.borrowerOf(vars.fromLoanId);
-    vars.fromBalanceBeforeRepay = IERC20Upgradeable(vars.fromDebtReserve).balanceOf(address(this));
+    vars.fromReserveBalanceBeforeRepay = IERC20Upgradeable(vars.fromDebtReserve).balanceOf(address(this));
 
     require(vars.fromDebtReserve == execOpVars.aaveFlashLoanAsset, "U3DSA: invalid flash loan asset");
-    require(vars.fromDebtAmount <= vars.fromBalanceBeforeRepay, "U3DSA: insufficent to repay debt");
+    require(vars.fromDebtAmount <= vars.fromReserveBalanceBeforeRepay, "U3DSA: insufficent to repay debt");
+    require(vars.fromDebtAmount < vars.fromDebtWithFeeAmount, "U3DSA: debt amount not cover fee");
 
     // repay all the old debt
     bendLendPool.repay(vars.nftAsset, vars.nftTokenId, vars.fromDebtAmount);
 
     // transfer nft to this contract
-    IERC721Upgradeable(vars.nftAsset).safeTransferFrom(vars.borrower, address(address(this)), vars.nftTokenId);
+    IERC721Upgradeable(vars.nftAsset).safeTransferFrom(vars.fromBorrower, address(this), vars.nftTokenId);
+    IERC721Upgradeable(vars.nftAsset).approve(address(bendLendPool), vars.nftTokenId);
 
     // borrow new debt with nft
     vars.toReserveBalanceBeforeBorrow = IERC20Upgradeable(vars.toDebtReserve).balanceOf(address(this));
+
+    // calculate target debt amount based on the orcacle price
+    vars.toDebtAmount = _getTokenOutAmount(vars.fromDebtReserve, vars.fromDebtWithFeeAmount, vars.toDebtReserve, true);
 
     bendLendPool.borrow(vars.toDebtReserve, vars.toDebtAmount, vars.nftAsset, vars.nftTokenId, vars.fromBorrower, 0);
 
@@ -255,9 +297,13 @@ contract UniswapV3DebtSwapAdapter is
       "U3DSA: borrow amount mismatch after borrow"
     );
 
+    vars.toLoanId = bendLendLoan.getCollateralLoanId(vars.nftAsset, vars.nftTokenId);
+    vars.toBorrower = bendLendLoan.borrowerOf(vars.toLoanId);
+    require(vars.fromLoanId != vars.toLoanId, "U3DSA: invalid load after borrow new debt");
+    require(vars.fromBorrower == vars.toBorrower, "U3DSA: invalid borrower after borrow new debt");
+
     // swap new debt to old debt
     IERC20Upgradeable(vars.toDebtReserve).safeApprove(address(swapRouter), vars.toDebtAmount);
-    vars.swapAmountOutMinimum = _getTokenOutAmount(vars.toDebtReserve, vars.toDebtAmount, vars.fromDebtReserve);
     uint256 amountOut = swapRouter.exactInputSingle(
       ISwapRouter.ExactInputSingleParams({
         tokenIn: vars.toDebtReserve,
@@ -266,24 +312,54 @@ contract UniswapV3DebtSwapAdapter is
         recipient: address(this),
         deadline: block.timestamp,
         amountIn: vars.toDebtAmount,
-        amountOutMinimum: vars.swapAmountOutMinimum,
+        amountOutMinimum: vars.fromDebtWithFeeAmount,
         sqrtPriceLimitX96: 0
       })
     );
+    require(amountOut >= vars.fromDebtWithFeeAmount, "U3DSA: swap amount out less than old debt with fee");
+  }
+
+  function getNftDebtSwapOutAmount(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address toDebtReserve
+  ) external view returns (uint256[] memory toAmounts) {
+    require(nftAssets.length == nftTokenIds.length, "U3DSA: inconsistent assets and token ids");
+
+    uint256 aaveFlashLoanFeeRatio = aaveLendPool.FLASHLOAN_PREMIUM_TOTAL();
+
+    toAmounts = new uint256[](nftTokenIds.length);
+
+    for (uint256 i = 0; i < nftTokenIds.length; i++) {
+      (, address fromDebtReserve, , uint256 fromDebtAmount, , ) = bendLendPool.getNftDebtData(
+        nftAssets[i],
+        nftTokenIds[i]
+      );
+
+      uint256 aaveFlashLoanPremium = (fromDebtAmount * aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
+      fromDebtAmount += aaveFlashLoanPremium;
+      toAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true);
+    }
   }
 
   function _getTokenOutAmount(
     address tokenIn,
-    address amountIn,
-    address tokenOut
+    uint256 amountIn,
+    address tokenOut,
+    bool isAddOrSubSlippage
   ) internal view returns (uint256 amountOut) {
-    BendProtocolDataProvider.ReserveTokenData resDataIn = bendDataProvider.getReserveTokenData(tokenIn);
-    BendProtocolDataProvider.ReserveTokenData resDataOut = bendDataProvider.getReserveTokenData(tokenOut);
+    BendProtocolDataProvider.ReserveTokenData memory resDataIn = bendDataProvider.getReserveTokenData(tokenIn);
+    BendProtocolDataProvider.ReserveTokenData memory resDataOut = bendDataProvider.getReserveTokenData(tokenOut);
 
     uint256 priceIn = bendReserveOracle.getAssetPrice(tokenIn);
     uint256 priceOut = bendReserveOracle.getAssetPrice(tokenOut);
     uint256 ethIn = (priceIn * amountIn) / (10**IBToken(resDataIn.bTokenAddress).decimals());
     amountOut = ((ethIn * (10**IBToken(resDataOut.bTokenAddress).decimals())) / priceOut);
-    amountOut = amountOut.percentMul(PERCENTAGE_FACTOR - DEFAULT_MAX_SLIPPAGE);
+
+    if (isAddOrSubSlippage) {
+      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR + DEFAULT_MAX_SLIPPAGE);
+    } else {
+      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR - DEFAULT_MAX_SLIPPAGE);
+    }
   }
 }
