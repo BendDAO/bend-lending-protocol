@@ -170,6 +170,32 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
     ).to.be.revertedWith("U3DSA: initiator must be this contract");
   });
 
+  it("Hacker call setPause (revert expected)", async () => {
+    const { users, weth } = testEnv;
+    const hacker = users[5];
+
+    await expect(debtSwapAdapter.connect(hacker.signer).setPause(true)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+  });
+
+  it("User 2 call swap when paused (revert expected)", async () => {
+    const { users, bayc, usdc } = testEnv;
+    const borrower = users[2];
+
+    await waitForTx(await debtSwapAdapter.setPause(true));
+
+    const tokenId = testTokenId1;
+    let swapParams = {
+      nftAssets: [bayc.address],
+      nftTokenIds: [tokenId],
+      toDebtReserve: usdc.address,
+    };
+    await expect(debtSwapAdapter.connect(borrower.signer).swapDebt(swapParams)).to.be.revertedWith("Pausable: paused");
+
+    await waitForTx(await debtSwapAdapter.setPause(false));
+  });
+
   it("User 2 swap WETH debt to USDC", async () => {
     const { users, bayc, usdc } = testEnv;
     const borrower = users[2];

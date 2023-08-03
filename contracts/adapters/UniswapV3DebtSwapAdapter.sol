@@ -72,6 +72,14 @@ contract UniswapV3DebtSwapAdapter is
     swapRouter = ISwapRouter(swapRouter_);
   }
 
+  function setPause(bool flag) public onlyOwner {
+    if (flag) {
+      _pause();
+    } else {
+      _unpause();
+    }
+  }
+
   struct SwapParams {
     address[] nftAssets;
     uint256[] nftTokenIds;

@@ -154,5 +154,11 @@
   },
   "ChainlinkAggregatorHelper": {
     "address": "0x2302B5faEBE36C033939C9C312390ce5B1589E0d"
+  },
+  "UniswapV3DebtSwapAdapterImpl": {
+    "address": "0xa2C6f0e0022FE5E5336B084835C03f4603223072"
+  },
+  "UniswapV3DebtSwapAdapter": {
+    "address": "0x45b7ff76381799109ef778990D7300Aa68907961"
   }
 }
