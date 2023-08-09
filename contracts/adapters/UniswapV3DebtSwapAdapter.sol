@@ -83,11 +83,11 @@ contract UniswapV3DebtSwapAdapter is
   }
 
   struct SwapParams {
-    address[] nftAssets;
-    uint256[] nftTokenIds;
-    address toDebtReserve;
-    uint256 maxSlippage;
-    uint256 uniswapFee;
+    address[] nftAssets; // nft assets, eg. BAYC
+    uint256[] nftTokenIds; // nft token ids
+    address toDebtReserve; // debt reserve address, eg. USDT
+    uint256 maxSlippage; // max slippage percentage, eg. 100 means 1%
+    uint256 uniswapFee; // uniswap fee percentage, eg. 3000 means 0.3%
   }
 
   struct SwapLocaVars {
@@ -108,6 +108,11 @@ contract UniswapV3DebtSwapAdapter is
     bytes aaveParms;
   }
 
+  /**
+   * @dev swap debt to new reserve for the nft.
+   * @notice The caller must be the borrower of the nft.
+   * @param swapParams The swap params
+   */
   function swapDebt(SwapParams calldata swapParams) public whenNotPaused nonReentrant {
     SwapLocaVars memory vars;
 
@@ -197,6 +202,9 @@ contract UniswapV3DebtSwapAdapter is
     uint256 balanceDeltaAmount;
   }
 
+  /**
+   * @dev Callback fo the Aave flash loan.
+   */
   function executeOperation(
     address[] calldata assets,
     uint256[] calldata amounts,
@@ -341,10 +349,18 @@ contract UniswapV3DebtSwapAdapter is
     require(amountOut >= vars.fromDebtWithFeeAmount, "U3DSA: swap amount out less than old debt with fee");
   }
 
+  /**
+   * @dev query debt swap out amount for the nft.
+   * @param nftAssets The address of the nft tokens
+   * @param nftTokenIds The id list of the nft tokens
+   * @param toDebtReserve The target debt reserve address, eg. USDT
+   * @param slippage The slippage percentage, eg. 100 means 1%
+   */
   function getNftDebtSwapOutAmount(
     address[] calldata nftAssets,
     uint256[] calldata nftTokenIds,
-    address toDebtReserve
+    address toDebtReserve,
+    uint256 slippage
   ) external view returns (uint256[] memory toAmounts) {
     require(nftAssets.length == nftTokenIds.length, "U3DSA: inconsistent assets and token ids");
 
@@ -360,7 +376,7 @@ contract UniswapV3DebtSwapAdapter is
 
       uint256 aaveFlashLoanPremium = (fromDebtAmount * aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
       fromDebtAmount += aaveFlashLoanPremium;
-      toAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true, DEFAULT_SLIPPAGE);
+      toAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true, slippage);
     }
   }
 
@@ -379,10 +395,12 @@ contract UniswapV3DebtSwapAdapter is
     uint256 ethIn = (priceIn * amountIn) / (10**IBToken(resDataIn.bTokenAddress).decimals());
     amountOut = ((ethIn * (10**IBToken(resDataOut.bTokenAddress).decimals())) / priceOut);
 
-    if (isAddOrSubSlippage) {
-      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR + slippage);
-    } else {
-      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR - slippage);
+    if (slippage > 0) {
+      if (isAddOrSubSlippage) {
+        amountOut = amountOut.percentMul(PERCENTAGE_FACTOR + slippage);
+      } else {
+        amountOut = amountOut.percentMul(PERCENTAGE_FACTOR - slippage);
+      }
     }
   }
 }

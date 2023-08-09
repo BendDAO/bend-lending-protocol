@@ -210,7 +210,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
     const debtSwapOutAmount = await debtSwapAdapter.getNftDebtSwapOutAmount(
       [bayc.address],
       [testTokenId1],
-      usdc.address
+      usdc.address,
+      100
     );
     console.log("debtSwapOutAmount:", debtSwapOutAmount.toString());
 
@@ -266,7 +267,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
     const debtSwapOutAmount = await debtSwapAdapter.getNftDebtSwapOutAmount(
       [bayc.address, bayc.address],
       [testTokenId1, testTokenId2],
-      weth.address
+      weth.address,
+      100
     );
     console.log("debtSwapOutAmount:", debtSwapOutAmount.toString());
 
