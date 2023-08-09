@@ -40,7 +40,9 @@ contract UniswapV3DebtSwapAdapter is
   using PercentageMath for uint256;
 
   uint256 public constant PERCENTAGE_FACTOR = 1e4; // 100%
-  uint256 public constant DEFAULT_MAX_SLIPPAGE = 100; // 1%
+  uint256 public constant DEFAULT_SLIPPAGE = 100; // 1%
+  uint256 public constant MAX_SLIPPAGE = 300; // 3%
+  uint256 public constant MAX_UNISWAP_FEE = 10000; // 1% (0.3% == 3000, 0.01% == 100)
 
   IAaveLendPoolAddressesProvider public aaveAddressesProvider;
   IAaveLendPool public aaveLendPool;
@@ -84,6 +86,8 @@ contract UniswapV3DebtSwapAdapter is
     address[] nftAssets;
     uint256[] nftTokenIds;
     address toDebtReserve;
+    uint256 maxSlippage;
+    uint256 uniswapFee;
   }
 
   struct SwapLocaVars {
@@ -109,6 +113,8 @@ contract UniswapV3DebtSwapAdapter is
 
     require(swapParams.nftTokenIds.length > 0, "U3DSA: empty token ids");
     require(swapParams.nftAssets.length == swapParams.nftTokenIds.length, "U3DSA: inconsistent assets and token ids");
+    require(swapParams.maxSlippage <= MAX_SLIPPAGE, "U3DSA: slippage too large");
+    require(swapParams.uniswapFee <= MAX_UNISWAP_FEE, "U3DSA: uniswap fee too large");
 
     vars.aaveFlashLoanFeeRatio = aaveLendPool.FLASHLOAN_PREMIUM_TOTAL();
 
@@ -159,7 +165,9 @@ contract UniswapV3DebtSwapAdapter is
       swapParams.nftAssets,
       swapParams.nftTokenIds,
       vars.paramsFromDebtWithFeeAmounts,
-      swapParams.toDebtReserve
+      swapParams.toDebtReserve,
+      swapParams.maxSlippage,
+      swapParams.uniswapFee
     );
 
     aaveLendPool.flashLoan(
@@ -181,6 +189,8 @@ contract UniswapV3DebtSwapAdapter is
     uint256[] nftTokenIds;
     address toReserve;
     uint256[] fromDebtWithFeeAmounts;
+    uint256 maxSlippage;
+    uint256 uniswapFee;
     uint256[] toDebtAmounts;
     uint256 balanceBeforeSwap;
     uint256 balanceAfterSwap;
@@ -205,18 +215,16 @@ contract UniswapV3DebtSwapAdapter is
     execOpVars.aaveFlashLoanAsset = assets[0];
     execOpVars.aaveFlashLoanFeeRatio = aaveLendPool.FLASHLOAN_PREMIUM_TOTAL();
 
+    // no need to check this params which is already checked in swapDebt
     (
       execOpVars.borrower,
       execOpVars.nftAssets,
       execOpVars.nftTokenIds,
       execOpVars.fromDebtWithFeeAmounts,
-      execOpVars.toReserve
-    ) = abi.decode(params, (address, address[], uint256[], uint256[], address));
-    require(execOpVars.nftAssets.length == execOpVars.nftTokenIds.length, "U3DSA: inconsistent assets and token ids");
-    require(
-      execOpVars.nftAssets.length == execOpVars.fromDebtWithFeeAmounts.length,
-      "U3DSA: inconsistent assets and debt amounts"
-    );
+      execOpVars.toReserve,
+      execOpVars.maxSlippage,
+      execOpVars.uniswapFee
+    ) = abi.decode(params, (address, address[], uint256[], uint256[], address, uint256, uint256));
 
     // the balance already included the borrowed amount from aave
     execOpVars.balanceBeforeSwap = IERC20Upgradeable(assets[0]).balanceOf(address(this));
@@ -295,7 +303,13 @@ contract UniswapV3DebtSwapAdapter is
     vars.toReserveBalanceBeforeBorrow = IERC20Upgradeable(vars.toDebtReserve).balanceOf(address(this));
 
     // calculate target debt amount based on the orcacle price
-    vars.toDebtAmount = _getTokenOutAmount(vars.fromDebtReserve, vars.fromDebtWithFeeAmount, vars.toDebtReserve, true);
+    vars.toDebtAmount = _getTokenOutAmount(
+      vars.fromDebtReserve,
+      vars.fromDebtWithFeeAmount,
+      vars.toDebtReserve,
+      true,
+      execOpVars.maxSlippage
+    );
 
     bendLendPool.borrow(vars.toDebtReserve, vars.toDebtAmount, vars.nftAsset, vars.nftTokenId, vars.fromBorrower, 0);
 
@@ -316,7 +330,7 @@ contract UniswapV3DebtSwapAdapter is
       ISwapRouter.ExactInputSingleParams({
         tokenIn: vars.toDebtReserve,
         tokenOut: vars.fromDebtReserve,
-        fee: 3000, // 0.3% tier is 3000, 0.01% tier is 100
+        fee: uint24(execOpVars.uniswapFee), // 0.3% tier is 3000, 0.01% tier is 100
         recipient: address(this),
         deadline: block.timestamp,
         amountIn: vars.toDebtAmount,
@@ -346,7 +360,7 @@ contract UniswapV3DebtSwapAdapter is
 
       uint256 aaveFlashLoanPremium = (fromDebtAmount * aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
       fromDebtAmount += aaveFlashLoanPremium;
-      toAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true);
+      toAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true, DEFAULT_SLIPPAGE);
     }
   }
 
@@ -354,7 +368,8 @@ contract UniswapV3DebtSwapAdapter is
     address tokenIn,
     uint256 amountIn,
     address tokenOut,
-    bool isAddOrSubSlippage
+    bool isAddOrSubSlippage,
+    uint256 slippage
   ) internal view returns (uint256 amountOut) {
     BendProtocolDataProvider.ReserveTokenData memory resDataIn = bendDataProvider.getReserveTokenData(tokenIn);
     BendProtocolDataProvider.ReserveTokenData memory resDataOut = bendDataProvider.getReserveTokenData(tokenOut);
@@ -365,9 +380,9 @@ contract UniswapV3DebtSwapAdapter is
     amountOut = ((ethIn * (10**IBToken(resDataOut.bTokenAddress).decimals())) / priceOut);
 
     if (isAddOrSubSlippage) {
-      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR + DEFAULT_MAX_SLIPPAGE);
+      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR + slippage);
     } else {
-      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR - DEFAULT_MAX_SLIPPAGE);
+      amountOut = amountOut.percentMul(PERCENTAGE_FACTOR - slippage);
     }
   }
 }

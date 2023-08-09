@@ -156,9 +156,10 @@
     "address": "0x2302B5faEBE36C033939C9C312390ce5B1589E0d"
   },
   "UniswapV3DebtSwapAdapterImpl": {
-    "address": "0xa2C6f0e0022FE5E5336B084835C03f4603223072"
+    "address": "0xEEa5BC7BEB4DD341E8BBa230E22df9CA45f0AE19"
   },
   "UniswapV3DebtSwapAdapter": {
-    "address": "0x45b7ff76381799109ef778990D7300Aa68907961"
+    "address": "0x06a41eC387810a0dC9FE3042180D4617207C6E27",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

@@ -141,6 +141,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       nftAssets: [testEnv.bayc.address],
       nftTokenIds: [tokenId],
       toDebtReserve: testEnv.usdc.address,
+      maxSlippage: 100,
+      uniswapFee: 3000,
     };
 
     await expect(debtSwapAdapter.connect(hacker.signer).swapDebt(swapParams)).to.be.revertedWith(
@@ -190,6 +192,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       nftAssets: [bayc.address],
       nftTokenIds: [tokenId],
       toDebtReserve: usdc.address,
+      maxSlippage: 100,
+      uniswapFee: 3000,
     };
     await expect(debtSwapAdapter.connect(borrower.signer).swapDebt(swapParams)).to.be.revertedWith("Pausable: paused");
 
@@ -219,6 +223,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       nftAssets: [bayc.address],
       nftTokenIds: [tokenId],
       toDebtReserve: usdc.address,
+      maxSlippage: 100,
+      uniswapFee: 3000,
     };
     await waitForTx(await debtSwapAdapter.connect(borrower.signer).swapDebt(swapParams));
 
@@ -272,6 +278,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       nftAssets: [bayc.address, bayc.address],
       nftTokenIds: [testTokenId1, testTokenId2],
       toDebtReserve: weth.address,
+      maxSlippage: 100,
+      uniswapFee: 3000,
     };
     await waitForTx(await debtSwapAdapter.connect(borrower.signer).swapDebt(swapParams));
   });
@@ -288,6 +296,8 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       nftAssets: [bayc.address, bayc.address],
       nftTokenIds: [testTokenId1, testTokenId2],
       toDebtReserve: usdc.address,
+      maxSlippage: 100,
+      uniswapFee: 3000,
     };
     await waitForTx(await debtSwapAdapter.connect(borrower.signer).swapDebt(swapParams));
   });
