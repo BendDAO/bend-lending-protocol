@@ -1,11 +1,24 @@
 {
-  "name": "@benddao/bend-protocol",
-  "version": "1.0.2",
-  "description": "Bend Protocol smart contracts",
+  "name": "@benddao/bend-lending-protocol",
+  "version": "1.0.11",
+  "description": "BendDAO Lending Protocol smart contracts",
   "files": [
+    "abis",
+    "markets",
     "contracts",
-    "artifacts"
+    "artifacts",
+    "types"
   ],
+  "homepage": "https://www.benddao.xyz/",
+  "bugs": "https://github.com/BendDAO/bend-lending-protocol/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BendDAO/bend-lending-protocol.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "scripts": {
     "run-env": "yarn && tail -f /dev/null",
     "hardhat": "hardhat",
