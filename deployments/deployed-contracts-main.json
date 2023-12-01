@@ -155,5 +155,9 @@
   "rateStrategyUSDT230731": {
     "address": "0x646CE124534DAefD23f28b5EB065D09d878982Ec",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH231117": {
+    "address": "0x173De2070e29d0ED624f96502166ebE08A0B8c2c",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

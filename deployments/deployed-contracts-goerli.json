@@ -154,5 +154,9 @@
   },
   "ChainlinkAggregatorHelper": {
     "address": "0x2302B5faEBE36C033939C9C312390ce5B1589E0d"
+  },
+  "rateStrategyWETH231117": {
+    "address": "0xBf24df7a76e4894753b0f4c74f4E004FAD64f388",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
