@@ -12,6 +12,7 @@ export enum eEthereumNetwork {
   localhost = "localhost",
   goerli = "goerli",
   rinkeby = "rinkeby",
+  sepolia = "sepolia",
   main = "main",
 }
 
@@ -348,6 +349,7 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.localhost]: T;
   [eEthereumNetwork.goerli]: T;
   [eEthereumNetwork.rinkeby]: T;
+  [eEthereumNetwork.sepolia]: T;
   [eEthereumNetwork.main]: T;
 }
 

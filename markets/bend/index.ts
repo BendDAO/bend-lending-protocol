@@ -54,6 +54,10 @@ export const BendConfig: IBendConfiguration = {
       DAI: '0xa05ffF82bcC0C599984b0839218DC6ee9328d1Fb',
       USDC: '0x025FE4760c6f14dE878C22cEb09A3235F16dAe53',
     },
+    [eEthereumNetwork.sepolia]: {
+      WETH: '0x',
+      USDT: '0x',
+    },
     [eEthereumNetwork.goerli]: {
       WETH: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
       USDT: '0x8096Fd3B381164af8421F25c84063B8afC637fE5',
@@ -75,6 +79,15 @@ export const BendConfig: IBendConfiguration = {
       BAYC: '0x4e07D87De1CF586D51C3665e6a4d36eB9d99a457',
       DOODLE: '0x2F7f69a3cd22FcfFB5E0C0fB7Ae5Eb278b3919Ff',
       MAYC: '0x8b89F971cA1A5dE1B7df7f554a3024eE84FeeB05',
+    },
+    [eEthereumNetwork.sepolia]: {
+      WPUNKS: '0x',
+      BAYC: '0x',
+      DOODLE: '0x',
+      SDOODLE: '0x',
+      MAYC: '0x',
+      CLONEX: '0x',
+      AZUKI: '0x',
     },
     [eEthereumNetwork.goerli]: {
       WPUNKS: '0xbeD1e8B430FD512b82A18cb121a8442F3889E505',

@@ -106,6 +106,7 @@ const buidlerConfig: HardhatUserConfig = {
       chainId: BUIDLEREVM_CHAINID,
       accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => (secretKey)),
     },
+    sepolia: getCommonNetworkConfig(eEthereumNetwork.sepolia, 11155111),
     goerli: getCommonNetworkConfig(eEthereumNetwork.goerli, 5),
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),
