@@ -319,6 +319,7 @@ contract UniswapV3DebtSwapAdapter is
       true,
       execOpVars.maxSlippage
     );
+    require(vars.toDebtAmount > 0, "U3DSA: invalid to debt amount");
 
     bendLendPool.borrow(vars.toDebtReserve, vars.toDebtAmount, vars.nftAsset, vars.nftTokenId, vars.fromBorrower, 0);
 
@@ -391,10 +392,13 @@ contract UniswapV3DebtSwapAdapter is
     BendProtocolDataProvider.ReserveTokenData memory resDataIn = bendDataProvider.getReserveTokenData(tokenIn);
     BendProtocolDataProvider.ReserveTokenData memory resDataOut = bendDataProvider.getReserveTokenData(tokenOut);
 
+    uint256 inUnit = 10**IBToken(resDataIn.bTokenAddress).decimals();
+    uint256 outUnit = 10**IBToken(resDataOut.bTokenAddress).decimals();
+
     uint256 priceIn = bendReserveOracle.getAssetPrice(tokenIn);
     uint256 priceOut = bendReserveOracle.getAssetPrice(tokenOut);
-    uint256 ethIn = (priceIn * amountIn) / (10**IBToken(resDataIn.bTokenAddress).decimals());
-    amountOut = ((ethIn * (10**IBToken(resDataOut.bTokenAddress).decimals())) / priceOut);
+
+    amountOut = (priceIn * amountIn * outUnit) / (priceOut * inUnit);
 
     if (slippage > 0) {
       if (isAddOrSubSlippage) {

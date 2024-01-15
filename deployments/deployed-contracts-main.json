@@ -151,5 +151,12 @@
   "rateStrategyWETH230724": {
     "address": "0x746F1ff42618b99Dfc9Bc941249B7f98b0011049",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "UniswapV3DebtSwapAdapterImpl": {
+    "address": "0xBCd1E9c1111CB19C852896794A459108F67baa51"
+  },
+  "UniswapV3DebtSwapAdapter": {
+    "address": "0x7DBFbd828c12442563e4037AF84B99C14e8EAcd1",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
