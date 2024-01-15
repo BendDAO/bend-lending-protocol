@@ -61,6 +61,7 @@ contract UniswapV3DebtSwapAdapter is
     __Ownable_init();
     __ReentrancyGuard_init();
     __Pausable_init();
+    __ERC721Holder_init();
 
     aaveAddressesProvider = IAaveLendPoolAddressesProvider(aaveAddressesProvider_);
     aaveLendPool = IAaveLendPool(aaveAddressesProvider.getLendingPool());
@@ -105,7 +106,7 @@ contract UniswapV3DebtSwapAdapter is
     address[] aaveAssets;
     uint256[] aaveAmounts;
     uint256[] aaveModes;
-    bytes aaveParms;
+    bytes aaveParams;
   }
 
   /**
@@ -165,7 +166,7 @@ contract UniswapV3DebtSwapAdapter is
       vars.paramsFromDebtWithFeeAmounts[0] += (vars.aaveFlashLoanTotalPremium - vars.aaveFlashLoanAllSumPremium);
     }
 
-    vars.aaveParms = abi.encode(
+    vars.aaveParams = abi.encode(
       vars.paramsBorrower,
       swapParams.nftAssets,
       swapParams.nftTokenIds,
@@ -181,7 +182,7 @@ contract UniswapV3DebtSwapAdapter is
       vars.aaveAmounts,
       vars.aaveModes,
       address(0),
-      vars.aaveParms,
+      vars.aaveParams,
       0
     );
   }
