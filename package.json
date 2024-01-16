@@ -1,11 +1,24 @@
 {
-  "name": "@benddao/bend-protocol",
-  "version": "1.0.2",
-  "description": "Bend Protocol smart contracts",
+  "name": "@benddao/bend-lending-protocol",
+  "version": "1.0.11",
+  "description": "BendDAO Lending Protocol smart contracts",
   "files": [
+    "abis",
+    "markets",
     "contracts",
-    "artifacts"
+    "artifacts",
+    "types"
   ],
+  "homepage": "https://www.benddao.xyz/",
+  "bugs": "https://github.com/BendDAO/bend-lending-protocol/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BendDAO/bend-lending-protocol.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
   "scripts": {
     "run-env": "yarn && tail -f /dev/null",
     "hardhat": "hardhat",
@@ -26,7 +39,7 @@
     "dev:storage-layout-compare": "npm run compile && hardhat storage-layout-compare --a ${CONTRACT_NAME_A} --b ${CONTRACT_NAME_B} --a-ref ${CONTRACT_REF_A} --b-ref ${CONTRACT_REF_B}",
     "dev:export-storage-check": "npm run compile && hardhat storage-layout-check --source ${CONTRACT_LAYOUT_JSON} --b ${CONTRACT_NAME}",
     "prettier:abis": "prettier --write 'abis/**/*.json'",
-    "prettier:code": "prettier --write 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts'",
+    "prettier:code": "prettier --write 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts' 'test/**/*.sol'",
     "ci:test": "npm run compile && npm run test",
     "ci:clean": "hardhat clean && rm -rf ./artifacts ./cache ./types",
     "bend:hardhat:dev:migration": "npm run compile && npm run hardhat -- bend:dev",

@@ -44,6 +44,8 @@ export enum eContractid {
   MockChainlinkOracle = "MockChainlinkOracle",
   MockNFTOracle = "MockNFTOracle",
   MockReserveOracle = "MockReserveOracle",
+  ChainlinkAggregatorHelper = "ChainlinkAggregatorHelper",
+  ChainlinkAggregatorHelperImpl = "ChainlinkAggregatorHelperImpl",
   InterestRate = "InterestRate",
   BendUpgradeableProxy = "BendUpgradeableProxy",
   BendProxyAdminTest = "BendProxyAdminTest",
@@ -83,6 +85,8 @@ export enum eContractid {
   TimelockControllerFast = "TimelockControllerFast",
   TimelockControllerSlow = "TimelockControllerSlow",
   MockLoanRepaidInterceptor = "MockLoanRepaidInterceptor",
+  KodaGateway = "KodaGateway",
+  KodaGatewayImpl = "KodaGatewayImpl",
 }
 
 export enum ProtocolLoanState {
@@ -228,7 +232,7 @@ export interface iAssetBase<T> {
   WETH: T;
   DAI: T;
   USDC: T;
-  //USDT: T;
+  USDT: T;
 }
 
 export type iAssetsWithoutETH<T> = Omit<iAssetBase<T>, "ETH">;
@@ -241,7 +245,7 @@ export type iBendPoolAssets<T> = Pick<
   | "DAI"
   //| 'BUSD'
   | "USDC"
-  //| 'USDT'
+  | "USDT"
 >;
 
 export type iMultiPoolsAssets<T> = iAssetCommon<T> | iBendPoolAssets<T>;
@@ -255,7 +259,7 @@ export enum TokenContractId {
   DAI = "DAI",
   //BUSD = 'BUSD',
   USDC = "USDC",
-  //USDT = 'USDT',
+  USDT = "USDT",
 }
 
 export interface iNftCommon<T> {

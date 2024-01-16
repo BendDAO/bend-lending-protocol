@@ -25,4 +25,8 @@ interface INFTOracle {
   function setPause(address _nftContract, bool val) external;
 
   function setTwapInterval(uint256 _twapInterval) external;
+
+  function getAssetMapping(address _nftContract) external view returns (address[] memory);
+
+  function isAssetMapped(address originAsset, address mappedAsset) external view returns (bool);
 }

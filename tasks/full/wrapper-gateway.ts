@@ -104,3 +104,28 @@ task("full:wrapper-authorize-caller-whitelist", "Initialize gateway configuratio
     console.log(`${id}: ${wrapperGateWay.address}`);
     await waitForTx(await wrapperGateWay.authorizeCallerWhitelist([caller], flag));
   });
+
+task("full:new-wrapper-gateway-impl", "New gateway impl.")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("id", "The wrapper gateway id")
+  .addFlag("upgrade", "Upgrade contract")
+  .setAction(async ({ pool, id, upgrade }, localBRE) => {
+    await localBRE.run("set-DRE");
+    const network = <eNetwork>localBRE.network.name;
+    const poolConfig = loadPoolConfig(pool);
+
+    const gatewayProxy = await getWrapperGateway(id);
+
+    const gatewayImpl = await deployWrapperGateway(id, true);
+    console.log(`${id}: proxy: ${gatewayProxy.address}, impl: ${gatewayImpl.address}`);
+
+    if (upgrade) {
+      await localBRE.run("dev:upgrade-implementation", {
+        pool: pool,
+        id,
+        proxy: gatewayProxy,
+        impl: gatewayImpl.address,
+        admin: eContractid.BendProxyAdminWTL,
+      });
+    }
+  });

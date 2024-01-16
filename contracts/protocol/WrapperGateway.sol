@@ -67,7 +67,7 @@ contract WrapperGateway is
 
   function authorizeLendPoolERC20(address[] calldata tokens) external nonReentrant onlyOwner {
     for (uint256 i = 0; i < tokens.length; i++) {
-      IERC20Upgradeable(tokens[i]).approve(address(_getLendPool()), type(uint256).max);
+      IERC20Upgradeable(tokens[i]).safeApprove(address(_getLendPool()), type(uint256).max);
     }
   }
 
@@ -116,7 +116,7 @@ contract WrapperGateway is
 
     cachedPool.borrow(reserveAsset, amount, address(wrappedToken), nftTokenId, onBehalfOf, referralCode);
 
-    IERC20Upgradeable(reserveAsset).transfer(onBehalfOf, amount);
+    IERC20Upgradeable(reserveAsset).safeTransfer(onBehalfOf, amount);
   }
 
   function batchBorrow(
@@ -138,7 +138,7 @@ contract WrapperGateway is
 
       cachedPool.borrow(reserveAssets[i], amounts[i], address(wrappedToken), nftTokenIds[i], onBehalfOf, referralCode);
 
-      IERC20Upgradeable(reserveAssets[i]).transfer(onBehalfOf, amounts[i]);
+      IERC20Upgradeable(reserveAssets[i]).safeTransfer(onBehalfOf, amounts[i]);
     }
   }
 
@@ -189,7 +189,7 @@ contract WrapperGateway is
       amount = debt;
     }
 
-    IERC20Upgradeable(reserve).transferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(reserve).safeTransferFrom(msg.sender, address(this), amount);
 
     (uint256 paybackAmount, bool burn) = cachedPool.repay(address(wrappedToken), nftTokenId, amount);
 
@@ -216,7 +216,7 @@ contract WrapperGateway is
 
     (, , address reserve, ) = cachedPoolLoan.getLoanCollateralAndReserve(loanId);
 
-    IERC20Upgradeable(reserve).transferFrom(msg.sender, address(this), bidPrice);
+    IERC20Upgradeable(reserve).safeTransferFrom(msg.sender, address(this), bidPrice);
 
     cachedPool.auction(address(wrappedToken), nftTokenId, bidPrice, onBehalfOf);
   }
@@ -234,7 +234,7 @@ contract WrapperGateway is
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    IERC20Upgradeable(loan.reserveAsset).transferFrom(msg.sender, address(this), (amount + bidFine));
+    IERC20Upgradeable(loan.reserveAsset).safeTransferFrom(msg.sender, address(this), (amount + bidFine));
 
     uint256 paybackAmount = cachedPool.redeem(address(wrappedToken), nftTokenId, amount, bidFine);
 
@@ -256,7 +256,7 @@ contract WrapperGateway is
     require(loan.bidderAddress == _msgSender(), "WrapperGateway: caller is not bidder");
 
     if (amount > 0) {
-      IERC20Upgradeable(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
+      IERC20Upgradeable(loan.reserveAsset).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     uint256 extraRetAmount = cachedPool.liquidate(address(wrappedToken), nftTokenId, amount);

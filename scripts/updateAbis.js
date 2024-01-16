@@ -17,7 +17,7 @@ const protocolContractList = [
   "WrapperGateway",
 ];
 
-const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "WalletBalanceProvider"];
+const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "WalletBalanceProvider", "ChainlinkAggregatorHelper"];
 
 const interfacesContractList = ["IERC20Detailed", "IERC721Detailed", "IIncentivesController"];
 

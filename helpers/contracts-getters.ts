@@ -41,6 +41,7 @@ import {
   MockerERC721WrapperFactory,
   MintableERC721,
   WrapperGatewayFactory,
+  ChainlinkAggregatorHelperFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -123,6 +124,18 @@ export const getReserveOracleImpl = async (address?: tEthereumAddress) =>
 export const getMockChainlinkOracle = async (address?: tEthereumAddress) =>
   await MockChainlinkOracleFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.MockChainlinkOracle}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getChainlinkAggregatorHelper = async (address?: tEthereumAddress) =>
+  await ChainlinkAggregatorHelperFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.ChainlinkAggregatorHelper}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getChainlinkAggregatorHelperImpl = async (address?: tEthereumAddress) =>
+  await ChainlinkAggregatorHelperFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.ChainlinkAggregatorHelperImpl}`).value()).address,
     await getDeploySigner()
   );
 
