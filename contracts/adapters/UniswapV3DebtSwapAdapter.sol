@@ -363,12 +363,13 @@ contract UniswapV3DebtSwapAdapter is
     uint256[] calldata nftTokenIds,
     address toDebtReserve,
     uint256 slippage
-  ) external view returns (uint256[] memory toAmounts) {
+  ) external view returns (uint256[] memory toDebtAmounts, uint256[] memory repayAmounts) {
     require(nftAssets.length == nftTokenIds.length, "U3DSA: inconsistent assets and token ids");
 
     uint256 aaveFlashLoanFeeRatio = aaveLendPool.FLASHLOAN_PREMIUM_TOTAL();
 
-    toAmounts = new uint256[](nftTokenIds.length);
+    toDebtAmounts = new uint256[](nftTokenIds.length);
+    repayAmounts = new uint256[](nftTokenIds.length);
 
     for (uint256 i = 0; i < nftTokenIds.length; i++) {
       (, address fromDebtReserve, , uint256 fromDebtAmount, , ) = bendLendPool.getNftDebtData(
@@ -376,9 +377,19 @@ contract UniswapV3DebtSwapAdapter is
         nftTokenIds[i]
       );
 
+      // calculate the wanted target new debt amount
       uint256 aaveFlashLoanPremium = (fromDebtAmount * aaveFlashLoanFeeRatio) / PERCENTAGE_FACTOR;
       fromDebtAmount += aaveFlashLoanPremium;
-      toAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true, slippage);
+      toDebtAmounts[i] = _getTokenOutAmount(fromDebtReserve, fromDebtAmount, toDebtReserve, true, slippage);
+
+      // calculate the required repay amount for the old debt
+      (, , , uint256 maxToDebtAmount, , , ) = bendLendPool.getNftCollateralData(nftAssets[i], toDebtReserve);
+
+      if (maxToDebtAmount < toDebtAmounts[i]) {
+        uint256 repayDebtAmount = toDebtAmounts[i] - maxToDebtAmount;
+        repayAmounts[i] = _getTokenOutAmount(toDebtReserve, repayDebtAmount, fromDebtReserve, true, 0);
+        toDebtAmounts[i] = maxToDebtAmount;
+      }
     }
   }
 

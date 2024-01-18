@@ -253,7 +253,12 @@
     "outputs": [
       {
         "internalType": "uint256[]",
-        "name": "toAmounts",
+        "name": "toDebtAmounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "repayAmounts",
         "type": "uint256[]"
       }
     ],

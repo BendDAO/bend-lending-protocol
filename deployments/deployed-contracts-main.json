@@ -153,7 +153,7 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "UniswapV3DebtSwapAdapterImpl": {
-    "address": "0xBCd1E9c1111CB19C852896794A459108F67baa51"
+    "address": "0x1a1F40B9b07B480d9c53B99eCEF603c7bC931c87"
   },
   "UniswapV3DebtSwapAdapter": {
     "address": "0x7DBFbd828c12442563e4037AF84B99C14e8EAcd1",

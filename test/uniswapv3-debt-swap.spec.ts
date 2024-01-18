@@ -213,7 +213,9 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       usdc.address,
       100
     );
-    console.log("debtSwapOutAmount:", debtSwapOutAmount.toString());
+    //console.log("debtSwapOutAmount:", debtSwapOutAmount);
+    expect(debtSwapOutAmount.toDebtAmounts[0]).to.be.gt(0, "toDebtAmounts should gt 0");
+    expect(debtSwapOutAmount.repayAmounts[0]).to.be.eq(0, "repayAmounts should eq 0");
 
     await waitForTx(await testEnv.bayc.connect(borrower.signer).setApprovalForAll(debtSwapAdapter.address, true));
 
@@ -270,7 +272,9 @@ makeSuite("Adapter: Uniswap v3 debt swap test cases", (testEnv: TestEnv) => {
       weth.address,
       100
     );
-    console.log("debtSwapOutAmount:", debtSwapOutAmount.toString());
+    //console.log("debtSwapOutAmount:", debtSwapOutAmount);
+    expect(debtSwapOutAmount.toDebtAmounts[0]).to.be.gt(0, "toDebtAmounts should gt 0");
+    expect(debtSwapOutAmount.repayAmounts[0]).to.be.eq(0, "repayAmounts should eq 0");
 
     await waitForTx(await bayc.connect(borrower.signer).setApprovalForAll(debtSwapAdapter.address, true));
 
