@@ -41,7 +41,7 @@
     "prettier:abis": "prettier --write 'abis/**/*.json'",
     "prettier:code": "prettier --write 'tasks/**/*.ts' 'contracts/**/*.sol' 'helpers/**/*.ts'  'test/**/*.ts' 'test/**/*.sol'",
     "ci:test": "npm run compile && npm run test",
-    "ci:clean": "hardhat clean && rm -rf ./artifacts ./cache ./types",
+    "ci:clean": "hardhat clean && rm -rf ./artifacts ./cache ./cache_forge ./out ./types",
     "bend:hardhat:dev:migration": "npm run compile && npm run hardhat -- bend:dev",
     "bend:localhost:dev:migration": "npm run compile && npm run hardhat:localhost -- bend:dev",
     "bend:localhost:full:migration": "npm run compile && npm run hardhat:localhost -- bend:mainnet",

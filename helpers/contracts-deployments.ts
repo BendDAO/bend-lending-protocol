@@ -63,6 +63,7 @@ import {
   WrapperGatewayFactory,
   MockerERC721Wrapper,
   ChainlinkAggregatorHelperFactory,
+  UniswapV3DebtSwapAdapterFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -673,4 +674,10 @@ export const deployWrapperGateway = async (id: string, verify?: boolean) => {
   const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
   await rawInsertContractAddressInDb(id + "Impl", gatewayImpl.address);
   return withSaveAndVerify(gatewayImpl, id, [], verify);
+};
+
+export const deployUniswapV3DebtSwapAdapter = async (verify?: boolean) => {
+  const adapterImpl = await new UniswapV3DebtSwapAdapterFactory(await getDeploySigner()).deploy();
+  await rawInsertContractAddressInDb(eContractid.UniswapV3DebtSwapAdapterImpl, adapterImpl.address);
+  return withSaveAndVerify(adapterImpl, eContractid.UniswapV3DebtSwapAdapter, [], verify);
 };
