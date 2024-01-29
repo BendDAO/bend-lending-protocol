@@ -89,6 +89,7 @@ export enum eContractid {
   KodaGatewayImpl = "KodaGatewayImpl",
   UniswapV3DebtSwapAdapter = "UniswapV3DebtSwapAdapter",
   UniswapV3DebtSwapAdapterImpl = "UniswapV3DebtSwapAdapterImpl",
+  WstETHPriceAggregator = "WstETHPriceAggregator",
 }
 
 export enum ProtocolLoanState {

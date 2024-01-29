@@ -168,5 +168,13 @@
   },
   "UniswapV3DebtSwapAdapter": {
     "address": "0x06a41eC387810a0dC9FE3042180D4617207C6E27"
+  },
+  "WstETHPriceAggregator": {
+    "address": "0xa7e842d5e85284c0da225FC75cc44d2E21736376",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWSTETH240130": {
+    "address": "0xDfd5815010E599c4487cA808844A213A7160552f",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
