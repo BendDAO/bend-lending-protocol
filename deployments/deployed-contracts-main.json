@@ -171,6 +171,10 @@
     "address": "0x7DBFbd828c12442563e4037AF84B99C14e8EAcd1",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
+  "rateStrategyUSDT240120": {
+    "address": "0x3C5cDf47fe2Eaf3e40d1a66148Cf4F72adf9446A",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
   "WstETHPriceAggregator": {
     "address": "0xe73F027Aa66d8626076751b70688CBcBD708aFd9",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
