@@ -64,6 +64,7 @@ import {
   MockerERC721Wrapper,
   ChainlinkAggregatorHelperFactory,
   UniswapV3DebtSwapAdapterFactory,
+  WstETHPriceAggregatorFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -680,4 +681,9 @@ export const deployUniswapV3DebtSwapAdapter = async (verify?: boolean) => {
   const adapterImpl = await new UniswapV3DebtSwapAdapterFactory(await getDeploySigner()).deploy();
   await rawInsertContractAddressInDb(eContractid.UniswapV3DebtSwapAdapterImpl, adapterImpl.address);
   return withSaveAndVerify(adapterImpl, eContractid.UniswapV3DebtSwapAdapter, [], verify);
+};
+
+export const deployWstETHPriceAggregator = async (stETHAgg: string, wstETH: string, verify?: boolean) => {
+  const aggregator = await new WstETHPriceAggregatorFactory(await getDeploySigner()).deploy(stETHAgg, wstETH);
+  return withSaveAndVerify(aggregator, eContractid.WstETHPriceAggregator, [stETHAgg, wstETH], verify);
 };
