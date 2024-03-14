@@ -27,16 +27,16 @@ export const buildForkConfig = (): HardhatNetworkForkingUserConfig | undefined =
 
 export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
   [eEthereumNetwork.sepolia]: ALCHEMY_KEY
-    ? `https://eth-sepolia.alchemyapi.io/v2/${ALCHEMY_KEY}`
+    ? `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}`
     : `https://sepolia.infura.io/v3/${INFURA_KEY}`,
   [eEthereumNetwork.goerli]: ALCHEMY_KEY
-    ? `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_KEY}`
+    ? `https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_KEY}`
     : `https://goerli.infura.io/v3/${INFURA_KEY}`,
   [eEthereumNetwork.rinkeby]: ALCHEMY_KEY
-    ? `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_KEY}`
+    ? `https://eth-rinkeby.g.alchemy.com/v2/${ALCHEMY_KEY}`
     : `https://rinkeby.infura.io/v3/${INFURA_KEY}`,
   [eEthereumNetwork.main]: ALCHEMY_KEY
-    ? `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_KEY}`
+    ? `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}`
     : `https://mainnet.infura.io/v3/${INFURA_KEY}`,
   [eEthereumNetwork.coverage]: "http://localhost:8555",
   [eEthereumNetwork.hardhat]: "http://localhost:8545",
@@ -44,10 +44,10 @@ export const NETWORKS_RPC_URL: iParamsPerNetwork<string> = {
 };
 
 export const NETWORKS_DEFAULT_GAS: iParamsPerNetwork<number> = {
-  [eEthereumNetwork.sepolia]: 65 * GWEI,
+  [eEthereumNetwork.sepolia]: 35 * GWEI,
   [eEthereumNetwork.goerli]: 65 * GWEI,
   [eEthereumNetwork.rinkeby]: 65 * GWEI,
-  [eEthereumNetwork.main]: 25 * GWEI,
+  [eEthereumNetwork.main]: 35 * GWEI,
   [eEthereumNetwork.coverage]: 65 * GWEI,
   [eEthereumNetwork.hardhat]: 65 * GWEI,
   [eEthereumNetwork.localhost]: 65 * GWEI,

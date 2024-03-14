@@ -55,7 +55,7 @@ const getCommonNetworkConfig = (networkName: eNetwork, networkId: number) => ({
   hardfork: HARDFORK,
   blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
   gasMultiplier: DEFAULT_GAS_MUL,
-  //gasPrice: NETWORKS_DEFAULT_GAS[networkName],
+  gasPrice: NETWORKS_DEFAULT_GAS[networkName],
   chainId: networkId,
   accounts: PRIVATE_KEY
   ? [PRIVATE_KEY]

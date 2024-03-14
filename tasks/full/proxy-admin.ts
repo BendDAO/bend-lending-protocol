@@ -11,7 +11,7 @@ task("full:deploy-proxy-admin", "Deploy proxy admin contract")
   .addFlag("verify", "Verify contracts at Etherscan")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
   .addFlag("all", "Create all proxy admin")
-  .addParam("proxyadminid", "Proxy admin ID")
+  .addOptionalParam("proxyadminid", "Proxy admin ID")
   .setAction(async ({ verify, pool, all, proxyadminid }, DRE) => {
     await DRE.run("set-DRE");
     await DRE.run("compile");

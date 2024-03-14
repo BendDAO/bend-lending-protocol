@@ -55,8 +55,7 @@ export const BendConfig: IBendConfiguration = {
       USDC: '0x025FE4760c6f14dE878C22cEb09A3235F16dAe53',
     },
     [eEthereumNetwork.sepolia]: {
-      WETH: '0x',
-      USDT: '0x',
+      WETH: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
     },
     [eEthereumNetwork.goerli]: {
       WETH: '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6',
@@ -81,13 +80,13 @@ export const BendConfig: IBendConfiguration = {
       MAYC: '0x8b89F971cA1A5dE1B7df7f554a3024eE84FeeB05',
     },
     [eEthereumNetwork.sepolia]: {
-      WPUNKS: '0x',
-      BAYC: '0x',
-      DOODLE: '0x',
-      SDOODLE: '0x',
-      MAYC: '0x',
-      CLONEX: '0x',
-      AZUKI: '0x',
+      WPUNKS: '0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b',
+      BAYC: '0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B',
+      DOODLE: '0x28cCcd47Aa3FFb42D77e395Fba7cdAcCeA884d5A',
+      SDOODLE: '0xd51fC3376F6D7C86D8639d5ec238327ab0EE69e3',
+      MAYC: '0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC',
+      CLONEX: '0x3BD0A71D39E67fc49D5A6645550f2bc95F5cb398',
+      AZUKI: '0x292F693048208184320C01e0C223D624268e5EE7',
     },
     [eEthereumNetwork.goerli]: {
       WPUNKS: '0xbeD1e8B430FD512b82A18cb121a8442F3889E505',
