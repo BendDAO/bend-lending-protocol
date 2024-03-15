@@ -8,7 +8,7 @@ import {
   getWETHGateway,
   getWrapperGateway,
 } from "../../helpers/contracts-getters";
-import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import { insertContractAddressInDb, tryGetContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork } from "../../helpers/types";
 import { BendUpgradeableProxy, WrapperGateway } from "../../types";
@@ -55,7 +55,7 @@ task(`full:deploy-wrapper-gateway`, `Deploys the WrapperGateway contract`)
     let wrapperGateWay: WrapperGateway;
     let wrapperGatewayProxy: BendUpgradeableProxy;
 
-    const wrapperGatewayAddress = undefined; //await addressesProvider.getAddress(ADDRESS_ID_XXX_GATEWAY);
+    const wrapperGatewayAddress = await tryGetContractAddressInDb(gatewayid);
 
     if (wrapperGatewayAddress != undefined && notFalsyOrZeroAddress(wrapperGatewayAddress)) {
       console.log(`Upgrading exist ${gatewayid} proxy to new implementation...`);

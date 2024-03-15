@@ -21,6 +21,8 @@ const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "Wal
 
 const interfacesContractList = ["IERC20Detailed", "IERC721Detailed", "IIncentivesController"];
 
+const adaptersContractList = ["UniswapV3DebtSwapAdapter"];
+
 const updateAbis = async (subDir, contractList) => {
   contractList.forEach((contract) => {
     const artifact = require(`../artifacts/contracts/${subDir}/${contract}.sol/${contract}.json`);
@@ -46,3 +48,5 @@ updateAbis("protocol", protocolContractList).then().catch();
 updateAbis("misc", miscContractList).then().catch();
 
 updateAbis("interfaces", interfacesContractList).then().catch();
+
+updateAbis("adapters", adaptersContractList).then().catch();

@@ -163,5 +163,24 @@
   "rateStrategyUSDT231211": {
     "address": "0x9e987a69b59F9b09B0Ca2C666AC8526Aa972d836",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "UniswapV3DebtSwapAdapterImpl": {
+    "address": "0x1a1F40B9b07B480d9c53B99eCEF603c7bC931c87"
+  },
+  "UniswapV3DebtSwapAdapter": {
+    "address": "0x7DBFbd828c12442563e4037AF84B99C14e8EAcd1",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240120": {
+    "address": "0x3C5cDf47fe2Eaf3e40d1a66148Cf4F72adf9446A",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "WstETHPriceAggregator": {
+    "address": "0xe73F027Aa66d8626076751b70688CBcBD708aFd9",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWstETH240223": {
+    "address": "0x6F8A38Bf0331Cc691AB6dD8146aDeB5B846430B2",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

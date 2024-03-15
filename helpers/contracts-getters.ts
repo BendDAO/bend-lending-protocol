@@ -42,6 +42,7 @@ import {
   MintableERC721,
   WrapperGatewayFactory,
   ChainlinkAggregatorHelperFactory,
+  UniswapV3DebtSwapAdapterFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -482,5 +483,17 @@ export const getMockERC721Wrapper = async (id: string, address?: tEthereumAddres
 export const getWrapperGateway = async (id: string, address?: tEthereumAddress) =>
   await WrapperGatewayFactory.connect(
     address || (await getDb(DRE.network.name).get(`${id}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getUniswapV3DebtSwapAdapter = async (address?: tEthereumAddress) =>
+  await UniswapV3DebtSwapAdapterFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.UniswapV3DebtSwapAdapter}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getUniswapV3DebtSwapAdapterImpl = async (address?: tEthereumAddress) =>
+  await UniswapV3DebtSwapAdapterFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.UniswapV3DebtSwapAdapterImpl}`).value()).address,
     await getDeploySigner()
   );
