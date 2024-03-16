@@ -135,5 +135,16 @@
   "ChainlinkAggregatorHelper": {
     "address": "0x1f7915Ed7A71275DF5A99646C1aab4b241d3f693",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "UniswapV3DebtSwapAdapterImpl": {
+    "address": "0xF08f40fa0312B23C31C4b027F26fDbc95Bcd7781"
+  },
+  "UniswapV3DebtSwapAdapter": {
+    "address": "0x3ea00A4A0E4Ba9a549304C5681988c5bb04dEfBe",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "WstETHPriceAggregator": {
+    "address": "0xf8c43C594826A778026c0e32ca6c3A300E122cb3",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
