@@ -153,5 +153,17 @@
   "KodaGateway": {
     "address": "0x45F617abbD8A9996b4feaf300F405b9b9407259B",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWSTETH240130": {
+    "address": "0x2c449422039d69cE9FE3f651979513161F6bd22a",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyUSDT231211": {
+    "address": "0x1e976Aba254e3D8C3e7aDa5EEDB07e87AFF56D40",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWETH231117": {
+    "address": "0x2C86cdA99e2cea822a2915fFfeB75C9D3E2830F9",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
