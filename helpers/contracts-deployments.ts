@@ -671,6 +671,11 @@ export const deployMockERC721Underlying = async (id: string, args: [string, stri
 export const deployMockERC721Wrapper = async (id: string, args: [string, string, string], verify?: boolean) =>
   withSaveAndVerify(await new MockerERC721WrapperFactory(await getDeploySigner()).deploy(...args), id, args, verify);
 
+export const deployWrapperGatewayImpl = async (id: string, verify?: boolean) => {
+  const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
+  return withSaveAndVerify(gatewayImpl, id + "Impl", [], verify);
+};
+
 export const deployWrapperGateway = async (id: string, verify?: boolean) => {
   const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
   await rawInsertContractAddressInDb(id + "Impl", gatewayImpl.address);

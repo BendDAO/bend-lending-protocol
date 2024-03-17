@@ -1,6 +1,10 @@
 import { task } from "hardhat/config";
 import { loadPoolConfig, ConfigNames } from "../../helpers/configuration";
-import { deployBendUpgradeableProxy, deployWrapperGateway } from "../../helpers/contracts-deployments";
+import {
+  deployBendUpgradeableProxy,
+  deployWrapperGateway,
+  deployWrapperGatewayImpl,
+} from "../../helpers/contracts-deployments";
 import {
   getBendProxyAdminById,
   getBendUpgradeableProxy,
@@ -44,7 +48,7 @@ task(`full:deploy-wrapper-gateway`, `Deploys the WrapperGateway contract`)
 
     // this contract is not support upgrade, just deploy new contract
     console.log(`Deploying new ${gatewayid} implementation...`);
-    const wrapperGateWayImpl = await deployWrapperGateway(gatewayid, verify);
+    const wrapperGateWayImpl = await deployWrapperGatewayImpl(gatewayid, verify);
     const initEncodedData = wrapperGateWayImpl.interface.encodeFunctionData("initialize", [
       addressesProvider.address,
       wethGateWay.address,
@@ -116,7 +120,7 @@ task("full:new-wrapper-gateway-impl", "New gateway impl.")
 
     const gatewayProxy = await getWrapperGateway(id);
 
-    const gatewayImpl = await deployWrapperGateway(id, true);
+    const gatewayImpl = await deployWrapperGatewayImpl(id, true);
     console.log(`${id}: proxy: ${gatewayProxy.address}, impl: ${gatewayImpl.address}`);
 
     if (upgrade) {
