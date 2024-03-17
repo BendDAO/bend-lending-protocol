@@ -146,5 +146,12 @@
   "WstETHPriceAggregator": {
     "address": "0xf8c43C594826A778026c0e32ca6c3A300E122cb3",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "KodaGatewayImpl": {
+    "address": "0x8aD31a2c0e9341E3c62C44FA3F520C8A25855903"
+  },
+  "KodaGateway": {
+    "address": "0x45F617abbD8A9996b4feaf300F405b9b9407259B",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
