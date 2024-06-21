@@ -190,5 +190,13 @@
   "rateStrategyUSDT240325": {
     "address": "0xc7A5e403697cA5FF6e12b240503b1a0EB7EEfaFF",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240619": {
+    "address": "0x8ab25A3Dd22a7d44682b2B2E82Ab24C7132C5800",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240619": {
+    "address": "0xf34d8A4164c52296D9021d010Ea5685c1FC9cC98",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
