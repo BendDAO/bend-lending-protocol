@@ -56,6 +56,12 @@ interface IPunkGateway {
     address onBehalfOf
   ) external;
 
+  function batchAuction(
+    uint256[] calldata punkIndexs,
+    uint256[] calldata bidPrices,
+    address onBehalfOf
+  ) external;
+
   /**
    * @notice redeem a unhealth punk loan with ERC20 reserve
    * @param punkIndex The index of the CryptoPunk used as collteral
@@ -68,11 +74,21 @@ interface IPunkGateway {
     uint256 bidFine
   ) external returns (uint256);
 
+  function batchRedeem(
+    uint256[] calldata punkIndexs,
+    uint256[] calldata amounts,
+    uint256[] calldata bidFines
+  ) external returns (uint256[] memory);
+
   /**
    * @notice liquidate a unhealth punk loan with ERC20 reserve
    * @param punkIndex The index of the CryptoPunk used as collteral
    **/
   function liquidate(uint256 punkIndex, uint256 amount) external returns (uint256);
+
+  function batchLiquidate(uint256[] calldata punkIndexs, uint256[] calldata amounts)
+    external
+    returns (uint256[] memory);
 
   /**
    * @dev Allows users to borrow a specific `amount` of the reserve underlying asset, provided that the borrower
@@ -123,6 +139,12 @@ interface IPunkGateway {
    **/
   function auctionETH(uint256 punkIndex, address onBehalfOf) external payable;
 
+  function batchAuctionETH(
+    uint256[] calldata punkIndexs,
+    uint256[] calldata bidPrices,
+    address onBehalfOf
+  ) external payable;
+
   /**
    * @notice liquidate a unhealth punk loan with native ETH
    * @param punkIndex The index of the CryptoPunk to repay
@@ -135,9 +157,20 @@ interface IPunkGateway {
     uint256 bidFine
   ) external payable returns (uint256);
 
+  function batchRedeemETH(
+    uint256[] calldata punkIndexs,
+    uint256[] calldata amounts,
+    uint256[] calldata bidFines
+  ) external payable returns (uint256[] memory);
+
   /**
    * @notice liquidate a unhealth punk loan with native ETH
    * @param punkIndex The index of the CryptoPunk to repay
    **/
   function liquidateETH(uint256 punkIndex) external payable returns (uint256);
+
+  function batchLiquidateETH(uint256[] memory punkIndexs, uint256[] calldata amounts)
+    external
+    payable
+    returns (uint256[] memory);
 }
