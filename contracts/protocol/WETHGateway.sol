@@ -264,6 +264,9 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256[] calldata bidPrices,
     address onBehalfOf
   ) external payable override nonReentrant {
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+    require(nftAssets.length == bidPrices.length, "inconsistent bidPrices length");
+
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
     ILendPool cachedPool = _getLendPool();
@@ -333,6 +336,10 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256[] calldata amounts,
     uint256[] calldata bidFines
   ) external payable override nonReentrant returns (uint256[] memory) {
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+    require(nftAssets.length == amounts.length, "inconsistent amounts length");
+    require(nftAssets.length == bidFines.length, "inconsistent bidFines length");
+
     BatchRedeemETHLocalVars memory vars;
 
     ILendPool cachedPool = _getLendPool();
@@ -395,6 +402,9 @@ contract WETHGateway is IWETHGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256[] calldata nftTokenIds,
     uint256[] calldata amounts
   ) external payable override nonReentrant returns (uint256[] memory) {
+    require(nftAssets.length == nftTokenIds.length, "inconsistent tokenIds length");
+    require(nftAssets.length == amounts.length, "inconsistent bidPrices length");
+
     ILendPool cachedPool = _getLendPool();
     ILendPoolLoan cachedPoolLoan = _getLendPoolLoan();
 

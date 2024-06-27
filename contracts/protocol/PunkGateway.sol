@@ -491,6 +491,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256[] calldata bidPrices,
     address onBehalfOf
   ) external payable override nonReentrant {
+    require(punkIndexs.length == bidPrices.length, "inconsistent bidPrices length");
+
     _checkValidCallerAndOnBehalfOf(onBehalfOf);
 
     IWETH weth_ = IWETH(_wethGateway.getWETHAddress());
@@ -548,6 +550,9 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     uint256[] calldata amounts,
     uint256[] calldata bidFines
   ) external payable override nonReentrant returns (uint256[] memory) {
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+    require(punkIndexs.length == bidFines.length, "inconsistent bidFines length");
+
     BatchRedeemETHLocalVars memory vars;
 
     IWETH weth_ = IWETH(_wethGateway.getWETHAddress());
@@ -613,6 +618,8 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     nonReentrant
     returns (uint256[] memory)
   {
+    require(punkIndexs.length == amounts.length, "inconsistent amounts length");
+
     IWETH weth_ = IWETH(_wethGateway.getWETHAddress());
     if (msg.value > 0) {
       weth_.deposit{value: msg.value}();
