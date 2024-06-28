@@ -300,6 +300,29 @@ contract LendPool is
     );
   }
 
+  function batchAuction(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata bidPrices,
+    address onBehalfOf
+  ) external override nonReentrant whenNotPaused {
+    for (uint256 i = 0; i < nftAssets.length; i++) {
+      LiquidateLogic.executeAuction(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        _buildLendPoolVars(),
+        DataTypes.ExecuteAuctionParams({
+          initiator: _msgSender(),
+          nftAsset: nftAssets[i],
+          nftTokenId: nftTokenIds[i],
+          bidPrice: bidPrices[i],
+          onBehalfOf: onBehalfOf
+        })
+      );
+    }
+  }
+
   /**
    * @notice Redeem a NFT loan which state is in Auction
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
@@ -330,6 +353,44 @@ contract LendPool is
       );
   }
 
+  struct BatchRedeemVars {
+    uint256 i;
+    uint256[] paybackAmounts;
+    DataTypes.ExecuteLendPoolStates poolVars;
+    DataTypes.ExecuteRedeemParams execParams;
+  }
+
+  function batchRedeem(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts,
+    uint256[] calldata bidFines
+  ) external override nonReentrant whenNotPaused returns (uint256[] memory) {
+    BatchRedeemVars memory vars;
+    vars.paybackAmounts = new uint256[](nftAssets.length);
+
+    for (vars.i = 0; vars.i < nftAssets.length; vars.i++) {
+      vars.poolVars = _buildLendPoolVars();
+      vars.execParams = DataTypes.ExecuteRedeemParams({
+        initiator: _msgSender(),
+        nftAsset: nftAssets[vars.i],
+        nftTokenId: nftTokenIds[vars.i],
+        amount: amounts[vars.i],
+        bidFine: bidFines[vars.i]
+      });
+
+      vars.paybackAmounts[vars.i] = LiquidateLogic.executeRedeem(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        vars.poolVars,
+        vars.execParams
+      );
+    }
+
+    return vars.paybackAmounts;
+  }
+
   /**
    * @dev Function to liquidate a non-healthy position collateral-wise
    * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
@@ -355,6 +416,37 @@ contract LendPool is
           amount: amount
         })
       );
+  }
+
+  struct BatchLiquidateVars {
+    uint256 i;
+    uint256[] extraAmounts;
+  }
+
+  function batchLiquidate(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external override nonReentrant whenNotPaused returns (uint256[] memory) {
+    BatchLiquidateVars memory vars;
+    vars.extraAmounts = new uint256[](nftAssets.length);
+
+    for (vars.i = 0; vars.i < nftAssets.length; vars.i++) {
+      vars.extraAmounts[vars.i] = LiquidateLogic.executeLiquidate(
+        _addressesProvider,
+        _reserves,
+        _nfts,
+        _buildLendPoolVars(),
+        DataTypes.ExecuteLiquidateParams({
+          initiator: _msgSender(),
+          nftAsset: nftAssets[vars.i],
+          nftTokenId: nftTokenIds[vars.i],
+          amount: amounts[vars.i]
+        })
+      );
+    }
+
+    return vars.extraAmounts;
   }
 
   function onERC721Received(
