@@ -198,5 +198,13 @@
   "rateStrategyWETH240619": {
     "address": "0xf34d8A4164c52296D9021d010Ea5685c1FC9cC98",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240804": {
+    "address": "0x4bcdb6593ee52b0b0b69a079F37D05adD6C774d6",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240804": {
+    "address": "0xb55661e16f242577C8B5C2A9Aa10108C4CA5c612",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
