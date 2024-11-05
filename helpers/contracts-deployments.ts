@@ -323,6 +323,12 @@ export const deployNFTOracle = async (verify?: boolean) => {
   return withSaveAndVerify(oracleImpl, eContractid.NFTOracle, [], verify);
 };
 
+export const deployTokenOracle = async (verify?: boolean) => {
+  const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.TokenOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.TokenOracle, [], verify);
+};
+
 export const deployMockNFTOracle = async (verify?: boolean) =>
   withSaveAndVerify(
     await new MockNFTOracleFactory(await getDeploySigner()).deploy(),

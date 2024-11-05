@@ -65,6 +65,7 @@ task("full:deploy-oracle-nft", "Deploy nft oracle for full enviroment")
         1800,
         600,
         21600,
+        18,
       ]);
 
       let nftOracle: NFTOracle;

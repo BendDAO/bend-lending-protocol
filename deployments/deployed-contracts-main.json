@@ -3,6 +3,9 @@
     "address": "0x501c991E0D31D408c25bCf00da27BdF2759A394a",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
+  "BendV2ProxyAdmin": {
+    "address": "0x3b241a4338f0C3f67aFE0e130ccB653D0Ef3767C"
+  },
   "NFTOracleImpl": {
     "address": "0x359424a81392588206cbb33159d6AebC292Cb404"
   },
