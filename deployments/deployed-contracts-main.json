@@ -261,5 +261,12 @@
   "rateStrategyWETH241012": {
     "address": "0xe591B82ECf0f6D0D5a289c5E31fF4d3f5C9eB8B6",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "TokenOracleImpl": {
+    "address": "0xA1CFAdAD19e1261a65D04c4fB81Aa59Ae36326B4"
+  },
+  "TokenOracle": {
+    "address": "0x09AbE7f7297B27e4343E1f3906267b0BE6dBe4eb",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
