@@ -41,6 +41,8 @@ export enum eContractid {
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
   NFTOracleImpl = "NFTOracleImpl",
+  TokenOracle = "TokenOracle",
+  TokenOracleImpl = "TokenOracleImpl",
   Proxy = "Proxy",
   MockChainlinkOracle = "MockChainlinkOracle",
   MockNFTOracle = "MockNFTOracle",
@@ -53,6 +55,7 @@ export enum eContractid {
   BendProxyAdminPool = "BendProxyAdminPool", //LendPool Contracts, etc Oracle(Reserve, NFT)
   BendProxyAdminFund = "BendProxyAdminFund", //Treasury Fundings, etc Collector
   BendProxyAdminWTL = "BendProxyAdminWTL", //Common Proxy Admin Without Timelock
+  BendV2ProxyAdmin = "BendV2ProxyAdmin", //Common Proxy Admin in V2
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   DebtToken = "DebtToken",

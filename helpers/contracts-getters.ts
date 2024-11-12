@@ -152,6 +152,18 @@ export const getNFTOracleImpl = async (address?: tEthereumAddress) =>
     await getDeploySigner()
   );
 
+export const getTokenOracle = async (address?: tEthereumAddress) =>
+  await NFTOracleFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.TokenOracle}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getTokenOracleImpl = async (address?: tEthereumAddress) =>
+  await NFTOracleFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.TokenOracleImpl}`).value()).address,
+    await getDeploySigner()
+  );
+
 export const getMockReserveOracle = async (address?: tEthereumAddress) =>
   await MockReserveOracleFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.MockReserveOracle}`).value()).address,
