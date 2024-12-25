@@ -94,6 +94,7 @@ export enum eContractid {
   UniswapV3DebtSwapAdapter = "UniswapV3DebtSwapAdapter",
   UniswapV3DebtSwapAdapterImpl = "UniswapV3DebtSwapAdapterImpl",
   WstETHPriceAggregator = "WstETHPriceAggregator",
+  BendTokenVoting = "BendTokenVoting",
 }
 
 export enum ProtocolLoanState {

@@ -65,6 +65,8 @@ import {
   ChainlinkAggregatorHelperFactory,
   UniswapV3DebtSwapAdapterFactory,
   WstETHPriceAggregatorFactory,
+  BendTokenVoting,
+  BendTokenVotingFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -697,4 +699,9 @@ export const deployUniswapV3DebtSwapAdapter = async (verify?: boolean) => {
 export const deployWstETHPriceAggregator = async (stETHAgg: string, wstETH: string, verify?: boolean) => {
   const aggregator = await new WstETHPriceAggregatorFactory(await getDeploySigner()).deploy(stETHAgg, wstETH);
   return withSaveAndVerify(aggregator, eContractid.WstETHPriceAggregator, [stETHAgg, wstETH], verify);
+};
+
+export const deployBendTokenVoting = async (bend: string, vebend: string, verify: boolean) => {
+  const voting = await new BendTokenVotingFactory(await getDeploySigner()).deploy(bend, vebend);
+  return withSaveAndVerify(voting, eContractid.BendTokenVoting, [bend, vebend], verify);
 };

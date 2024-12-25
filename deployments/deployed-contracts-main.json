@@ -268,5 +268,9 @@
   "TokenOracle": {
     "address": "0x09AbE7f7297B27e4343E1f3906267b0BE6dBe4eb",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "BendTokenVoting": {
+    "address": "0xeC2013DC5f85e82f58DAffCB3534ef5d86b0F8af",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
