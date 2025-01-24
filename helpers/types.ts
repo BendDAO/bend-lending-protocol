@@ -12,6 +12,7 @@ export enum eEthereumNetwork {
   localhost = "localhost",
   goerli = "goerli",
   rinkeby = "rinkeby",
+  sepolia = "sepolia",
   main = "main",
 }
 
@@ -40,15 +41,21 @@ export enum eContractid {
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
   NFTOracleImpl = "NFTOracleImpl",
+  TokenOracle = "TokenOracle",
+  TokenOracleImpl = "TokenOracleImpl",
   Proxy = "Proxy",
   MockChainlinkOracle = "MockChainlinkOracle",
   MockNFTOracle = "MockNFTOracle",
   MockReserveOracle = "MockReserveOracle",
+  ChainlinkAggregatorHelper = "ChainlinkAggregatorHelper",
+  ChainlinkAggregatorHelperImpl = "ChainlinkAggregatorHelperImpl",
   InterestRate = "InterestRate",
   BendUpgradeableProxy = "BendUpgradeableProxy",
   BendProxyAdminTest = "BendProxyAdminTest",
   BendProxyAdminPool = "BendProxyAdminPool", //LendPool Contracts, etc Oracle(Reserve, NFT)
   BendProxyAdminFund = "BendProxyAdminFund", //Treasury Fundings, etc Collector
+  BendProxyAdminWTL = "BendProxyAdminWTL", //Common Proxy Admin Without Timelock
+  BendV2ProxyAdmin = "BendV2ProxyAdmin", //Common Proxy Admin in V2
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   DebtToken = "DebtToken",
@@ -82,6 +89,11 @@ export enum eContractid {
   TimelockControllerFast = "TimelockControllerFast",
   TimelockControllerSlow = "TimelockControllerSlow",
   MockLoanRepaidInterceptor = "MockLoanRepaidInterceptor",
+  KodaGateway = "KodaGateway",
+  KodaGatewayImpl = "KodaGatewayImpl",
+  UniswapV3DebtSwapAdapter = "UniswapV3DebtSwapAdapter",
+  UniswapV3DebtSwapAdapterImpl = "UniswapV3DebtSwapAdapterImpl",
+  WstETHPriceAggregator = "WstETHPriceAggregator",
 }
 
 export enum ProtocolLoanState {
@@ -229,7 +241,7 @@ export interface iAssetBase<T> {
   WETH: T;
   DAI: T;
   USDC: T;
-  //USDT: T;
+  USDT: T;
 }
 
 export type iAssetsWithoutETH<T> = Omit<iAssetBase<T>, "ETH">;
@@ -242,7 +254,7 @@ export type iBendPoolAssets<T> = Pick<
   | "DAI"
   //| 'BUSD'
   | "USDC"
-  //| 'USDT'
+  | "USDT"
 >;
 
 export type iMultiPoolsAssets<T> = iAssetCommon<T> | iBendPoolAssets<T>;
@@ -256,7 +268,7 @@ export enum TokenContractId {
   DAI = "DAI",
   //BUSD = 'BUSD',
   USDC = "USDC",
-  //USDT = 'USDT',
+  USDT = "USDT",
 }
 
 export interface iNftCommon<T> {
@@ -270,6 +282,7 @@ export interface iNftBase<T> {
   MAYC: T;
   CLONEX: T;
   AZUKI: T;
+  WKODA: T;
 }
 
 export type iMultiPoolsNfts<T> = iNftCommon<T> | iBendPoolNfts<T>;
@@ -286,6 +299,7 @@ export enum NftContractId {
   MAYC = "MAYC",
   CLONEX = "CLONEX",
   AZUKI = "AZUKI",
+  WKODA = "WKODA",
 }
 
 export interface IReserveParams extends IReserveBorrowParams, IReserveCollateralParams {
@@ -343,6 +357,7 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.localhost]: T;
   [eEthereumNetwork.goerli]: T;
   [eEthereumNetwork.rinkeby]: T;
+  [eEthereumNetwork.sepolia]: T;
   [eEthereumNetwork.main]: T;
 }
 
@@ -386,6 +401,7 @@ export interface ICommonConfiguration {
 
   ProxyAdminPool: iParamsPerNetwork<tEthereumAddress | undefined>;
   ProxyAdminFund: iParamsPerNetwork<tEthereumAddress | undefined>;
+  ProxyAdminWTL: iParamsPerNetwork<tEthereumAddress | undefined>;
 
   BNFTRegistry: iParamsPerNetwork<tEthereumAddress | undefined>;
 

@@ -92,7 +92,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("WETH - Auctions the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -126,10 +126,13 @@ makeSuite("LendPool: Redeem", (testEnv) => {
 
     const tokenOwner = await bayc.ownerOf("101");
     expect(tokenOwner).to.be.equal(bBAYC.address, "Invalid token owner after redeem");
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("101", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(true);
   });
 
   it("WETH - Redeems the borrow", async () => {
-    const { weth, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { weth, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -201,6 +204,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       new BigNumber(ethReserveDataBefore.availableLiquidity.toString()).plus(repayDebtAmount).toFixed(0),
       "Invalid principal available liquidity"
     );
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("101", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(false);
   });
 
   it("WETH - Repays the borrow", async () => {
@@ -283,7 +289,7 @@ makeSuite("LendPool: Redeem", (testEnv) => {
   });
 
   it("USDC - Auctions the borrow", async () => {
-    const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { usdc, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -326,10 +332,13 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       );
     console.log("simpleLoansData:", simpleLoansData);
     */
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("102", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(true);
   });
 
   it("USDC - Redeems the borrow", async () => {
-    const { usdc, bayc, bBAYC, users, pool, dataProvider } = testEnv;
+    const { usdc, bayc, bBAYC, users, pool, dataProvider, loan } = testEnv;
     const liquidator = users[3];
     const borrower = users[1];
 
@@ -403,6 +412,9 @@ makeSuite("LendPool: Redeem", (testEnv) => {
       new BigNumber(usdcReserveDataBefore.availableLiquidity.toString()).plus(repayDebtAmount).toFixed(0),
       "Invalid principal available liquidity"
     );
+
+    const checkFlashLoanLocked = await bBAYC.isFlashLoanLocked("102", loan.address, loan.address);
+    expect(checkFlashLoanLocked).to.be.equal(false);
   });
 
   it("USDC - Repays the borrow", async () => {

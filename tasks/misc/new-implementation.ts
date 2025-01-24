@@ -31,9 +31,14 @@ import {
   deployBendCollector,
   deployConfiguratorLibraries,
   deployLendPoolLibraries,
+  deployWrapperGateway,
 } from "../../helpers/contracts-deployments";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
-import { getEthersSignerByAddress, insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import {
+  getContractAddressInDb,
+  getEthersSignerByAddress,
+  insertContractAddressInDb,
+} from "../../helpers/contracts-helpers";
 import { ADDRESS_ID_PUNK_GATEWAY, ADDRESS_ID_WETH_GATEWAY, oneRay } from "../../helpers/constants";
 import { BytesLike } from "ethers";
 import BigNumber from "bignumber.js";
@@ -171,6 +176,25 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
       }
     }
 
+    if (contract == "KodaGateway") {
+      const proxyAddress = await getContractAddressInDb(eContractid[contract]);
+
+      const kodaGatewayImpl = await deployWrapperGateway(eContractid[contract], verify);
+      console.log("KodaGateway implementation address:", kodaGatewayImpl.address);
+
+      await insertContractAddressInDb(eContractid[contract], proxyAddress);
+
+      if (upgrade) {
+        await DRE.run("dev:upgrade-implementation", {
+          pool: pool,
+          contract,
+          proxy: proxyAddress,
+          impl: kodaGatewayImpl.address,
+          admin: eContractid.BendProxyAdminWTL,
+        });
+      }
+    }
+
     if (contract == "BendProtocolDataProvider") {
       const contractImpl = await deployBendProtocolDataProvider(addressesProvider.address, verify);
       console.log("BendProtocolDataProvider implementation address:", contractImpl.address);
@@ -208,51 +232,13 @@ task("dev:deploy-new-implementation", "Deploy new implementation")
     }
   });
 
-task("dev:deploy-new-interest-rate", "Deploy new interest rate implementation")
-  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .addFlag("verify", "Verify contracts at Etherscan")
-  .addParam("optUtilRate", "Optimal Utilization Rate, 0-1, 0.65")
-  .addParam("baseRate", "Base Interest Rate, 0-1, 0.1")
-  .addParam("rateSlope1", "Variable Rate Slope1, 0-1, 0.08")
-  .addParam("rateSlope2", "Variable Rate Slope2, 0-1, 1.0")
-  .setAction(async ({ verify, pool, optUtilRate, baseRate, rateSlope1, rateSlope2 }, DRE) => {
-    await DRE.run("set-DRE");
-
-    const network = DRE.network.name as eNetwork;
-    const poolConfig = loadPoolConfig(pool);
-    const addressesProviderRaw = await getLendPoolAddressesProvider();
-    const providerOwnerSigner = await getEthersSignerByAddress(await addressesProviderRaw.owner());
-    const addressesProvider = addressesProviderRaw.connect(providerOwnerSigner);
-
-    /*
-
-export const rateStrategyWETH: IInterestRateStrategyParams = {
-  name: "rateStrategyWETH",
-  optimalUtilizationRate: new BigNumber(0.65).multipliedBy(oneRay).toFixed(),
-  baseVariableBorrowRate: new BigNumber(0.03).multipliedBy(oneRay).toFixed(),
-  variableRateSlope1: new BigNumber(0.08).multipliedBy(oneRay).toFixed(),
-  variableRateSlope2: new BigNumber(1).multipliedBy(oneRay).toFixed(),
-}
-    */
-
-    const optUtilRateInRay = new BigNumber(optUtilRate).multipliedBy(oneRay).toFixed();
-    const baseRateInRay = new BigNumber(baseRate).multipliedBy(oneRay).toFixed();
-    const rateSlope1InRay = new BigNumber(rateSlope1).multipliedBy(oneRay).toFixed();
-    const rateSlope2InRay = new BigNumber(rateSlope2).multipliedBy(oneRay).toFixed();
-
-    const rateInstance = await deployInterestRate(
-      [addressesProvider.address, optUtilRateInRay, baseRateInRay, rateSlope1InRay, rateSlope2InRay],
-      verify
-    );
-    console.log("InterestRate implementation address:", rateInstance.address);
-  });
-
 task("dev:upgrade-implementation", "Update implementation to address provider")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
-  .addParam("contract", "Contract name")
+  .addParam("contract", "Contract id")
   .addParam("proxy", "Contract proxy address")
   .addParam("impl", "Contract implementation address")
-  .setAction(async ({ pool, contract, proxy, impl }, DRE) => {
+  .addOptionalParam("admin", "Proxy admin address")
+  .setAction(async ({ pool, contract, proxy, impl, admin }, DRE) => {
     await DRE.run("set-DRE");
 
     const network = DRE.network.name as eNetwork;
@@ -260,7 +246,10 @@ task("dev:upgrade-implementation", "Update implementation to address provider")
 
     const bendProxy = await getBendUpgradeableProxy(proxy);
 
-    const proxyAdmin = await getBendProxyAdminById(eContractid.BendProxyAdminPool);
+    if (admin == undefined || admin == "") {
+      admin = eContractid.BendProxyAdminPool;
+    }
+    const proxyAdmin = await getBendProxyAdminById(admin);
     if (proxyAdmin == undefined || !notFalsyOrZeroAddress(proxyAdmin.address)) {
       throw Error("Invalid pool proxy admin in config");
     }

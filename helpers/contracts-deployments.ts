@@ -59,12 +59,19 @@ import {
   GenericLogicFactory,
   ConfiguratorLogicFactory,
   MockLoanRepaidInterceptorFactory,
+  MockerERC721WrapperFactory,
+  WrapperGatewayFactory,
+  MockerERC721Wrapper,
+  ChainlinkAggregatorHelperFactory,
+  UniswapV3DebtSwapAdapterFactory,
+  WstETHPriceAggregatorFactory,
 } from "../types";
 import {
   withSaveAndVerify,
   registerContractInJsonDb,
   linkBytecode,
   insertContractAddressInDb,
+  rawInsertContractAddressInDb,
   getOptionalParamAddressPerNetwork,
   getContractAddressInDb,
 } from "./contracts-helpers";
@@ -304,10 +311,22 @@ export const deployMockChainlinkOracle = async (decimals: string, verify?: boole
     verify
   );
 
+export const deployChainlinkAggregatorHelper = async (args: [], verify?: boolean) => {
+  const aggHelperImpl = await new ChainlinkAggregatorHelperFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.ChainlinkAggregatorHelperImpl, aggHelperImpl.address);
+  return withSaveAndVerify(aggHelperImpl, eContractid.ChainlinkAggregatorHelper, [], verify);
+};
+
 export const deployNFTOracle = async (verify?: boolean) => {
   const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.NFTOracleImpl, oracleImpl.address);
   return withSaveAndVerify(oracleImpl, eContractid.NFTOracle, [], verify);
+};
+
+export const deployTokenOracle = async (verify?: boolean) => {
+  const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.TokenOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.TokenOracle, [], verify);
 };
 
 export const deployMockNFTOracle = async (verify?: boolean) =>
@@ -363,12 +382,13 @@ export const deployMintableERC721 = async (args: [string, string], verify?: bool
   );
 
 export const deployInterestRate = async (args: [tEthereumAddress, string, string, string, string], verify: boolean) =>
-  withSaveAndVerify(
-    await new InterestRateFactory(await getDeploySigner()).deploy(...args),
-    eContractid.InterestRate,
-    args,
-    verify
-  );
+  deployInterestRateWithID(eContractid.InterestRate, args, verify);
+
+export const deployInterestRateWithID = async (
+  id: string,
+  args: [tEthereumAddress, string, string, string, string],
+  verify: boolean
+) => withSaveAndVerify(await new InterestRateFactory(await getDeploySigner()).deploy(...args), id, args, verify);
 
 export const deployGenericDebtToken = async (verify?: boolean) =>
   withSaveAndVerify(await new DebtTokenFactory(await getDeploySigner()).deploy(), eContractid.DebtToken, [], verify);
@@ -398,6 +418,9 @@ export const deployAllMockTokens = async (forTestCases: boolean, verify?: boolea
     }
 
     let decimals = "18";
+    if (tokenSymbol === "USDT" || tokenSymbol === "USDC") {
+      decimals = "6";
+    }
 
     let configData = (<any>protoConfigData)[tokenSymbol];
 
@@ -410,8 +433,28 @@ export const deployAllMockTokens = async (forTestCases: boolean, verify?: boolea
   return tokens;
 };
 
+export const deployOneMockToken = async (tokenSymbol: string, verify?: boolean) => {
+  const protoConfigData = getReservesConfigByPool(BendPools.proto);
+
+  const tokenName = "Bend Mock " + tokenSymbol;
+
+  let decimals = "18";
+  if (tokenSymbol === "USDT" || tokenSymbol === "USDC") {
+    decimals = "6";
+  }
+
+  let configData = (<any>protoConfigData)[tokenSymbol];
+  const tokenContract = await deployMintableERC20(
+    [tokenName, tokenSymbol, configData ? configData.reserveDecimals : decimals],
+    verify
+  );
+  await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokenContract);
+
+  return tokenContract;
+};
+
 export const deployAllMockNfts = async (verify?: boolean) => {
-  const tokens: { [symbol: string]: MockContract | MintableERC721 | WrappedPunk } = {};
+  const tokens: { [symbol: string]: MockContract | MintableERC721 | WrappedPunk | MockerERC721Wrapper } = {};
 
   for (const tokenSymbol of Object.keys(NftContractId)) {
     const tokenName = "Bend Mock " + tokenSymbol;
@@ -419,6 +462,16 @@ export const deployAllMockNfts = async (verify?: boolean) => {
       const cryptoPunksMarket = await deployCryptoPunksMarket([], verify);
       const wrappedPunk = await deployWrappedPunk([cryptoPunksMarket.address], verify);
       tokens[tokenSymbol] = wrappedPunk;
+      await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
+      continue;
+    } else if (tokenSymbol == "WKODA") {
+      const mockOtherdeed = await deployMockERC721Underlying("MockOtherdeed", ["Otherdeed", "OTHR"], verify);
+      const wrappedKoda = await deployMockERC721Wrapper(
+        "WrappedKoda",
+        [mockOtherdeed.address, "Wrapped Otherdeed Koda", "WKODA"],
+        verify
+      );
+      tokens[tokenSymbol] = wrappedKoda;
       await registerContractInJsonDb(tokenSymbol.toUpperCase(), tokens[tokenSymbol]);
       continue;
     }
@@ -617,3 +670,31 @@ export const deployMockLoanRepaidInterceptor = async (addressesProvider: string,
     [addressesProvider],
     verify
   );
+
+export const deployMockERC721Underlying = async (id: string, args: [string, string], verify?: boolean) =>
+  withSaveAndVerify(await new MintableERC721Factory(await getDeploySigner()).deploy(...args), id, args, verify);
+
+export const deployMockERC721Wrapper = async (id: string, args: [string, string, string], verify?: boolean) =>
+  withSaveAndVerify(await new MockerERC721WrapperFactory(await getDeploySigner()).deploy(...args), id, args, verify);
+
+export const deployWrapperGatewayImpl = async (id: string, verify?: boolean) => {
+  const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
+  return withSaveAndVerify(gatewayImpl, id + "Impl", [], verify);
+};
+
+export const deployWrapperGateway = async (id: string, verify?: boolean) => {
+  const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
+  await rawInsertContractAddressInDb(id + "Impl", gatewayImpl.address);
+  return withSaveAndVerify(gatewayImpl, id, [], verify);
+};
+
+export const deployUniswapV3DebtSwapAdapter = async (verify?: boolean) => {
+  const adapterImpl = await new UniswapV3DebtSwapAdapterFactory(await getDeploySigner()).deploy();
+  await rawInsertContractAddressInDb(eContractid.UniswapV3DebtSwapAdapterImpl, adapterImpl.address);
+  return withSaveAndVerify(adapterImpl, eContractid.UniswapV3DebtSwapAdapter, [], verify);
+};
+
+export const deployWstETHPriceAggregator = async (stETHAgg: string, wstETH: string, verify?: boolean) => {
+  const aggregator = await new WstETHPriceAggregatorFactory(await getDeploySigner()).deploy(stETHAgg, wstETH);
+  return withSaveAndVerify(aggregator, eContractid.WstETHPriceAggregator, [stETHAgg, wstETH], verify);
+};

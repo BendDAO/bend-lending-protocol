@@ -14,11 +14,14 @@ const protocolContractList = [
   "DebtToken",
   "PunkGateway",
   "WETHGateway",
+  "WrapperGateway",
 ];
 
-const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "WalletBalanceProvider"];
+const miscContractList = ["UiPoolDataProvider", "BendProtocolDataProvider", "WalletBalanceProvider", "ChainlinkAggregatorHelper"];
 
 const interfacesContractList = ["IERC20Detailed", "IERC721Detailed", "IIncentivesController"];
+
+const adaptersContractList = ["UniswapV3DebtSwapAdapter"];
 
 const updateAbis = async (subDir, contractList) => {
   contractList.forEach((contract) => {
@@ -45,3 +48,5 @@ updateAbis("protocol", protocolContractList).then().catch();
 updateAbis("misc", miscContractList).then().catch();
 
 updateAbis("interfaces", interfacesContractList).then().catch();
+
+updateAbis("adapters", adaptersContractList).then().catch();

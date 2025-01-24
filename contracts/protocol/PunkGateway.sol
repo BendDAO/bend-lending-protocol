@@ -87,7 +87,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
   function authorizeLendPoolERC20(address[] calldata tokens) external nonReentrant onlyOwner {
     for (uint256 i = 0; i < tokens.length; i++) {
-      IERC20Upgradeable(tokens[i]).approve(address(_getLendPool()), type(uint256).max);
+      IERC20Upgradeable(tokens[i]).safeApprove(address(_getLendPool()), type(uint256).max);
     }
   }
 
@@ -116,6 +116,9 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
       return;
     }
 
+    // !!! CAUTION: MUST CHECK THE OWNERSHIP HERE !!!
+    // Beware many holders can sell the punk to this gateway at the same time.
+    // If we do not check the ownership, attacker can borrow eth using victime's punk.
     address owner = punks.punkIndexToAddress(punkIndex);
     require(owner == _msgSender(), "PunkGateway: not owner of punkIndex");
 
@@ -139,7 +142,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     _depositPunk(punkIndex);
 
     cachedPool.borrow(reserveAsset, amount, address(wrappedPunks), punkIndex, onBehalfOf, referralCode);
-    IERC20Upgradeable(reserveAsset).transfer(onBehalfOf, amount);
+    IERC20Upgradeable(reserveAsset).safeTransfer(onBehalfOf, amount);
   }
 
   function batchBorrow(
@@ -161,7 +164,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
       cachedPool.borrow(reserveAssets[i], amounts[i], address(wrappedPunks), punkIndexs[i], onBehalfOf, referralCode);
 
-      IERC20Upgradeable(reserveAssets[i]).transfer(onBehalfOf, amounts[i]);
+      IERC20Upgradeable(reserveAssets[i]).safeTransfer(onBehalfOf, amounts[i]);
     }
   }
 
@@ -211,7 +214,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
       amount = debt;
     }
 
-    IERC20Upgradeable(reserve).transferFrom(msg.sender, address(this), amount);
+    IERC20Upgradeable(reserve).safeTransferFrom(msg.sender, address(this), amount);
 
     (uint256 paybackAmount, bool burn) = cachedPool.repay(address(wrappedPunks), punkIndex, amount);
 
@@ -238,7 +241,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
     (, , address reserve, ) = cachedPoolLoan.getLoanCollateralAndReserve(loanId);
 
-    IERC20Upgradeable(reserve).transferFrom(msg.sender, address(this), bidPrice);
+    IERC20Upgradeable(reserve).safeTransferFrom(msg.sender, address(this), bidPrice);
 
     cachedPool.auction(address(wrappedPunks), punkIndex, bidPrice, onBehalfOf);
   }
@@ -256,7 +259,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
 
     DataTypes.LoanData memory loan = cachedPoolLoan.getLoan(loanId);
 
-    IERC20Upgradeable(loan.reserveAsset).transferFrom(msg.sender, address(this), (amount + bidFine));
+    IERC20Upgradeable(loan.reserveAsset).safeTransferFrom(msg.sender, address(this), (amount + bidFine));
 
     uint256 paybackAmount = cachedPool.redeem(address(wrappedPunks), punkIndex, amount, bidFine);
 
@@ -278,7 +281,7 @@ contract PunkGateway is IPunkGateway, ERC721HolderUpgradeable, EmergencyTokenRec
     require(loan.bidderAddress == _msgSender(), "PunkGateway: caller is not bidder");
 
     if (amount > 0) {
-      IERC20Upgradeable(loan.reserveAsset).transferFrom(msg.sender, address(this), amount);
+      IERC20Upgradeable(loan.reserveAsset).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     uint256 extraRetAmount = cachedPool.liquidate(address(wrappedPunks), punkIndex, amount);

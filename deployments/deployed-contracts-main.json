@@ -3,8 +3,11 @@
     "address": "0x501c991E0D31D408c25bCf00da27BdF2759A394a",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
+  "BendV2ProxyAdmin": {
+    "address": "0x3b241a4338f0C3f67aFE0e130ccB653D0Ef3767C"
+  },
   "NFTOracleImpl": {
-    "address": "0x1bFC8D3D6704D63a9901189CD6dFeFD0993A1B25"
+    "address": "0x359424a81392588206cbb33159d6AebC292Cb404"
   },
   "NFTOracle": {
     "address": "0x7C2A19e54e48718f6C60908a9Cff3396E4Ea1eBA"
@@ -67,7 +70,7 @@
     "address": "0x70b97A0da65C15dfb0FFA02aEE6FA36e507C2762"
   },
   "LendPoolLoanImpl": {
-    "address": "0x71Bf09450De6327Aba596d921A549b71D0D8E990"
+    "address": "0x64e7A0969d57C69d81237172D3cDf1f8C342d080"
   },
   "LendPoolLoan": {
     "address": "0x5f6ac80CdB9E87f3Cfa6a90E5140B9a16A361d5C"
@@ -83,7 +86,7 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "DebtToken": {
-    "address": "0xce7CB1D2748bdF4eF38b279d9a6B98817c92a53a",
+    "address": "0x3f1735b33a0ed1b5c00230f3c162d6b23ca60c3c",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "ReserveOracleImpl": {
@@ -100,6 +103,9 @@
   "rateStrategyWETH": {
     "address": "0xBa061Eecd101dAEed3EB87504903702a6B5708Cd"
   },
+  "rateStrategyWETH220919": {
+    "address": "0x2a41398B89d1B9A3919D5B0feb4cC582f5B48C64"
+  },
   "WETHGatewayImpl": {
     "address": "0xE79575692Ed7092dD6C5cBbC7203D8dF48494C33"
   },
@@ -107,7 +113,7 @@
     "address": "0x3B968D2D299B895A5Fcf3BBa7A64ad0F566e6F88"
   },
   "PunkGatewayImpl": {
-    "address": "0x70a987A0E1ea971728A1F872eacD764eDAE190B1"
+    "address": "0x0Fccf4bB61c78CE7dEF3A1e84772Fe6d3b4A450a"
   },
   "PunkGateway": {
     "address": "0xeD01f8A737813F0bDA2D4340d191DBF8c2Cbcf30"
@@ -122,6 +128,145 @@
   },
   "UIPoolDataProvider": {
     "address": "0x132E3E3eC6652299B235A26D601aa9C68806e3FE",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "BendProxyAdminWTL": {
+    "address": "0x489097c238e2021C00E071479AED1655417bAc34",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "KodaGatewayImpl": {
+    "address": "0x228fEb12E514d9f547B2f5C41449a5F4CbA93a86"
+  },
+  "KodaGateway": {
+    "address": "0x56ECe8EDba529943b9A8ED966253b1F5ac54BF55"
+  },
+  "rateStrategyUSDT230628": {
+    "address": "0x8B8BefFDf3aC2C32aF746DaFaE49E085f4D07267",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "ChainlinkAggregatorHelperImpl": {
+    "address": "0x4E840EcC421016c132E8515353c5Ee2Fe162D8a8"
+  },
+  "ChainlinkAggregatorHelper": {
+    "address": "0xDcdE2dBd52B493de0b2C6Ff707562eEf7C3C7706",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH230724": {
+    "address": "0x746F1ff42618b99Dfc9Bc941249B7f98b0011049",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT230731": {
+    "address": "0x646CE124534DAefD23f28b5EB065D09d878982Ec",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH231117": {
+    "address": "0x173De2070e29d0ED624f96502166ebE08A0B8c2c",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT231211": {
+    "address": "0x9e987a69b59F9b09B0Ca2C666AC8526Aa972d836",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "UniswapV3DebtSwapAdapterImpl": {
+    "address": "0x1a1F40B9b07B480d9c53B99eCEF603c7bC931c87"
+  },
+  "UniswapV3DebtSwapAdapter": {
+    "address": "0x7DBFbd828c12442563e4037AF84B99C14e8EAcd1",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240120": {
+    "address": "0x3C5cDf47fe2Eaf3e40d1a66148Cf4F72adf9446A",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "WstETHPriceAggregator": {
+    "address": "0xe73F027Aa66d8626076751b70688CBcBD708aFd9",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWstETH240223": {
+    "address": "0x6F8A38Bf0331Cc691AB6dD8146aDeB5B846430B2",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240325": {
+    "address": "0xeb304b25c5051Fc37f75a94da984a56263f569dF",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240325": {
+    "address": "0xc7A5e403697cA5FF6e12b240503b1a0EB7EEfaFF",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240619": {
+    "address": "0x8ab25A3Dd22a7d44682b2B2E82Ab24C7132C5800",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240619": {
+    "address": "0xf34d8A4164c52296D9021d010Ea5685c1FC9cC98",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240804": {
+    "address": "0x4bcdb6593ee52b0b0b69a079F37D05adD6C774d6",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240804": {
+    "address": "0xb55661e16f242577C8B5C2A9Aa10108C4CA5c612",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240812": {
+    "address": "0x51e7a9cB012A661F4CF17A21a70a09A67F830Ab9",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240812": {
+    "address": "0xE80b6CaB0e2E3001Ed06DB1De288287776D5b293",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240820": {
+    "address": "0x6a5ad6f3400d37bFA897acaa0C66CE9e329C0E5E",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240820": {
+    "address": "0xfdb591eEd17dC492f848472845D2dAF5204e2783",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240827": {
+    "address": "0xBb72C4fEcEa762CB88aaC7E5BC5602278B72F489",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240827": {
+    "address": "0x71D6cf3e7c8e77501fbFEcCC7F9FcFdC2D7Fb7bf",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240904": {
+    "address": "0xEC3A722592A962f74bB659C54C6220B909191cDb",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240904": {
+    "address": "0x99C486d409e6480a4e47c66ebAaa193Ae2D08469",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240912": {
+    "address": "0x996Bdd4d51433368B93b80b962AFE5124b8207B0",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240919": {
+    "address": "0xF699082484CeF285aae8a21cDFe4203162Cd4Cea",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240927": {
+    "address": "0xe5f796C06ed5DBaF90b237C59B907414d57BDF23",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH241004": {
+    "address": "0x58042CEB8825b51536635A8C7b3d0E74c8C17C1e",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH241012": {
+    "address": "0xe591B82ECf0f6D0D5a289c5E31fF4d3f5C9eB8B6",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "TokenOracleImpl": {
+    "address": "0xA1CFAdAD19e1261a65D04c4fB81Aa59Ae36326B4"
+  },
+  "TokenOracle": {
+    "address": "0x09AbE7f7297B27e4343E1f3906267b0BE6dBe4eb",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

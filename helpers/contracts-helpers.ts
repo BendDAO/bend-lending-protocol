@@ -171,7 +171,7 @@ export const linkBytecode = (artifact: Artifact, libraries: any) => {
 };
 
 export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNetwork) => {
-  const { main, rinkeby, goerli, hardhat, coverage, localhost } = param as iEthereumParamsPerNetwork<T>;
+  const { main, rinkeby, goerli, sepolia, hardhat, coverage, localhost } = param as iEthereumParamsPerNetwork<T>;
   if (process.env.FORK) {
     return param[process.env.FORK as eNetwork] as T;
   }
@@ -183,6 +183,8 @@ export const getParamPerNetwork = <T>(param: iParamsPerNetwork<T>, network: eNet
       return hardhat;
     case eEthereumNetwork.localhost:
       return localhost;
+    case eEthereumNetwork.sepolia:
+      return sepolia;
     case eEthereumNetwork.goerli:
       return goerli;
     case eEthereumNetwork.rinkeby:
@@ -292,7 +294,11 @@ export const verifyContract = async (id: string, instance: Contract, args: (stri
       args,
       "contracts/libraries/proxy/BendUpgradeableProxy.sol:BendUpgradeableProxy"
     );
-  } else if (id == eContractid.BendProxyAdminFund || id == eContractid.BendProxyAdminPool) {
+  } else if (
+    id == eContractid.BendProxyAdminFund ||
+    id == eContractid.BendProxyAdminPool ||
+    id == eContractid.BendProxyAdminWTL
+  ) {
     await verifyEtherscanContract(
       instance.address,
       args,

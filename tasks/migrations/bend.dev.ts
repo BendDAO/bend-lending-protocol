@@ -33,7 +33,7 @@ task("bend:dev", "Deploy development enviroment")
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy proxy admin");
-    await localBRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME });
+    await localBRE.run("full:deploy-proxy-admin", { verify, pool: POOL_NAME, all: true });
 
     //////////////////////////////////////////////////////////////////////////
     console.log("\n\nDeploy address provider");

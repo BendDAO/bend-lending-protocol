@@ -157,6 +157,15 @@ export const approveERC20PunkGateway = async (testEnv: TestEnv, user: SignerWith
   await waitForTx(await token.connect(user.signer).approve(punkGateway.address, MAX_UINT_AMOUNT));
 };
 
+export const approveERC20WrapperGateway = async (testEnv: TestEnv, user: SignerWithAddress, reserveSymbol: string) => {
+  const { wrapperGateway } = testEnv;
+  const reserve = await getReserveAddressFromSymbol(reserveSymbol);
+
+  const token = await getMintableERC20(reserve);
+
+  await waitForTx(await token.connect(user.signer).approve(wrapperGateway.address, MAX_UINT_AMOUNT));
+};
+
 export const approveERC721 = async (testEnv: TestEnv, user: SignerWithAddress, nftSymbol: string, tokenId: string) => {
   const { pool } = testEnv;
   const reserve = await getNftAddressFromSymbol(nftSymbol);

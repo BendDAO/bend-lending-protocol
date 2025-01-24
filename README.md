@@ -13,7 +13,7 @@
 
 # BendDAO Lending Protocol
 
-This repository contains the smart contracts source code and markets configuration for BendDAO Lending Protocol. The repository uses Hardhat as development enviroment for compilation, testing and deployment tasks.
+This repository contains the smart contracts source code and markets configuration for BendDAO Lending Protocol. The repository uses Hardhat as development environment for compilation, testing and deployment tasks.
 
 ## What is BendDAO Lending Protocol?
 
@@ -75,7 +75,7 @@ The repository uses Docker Compose to manage sensitive keys and load the configu
 Follow the next steps to setup the repository:
 
 - Install `docker` and `docker-compose`
-- Create an enviroment file named `.env` and fill the next enviroment variables
+- Create an environment file named `.env` and fill the next environment variables
 
 ```
 # Mnemonic, only first address will be used
@@ -85,7 +85,7 @@ MNEMONIC=""
 ALCHEMY_KEY=""
 INFURA_KEY=""
 
-# Optional Etherscan key, for automatize the verification of the contracts at Etherscan
+# Optional Etherscan key, to automatize the verification of the contracts at Etherscan
 ETHERSCAN_KEY=""
 
 ```

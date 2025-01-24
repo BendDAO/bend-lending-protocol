@@ -55,7 +55,7 @@ const getCommonNetworkConfig = (networkName: eNetwork, networkId: number) => ({
   hardfork: HARDFORK,
   blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,
   gasMultiplier: DEFAULT_GAS_MUL,
-  //gasPrice: NETWORKS_DEFAULT_GAS[networkName],
+  gasPrice: NETWORKS_DEFAULT_GAS[networkName],
   chainId: networkId,
   accounts: PRIVATE_KEY
   ? [PRIVATE_KEY]
@@ -106,6 +106,7 @@ const buidlerConfig: HardhatUserConfig = {
       chainId: BUIDLEREVM_CHAINID,
       accounts: accounts.map(({ secretKey, balance }: { secretKey: string; balance: string }) => (secretKey)),
     },
+    sepolia: getCommonNetworkConfig(eEthereumNetwork.sepolia, 11155111),
     goerli: getCommonNetworkConfig(eEthereumNetwork.goerli, 5),
     rinkeby: getCommonNetworkConfig(eEthereumNetwork.rinkeby, 4),
     main: getCommonNetworkConfig(eEthereumNetwork.main, 1),

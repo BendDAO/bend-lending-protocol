@@ -27,6 +27,7 @@ library Errors {
   string public constant MATH_MULTIPLICATION_OVERFLOW = "200";
   string public constant MATH_ADDITION_OVERFLOW = "201";
   string public constant MATH_DIVISION_BY_ZERO = "202";
+  string public constant MATH_NUMBER_OVERFLOW = "203";
 
   //validation & check errors
   string public constant VL_INVALID_AMOUNT = "301"; // 'Amount must be greater than 0'
@@ -37,7 +38,7 @@ library Errors {
   string public constant VL_COLLATERAL_BALANCE_IS_0 = "306"; // 'The collateral balance is 0'
   string public constant VL_HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = "307"; // 'Health factor is lesser than the liquidation threshold'
   string public constant VL_COLLATERAL_CANNOT_COVER_NEW_BORROW = "308"; // 'There is not enough collateral to cover a new borrow'
-  string public constant VL_NO_DEBT_OF_SELECTED_TYPE = "309"; // 'for repayment of stable debt, the user needs to have stable debt, otherwise, he needs to have variable debt'
+  string public constant VL_NO_DEBT_OF_SELECTED_TYPE = "309"; // 'There's no debt need to repay'
   string public constant VL_NO_ACTIVE_NFT = "310";
   string public constant VL_NFT_FROZEN = "311";
   string public constant VL_SPECIFIED_CURRENCY_NOT_BORROWED_BY_USER = "312"; // 'User did not borrow the specified currency'

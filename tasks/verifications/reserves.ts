@@ -94,3 +94,28 @@ task("verify:reserves", "Verify reserves contracts at Etherscan")
       ]);
     }
   });
+
+task("verify:reserves:InterestRate", "Verify InterestRate contracts at Etherscan")
+  .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
+  .addParam("interest", "Address of interest rate contract")
+  .setAction(async ({ pool, interest }, localDRE) => {
+    await localDRE.run("set-DRE");
+    const network = localDRE.network.name as eNetwork;
+    const poolConfig = loadPoolConfig(pool);
+
+    const rateInstance = await getInterestRate(interest);
+
+    const addressesProvider = await getLendPoolAddressesProvider();
+    const optimalUtilizationRate = await rateInstance.OPTIMAL_UTILIZATION_RATE();
+    const baseVariableBorrowRate = await rateInstance.baseVariableBorrowRate();
+    const variableRateSlope1 = await rateInstance.variableRateSlope1();
+    const variableRateSlope2 = await rateInstance.variableRateSlope2();
+
+    await verifyContract(eContractid.InterestRate, rateInstance, [
+      addressesProvider.address,
+      optimalUtilizationRate.toString(),
+      baseVariableBorrowRate.toString(),
+      variableRateSlope1.toString(),
+      variableRateSlope2.toString(),
+    ]);
+  });
