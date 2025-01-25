@@ -64,6 +64,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   mapping(address => address) private _mappedAssetToOriginalAsset;
   uint8 public decimals;
   uint256 public decimalPrecision;
+  mapping(address => bool) public nftPriceStale;
 
   // !!! For upgradable, MUST append one new variable above !!!
   //////////////////////////////////////////////////////////////////////////////
@@ -399,5 +400,20 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
 
   function setTwapInterval(uint256 _twapInterval) external override onlyOwner {
     twapInterval = _twapInterval;
+  }
+
+  function setPriceStale(address _nftContract, bool val) public override onlyOwner {
+    address sender = _msgSender();
+    if (val) {
+      require((sender == priceFeedAdmin) || (sender == owner()), "NFTOracle: invalid caller");
+    } else {
+      require(sender == owner(), "NFTOracle: invalid caller");
+    }
+
+    nftPriceStale[_nftContract] = val;
+  }
+
+  function isPriceStale(address _nftContract) public view override returns (bool) {
+    return nftPriceStale[_nftContract];
   }
 }
