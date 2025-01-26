@@ -63,6 +63,8 @@ import {
   WrapperGatewayFactory,
   MockerERC721Wrapper,
   ChainlinkAggregatorHelperFactory,
+  UniswapV3DebtSwapAdapterFactory,
+  WstETHPriceAggregatorFactory,
 } from "../types";
 import {
   withSaveAndVerify,
@@ -319,6 +321,12 @@ export const deployNFTOracle = async (verify?: boolean) => {
   const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
   await insertContractAddressInDb(eContractid.NFTOracleImpl, oracleImpl.address);
   return withSaveAndVerify(oracleImpl, eContractid.NFTOracle, [], verify);
+};
+
+export const deployTokenOracle = async (verify?: boolean) => {
+  const oracleImpl = await new NFTOracleFactory(await getDeploySigner()).deploy();
+  await insertContractAddressInDb(eContractid.TokenOracleImpl, oracleImpl.address);
+  return withSaveAndVerify(oracleImpl, eContractid.TokenOracle, [], verify);
 };
 
 export const deployMockNFTOracle = async (verify?: boolean) =>
@@ -669,8 +677,24 @@ export const deployMockERC721Underlying = async (id: string, args: [string, stri
 export const deployMockERC721Wrapper = async (id: string, args: [string, string, string], verify?: boolean) =>
   withSaveAndVerify(await new MockerERC721WrapperFactory(await getDeploySigner()).deploy(...args), id, args, verify);
 
+export const deployWrapperGatewayImpl = async (id: string, verify?: boolean) => {
+  const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
+  return withSaveAndVerify(gatewayImpl, id + "Impl", [], verify);
+};
+
 export const deployWrapperGateway = async (id: string, verify?: boolean) => {
   const gatewayImpl = await new WrapperGatewayFactory(await getDeploySigner()).deploy();
   await rawInsertContractAddressInDb(id + "Impl", gatewayImpl.address);
   return withSaveAndVerify(gatewayImpl, id, [], verify);
+};
+
+export const deployUniswapV3DebtSwapAdapter = async (verify?: boolean) => {
+  const adapterImpl = await new UniswapV3DebtSwapAdapterFactory(await getDeploySigner()).deploy();
+  await rawInsertContractAddressInDb(eContractid.UniswapV3DebtSwapAdapterImpl, adapterImpl.address);
+  return withSaveAndVerify(adapterImpl, eContractid.UniswapV3DebtSwapAdapter, [], verify);
+};
+
+export const deployWstETHPriceAggregator = async (stETHAgg: string, wstETH: string, verify?: boolean) => {
+  const aggregator = await new WstETHPriceAggregatorFactory(await getDeploySigner()).deploy(stETHAgg, wstETH);
+  return withSaveAndVerify(aggregator, eContractid.WstETHPriceAggregator, [stETHAgg, wstETH], verify);
 };

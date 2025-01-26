@@ -62,6 +62,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   mapping(address => EnumerableSetUpgradeable.AddressSet) private _originalAssetToMappedAsset;
   // Mapping from mapped asset to original asset
   mapping(address => address) private _mappedAssetToOriginalAsset;
+  uint8 public decimals;
+  uint256 public decimalPrecision;
 
   // !!! For upgradable, MUST append one new variable above !!!
   //////////////////////////////////////////////////////////////////////////////
@@ -82,7 +84,8 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     uint256 _maxPriceDeviationWithTime,
     uint256 _timeIntervalWithPrice,
     uint256 _minUpdateTime,
-    uint256 _twapInterval
+    uint256 _twapInterval,
+    uint8 _decimals
   ) public initializer {
     __Ownable_init();
     priceFeedAdmin = _admin;
@@ -91,6 +94,17 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
     timeIntervalWithPrice = _timeIntervalWithPrice;
     minUpdateTime = _minUpdateTime;
     twapInterval = _twapInterval;
+    decimals = _decimals;
+    decimalPrecision = 10**decimals;
+  }
+
+  function updateDecimals(uint8 _decimals) external onlyOwner {
+    decimals = _decimals;
+    decimalPrecision = 10**decimals;
+  }
+
+  function getDecimals() external view returns (uint8) {
+    return decimals;
   }
 
   function setPriceFeedAdmin(address _admin) external onlyOwner {
@@ -349,10 +363,11 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       }
       uint256 timestamp = nftPriceFeedMap[_nftContract].nftPriceData[len - 1].timestamp;
       uint256 percentDeviation;
+      require(decimalPrecision > 0, "NFTOracle: invalid decimalPrecision");
       if (_price > price) {
-        percentDeviation = ((_price - price) * DECIMAL_PRECISION) / price;
+        percentDeviation = ((_price - price) * decimalPrecision) / price;
       } else {
-        percentDeviation = ((price - _price) * DECIMAL_PRECISION) / price;
+        percentDeviation = ((price - _price) * decimalPrecision) / price;
       }
       uint256 timeDeviation = _timestamp - timestamp;
       if (percentDeviation > maxPriceDeviation) {

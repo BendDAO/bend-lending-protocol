@@ -3,6 +3,9 @@
     "address": "0x501c991E0D31D408c25bCf00da27BdF2759A394a",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
+  "BendV2ProxyAdmin": {
+    "address": "0x3b241a4338f0C3f67aFE0e130ccB653D0Ef3767C"
+  },
   "NFTOracleImpl": {
     "address": "0x359424a81392588206cbb33159d6AebC292Cb404"
   },
@@ -162,6 +165,108 @@
   },
   "rateStrategyUSDT231211": {
     "address": "0x9e987a69b59F9b09B0Ca2C666AC8526Aa972d836",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "UniswapV3DebtSwapAdapterImpl": {
+    "address": "0x1a1F40B9b07B480d9c53B99eCEF603c7bC931c87"
+  },
+  "UniswapV3DebtSwapAdapter": {
+    "address": "0x7DBFbd828c12442563e4037AF84B99C14e8EAcd1",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240120": {
+    "address": "0x3C5cDf47fe2Eaf3e40d1a66148Cf4F72adf9446A",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "WstETHPriceAggregator": {
+    "address": "0xe73F027Aa66d8626076751b70688CBcBD708aFd9",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWstETH240223": {
+    "address": "0x6F8A38Bf0331Cc691AB6dD8146aDeB5B846430B2",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240325": {
+    "address": "0xeb304b25c5051Fc37f75a94da984a56263f569dF",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240325": {
+    "address": "0xc7A5e403697cA5FF6e12b240503b1a0EB7EEfaFF",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240619": {
+    "address": "0x8ab25A3Dd22a7d44682b2B2E82Ab24C7132C5800",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240619": {
+    "address": "0xf34d8A4164c52296D9021d010Ea5685c1FC9cC98",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240804": {
+    "address": "0x4bcdb6593ee52b0b0b69a079F37D05adD6C774d6",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240804": {
+    "address": "0xb55661e16f242577C8B5C2A9Aa10108C4CA5c612",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240812": {
+    "address": "0x51e7a9cB012A661F4CF17A21a70a09A67F830Ab9",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240812": {
+    "address": "0xE80b6CaB0e2E3001Ed06DB1De288287776D5b293",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240820": {
+    "address": "0x6a5ad6f3400d37bFA897acaa0C66CE9e329C0E5E",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240820": {
+    "address": "0xfdb591eEd17dC492f848472845D2dAF5204e2783",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240827": {
+    "address": "0xBb72C4fEcEa762CB88aaC7E5BC5602278B72F489",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240827": {
+    "address": "0x71D6cf3e7c8e77501fbFEcCC7F9FcFdC2D7Fb7bf",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240904": {
+    "address": "0xEC3A722592A962f74bB659C54C6220B909191cDb",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT240904": {
+    "address": "0x99C486d409e6480a4e47c66ebAaa193Ae2D08469",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240912": {
+    "address": "0x996Bdd4d51433368B93b80b962AFE5124b8207B0",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240919": {
+    "address": "0xF699082484CeF285aae8a21cDFe4203162Cd4Cea",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH240927": {
+    "address": "0xe5f796C06ed5DBaF90b237C59B907414d57BDF23",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH241004": {
+    "address": "0x58042CEB8825b51536635A8C7b3d0E74c8C17C1e",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH241012": {
+    "address": "0xe591B82ECf0f6D0D5a289c5E31fF4d3f5C9eB8B6",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "TokenOracleImpl": {
+    "address": "0xA1CFAdAD19e1261a65D04c4fB81Aa59Ae36326B4"
+  },
+  "TokenOracle": {
+    "address": "0x09AbE7f7297B27e4343E1f3906267b0BE6dBe4eb",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }

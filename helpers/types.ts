@@ -12,6 +12,7 @@ export enum eEthereumNetwork {
   localhost = "localhost",
   goerli = "goerli",
   rinkeby = "rinkeby",
+  sepolia = "sepolia",
   main = "main",
 }
 
@@ -40,6 +41,8 @@ export enum eContractid {
   ReserveOracleImpl = "ReserveOracleImpl",
   NFTOracle = "NFTOracle",
   NFTOracleImpl = "NFTOracleImpl",
+  TokenOracle = "TokenOracle",
+  TokenOracleImpl = "TokenOracleImpl",
   Proxy = "Proxy",
   MockChainlinkOracle = "MockChainlinkOracle",
   MockNFTOracle = "MockNFTOracle",
@@ -52,6 +55,7 @@ export enum eContractid {
   BendProxyAdminPool = "BendProxyAdminPool", //LendPool Contracts, etc Oracle(Reserve, NFT)
   BendProxyAdminFund = "BendProxyAdminFund", //Treasury Fundings, etc Collector
   BendProxyAdminWTL = "BendProxyAdminWTL", //Common Proxy Admin Without Timelock
+  BendV2ProxyAdmin = "BendV2ProxyAdmin", //Common Proxy Admin in V2
   WalletBalanceProvider = "WalletBalanceProvider",
   BToken = "BToken",
   DebtToken = "DebtToken",
@@ -87,6 +91,9 @@ export enum eContractid {
   MockLoanRepaidInterceptor = "MockLoanRepaidInterceptor",
   KodaGateway = "KodaGateway",
   KodaGatewayImpl = "KodaGatewayImpl",
+  UniswapV3DebtSwapAdapter = "UniswapV3DebtSwapAdapter",
+  UniswapV3DebtSwapAdapterImpl = "UniswapV3DebtSwapAdapterImpl",
+  WstETHPriceAggregator = "WstETHPriceAggregator",
 }
 
 export enum ProtocolLoanState {
@@ -348,6 +355,7 @@ export interface iEthereumParamsPerNetwork<T> {
   [eEthereumNetwork.localhost]: T;
   [eEthereumNetwork.goerli]: T;
   [eEthereumNetwork.rinkeby]: T;
+  [eEthereumNetwork.sepolia]: T;
   [eEthereumNetwork.main]: T;
 }
 

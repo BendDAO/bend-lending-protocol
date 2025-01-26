@@ -1,6 +1,10 @@
 import { task } from "hardhat/config";
 import { loadPoolConfig, ConfigNames } from "../../helpers/configuration";
-import { deployBendUpgradeableProxy, deployWrapperGateway } from "../../helpers/contracts-deployments";
+import {
+  deployBendUpgradeableProxy,
+  deployWrapperGateway,
+  deployWrapperGatewayImpl,
+} from "../../helpers/contracts-deployments";
 import {
   getBendProxyAdminById,
   getBendUpgradeableProxy,
@@ -8,7 +12,7 @@ import {
   getWETHGateway,
   getWrapperGateway,
 } from "../../helpers/contracts-getters";
-import { insertContractAddressInDb } from "../../helpers/contracts-helpers";
+import { insertContractAddressInDb, tryGetContractAddressInDb } from "../../helpers/contracts-helpers";
 import { notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork } from "../../helpers/types";
 import { BendUpgradeableProxy, WrapperGateway } from "../../types";
@@ -44,7 +48,7 @@ task(`full:deploy-wrapper-gateway`, `Deploys the WrapperGateway contract`)
 
     // this contract is not support upgrade, just deploy new contract
     console.log(`Deploying new ${gatewayid} implementation...`);
-    const wrapperGateWayImpl = await deployWrapperGateway(gatewayid, verify);
+    const wrapperGateWayImpl = await deployWrapperGatewayImpl(gatewayid, verify);
     const initEncodedData = wrapperGateWayImpl.interface.encodeFunctionData("initialize", [
       addressesProvider.address,
       wethGateWay.address,
@@ -55,7 +59,7 @@ task(`full:deploy-wrapper-gateway`, `Deploys the WrapperGateway contract`)
     let wrapperGateWay: WrapperGateway;
     let wrapperGatewayProxy: BendUpgradeableProxy;
 
-    const wrapperGatewayAddress = undefined; //await addressesProvider.getAddress(ADDRESS_ID_XXX_GATEWAY);
+    const wrapperGatewayAddress = await tryGetContractAddressInDb(gatewayid);
 
     if (wrapperGatewayAddress != undefined && notFalsyOrZeroAddress(wrapperGatewayAddress)) {
       console.log(`Upgrading exist ${gatewayid} proxy to new implementation...`);
@@ -116,7 +120,7 @@ task("full:new-wrapper-gateway-impl", "New gateway impl.")
 
     const gatewayProxy = await getWrapperGateway(id);
 
-    const gatewayImpl = await deployWrapperGateway(id, true);
+    const gatewayImpl = await deployWrapperGatewayImpl(id, true);
     console.log(`${id}: proxy: ${gatewayProxy.address}, impl: ${gatewayImpl.address}`);
 
     if (upgrade) {

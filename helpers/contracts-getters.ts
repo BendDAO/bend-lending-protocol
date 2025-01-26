@@ -42,6 +42,7 @@ import {
   MintableERC721,
   WrapperGatewayFactory,
   ChainlinkAggregatorHelperFactory,
+  UniswapV3DebtSwapAdapterFactory,
 } from "../types";
 import { IERC20DetailedFactory } from "../types/IERC20DetailedFactory";
 import { IERC721DetailedFactory } from "../types/IERC721DetailedFactory";
@@ -148,6 +149,18 @@ export const getNFTOracle = async (address?: tEthereumAddress) =>
 export const getNFTOracleImpl = async (address?: tEthereumAddress) =>
   await NFTOracleFactory.connect(
     address || (await getDb(DRE.network.name).get(`${eContractid.NFTOracleImpl}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getTokenOracle = async (address?: tEthereumAddress) =>
+  await NFTOracleFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.TokenOracle}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getTokenOracleImpl = async (address?: tEthereumAddress) =>
+  await NFTOracleFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.TokenOracleImpl}`).value()).address,
     await getDeploySigner()
   );
 
@@ -482,5 +495,17 @@ export const getMockERC721Wrapper = async (id: string, address?: tEthereumAddres
 export const getWrapperGateway = async (id: string, address?: tEthereumAddress) =>
   await WrapperGatewayFactory.connect(
     address || (await getDb(DRE.network.name).get(`${id}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getUniswapV3DebtSwapAdapter = async (address?: tEthereumAddress) =>
+  await UniswapV3DebtSwapAdapterFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.UniswapV3DebtSwapAdapter}`).value()).address,
+    await getDeploySigner()
+  );
+
+export const getUniswapV3DebtSwapAdapterImpl = async (address?: tEthereumAddress) =>
+  await UniswapV3DebtSwapAdapterFactory.connect(
+    address || (await getDb(DRE.network.name).get(`${eContractid.UniswapV3DebtSwapAdapterImpl}`).value()).address,
     await getDeploySigner()
   );
