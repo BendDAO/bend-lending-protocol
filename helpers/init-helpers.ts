@@ -304,6 +304,7 @@ export const configureNftsByHelper = async (
     minBidFine: BigNumberish;
     maxSupply: BigNumberish;
     maxTokenId: BigNumberish;
+    maxCollateralCap: BigNumberish;
   }[] = [];
 
   console.log(`- Configure NFTs`);
@@ -344,6 +345,7 @@ export const configureNftsByHelper = async (
       minBidFine: minBidFine,
       maxSupply: maxSupply,
       maxTokenId: maxTokenId,
+      maxCollateralCap: 100,
     });
 
     tokens.push(tokenAddress);

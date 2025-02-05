@@ -88,6 +88,7 @@ library BorrowLogic {
     address nftOracle;
     address loanAddress;
     uint256 totalSupply;
+    uint256 bnftTotalSupply;
   }
 
   /**
@@ -183,6 +184,9 @@ library BorrowLogic {
     );
 
     if (vars.loanId == 0) {
+      vars.bnftTotalSupply = IERC721EnumerableUpgradeable(nftData.bNftAddress).totalSupply();
+      require(vars.bnftTotalSupply < nftData.maxCollateralCap, Errors.LP_NFT_COLLATERAL_NUM_EXCEED_CAP_LIMIT);
+
       IERC721Upgradeable(params.nftAsset).safeTransferFrom(vars.initiator, address(this), params.nftTokenId);
 
       vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(

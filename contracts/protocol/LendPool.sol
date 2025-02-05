@@ -857,6 +857,10 @@ contract LendPool is
     _nfts[asset].maxTokenId = maxTokenId;
   }
 
+  function setNftMaxCollateralCap(address asset, uint256 maxCap) external override {
+    _nfts[asset].maxCollateralCap = maxCap;
+  }
+
   function _addReserveToList(address asset) internal {
     uint256 reservesCount = _reservesCount;
 

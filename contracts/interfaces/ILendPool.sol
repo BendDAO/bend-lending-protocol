@@ -472,6 +472,8 @@ interface ILendPool {
     uint256 maxTokenId
   ) external;
 
+  function setNftMaxCollateralCap(address asset, uint256 maxCap) external;
+
   function setMaxNumberOfReserves(uint256 val) external;
 
   function setMaxNumberOfNfts(uint256 val) external;

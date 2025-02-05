@@ -32,6 +32,7 @@ library DataTypes {
     uint8 id;
     uint256 maxSupply;
     uint256 maxTokenId;
+    uint256 maxCollateralCap;
   }
 
   struct ReserveConfigurationMap {

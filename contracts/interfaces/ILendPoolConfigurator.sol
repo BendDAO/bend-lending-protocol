@@ -7,20 +7,6 @@ interface ILendPoolConfigurator {
     uint256 reserveFactor;
   }
 
-  struct ConfigNftInput {
-    address asset;
-    uint256 baseLTV;
-    uint256 liquidationThreshold;
-    uint256 liquidationBonus;
-    uint256 redeemDuration;
-    uint256 auctionDuration;
-    uint256 redeemFine;
-    uint256 redeemThreshold;
-    uint256 minBidFine;
-    uint256 maxSupply;
-    uint256 maxTokenId;
-  }
-
   /**
    * @dev Emitted when a reserve is initialized.
    * @param asset The address of the underlying asset of the reserve
