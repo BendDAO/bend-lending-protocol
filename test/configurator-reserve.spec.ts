@@ -39,7 +39,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     expect(isActive).to.be.equal(true);
   });
 
-  it("Check the onlyAdmin on deactivateReserve ", async () => {
+  it("Check the onlyPoolAdmin on deactivateReserve ", async () => {
     const { configurator, users, weth } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setActiveFlagOnReserve([weth.address], false),
@@ -47,7 +47,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
   });
 
-  it("Check the onlyAdmin on activateReserve ", async () => {
+  it("Check the onlyPoolAdmin on activateReserve ", async () => {
     const { configurator, users, weth } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setActiveFlagOnReserve([weth.address], true),
@@ -88,7 +88,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     await expect(
       configurator.connect(users[2].signer).setFreezeFlagOnReserve([weth.address], true),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
   it("Check the onlyAdmin on unfreezeReserve ", async () => {
@@ -96,7 +96,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     await expect(
       configurator.connect(users[2].signer).setFreezeFlagOnReserve([weth.address], false),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
   it("Deactivates the ETH reserve for borrowing", async () => {
@@ -134,7 +134,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     await expect(
       configurator.connect(users[2].signer).setBorrowingFlagOnReserve([weth.address], false),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
   it("Check the onlyAdmin on enableBorrowingOnReserve ", async () => {
@@ -142,7 +142,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     await expect(
       configurator.connect(users[2].signer).setBorrowingFlagOnReserve([weth.address], true),
       CALLER_NOT_POOL_ADMIN
-    ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+    ).to.be.revertedWith(ProtocolErrors.CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
   it("Changes the reserve factor of WETH", async () => {
@@ -239,7 +239,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     );
   });
 
-  it("Check the onlyAdmin on setMaxNumberOfReserves ", async () => {
+  it("Check the onlyPoolAdmin on setMaxNumberOfReserves ", async () => {
     const { configurator, users, pool } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setMaxNumberOfReserves(512),

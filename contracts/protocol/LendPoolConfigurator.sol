@@ -30,6 +30,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
   using NftConfiguration for DataTypes.NftConfigurationMap;
 
   ILendPoolAddressesProvider internal _addressesProvider;
+  bytes32 public constant RISK_ADMIN = "RISK_ADMIN";
 
   modifier onlyPoolAdmin() {
     require(_addressesProvider.getPoolAdmin() == msg.sender, Errors.CALLER_NOT_POOL_ADMIN);
@@ -38,6 +39,14 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
 
   modifier onlyEmergencyAdmin() {
     require(_addressesProvider.getEmergencyAdmin() == msg.sender, Errors.LPC_CALLER_NOT_EMERGENCY_ADMIN);
+    _;
+  }
+
+  modifier onlyRiskOrPoolAdmin() {
+    require(
+      (_addressesProvider.getAddress(RISK_ADMIN) == msg.sender) || (_addressesProvider.getPoolAdmin() == msg.sender),
+      Errors.CALLER_NOT_RISK_OR_POOL_ADMIN
+    );
     _;
   }
 
@@ -86,7 +95,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function setBorrowingFlagOnReserve(address[] calldata assets, bool flag) external onlyPoolAdmin {
+  function setBorrowingFlagOnReserve(address[] calldata assets, bool flag) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(assets[i]);
@@ -126,7 +135,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function setFreezeFlagOnReserve(address[] calldata assets, bool flag) external onlyPoolAdmin {
+  function setFreezeFlagOnReserve(address[] calldata assets, bool flag) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(assets[i]);
@@ -205,7 +214,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function setFreezeFlagOnNft(address[] calldata assets, bool flag) external onlyPoolAdmin {
+  function setFreezeFlagOnNft(address[] calldata assets, bool flag) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(assets[i]);
@@ -322,7 +331,7 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     address[] calldata assets,
     uint256 maxSupply,
     uint256 maxTokenId
-  ) external onlyPoolAdmin {
+  ) external onlyRiskOrPoolAdmin {
     ILendPool cachedPool = _getLendPool();
     for (uint256 i = 0; i < assets.length; i++) {
       cachedPool.setNftMaxSupplyAndTokenId(assets[i], maxSupply, maxTokenId);
