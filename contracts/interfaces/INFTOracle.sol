@@ -30,7 +30,7 @@ interface INFTOracle {
 
   function isAssetMapped(address originAsset, address mappedAsset) external view returns (bool);
 
-  function setPriceStale(address _nftContract, bool val) external;
+  function setPriceStale(address[] calldata _nftContracts, bool val) external;
 
   function isPriceStale(address _nftContract) external view returns (bool);
 }
