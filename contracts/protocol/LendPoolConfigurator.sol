@@ -182,17 +182,14 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function batchConfigReserve(ConfigReserveInput[] calldata inputs) external onlyPoolAdmin {
+  function batchConfigReserve(ConfigTypes.ConfigReserveInput[] calldata inputs) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
-    for (uint256 i = 0; i < inputs.length; i++) {
-      DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(inputs[i].asset);
+    ConfiguratorLogic.executeBatchConfigReserve(cachedPool, inputs);
+  }
 
-      currentConfig.setReserveFactor(inputs[i].reserveFactor);
-
-      cachedPool.setReserveConfiguration(inputs[i].asset, currentConfig.data);
-
-      emit ReserveFactorChanged(inputs[i].asset, inputs[i].reserveFactor);
-    }
+  function setReserveMaxUtilizationRate(address[] calldata assets, uint256 maxUtilRate) external onlyRiskOrPoolAdmin {
+    ILendPool cachedPool = _getLendPool();
+    ConfiguratorLogic.executeSetReserveMaxUtilizationRate(cachedPool, assets, maxUtilRate);
   }
 
   function setActiveFlagOnNft(address[] calldata assets, bool flag) external onlyPoolAdmin {

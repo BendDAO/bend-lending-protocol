@@ -42,6 +42,15 @@ library ConfiguratorLogic {
   );
 
   /**
+   * @dev Emitted when a reserve factor is updated
+   * @param asset The address of the underlying asset of the reserve
+   * @param factor The new reserve factor
+   **/
+  event ReserveFactorChanged(address indexed asset, uint256 factor);
+
+  event ReserveMaxUtilizationRateChanged(address indexed asset, uint256 maxUtilRate);
+
+  /**
    * @dev Emitted when a nft is initialized.
    * @param asset The address of the underlying asset of the nft
    * @param bNft The address of the associated bNFT contract
@@ -128,6 +137,32 @@ library ConfiguratorLogic {
       debtTokenProxyAddress,
       input.interestRateAddress
     );
+  }
+
+  function executeSetReserveMaxUtilizationRate(
+    ILendPool cachedPool,
+    address[] calldata assets,
+    uint256 maxUtilRate
+  ) external {
+    for (uint256 i = 0; i < assets.length; i++) {
+      cachedPool.setReserveMaxUtilizationRate(assets[i], maxUtilRate);
+
+      emit ReserveMaxUtilizationRateChanged(assets[i], maxUtilRate);
+    }
+  }
+
+  function executeBatchConfigReserve(ILendPool cachedPool, ConfigTypes.ConfigReserveInput[] calldata inputs) external {
+    for (uint256 i = 0; i < inputs.length; i++) {
+      DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(inputs[i].asset);
+
+      currentConfig.setReserveFactor(inputs[i].reserveFactor);
+
+      cachedPool.setReserveConfiguration(inputs[i].asset, currentConfig.data);
+      emit ReserveFactorChanged(inputs[i].asset, inputs[i].reserveFactor);
+
+      cachedPool.setReserveMaxUtilizationRate(inputs[i].asset, inputs[i].maxUtilizationRate);
+      emit ReserveMaxUtilizationRateChanged(inputs[i].asset, inputs[i].maxUtilizationRate);
+    }
   }
 
   function executeInitNft(

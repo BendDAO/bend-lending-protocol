@@ -39,7 +39,8 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     },
   ];
 
-  const { CALLER_NOT_POOL_ADMIN, LPC_INVALID_CONFIGURATION, LPC_NFT_LIQUIDITY_NOT_0 } = ProtocolErrors;
+  const { CALLER_NOT_POOL_ADMIN, CALLER_NOT_RISK_OR_POOL_ADMIN, LPC_INVALID_CONFIGURATION, LPC_NFT_LIQUIDITY_NOT_0 } =
+    ProtocolErrors;
 
   it("Deactivates the BAYC NFT", async () => {
     const { configurator, bayc, dataProvider } = testEnv;
@@ -288,6 +289,21 @@ makeSuite("Configurator-NFT", (testEnv: TestEnv) => {
     await expect(configurator.setActiveFlagOnNft([bayc.address], false), LPC_NFT_LIQUIDITY_NOT_0).to.be.revertedWith(
       LPC_NFT_LIQUIDITY_NOT_0
     );
+  });
+
+  it("Config setNftMaxCollateralCap invalid value", async () => {
+    const { configurator, weth, pool } = testEnv;
+    await configurator.setNftMaxCollateralCap([weth.address], 512);
+    const { maxCollateralCap } = await pool.getNftData(weth.address);
+    expect(maxCollateralCap).to.be.equal(512);
+  });
+
+  it("Check the onlyPoolAdmin on setNftMaxCollateralCap ", async () => {
+    const { configurator, users, weth } = testEnv;
+    await expect(
+      configurator.connect(users[2].signer).setNftMaxCollateralCap([weth.address], 512),
+      CALLER_NOT_RISK_OR_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 
   it("Config setMaxNumberOfNfts valid value", async () => {

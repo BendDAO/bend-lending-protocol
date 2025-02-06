@@ -828,6 +828,10 @@ contract LendPool is
     _reserves[asset].interestRateAddress = rateAddress;
   }
 
+  function setReserveMaxUtilizationRate(address asset, uint256 maxUtilRate) external override onlyLendPoolConfigurator {
+    _reserves[asset].maxUtilizationRate = maxUtilRate;
+  }
+
   /**
    * @dev Sets the configuration bitmap of the reserve as a whole
    * - Only callable by the LendPoolConfigurator contract
@@ -857,7 +861,7 @@ contract LendPool is
     _nfts[asset].maxTokenId = maxTokenId;
   }
 
-  function setNftMaxCollateralCap(address asset, uint256 maxCap) external override {
+  function setNftMaxCollateralCap(address asset, uint256 maxCap) external override onlyLendPoolConfigurator {
     _nfts[asset].maxCollateralCap = maxCap;
   }
 

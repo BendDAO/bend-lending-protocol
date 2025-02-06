@@ -1,7 +1,7 @@
 import { BigNumberish } from "@ethersproject/bignumber";
 import { task } from "hardhat/config";
 import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../helpers/configuration";
-import { ADDRESS_ID_PUNK_GATEWAY } from "../../helpers/constants";
+import { ADDRESS_ID_PUNK_GATEWAY, oneRay } from "../../helpers/constants";
 import { deployInterestRate } from "../../helpers/contracts-deployments";
 import {
   getBToken,
@@ -107,10 +107,12 @@ task("helpers:add-reserve-to-pool", "Add and config new reserve asset to lend po
     let cfgInputParams: {
       asset: string;
       reserveFactor: BigNumberish;
+      maxUtilizationRate: BigNumberish;
     }[] = [
       {
         asset: asset,
         reserveFactor: reserveParam.reserveFactor,
+        maxUtilizationRate: oneRay,
       },
     ];
     console.log("Reserve cfgInputParams:", cfgInputParams);

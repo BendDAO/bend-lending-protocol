@@ -16,6 +16,12 @@ library ConfigTypes {
     string debtTokenSymbol;
   }
 
+  struct ConfigReserveInput {
+    address asset;
+    uint256 reserveFactor;
+    uint256 maxUtilizationRate;
+  }
+
   struct InitNftInput {
     address underlyingAsset;
   }
