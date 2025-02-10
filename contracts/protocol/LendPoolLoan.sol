@@ -91,6 +91,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     uint256 borrowIndex
   ) external override onlyLendPool returns (uint256) {
     require(_nftToLoanIds[nftAsset][nftTokenId] == 0, Errors.LP_NFT_HAS_USED_AS_COLLATERAL);
+    require(IERC721Upgradeable(nftAsset).ownerOf(nftTokenId) == address(this), Errors.LPL_INVALID_NFT_OWNER);
 
     // index is expressed in Ray, so:
     // amount.wadToRay().rayDiv(index).rayToWad() => amount.rayDiv(index)
@@ -100,9 +101,6 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     _loanIdTracker.increment();
 
     _nftToLoanIds[nftAsset][nftTokenId] = loanId;
-
-    // transfer underlying NFT asset to pool and mint bNFT to onBehalfOf
-    IERC721Upgradeable(nftAsset).safeTransferFrom(_msgSender(), address(this), nftTokenId);
 
     IBNFT(bNftAddress).mint(onBehalfOf, nftTokenId);
 
@@ -203,7 +201,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), _msgSender(), loan.nftTokenId);
+    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.borrower, loan.nftTokenId);
 
     emit LoanRepaid(initiator, loanId, loan.nftAsset, loan.nftTokenId, loan.reserveAsset, amount, borrowIndex);
 
@@ -330,7 +328,7 @@ contract LendPoolLoan is Initializable, ILendPoolLoan, ContextUpgradeable, IERC7
     // burn bNFT and transfer underlying NFT asset to user
     IBNFT(bNftAddress).burn(loan.nftTokenId);
 
-    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), _msgSender(), loan.nftTokenId);
+    IERC721Upgradeable(loan.nftAsset).safeTransferFrom(address(this), loan.bidderAddress, loan.nftTokenId);
 
     emit LoanLiquidated(
       initiator,

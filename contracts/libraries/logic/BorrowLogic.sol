@@ -183,7 +183,7 @@ library BorrowLogic {
     );
 
     if (vars.loanId == 0) {
-      IERC721Upgradeable(params.nftAsset).safeTransferFrom(vars.initiator, address(this), params.nftTokenId);
+      IERC721Upgradeable(params.nftAsset).safeTransferFrom(vars.initiator, vars.loanAddress, params.nftTokenId);
 
       vars.loanId = ILendPoolLoan(vars.loanAddress).createLoan(
         vars.initiator,
@@ -357,7 +357,10 @@ library BorrowLogic {
 
     // transfer erc721 to borrower
     if (!vars.isUpdate) {
-      IERC721Upgradeable(loanData.nftAsset).safeTransferFrom(address(this), loanData.borrower, params.nftTokenId);
+      require(
+        IERC721Upgradeable(loanData.nftAsset).ownerOf(params.nftTokenId) == loanData.borrower,
+        Errors.LPL_INVALID_NFT_OWNER
+      );
     }
 
     emit Repay(
