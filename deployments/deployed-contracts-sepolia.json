@@ -56,7 +56,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ConfiguratorLogic": {
-    "address": "0x0d00adF5988e21Ba7E75064292232f2bf0C689c2",
+    "address": "0xdDD7c8B889fB0f599359f4dD90fE55e101EE67b9",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "LendPoolImpl": {
@@ -72,7 +72,7 @@
     "address": "0xaA04774b15FC5555DabC2b87Bdd6976B6C9f4Bc0"
   },
   "LendPoolConfiguratorImpl": {
-    "address": "0x77537048BEd42b0f3aCfd58D9e865774367FC0f5"
+    "address": "0x8DC063164483a1548f62697bE9308081210Dd0D6"
   },
   "LendPoolConfigurator": {
     "address": "0x1252Ee9B28A632a653061bE91000f2Ccf40A9b26"
@@ -174,6 +174,10 @@
   },
   "TokenOracle": {
     "address": "0xA840dC2B97F565BF5179CccC8e4f6E72d5eD1eab",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWETH250205": {
+    "address": "0xF1F89AE4a28318e36026ADcFe1B7188e2122db6B",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }
