@@ -91,6 +91,7 @@ task("helpers:add-nft-to-pool", "Add and config new nft asset to lend pool")
       minBidFine: BigNumberish;
       maxSupply: BigNumberish;
       maxTokenId: BigNumberish;
+      maxCollateralCap: BigNumberish;
     }[] = [
       {
         asset: asset,
@@ -104,6 +105,7 @@ task("helpers:add-nft-to-pool", "Add and config new nft asset to lend pool")
         minBidFine: nftParam.minBidFine,
         maxSupply: nftParam.maxSupply,
         maxTokenId: nftParam.maxTokenId,
+        maxCollateralCap: 100,
       },
     ];
     await waitForTx(await lendPoolConfiguratorProxy.connect(poolAdminSigner).batchConfigNft(cfgInputParams));
