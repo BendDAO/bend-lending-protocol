@@ -417,6 +417,13 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
       requireKeyExisted(_nftContracts[i], true);
       nftPriceStale[_nftContracts[i]] = val;
       emit SetPriceStale(_nftContracts[i], val);
+
+      // Set flag for mapped assets
+      address[] memory mappedAddresses = _originalAssetToMappedAsset[_nftContracts[i]].values();
+      for (uint256 j = 0; j < mappedAddresses.length; j++) {
+        nftPriceStale[mappedAddresses[j]] = val;
+        emit SetPriceStale(mappedAddresses[j], val);
+      }
     }
   }
 
