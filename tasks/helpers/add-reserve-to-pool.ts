@@ -16,6 +16,7 @@ import { getEthersSignerByAddress, getParamPerNetwork } from "../../helpers/cont
 import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork, IReserveParams } from "../../helpers/types";
 import { strategyReserveParams } from "../../markets/bend/reservesConfigs";
+import BigNumber from "bignumber.js";
 
 task("helpers:add-reserve-to-pool", "Add and config new reserve asset to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -112,7 +113,7 @@ task("helpers:add-reserve-to-pool", "Add and config new reserve asset to lend po
       {
         asset: asset,
         reserveFactor: reserveParam.reserveFactor,
-        maxUtilizationRate: oneRay,
+        maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
       },
     ];
     console.log("Reserve cfgInputParams:", cfgInputParams);
