@@ -22,6 +22,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   event FeedAdminUpdated(address indexed admin);
   event SetAssetData(address indexed asset, uint256 price, uint256 timestamp, uint256 roundId);
   event SetAssetTwapPrice(address indexed asset, uint256 price, uint256 timestamp);
+  event SetPriceStale(address indexed asset, bool val);
 
   struct NFTPriceData {
     uint256 roundId;
@@ -64,6 +65,7 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   mapping(address => address) private _mappedAssetToOriginalAsset;
   uint8 public decimals;
   uint256 public decimalPrecision;
+  mapping(address => bool) public nftPriceStale;
 
   // !!! For upgradable, MUST append one new variable above !!!
   //////////////////////////////////////////////////////////////////////////////
@@ -394,10 +396,31 @@ contract NFTOracle is INFTOracle, Initializable, OwnableUpgradeable, BlockContex
   }
 
   function setPause(address _nftContract, bool val) external override onlyOwner {
+    requireKeyExisted(_nftContract, true);
+
     nftPaused[_nftContract] = val;
   }
 
   function setTwapInterval(uint256 _twapInterval) external override onlyOwner {
     twapInterval = _twapInterval;
+  }
+
+  function setPriceStale(address[] calldata _nftContracts, bool val) public override {
+    address sender = _msgSender();
+    if (val) {
+      require((sender == priceFeedAdmin) || (sender == owner()), "NFTOracle: invalid caller");
+    } else {
+      require(sender == owner(), "NFTOracle: invalid caller");
+    }
+
+    for (uint256 i = 0; i < _nftContracts.length; i++) {
+      requireKeyExisted(_nftContracts[i], true);
+      nftPriceStale[_nftContracts[i]] = val;
+      emit SetPriceStale(_nftContracts[i], val);
+    }
+  }
+
+  function isPriceStale(address _nftContract) public view override returns (bool) {
+    return nftPriceStale[_nftContract];
   }
 }
