@@ -268,5 +268,9 @@
   "TokenOracle": {
     "address": "0x09AbE7f7297B27e4343E1f3906267b0BE6dBe4eb",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWETH250205": {
+    "address": "0xeDc614E4e9A173Fb72e21b1814AC068A458C64e7",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
