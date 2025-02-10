@@ -136,7 +136,7 @@ library ValidationLogic {
     );
     vars.totalDebt += amount;
     vars.utilizationRate = vars.totalDebt.rayDiv(vars.availableLiquidity + (vars.totalDebt));
-    require(vars.utilizationRate <= reserveData.maxUtilizationRate);
+    require(vars.utilizationRate <= reserveData.maxUtilizationRate, Errors.VL_EXCEED_MAX_UTILIZATION_RATE);
 
     (vars.currentLtv, vars.currentLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
 
