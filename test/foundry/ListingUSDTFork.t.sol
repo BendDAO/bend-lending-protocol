@@ -96,8 +96,12 @@ contract ListingUSDTForkTest is Test {
     vm.prank(timelockController7DAddress);
     configurator.batchInitReserve(initInputs);
 
-    ILendPoolConfigurator.ConfigReserveInput[] memory cfgInputs = new ILendPoolConfigurator.ConfigReserveInput[](1);
-    cfgInputs[0] = ILendPoolConfigurator.ConfigReserveInput({asset: usdtTokenAddress, reserveFactor: 3000});
+    ConfigTypes.ConfigReserveInput[] memory cfgInputs = new ConfigTypes.ConfigReserveInput[](1);
+    cfgInputs[0] = ConfigTypes.ConfigReserveInput({
+      asset: usdtTokenAddress,
+      reserveFactor: 3000,
+      maxUtilizationRate: 1e27
+    });
     vm.prank(timelockController7DAddress);
     configurator.batchConfigReserve(cfgInputs);
 

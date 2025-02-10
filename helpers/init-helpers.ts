@@ -13,6 +13,8 @@ import { getContractAddressWithJsonFallback, rawInsertContractAddressInDb } from
 import { BigNumberish } from "ethers";
 import { ConfigNames } from "./configuration";
 import { deployRateStrategy } from "./contracts-deployments";
+import { oneRay, RAY } from "./constants";
+import BigNumber from "bignumber.js";
 
 export const getBTokenExtraParams = async (bTokenName: string, tokenAddress: tEthereumAddress) => {
   //console.log(bTokenName);
@@ -232,6 +234,7 @@ export const configureReservesByHelper = async (
   const inputParams: {
     asset: string;
     reserveFactor: BigNumberish;
+    maxUtilizationRate: BigNumberish;
   }[] = [];
 
   const assetsParams: string[] = [];
@@ -256,6 +259,7 @@ export const configureReservesByHelper = async (
     inputParams.push({
       asset: tokenAddress,
       reserveFactor: reserveFactor,
+      maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
     });
 
     tokens.push(tokenAddress);
@@ -304,6 +308,7 @@ export const configureNftsByHelper = async (
     minBidFine: BigNumberish;
     maxSupply: BigNumberish;
     maxTokenId: BigNumberish;
+    maxCollateralCap: BigNumberish;
   }[] = [];
 
   console.log(`- Configure NFTs`);
@@ -344,6 +349,7 @@ export const configureNftsByHelper = async (
       minBidFine: minBidFine,
       maxSupply: maxSupply,
       maxTokenId: maxTokenId,
+      maxCollateralCap: 100,
     });
 
     tokens.push(tokenAddress);

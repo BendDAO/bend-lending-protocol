@@ -21,6 +21,8 @@ library DataTypes {
     address interestRateAddress;
     //the id of the reserve. Represents the position in the list of the active reserves
     uint8 id;
+    // disable borrow when utilization rate exceeds max
+    uint256 maxUtilizationRate;
   }
 
   struct NftData {
@@ -32,6 +34,7 @@ library DataTypes {
     uint8 id;
     uint256 maxSupply;
     uint256 maxTokenId;
+    uint256 maxCollateralCap;
   }
 
   struct ReserveConfigurationMap {
