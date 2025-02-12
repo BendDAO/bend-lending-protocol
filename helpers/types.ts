@@ -145,6 +145,7 @@ export enum ProtocolErrors {
   VL_INVALID_RESERVE_ADDRESS = "316",
   VL_SPECIFIED_LOAN_NOT_BORROWED_BY_USER = "317",
   VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER = "318",
+  VL_PRICE_STALE = "320",
 
   //lend pool errors
   LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400", // 'The caller of the function is not the lending pool configurator'

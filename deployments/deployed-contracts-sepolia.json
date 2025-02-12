@@ -93,11 +93,10 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "NFTOracleImpl": {
-    "address": "0x958f36955e10FFaa0aC92aA65acB30Ef6268421c"
+    "address": "0xA7bb6431BF998D4e3380ed73DcB226e23E37AA27"
   },
   "NFTOracle": {
-    "address": "0xF143144Fb2703C8aeefD0c4D06d29F5Bb0a9C60A",
-    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+    "address": "0xF143144Fb2703C8aeefD0c4D06d29F5Bb0a9C60A"
   },
   "InterestRate": {
     "address": "0x3D8F428874a7fBde38a3EFBA48740bA6dD6E767f",
