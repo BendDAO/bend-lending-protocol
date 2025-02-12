@@ -859,6 +859,11 @@
             "internalType": "uint256",
             "name": "maxTokenId",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxCollateralCap",
+            "type": "uint256"
           }
         ],
         "internalType": "struct DataTypes.NftData",
@@ -1072,6 +1077,11 @@
             "internalType": "uint8",
             "name": "id",
             "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxUtilizationRate",
+            "type": "uint256"
           }
         ],
         "internalType": "struct DataTypes.ReserveData",
@@ -1389,6 +1399,24 @@
       },
       {
         "internalType": "uint256",
+        "name": "maxCap",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNftMaxCollateralCap",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
         "name": "maxSupply",
         "type": "uint256"
       },
@@ -1466,6 +1494,24 @@
       }
     ],
     "name": "setReserveInterestRateAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxUtilRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "setReserveMaxUtilizationRate",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

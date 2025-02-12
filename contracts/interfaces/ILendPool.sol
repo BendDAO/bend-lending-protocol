@@ -464,6 +464,8 @@ interface ILendPool {
 
   function setReserveConfiguration(address asset, uint256 configuration) external;
 
+  function setReserveMaxUtilizationRate(address asset, uint256 maxUtilRate) external;
+
   function setNftConfiguration(address asset, uint256 configuration) external;
 
   function setNftMaxSupplyAndTokenId(
@@ -471,6 +473,8 @@ interface ILendPool {
     uint256 maxSupply,
     uint256 maxTokenId
   ) external;
+
+  function setNftMaxCollateralCap(address asset, uint256 maxCap) external;
 
   function setMaxNumberOfReserves(uint256 val) external;
 

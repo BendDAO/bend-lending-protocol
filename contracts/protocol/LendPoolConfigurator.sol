@@ -182,17 +182,14 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function batchConfigReserve(ConfigReserveInput[] calldata inputs) external onlyPoolAdmin {
+  function batchConfigReserve(ConfigTypes.ConfigReserveInput[] calldata inputs) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
-    for (uint256 i = 0; i < inputs.length; i++) {
-      DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(inputs[i].asset);
+    ConfiguratorLogic.executeBatchConfigReserve(cachedPool, inputs);
+  }
 
-      currentConfig.setReserveFactor(inputs[i].reserveFactor);
-
-      cachedPool.setReserveConfiguration(inputs[i].asset, currentConfig.data);
-
-      emit ReserveFactorChanged(inputs[i].asset, inputs[i].reserveFactor);
-    }
+  function setReserveMaxUtilizationRate(address[] calldata assets, uint256 maxUtilRate) external onlyRiskOrPoolAdmin {
+    ILendPool cachedPool = _getLendPool();
+    ConfiguratorLogic.executeSetReserveMaxUtilizationRate(cachedPool, assets, maxUtilRate);
   }
 
   function setActiveFlagOnNft(address[] calldata assets, bool flag) external onlyPoolAdmin {
@@ -340,56 +337,14 @@ contract LendPoolConfigurator is Initializable, ILendPoolConfigurator {
     }
   }
 
-  function batchConfigNft(ConfigNftInput[] calldata inputs) external onlyPoolAdmin {
+  function batchConfigNft(ConfigTypes.ConfigNftInput[] calldata inputs) external onlyPoolAdmin {
     ILendPool cachedPool = _getLendPool();
-    for (uint256 i = 0; i < inputs.length; i++) {
-      DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(inputs[i].asset);
+    ConfiguratorLogic.executeBatchConfigNft(cachedPool, inputs);
+  }
 
-      //validation of the parameters: the LTV can
-      //only be lower or equal than the liquidation threshold
-      //(otherwise a loan against the asset would cause instantaneous liquidation)
-      require(inputs[i].baseLTV <= inputs[i].liquidationThreshold, Errors.LPC_INVALID_CONFIGURATION);
-
-      if (inputs[i].liquidationThreshold != 0) {
-        //liquidation bonus must be smaller than or equal 100.00%
-        require(inputs[i].liquidationBonus <= PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
-      } else {
-        require(inputs[i].liquidationBonus == 0, Errors.LPC_INVALID_CONFIGURATION);
-      }
-
-      // collateral parameters
-      currentConfig.setLtv(inputs[i].baseLTV);
-      currentConfig.setLiquidationThreshold(inputs[i].liquidationThreshold);
-      currentConfig.setLiquidationBonus(inputs[i].liquidationBonus);
-
-      // auction parameters
-      currentConfig.setRedeemDuration(inputs[i].redeemDuration);
-      currentConfig.setAuctionDuration(inputs[i].auctionDuration);
-      currentConfig.setRedeemFine(inputs[i].redeemFine);
-      currentConfig.setRedeemThreshold(inputs[i].redeemThreshold);
-      currentConfig.setMinBidFine(inputs[i].minBidFine);
-
-      cachedPool.setNftConfiguration(inputs[i].asset, currentConfig.data);
-
-      emit NftConfigurationChanged(
-        inputs[i].asset,
-        inputs[i].baseLTV,
-        inputs[i].liquidationThreshold,
-        inputs[i].liquidationBonus
-      );
-      emit NftAuctionChanged(
-        inputs[i].asset,
-        inputs[i].redeemDuration,
-        inputs[i].auctionDuration,
-        inputs[i].redeemFine
-      );
-      emit NftRedeemThresholdChanged(inputs[i].asset, inputs[i].redeemThreshold);
-      emit NftMinBidFineChanged(inputs[i].asset, inputs[i].minBidFine);
-
-      // max limit
-      cachedPool.setNftMaxSupplyAndTokenId(inputs[i].asset, inputs[i].maxSupply, inputs[i].maxTokenId);
-      emit NftMaxSupplyAndTokenIdChanged(inputs[i].asset, inputs[i].maxSupply, inputs[i].maxTokenId);
-    }
+  function setNftMaxCollateralCap(address[] calldata assets, uint256 maxCap) external onlyRiskOrPoolAdmin {
+    ILendPool cachedPool = _getLendPool();
+    ConfiguratorLogic.executeSetNftMaxCollateralCap(cachedPool, assets, maxCap);
   }
 
   function setMaxNumberOfReserves(uint256 newVal) external onlyPoolAdmin {

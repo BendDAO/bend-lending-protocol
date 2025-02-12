@@ -15,6 +15,7 @@ import {NftConfiguration} from "../../libraries/configuration/NftConfiguration.s
 import {DataTypes} from "../../libraries/types/DataTypes.sol";
 import {ConfigTypes} from "../../libraries/types/ConfigTypes.sol";
 import {Errors} from "../../libraries/helpers/Errors.sol";
+import {PercentageMath} from "../../libraries/math/PercentageMath.sol";
 
 /**
  * @title ConfiguratorLogic library
@@ -22,6 +23,7 @@ import {Errors} from "../../libraries/helpers/Errors.sol";
  * @notice Implements the logic to configuration feature
  */
 library ConfiguratorLogic {
+  using PercentageMath for uint256;
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
 
@@ -40,11 +42,37 @@ library ConfiguratorLogic {
   );
 
   /**
+   * @dev Emitted when a reserve factor is updated
+   * @param asset The address of the underlying asset of the reserve
+   * @param factor The new reserve factor
+   **/
+  event ReserveFactorChanged(address indexed asset, uint256 factor);
+
+  event ReserveMaxUtilizationRateChanged(address indexed asset, uint256 maxUtilRate);
+
+  /**
    * @dev Emitted when a nft is initialized.
    * @param asset The address of the underlying asset of the nft
    * @param bNft The address of the associated bNFT contract
    **/
   event NftInitialized(address indexed asset, address indexed bNft);
+
+  event NftConfigurationChanged(
+    address indexed asset,
+    uint256 ltv,
+    uint256 liquidationThreshold,
+    uint256 liquidationBonus
+  );
+
+  event NftAuctionChanged(address indexed asset, uint256 redeemDuration, uint256 auctionDuration, uint256 redeemFine);
+
+  event NftRedeemThresholdChanged(address indexed asset, uint256 redeemThreshold);
+
+  event NftMinBidFineChanged(address indexed asset, uint256 minBidFine);
+
+  event NftMaxSupplyAndTokenIdChanged(address indexed asset, uint256 maxSupply, uint256 maxTokenId);
+
+  event NftMaxCollateralCapChanged(address indexed asset, uint256 maxCap);
 
   /**
    * @dev Emitted when an bToken implementation is upgraded
@@ -111,6 +139,32 @@ library ConfiguratorLogic {
     );
   }
 
+  function executeSetReserveMaxUtilizationRate(
+    ILendPool cachedPool,
+    address[] calldata assets,
+    uint256 maxUtilRate
+  ) external {
+    for (uint256 i = 0; i < assets.length; i++) {
+      cachedPool.setReserveMaxUtilizationRate(assets[i], maxUtilRate);
+
+      emit ReserveMaxUtilizationRateChanged(assets[i], maxUtilRate);
+    }
+  }
+
+  function executeBatchConfigReserve(ILendPool cachedPool, ConfigTypes.ConfigReserveInput[] calldata inputs) external {
+    for (uint256 i = 0; i < inputs.length; i++) {
+      DataTypes.ReserveConfigurationMap memory currentConfig = cachedPool.getReserveConfiguration(inputs[i].asset);
+
+      currentConfig.setReserveFactor(inputs[i].reserveFactor);
+
+      cachedPool.setReserveConfiguration(inputs[i].asset, currentConfig.data);
+      emit ReserveFactorChanged(inputs[i].asset, inputs[i].reserveFactor);
+
+      cachedPool.setReserveMaxUtilizationRate(inputs[i].asset, inputs[i].maxUtilizationRate);
+      emit ReserveMaxUtilizationRateChanged(inputs[i].asset, inputs[i].maxUtilizationRate);
+    }
+  }
+
   function executeInitNft(
     ILendPool pool_,
     IBNFTRegistry registry_,
@@ -130,6 +184,72 @@ library ConfiguratorLogic {
     pool_.setNftConfiguration(input.underlyingAsset, currentConfig.data);
 
     emit NftInitialized(input.underlyingAsset, bNftProxy);
+  }
+
+  function executeBatchConfigNft(ILendPool cachedPool, ConfigTypes.ConfigNftInput[] calldata inputs) external {
+    for (uint256 i = 0; i < inputs.length; i++) {
+      DataTypes.NftConfigurationMap memory currentConfig = cachedPool.getNftConfiguration(inputs[i].asset);
+
+      //validation of the parameters: the LTV can
+      //only be lower or equal than the liquidation threshold
+      //(otherwise a loan against the asset would cause instantaneous liquidation)
+      require(inputs[i].baseLTV <= inputs[i].liquidationThreshold, Errors.LPC_INVALID_CONFIGURATION);
+
+      if (inputs[i].liquidationThreshold != 0) {
+        //liquidation bonus must be smaller than or equal 100.00%
+        require(inputs[i].liquidationBonus <= PercentageMath.PERCENTAGE_FACTOR, Errors.LPC_INVALID_CONFIGURATION);
+      } else {
+        require(inputs[i].liquidationBonus == 0, Errors.LPC_INVALID_CONFIGURATION);
+      }
+
+      // collateral parameters
+      currentConfig.setLtv(inputs[i].baseLTV);
+      currentConfig.setLiquidationThreshold(inputs[i].liquidationThreshold);
+      currentConfig.setLiquidationBonus(inputs[i].liquidationBonus);
+
+      // auction parameters
+      currentConfig.setRedeemDuration(inputs[i].redeemDuration);
+      currentConfig.setAuctionDuration(inputs[i].auctionDuration);
+      currentConfig.setRedeemFine(inputs[i].redeemFine);
+      currentConfig.setRedeemThreshold(inputs[i].redeemThreshold);
+      currentConfig.setMinBidFine(inputs[i].minBidFine);
+
+      cachedPool.setNftConfiguration(inputs[i].asset, currentConfig.data);
+
+      emit NftConfigurationChanged(
+        inputs[i].asset,
+        inputs[i].baseLTV,
+        inputs[i].liquidationThreshold,
+        inputs[i].liquidationBonus
+      );
+      emit NftAuctionChanged(
+        inputs[i].asset,
+        inputs[i].redeemDuration,
+        inputs[i].auctionDuration,
+        inputs[i].redeemFine
+      );
+      emit NftRedeemThresholdChanged(inputs[i].asset, inputs[i].redeemThreshold);
+      emit NftMinBidFineChanged(inputs[i].asset, inputs[i].minBidFine);
+
+      // max limit
+      cachedPool.setNftMaxSupplyAndTokenId(inputs[i].asset, inputs[i].maxSupply, inputs[i].maxTokenId);
+      emit NftMaxSupplyAndTokenIdChanged(inputs[i].asset, inputs[i].maxSupply, inputs[i].maxTokenId);
+
+      cachedPool.setNftMaxCollateralCap(inputs[i].asset, inputs[i].maxCollateralCap);
+      emit NftMaxCollateralCapChanged(inputs[i].asset, inputs[i].maxCollateralCap);
+    }
+  }
+
+  function executeSetNftMaxCollateralCap(
+    ILendPool cachedPool,
+    address[] calldata assets,
+    uint256 maxCap
+  ) external {
+    for (uint256 i = 0; i < assets.length; i++) {
+      cachedPool.setNftMaxCollateralCap(assets[i], maxCap);
+
+      emit NftMaxCollateralCapChanged(assets[i], maxCap);
+    }
   }
 
   function executeUpdateBToken(ILendPool cachedPool, ConfigTypes.UpdateBTokenInput calldata input) external {

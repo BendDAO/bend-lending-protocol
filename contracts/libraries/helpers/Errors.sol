@@ -50,6 +50,7 @@ library Errors {
   string public constant VL_SPECIFIED_RESERVE_NOT_BORROWED_BY_USER = "318";
   string public constant VL_HEALTH_FACTOR_HIGHER_THAN_LIQUIDATION_THRESHOLD = "319";
   string public constant VL_PRICE_STALE = "320";
+  string public constant VL_EXCEED_MAX_UTILIZATION_RATE = "321";
 
   //lend pool errors
   string public constant LP_CALLER_NOT_LEND_POOL_CONFIGURATOR = "400"; // 'The caller of the function is not the lending pool configurator'
@@ -73,6 +74,7 @@ library Errors {
   string public constant LP_NFT_SUPPLY_NUM_EXCEED_MAX_LIMIT = "418";
   string public constant LP_CALLER_NOT_VALID_INTERCEPTOR = "419";
   string public constant LP_CALLER_NOT_VALID_LOCKER = "420";
+  string public constant LP_NFT_COLLATERAL_NUM_EXCEED_CAP_LIMIT = "421";
 
   //lend pool loan errors
   string public constant LPL_INVALID_LOAN_STATE = "480";

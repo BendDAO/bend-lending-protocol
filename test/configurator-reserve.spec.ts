@@ -1,23 +1,30 @@
 import { TestEnv, makeSuite } from "./helpers/make-suite";
-import { APPROVAL_AMOUNT_LENDING_POOL, RAY } from "../helpers/constants";
+import { APPROVAL_AMOUNT_LENDING_POOL, oneRay, RAY } from "../helpers/constants";
 import { convertToCurrencyDecimals } from "../helpers/contracts-helpers";
 import { ProtocolErrors } from "../helpers/types";
 import { strategyWETH } from "../markets/bend/reservesConfigs";
 import { BigNumberish } from "ethers";
+import BigNumber from "bignumber.js";
 
 const { expect } = require("chai");
 
 makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
-  const { CALLER_NOT_POOL_ADMIN, LPC_RESERVE_LIQUIDITY_NOT_0, LPC_INVALID_CONFIGURATION, RC_INVALID_RESERVE_FACTOR } =
-    ProtocolErrors;
+  const {
+    CALLER_NOT_POOL_ADMIN,
+    CALLER_NOT_RISK_OR_POOL_ADMIN,
+    LPC_RESERVE_LIQUIDITY_NOT_0,
+    LPC_INVALID_CONFIGURATION,
+    RC_INVALID_RESERVE_FACTOR,
+  } = ProtocolErrors;
 
   it("Reverts trying to set an invalid reserve factor", async () => {
     const { configurator, weth } = testEnv;
 
-    let inputs: { asset: string; reserveFactor: BigNumberish }[] = [
+    let inputs: { asset: string; reserveFactor: BigNumberish; maxUtilizationRate: BigNumberish }[] = [
       {
         asset: weth.address,
         reserveFactor: 65536,
+        maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
       },
     ];
 
@@ -153,7 +160,7 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
     expect(reserveFactor).to.be.equal(1000);
   });
 
-  it("Check the onlyLendPoolManager on setReserveFactor", async () => {
+  it("Check the onlyAdmin on setReserveFactor", async () => {
     const { configurator, users, weth } = testEnv;
     await expect(
       configurator.connect(users[2].signer).setReserveFactor([weth.address], "2000"),
@@ -164,14 +171,16 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
   it("Batch Changes the reserve factor of WETH & DAI", async () => {
     const { configurator, dataProvider, weth, dai } = testEnv;
 
-    let inputs: { asset: string; reserveFactor: BigNumberish }[] = [
+    let inputs: { asset: string; reserveFactor: BigNumberish; maxUtilizationRate: BigNumberish }[] = [
       {
         asset: weth.address,
         reserveFactor: 1000,
+        maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
       },
       {
         asset: dai.address,
         reserveFactor: 2000,
+        maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
       },
     ];
 
@@ -193,10 +202,11 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
   it("Check the onlyPoolAdmin on batchConfigReserve", async () => {
     const { configurator, users, weth } = testEnv;
 
-    let inputs: { asset: string; reserveFactor: BigNumberish }[] = [
+    let inputs: { asset: string; reserveFactor: BigNumberish; maxUtilizationRate: BigNumberish }[] = [
       {
         asset: weth.address,
         reserveFactor: 2000,
+        maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
       },
     ];
 
@@ -245,5 +255,23 @@ makeSuite("Configurator-Reserve", (testEnv: TestEnv) => {
       configurator.connect(users[2].signer).setMaxNumberOfReserves(512),
       CALLER_NOT_POOL_ADMIN
     ).to.be.revertedWith(CALLER_NOT_POOL_ADMIN);
+  });
+
+  it("Changes the reserve MaxUtilizationRate of WETH", async () => {
+    const { configurator, pool, weth } = testEnv;
+    await configurator.setReserveMaxUtilizationRate([weth.address], new BigNumber(0.75).multipliedBy(oneRay).toFixed());
+    const { maxUtilizationRate } = await pool.getReserveData(weth.address);
+
+    expect(maxUtilizationRate).to.be.equal(new BigNumber(0.75).multipliedBy(oneRay).toFixed());
+  });
+
+  it("Check the onlyPoolAdmin on MaxUtilizationRate ", async () => {
+    const { configurator, users, weth } = testEnv;
+    await expect(
+      configurator
+        .connect(users[2].signer)
+        .setReserveMaxUtilizationRate([weth.address], new BigNumber(0.75).multipliedBy(oneRay).toFixed()),
+      CALLER_NOT_RISK_OR_POOL_ADMIN
+    ).to.be.revertedWith(CALLER_NOT_RISK_OR_POOL_ADMIN);
   });
 });

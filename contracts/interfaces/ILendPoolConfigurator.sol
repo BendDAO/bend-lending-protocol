@@ -2,25 +2,6 @@
 pragma solidity 0.8.4;
 
 interface ILendPoolConfigurator {
-  struct ConfigReserveInput {
-    address asset;
-    uint256 reserveFactor;
-  }
-
-  struct ConfigNftInput {
-    address asset;
-    uint256 baseLTV;
-    uint256 liquidationThreshold;
-    uint256 liquidationBonus;
-    uint256 redeemDuration;
-    uint256 auctionDuration;
-    uint256 redeemFine;
-    uint256 redeemThreshold;
-    uint256 minBidFine;
-    uint256 maxSupply;
-    uint256 maxTokenId;
-  }
-
   /**
    * @dev Emitted when a reserve is initialized.
    * @param asset The address of the underlying asset of the reserve
@@ -92,6 +73,8 @@ interface ILendPoolConfigurator {
    **/
   event ReserveInterestRateChanged(address indexed asset, address strategy);
 
+  event ReserveMaxUtilizationRateChanged(address indexed asset, uint256 maxUtilRate);
+
   /**
    * @dev Emitted when a nft is initialized.
    * @param asset The address of the underlying asset of the nft
@@ -151,6 +134,8 @@ interface ILendPoolConfigurator {
   event NftMinBidFineChanged(address indexed asset, uint256 minBidFine);
 
   event NftMaxSupplyAndTokenIdChanged(address indexed asset, uint256 maxSupply, uint256 maxTokenId);
+
+  event NftMaxCollateralCapChanged(address indexed asset, uint256 maxCap);
 
   event LoanRepaidInterceptorApproval(address indexed interceptor, bool approved);
 

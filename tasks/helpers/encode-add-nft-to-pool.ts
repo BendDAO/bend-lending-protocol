@@ -82,6 +82,7 @@ task("helpers:encode-add-nft-to-pool", "Init and config new nft asset to lend po
       minBidFine: BigNumberish;
       maxSupply: BigNumberish;
       maxTokenId: BigNumberish;
+      maxCollateralCap: BigNumberish;
     }[] = [
       {
         asset: asset,
@@ -95,6 +96,7 @@ task("helpers:encode-add-nft-to-pool", "Init and config new nft asset to lend po
         minBidFine: nftParam.minBidFine,
         maxSupply: nftParam.maxSupply,
         maxTokenId: nftParam.maxTokenId,
+        maxCollateralCap: 100,
       },
     ];
     const batchCfgNftEncodeData = lendPoolConfiguratorProxy.interface.encodeFunctionData("batchConfigNft", [

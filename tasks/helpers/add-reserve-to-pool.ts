@@ -1,7 +1,7 @@
 import { BigNumberish } from "@ethersproject/bignumber";
 import { task } from "hardhat/config";
 import { ConfigNames, getProviderRegistryAddress, loadPoolConfig } from "../../helpers/configuration";
-import { ADDRESS_ID_PUNK_GATEWAY } from "../../helpers/constants";
+import { ADDRESS_ID_PUNK_GATEWAY, oneRay } from "../../helpers/constants";
 import { deployInterestRate } from "../../helpers/contracts-deployments";
 import {
   getBToken,
@@ -16,6 +16,7 @@ import { getEthersSignerByAddress, getParamPerNetwork } from "../../helpers/cont
 import { getNowTimeInSeconds, notFalsyOrZeroAddress, waitForTx } from "../../helpers/misc-utils";
 import { eContractid, eNetwork, IReserveParams } from "../../helpers/types";
 import { strategyReserveParams } from "../../markets/bend/reservesConfigs";
+import BigNumber from "bignumber.js";
 
 task("helpers:add-reserve-to-pool", "Add and config new reserve asset to lend pool")
   .addParam("pool", `Pool name to retrieve configuration, supported: ${Object.values(ConfigNames)}`)
@@ -107,10 +108,12 @@ task("helpers:add-reserve-to-pool", "Add and config new reserve asset to lend po
     let cfgInputParams: {
       asset: string;
       reserveFactor: BigNumberish;
+      maxUtilizationRate: BigNumberish;
     }[] = [
       {
         asset: asset,
         reserveFactor: reserveParam.reserveFactor,
+        maxUtilizationRate: new BigNumber(0.75).multipliedBy(oneRay).toFixed(),
       },
     ];
     console.log("Reserve cfgInputParams:", cfgInputParams);

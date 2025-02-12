@@ -11,6 +11,7 @@ import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
 import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
+import {IDebtToken} from "../../interfaces/IDebtToken.sol";
 import {INFTOracleGetter} from "../../interfaces/INFTOracleGetter.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
@@ -77,6 +78,8 @@ library ValidationLogic {
     bool isPriceStale;
     address loanReserveAsset;
     address loanBorrower;
+    uint256 totalDebt;
+    uint256 utilizationRate;
   }
 
   /**
@@ -125,6 +128,15 @@ library ValidationLogic {
 
     vars.isPriceStale = INFTOracleGetter(nftOracle).isPriceStale(nftAsset);
     require(!vars.isPriceStale, Errors.VL_PRICE_STALE);
+
+    // check utilization rate
+    vars.availableLiquidity = IERC20Upgradeable(reserveAsset).balanceOf(reserveData.bTokenAddress);
+    vars.totalDebt = IDebtToken(reserveData.debtTokenAddress).scaledTotalSupply().rayMul(
+      reserveData.variableBorrowIndex
+    );
+    vars.totalDebt += amount;
+    vars.utilizationRate = vars.totalDebt.rayDiv(vars.availableLiquidity + (vars.totalDebt));
+    require(vars.utilizationRate <= reserveData.maxUtilizationRate, Errors.VL_EXCEED_MAX_UTILIZATION_RATE);
 
     (vars.currentLtv, vars.currentLiquidationThreshold, ) = nftData.configuration.getCollateralParams();
 

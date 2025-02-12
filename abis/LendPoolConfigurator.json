@@ -245,6 +245,25 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "maxCap",
+        "type": "uint256"
+      }
+    ],
+    "name": "NftMaxCollateralCapChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "maxSupply",
         "type": "uint256"
       },
@@ -444,10 +463,42 @@
         "internalType": "address",
         "name": "asset",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxUtilRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "ReserveMaxUtilizationRateChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "asset",
+        "type": "address"
       }
     ],
     "name": "ReserveUnfrozen",
     "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "RISK_ADMIN",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
     "inputs": [
@@ -543,9 +594,14 @@
             "internalType": "uint256",
             "name": "maxTokenId",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxCollateralCap",
+            "type": "uint256"
           }
         ],
-        "internalType": "struct ILendPoolConfigurator.ConfigNftInput[]",
+        "internalType": "struct ConfigTypes.ConfigNftInput[]",
         "name": "inputs",
         "type": "tuple[]"
       }
@@ -568,9 +624,14 @@
             "internalType": "uint256",
             "name": "reserveFactor",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxUtilizationRate",
+            "type": "uint256"
           }
         ],
-        "internalType": "struct ILendPoolConfigurator.ConfigReserveInput[]",
+        "internalType": "struct ConfigTypes.ConfigReserveInput[]",
         "name": "inputs",
         "type": "tuple[]"
       }
@@ -929,6 +990,24 @@
       },
       {
         "internalType": "uint256",
+        "name": "maxCap",
+        "type": "uint256"
+      }
+    ],
+    "name": "setNftMaxCollateralCap",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
         "name": "maxSupply",
         "type": "uint256"
       },
@@ -1042,6 +1121,24 @@
       }
     ],
     "name": "setReserveInterestRateAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "assets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxUtilRate",
+        "type": "uint256"
+      }
+    ],
+    "name": "setReserveMaxUtilizationRate",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
