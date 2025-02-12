@@ -1,4 +1,6 @@
+import { get } from "http";
 import { TestEnv, makeSuite } from "./helpers/make-suite";
+import { getEthersSignerByAddress } from "../helpers/contracts-helpers";
 
 const { expect } = require("chai");
 
@@ -590,6 +592,44 @@ makeSuite("NFTOracle", (testEnv: TestEnv) => {
       await mockNftOracle.setAssetData(users[2].address, 400);
       await mockNftOracle.setPause(users[0].address, false);
       await mockNftOracle.setAssetData(users[1].address, 410);
+    });
+  });
+
+  makeSuite("NFTOracle: test setPriceStale", () => {
+    before(async () => {
+      const { mockNftOracle, users } = testEnv;
+      await mockNftOracle.setPriceFeedAdmin(users[0].address);
+    });
+
+    it("test setPriceStale revert", async () => {
+      const { mockNftOracle, users, usdc } = testEnv;
+
+      await expect(mockNftOracle.connect(users[2].signer).setPriceStale([usdc.address], true)).to.be.revertedWith(
+        "NFTOracle: invalid caller"
+      );
+
+      await expect(mockNftOracle.connect(users[0].signer).setPriceStale([usdc.address], false)).to.be.revertedWith(
+        "NFTOracle: invalid caller"
+      );
+
+      await expect(mockNftOracle.connect(users[0].signer).setPriceStale([usdc.address], true)).to.be.revertedWith(
+        "NFTOracle: key not existed"
+      );
+    });
+
+    it("test setPriceStale normal", async () => {
+      const { mockNftOracle, users, usdc } = testEnv;
+      await mockNftOracle.addAsset(usdc.address);
+
+      await mockNftOracle.setPriceStale([usdc.address], true);
+      const isStale1 = await mockNftOracle.isPriceStale(usdc.address);
+      expect(isStale1).to.equal(true);
+
+      const owner = await mockNftOracle.owner();
+      const ownerSigner = await getEthersSignerByAddress(owner);
+      await mockNftOracle.connect(ownerSigner).setPriceStale([usdc.address], false);
+      const isStale2 = await mockNftOracle.isPriceStale(usdc.address);
+      expect(isStale2).to.equal(false);
     });
   });
 });

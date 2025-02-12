@@ -12,6 +12,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
 import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
 import {IDebtToken} from "../../interfaces/IDebtToken.sol";
+import {INFTOracleGetter} from "../../interfaces/INFTOracleGetter.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
@@ -74,6 +75,7 @@ library ValidationLogic {
     bool stableRateBorrowingEnabled;
     bool nftIsActive;
     bool nftIsFrozen;
+    bool isPriceStale;
     address loanReserveAsset;
     address loanBorrower;
     uint256 totalDebt;
@@ -123,6 +125,9 @@ library ValidationLogic {
     (vars.nftIsActive, vars.nftIsFrozen) = nftData.configuration.getFlags();
     require(vars.nftIsActive, Errors.VL_NO_ACTIVE_NFT);
     require(!vars.nftIsFrozen, Errors.VL_NFT_FROZEN);
+
+    vars.isPriceStale = INFTOracleGetter(nftOracle).isPriceStale(nftAsset);
+    require(!vars.isPriceStale, Errors.VL_PRICE_STALE);
 
     // check utilization rate
     vars.availableLiquidity = IERC20Upgradeable(reserveAsset).balanceOf(reserveData.bTokenAddress);

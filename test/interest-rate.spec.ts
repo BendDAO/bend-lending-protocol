@@ -35,6 +35,35 @@ makeSuite("Interest rate tests", (testEnv: TestEnv) => {
     );
   });
 
+  it("Test the ownership check", async () => {
+    const { users } = testEnv;
+
+    const owner = await rateInstance.owner();
+
+    await rateInstance.transferOwnership(users[1].address);
+
+    await expect(rateInstance.setInterestRateParams(100, 100, 100, 100)).to.be.revertedWith(
+      "Ownable: caller is not the owner"
+    );
+
+    await rateInstance.connect(users[1].signer).transferOwnership(owner);
+  });
+
+  it("Test the set params", async () => {
+    await rateInstance.setInterestRateParams(100, 200, 300, 400);
+
+    await expect(await rateInstance.baseVariableBorrowRate()).to.be.equal(200, "baseRate not eq");
+    await expect(await rateInstance.variableRateSlope1()).to.be.equal(300, "slope1 not eq");
+    await expect(await rateInstance.variableRateSlope2()).to.be.equal(400, "slope2 not eq");
+
+    await rateInstance.setInterestRateParams(
+      rateStrategyStableOne.optimalUtilizationRate,
+      rateStrategyStableOne.baseVariableBorrowRate,
+      rateStrategyStableOne.variableRateSlope1,
+      rateStrategyStableOne.variableRateSlope2
+    );
+  });
+
   it("Checks rates at 0% utilization rate, empty reserve", async () => {
     const { 0: currentLiquidityRate, 1: currentVariableBorrowRate } = await rateInstance[
       "calculateInterestRates(address,address,uint256,uint256,uint256,uint256)"

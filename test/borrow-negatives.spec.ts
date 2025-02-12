@@ -14,7 +14,8 @@ import { configuration as actionsConfiguration } from "./helpers/actions";
 import { configuration as calculationsConfiguration } from "./helpers/utils/calculations";
 import BigNumber from "bignumber.js";
 import { getReservesConfigByPool } from "../helpers/configuration";
-import { BendPools, iBendPoolAssets, IReserveParams } from "../helpers/types";
+import { BendPools, iBendPoolAssets, IReserveParams, ProtocolErrors } from "../helpers/types";
+import { getEthersSignerByAddress } from "../helpers/contracts-helpers";
 
 const { expect } = require("chai");
 
@@ -73,6 +74,35 @@ makeSuite("LendPool: Borrow negative test cases", (testEnv: TestEnv) => {
     );
 
     cachedTokenId = tokenId;
+  });
+
+  it("User 1 tries to borrow 1 WETH but price is stale (revert expected)", async () => {
+    const { users, nftOracle, bayc } = testEnv;
+    const user2 = users[2];
+
+    const feedAdminAddr = await nftOracle.priceFeedAdmin();
+    const feedAdminSigner = await getEthersSignerByAddress(feedAdminAddr);
+    await nftOracle.connect(feedAdminSigner).setPriceStale([bayc.address], true);
+
+    expect(cachedTokenId, "previous test case is faild").to.not.be.undefined;
+    const tokenId = cachedTokenId.toString();
+
+    await borrow(
+      testEnv,
+      user2,
+      "WETH",
+      "1",
+      "BAYC",
+      tokenId,
+      user2.address,
+      "",
+      "revert",
+      ProtocolErrors.VL_PRICE_STALE
+    );
+
+    const ownerAddr = await nftOracle.priceFeedAdmin();
+    const ownerSigner = await getEthersSignerByAddress(ownerAddr);
+    await nftOracle.connect(ownerSigner).setPriceStale([bayc.address], false);
   });
 
   it("User 1 tries to uses NFT as collateral to borrow 100 WETH (revert expected)", async () => {
