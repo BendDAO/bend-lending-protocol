@@ -11,8 +11,8 @@ import {Errors} from "../helpers/Errors.sol";
 import {DataTypes} from "../types/DataTypes.sol";
 import {IInterestRate} from "../../interfaces/IInterestRate.sol";
 import {ILendPoolLoan} from "../../interfaces/ILendPoolLoan.sol";
-import {IDebtToken} from "../../interfaces/IDebtToken.sol";
 import {INFTOracleGetter} from "../../interfaces/INFTOracleGetter.sol";
+import {IDebtToken} from "../../interfaces/IDebtToken.sol";
 
 import {IERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import {SafeERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
