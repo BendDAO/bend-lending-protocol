@@ -235,6 +235,7 @@ library LiquidateLogic {
     uint256 minBidFinePct;
     uint256 minBidFine;
     uint256 extraRedeemDuration;
+    DataTypes.LoanData loanData;
   }
 
   /**
@@ -262,17 +263,17 @@ library LiquidateLogic {
     vars.loanId = ILendPoolLoan(vars.poolLoan).getCollateralLoanId(params.nftAsset, params.nftTokenId);
     require(vars.loanId != 0, Errors.LP_NFT_IS_NOT_USED_AS_COLLATERAL);
 
-    DataTypes.LoanData memory loanData = ILendPoolLoan(vars.poolLoan).getLoan(vars.loanId);
+    vars.loanData = ILendPoolLoan(vars.poolLoan).getLoan(vars.loanId);
 
-    DataTypes.ReserveData storage reserveData = reservesData[loanData.reserveAsset];
-    DataTypes.NftData storage nftData = nftsData[loanData.nftAsset];
+    DataTypes.ReserveData storage reserveData = reservesData[vars.loanData.reserveAsset];
+    DataTypes.NftData storage nftData = nftsData[vars.loanData.nftAsset];
 
-    ValidationLogic.validateRedeem(reserveData, nftData, loanData, params.amount);
+    ValidationLogic.validateRedeem(reserveData, nftData, vars.loanData, params.amount);
 
-    if ((poolStates.pauseDurationTime > 0) && (loanData.bidStartTimestamp <= poolStates.pauseStartTime)) {
+    if ((poolStates.pauseDurationTime > 0) && (vars.loanData.bidStartTimestamp <= poolStates.pauseStartTime)) {
       vars.extraRedeemDuration = poolStates.pauseDurationTime;
     }
-    vars.redeemEndTimestamp = (loanData.bidStartTimestamp +
+    vars.redeemEndTimestamp = (vars.loanData.bidStartTimestamp +
       vars.extraRedeemDuration +
       nftData.configuration.getRedeemDuration() *
       1 hours);
@@ -283,9 +284,9 @@ library LiquidateLogic {
 
     (vars.borrowAmount, , ) = GenericLogic.calculateLoanLiquidatePrice(
       vars.loanId,
-      loanData.reserveAsset,
+      vars.loanData.reserveAsset,
       reserveData,
-      loanData.nftAsset,
+      vars.loanData.nftAsset,
       nftData,
       vars.poolLoan,
       vars.reserveOracle,
@@ -294,11 +295,11 @@ library LiquidateLogic {
 
     // check bid fine in min & max range
     (, vars.bidFine) = GenericLogic.calculateLoanBidFine(
-      loanData.reserveAsset,
+      vars.loanData.reserveAsset,
       reserveData,
-      loanData.nftAsset,
+      vars.loanData.nftAsset,
       nftData,
-      loanData,
+      vars.loanData,
       vars.poolLoan,
       vars.reserveOracle
     );
@@ -322,38 +323,42 @@ library LiquidateLogic {
       reserveData.variableBorrowIndex
     );
 
-    IDebtToken(reserveData.debtTokenAddress).burn(loanData.borrower, vars.repayAmount, reserveData.variableBorrowIndex);
+    IDebtToken(reserveData.debtTokenAddress).burn(
+      vars.loanData.borrower,
+      vars.repayAmount,
+      reserveData.variableBorrowIndex
+    );
 
     // update interest rate according latest borrow amount (utilizaton)
-    reserveData.updateInterestRates(loanData.reserveAsset, reserveData.bTokenAddress, vars.repayAmount, 0);
+    reserveData.updateInterestRates(vars.loanData.reserveAsset, reserveData.bTokenAddress, vars.repayAmount, 0);
 
     // transfer repay amount from borrower to bToken
-    IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
+    IERC20Upgradeable(vars.loanData.reserveAsset).safeTransferFrom(
       vars.initiator,
       reserveData.bTokenAddress,
       vars.repayAmount
     );
 
-    if (loanData.bidderAddress != address(0)) {
+    if (vars.loanData.bidderAddress != address(0)) {
       // transfer (return back) last bid price amount from lend pool to bidder
-      IERC20Upgradeable(loanData.reserveAsset).safeTransfer(loanData.bidderAddress, loanData.bidPrice);
+      IERC20Upgradeable(vars.loanData.reserveAsset).safeTransfer(vars.loanData.bidderAddress, vars.loanData.bidPrice);
 
       // transfer bid penalty fine amount from borrower to the first bidder
-      IERC20Upgradeable(loanData.reserveAsset).safeTransferFrom(
+      IERC20Upgradeable(vars.loanData.reserveAsset).safeTransferFrom(
         vars.initiator,
-        loanData.firstBidderAddress,
+        vars.loanData.firstBidderAddress,
         vars.bidFine
       );
     }
 
     emit Redeem(
       vars.initiator,
-      loanData.reserveAsset,
+      vars.loanData.reserveAsset,
       vars.repayAmount,
       vars.bidFine,
-      loanData.nftAsset,
-      loanData.nftTokenId,
-      loanData.borrower,
+      vars.loanData.nftAsset,
+      vars.loanData.nftTokenId,
+      vars.loanData.borrower,
       vars.loanId
     );
 
