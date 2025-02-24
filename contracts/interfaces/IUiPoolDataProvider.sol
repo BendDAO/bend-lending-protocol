@@ -29,6 +29,10 @@ interface IUiPoolDataProvider {
     uint256 priceInEth;
     uint256 variableRateSlope1;
     uint256 variableRateSlope2;
+    //
+    uint256 priceInUSD;
+    uint256 utilizationRate;
+    uint256 maxUtilizationRate;
   }
 
   struct UserReserveData {
@@ -54,6 +58,9 @@ interface IUiPoolDataProvider {
     address bNftAddress;
     uint256 priceInEth;
     uint256 totalCollateral;
+    //
+    uint256 priceInUSD;
+    uint256 maxCollateralCap;
   }
 
   struct UserNftData {

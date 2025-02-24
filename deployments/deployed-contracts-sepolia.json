@@ -128,7 +128,7 @@
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "UIPoolDataProvider": {
-    "address": "0x65fe0C8E9d18b4959BF7f49B63796Ba9f4F9a0fb",
+    "address": "0x89d9C13679b9612c975e54958F452880F011eee7",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   },
   "ChainlinkAggregatorHelperImpl": {
