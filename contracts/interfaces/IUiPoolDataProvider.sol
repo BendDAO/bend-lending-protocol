@@ -61,6 +61,7 @@ interface IUiPoolDataProvider {
     //
     uint256 priceInUSD;
     uint256 maxCollateralCap;
+    bool isPriceStale;
   }
 
   struct UserNftData {
