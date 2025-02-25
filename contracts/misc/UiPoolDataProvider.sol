@@ -23,6 +23,9 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
   using NftConfiguration for DataTypes.NftConfigurationMap;
 
+  uint256 public constant RPICE_DECIMAL = 10**18;
+  address public constant MOCK_ETH_USD_ADDRESS = 0x9ceB4d4C184d1786614a593a03621b7F37F8685F;
+
   IReserveOracleGetter public immutable reserveOracle;
   INFTOracleGetter public immutable nftOracle;
 
@@ -50,12 +53,14 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     address[] memory reserves = lendPool.getReservesList();
     AggregatedReserveData[] memory reservesData = new AggregatedReserveData[](reserves.length);
 
+    uint256 ethUSDPrice = reserveOracle.getAssetPrice(MOCK_ETH_USD_ADDRESS);
+
     for (uint256 i = 0; i < reserves.length; i++) {
       AggregatedReserveData memory reserveData = reservesData[i];
 
       DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserves[i]);
 
-      _fillReserveData(reserveData, reserves[i], baseData);
+      _fillReserveData(reserveData, reserves[i], baseData, ethUSDPrice);
     }
 
     return (reservesData);
@@ -93,11 +98,13 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     AggregatedReserveData[] memory reservesData = new AggregatedReserveData[](reserves.length);
     UserReserveData[] memory userReservesData = new UserReserveData[](user != address(0) ? reserves.length : 0);
 
+    uint256 ethUSDPrice = reserveOracle.getAssetPrice(MOCK_ETH_USD_ADDRESS);
+
     for (uint256 i = 0; i < reserves.length; i++) {
       AggregatedReserveData memory reserveData = reservesData[i];
 
       DataTypes.ReserveData memory baseData = lendPool.getReserveData(reserves[i]);
-      _fillReserveData(reserveData, reserves[i], baseData);
+      _fillReserveData(reserveData, reserves[i], baseData, ethUSDPrice);
 
       if (user != address(0)) {
         _fillUserReserveData(userReservesData[i], user, reserves[i], baseData);
@@ -110,7 +117,8 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
   function _fillReserveData(
     AggregatedReserveData memory reserveData,
     address reserveAsset,
-    DataTypes.ReserveData memory baseData
+    DataTypes.ReserveData memory baseData,
+    uint256 ethUSDPrice
   ) internal view {
     reserveData.underlyingAsset = reserveAsset;
 
@@ -124,6 +132,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     reserveData.debtTokenAddress = baseData.debtTokenAddress;
     reserveData.interestRateAddress = baseData.interestRateAddress;
     reserveData.priceInEth = reserveOracle.getAssetPrice(reserveData.underlyingAsset);
+    reserveData.priceInUSD = (reserveData.priceInEth * ethUSDPrice) / RPICE_DECIMAL;
 
     reserveData.availableLiquidity = IERC20Detailed(reserveData.underlyingAsset).balanceOf(reserveData.bTokenAddress);
     reserveData.totalVariableDebt = IDebtToken(reserveData.debtTokenAddress).totalSupply();
@@ -139,6 +148,13 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     (reserveData.variableRateSlope1, reserveData.variableRateSlope2) = getInterestRateStrategySlopes(
       InterestRate(reserveData.interestRateAddress)
     );
+
+    if (reserveData.totalVariableDebt > 0) {
+      reserveData.utilizationRate =
+        reserveData.totalVariableDebt /
+        (reserveData.availableLiquidity + reserveData.totalVariableDebt);
+    }
+    reserveData.maxUtilizationRate = baseData.maxUtilizationRate;
   }
 
   function _fillUserReserveData(
@@ -169,12 +185,14 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     address[] memory nfts = lendPool.getNftsList();
     AggregatedNftData[] memory nftsData = new AggregatedNftData[](nfts.length);
 
+    uint256 ethUSDPrice = reserveOracle.getAssetPrice(MOCK_ETH_USD_ADDRESS);
+
     for (uint256 i = 0; i < nfts.length; i++) {
       AggregatedNftData memory nftData = nftsData[i];
 
       DataTypes.NftData memory baseData = lendPool.getNftData(nfts[i]);
 
-      _fillNftData(nftData, nfts[i], baseData, lendPoolLoan);
+      _fillNftData(nftData, nfts[i], baseData, lendPoolLoan, ethUSDPrice);
     }
 
     return (nftsData);
@@ -217,13 +235,15 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     AggregatedNftData[] memory nftsData = new AggregatedNftData[](nfts.length);
     UserNftData[] memory userNftsData = new UserNftData[](user != address(0) ? nfts.length : 0);
 
+    uint256 ethUSDPrice = reserveOracle.getAssetPrice(MOCK_ETH_USD_ADDRESS);
+
     for (uint256 i = 0; i < nfts.length; i++) {
       AggregatedNftData memory nftData = nftsData[i];
       UserNftData memory userNftData = userNftsData[i];
 
       DataTypes.NftData memory baseData = lendPool.getNftData(nfts[i]);
 
-      _fillNftData(nftData, nfts[i], baseData, lendPoolLoan);
+      _fillNftData(nftData, nfts[i], baseData, lendPoolLoan, ethUSDPrice);
       if (user != address(0)) {
         _fillUserNftData(userNftData, user, nfts[i], baseData, lendPoolLoan);
       }
@@ -236,13 +256,16 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
     AggregatedNftData memory nftData,
     address nftAsset,
     DataTypes.NftData memory baseData,
-    ILendPoolLoan lendPoolLoan
+    ILendPoolLoan lendPoolLoan,
+    uint256 ethUSDPrice
   ) internal view {
     nftData.underlyingAsset = nftAsset;
 
     // nft current state
     nftData.bNftAddress = baseData.bNftAddress;
     nftData.priceInEth = nftOracle.getAssetPrice(nftData.underlyingAsset);
+    nftData.priceInUSD = (nftData.priceInEth * ethUSDPrice) / RPICE_DECIMAL;
+    nftData.isPriceStale = nftOracle.isPriceStale(nftData.underlyingAsset);
 
     nftData.totalCollateral = lendPoolLoan.getNftCollateralAmount(nftAsset);
 
@@ -258,6 +281,7 @@ contract UiPoolDataProvider is IUiPoolDataProvider {
       .getAuctionParamsMemory();
     (nftData.isActive, nftData.isFrozen) = baseData.configuration.getFlagsMemory();
     nftData.minBidFine = baseData.configuration.getMinBidFineMemory();
+    nftData.maxCollateralCap = baseData.maxCollateralCap;
   }
 
   function _fillUserNftData(

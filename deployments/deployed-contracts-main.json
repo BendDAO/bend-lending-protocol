@@ -127,7 +127,7 @@
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "UIPoolDataProvider": {
-    "address": "0x132E3E3eC6652299B235A26D601aa9C68806e3FE",
+    "address": "0x05664B848B40904a79e24A6B7A087fb0EccDeB38",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "BendProxyAdminWTL": {
