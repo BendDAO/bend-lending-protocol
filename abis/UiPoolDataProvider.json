@@ -16,6 +16,32 @@
     "type": "constructor"
   },
   {
+    "inputs": [],
+    "name": "MOCK_ETH_USD_ADDRESS",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "RPICE_DECIMAL",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "contract ILendPoolAddressesProvider",
@@ -111,6 +137,21 @@
             "internalType": "uint256",
             "name": "totalCollateral",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxCollateralCap",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isPriceStale",
+            "type": "bool"
           }
         ],
         "internalType": "struct IUiPoolDataProvider.AggregatedNftData[]",
@@ -282,6 +323,21 @@
           {
             "internalType": "uint256",
             "name": "variableRateSlope2",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "utilizationRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxUtilizationRate",
             "type": "uint256"
           }
         ],
@@ -516,6 +572,21 @@
             "internalType": "uint256",
             "name": "totalCollateral",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxCollateralCap",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isPriceStale",
+            "type": "bool"
           }
         ],
         "internalType": "struct IUiPoolDataProvider.AggregatedNftData[]",
@@ -641,6 +712,21 @@
           {
             "internalType": "uint256",
             "name": "variableRateSlope2",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "priceInUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "utilizationRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxUtilizationRate",
             "type": "uint256"
           }
         ],
