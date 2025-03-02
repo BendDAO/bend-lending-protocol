@@ -178,5 +178,17 @@
   "rateStrategyWETH250205": {
     "address": "0xF1F89AE4a28318e36026ADcFe1B7188e2122db6B",
     "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyUSDT250301": {
+    "address": "0xc92f6892758424b35b37FcBc8b3920f298250CF8",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWBTC250301": {
+    "address": "0xBF88f26438B1AEB7E5a8c52c83abf258f62D5259",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
+  },
+  "rateStrategyWSTETH250301": {
+    "address": "0xC3E5f54132e468FC3D1fBcB67EDbD2cCb577614b",
+    "deployer": "0xafF5C36642385b6c7Aaf7585eC785aB2316b5db6"
   }
 }

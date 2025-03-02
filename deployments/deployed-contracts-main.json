@@ -186,76 +186,8 @@
     "address": "0x6F8A38Bf0331Cc691AB6dD8146aDeB5B846430B2",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
-  "rateStrategyWETH240325": {
-    "address": "0xeb304b25c5051Fc37f75a94da984a56263f569dF",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyUSDT240325": {
-    "address": "0xc7A5e403697cA5FF6e12b240503b1a0EB7EEfaFF",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyUSDT240619": {
-    "address": "0x8ab25A3Dd22a7d44682b2B2E82Ab24C7132C5800",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240619": {
-    "address": "0xf34d8A4164c52296D9021d010Ea5685c1FC9cC98",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240804": {
-    "address": "0x4bcdb6593ee52b0b0b69a079F37D05adD6C774d6",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyUSDT240804": {
-    "address": "0xb55661e16f242577C8B5C2A9Aa10108C4CA5c612",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240812": {
-    "address": "0x51e7a9cB012A661F4CF17A21a70a09A67F830Ab9",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyUSDT240812": {
-    "address": "0xE80b6CaB0e2E3001Ed06DB1De288287776D5b293",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240820": {
-    "address": "0x6a5ad6f3400d37bFA897acaa0C66CE9e329C0E5E",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyUSDT240820": {
-    "address": "0xfdb591eEd17dC492f848472845D2dAF5204e2783",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyUSDT240827": {
-    "address": "0xBb72C4fEcEa762CB88aaC7E5BC5602278B72F489",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240827": {
-    "address": "0x71D6cf3e7c8e77501fbFEcCC7F9FcFdC2D7Fb7bf",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240904": {
-    "address": "0xEC3A722592A962f74bB659C54C6220B909191cDb",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
   "rateStrategyUSDT240904": {
     "address": "0x99C486d409e6480a4e47c66ebAaa193Ae2D08469",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240912": {
-    "address": "0x996Bdd4d51433368B93b80b962AFE5124b8207B0",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240919": {
-    "address": "0xF699082484CeF285aae8a21cDFe4203162Cd4Cea",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH240927": {
-    "address": "0xe5f796C06ed5DBaF90b237C59B907414d57BDF23",
-    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
-  },
-  "rateStrategyWETH241004": {
-    "address": "0x58042CEB8825b51536635A8C7b3d0E74c8C17C1e",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   },
   "rateStrategyWETH241012": {
@@ -271,6 +203,18 @@
   },
   "rateStrategyWETH250205": {
     "address": "0xeDc614E4e9A173Fb72e21b1814AC068A458C64e7",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyUSDT250301": {
+    "address": "0x551D232e7A5A212E5A889954eAA6262F5b6dbCb1",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWBTC250301": {
+    "address": "0x1E36ba024a7A5c7e49D91eE751eeF56C2B24004c",
+    "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
+  },
+  "rateStrategyWSTETH250301": {
+    "address": "0x35D7045a26E68D17E54A2849683F60536ED67c52",
     "deployer": "0x868964fa49a6fd6e116FE82c8f4165904406f479"
   }
 }
