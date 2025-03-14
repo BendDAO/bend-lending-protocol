@@ -271,6 +271,13 @@ interface ILendPool {
     address onBehalfOf
   ) external;
 
+  function batchAuction(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata bidPrices,
+    address onBehalfOf
+  ) external;
+
   /**
    * @notice Redeem a NFT loan which state is in Auction
    * - E.g. User repays 100 USDC, burning loan and receives collateral asset
@@ -286,6 +293,13 @@ interface ILendPool {
     uint256 bidFine
   ) external returns (uint256);
 
+  function batchRedeem(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts,
+    uint256[] calldata bidFines
+  ) external returns (uint256[] memory);
+
   /**
    * @dev Function to liquidate a non-healthy position collateral-wise
    * - The caller (liquidator) buy collateral asset of the user getting liquidated, and receives
@@ -298,6 +312,12 @@ interface ILendPool {
     uint256 nftTokenId,
     uint256 amount
   ) external returns (uint256);
+
+  function batchLiquidate(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external returns (uint256[] memory);
 
   /**
    * @dev Validates and finalizes an bToken transfer
