@@ -7,7 +7,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: GoogleCloudPlatform/release-please-action@v2
+      - uses: GoogleCloudPlatform/release-please-action@v4
         id: release
         with:
           release-type: node
@@ -31,7 +31,7 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: "18.x"
           cache: yarn
       - name: Install dependencies
         if: ${{ steps.release.outputs.release_created }}
