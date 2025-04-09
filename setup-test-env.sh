@@ -13,6 +13,8 @@
 
 echo "[BASH] Setting up testnet enviroment"
 
+export NODE_OPTIONS="--max-old-space-size=8192"
+
 if [ ! "$COVERAGE" = true ]; then
     # remove hardhat and artifacts cache
     npm run ci:clean
@@ -27,10 +29,6 @@ fi
 # the hardhat-deploy library load all artifacts without duplicates 
 mkdir -p temp-artifacts
 cp -r artifacts/* temp-artifacts
-
-# Import external @benddao/deploy artifacts
-mkdir -p temp-artifacts/bend-deploy
-cp -r node_modules/@benddao/bend-deploy/artifacts/contracts/* temp-artifacts/deploy
 
 # Export MARKET_NAME variable to use Bend market as testnet deployment setup
 export MARKET_NAME="Test"
