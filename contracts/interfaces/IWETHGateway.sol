@@ -2,6 +2,8 @@
 pragma solidity 0.8.4;
 
 interface IWETHGateway {
+  function getWETHAddress() external view returns (address);
+
   /**
    * @dev deposits WETH into the reserve, using native ETH. A corresponding amount of the overlying asset (bTokens)
    * is minted.
@@ -74,6 +76,13 @@ interface IWETHGateway {
     address onBehalfOf
   ) external payable;
 
+  function batchAuctionETH(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata bidPrices,
+    address onBehalfOf
+  ) external payable;
+
   /**
    * @dev redeems a borrow on the WETH reserve
    * @param nftAsset The address of the underlying NFT used as collateral
@@ -88,10 +97,23 @@ interface IWETHGateway {
     uint256 bidFine
   ) external payable returns (uint256);
 
+  function batchRedeemETH(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts,
+    uint256[] calldata bidFines
+  ) external payable returns (uint256[] memory);
+
   /**
    * @dev liquidates a borrow on the WETH reserve
    * @param nftAsset The address of the underlying NFT used as collateral
    * @param nftTokenId The token ID of the underlying NFT used as collateral
    */
   function liquidateETH(address nftAsset, uint256 nftTokenId) external payable returns (uint256);
+
+  function batchLiquidateETH(
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint256[] calldata amounts
+  ) external payable returns (uint256[] memory);
 }

@@ -442,6 +442,34 @@
     "inputs": [
       {
         "internalType": "address[]",
+        "name": "nftAssets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "nftTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "bidPrices",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "onBehalfOf",
+        "type": "address"
+      }
+    ],
+    "name": "batchAuction",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
         "name": "assets",
         "type": "address[]"
       },
@@ -473,6 +501,69 @@
     ],
     "name": "batchBorrow",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "nftAssets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "nftTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "batchLiquidate",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "nftAssets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "nftTokenIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "amounts",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "bidFines",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "batchRedeem",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
